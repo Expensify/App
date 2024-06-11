@@ -54,7 +54,7 @@ function SubscriptionDetails() {
     };
 
     const onSubscriptionSizePress = () => {
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE);
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
     };
 
     // This section is only shown when the subscription is annual

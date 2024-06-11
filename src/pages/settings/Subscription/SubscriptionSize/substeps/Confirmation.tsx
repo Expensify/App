@@ -11,6 +11,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/SubscriptionSize/utils';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
@@ -25,12 +26,18 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
 
-    const CAN_CHANGE_SUBSCRIPTION_SIZE = ((account?.canDowngrade ?? false) || (Number(subscriptionSizeFormDraft) ?? 0) >= (privateSubscription?.userCount ?? 0)) && isEditing;
-    const SUBSCRIPTION_UNTIL = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const isTryingToIncreaseSubscriptionSize = (subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0) > (privateSubscription?.userCount ?? 0);
+    const canChangeSubscriptionSize = (account?.canDowngrade ?? false) || (isTryingToIncreaseSubscriptionSize && isEditing);
+    const newSubscriptionEndDate = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+
+    const onClosePress = () => {
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
+        Navigation.goBack();
+    };
 
     return (
         <View style={[styles.flexGrow1]}>
-            {CAN_CHANGE_SUBSCRIPTION_SIZE ? (
+            {canChangeSubscriptionSize ? (
                 <>
                     <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
                     <MenuItemWithTopDescription
@@ -50,13 +57,13 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
                     <Text style={[styles.ph5, styles.textNormalThemeText]}>
                         {translate('subscription.subscriptionSize.youAlreadyCommitted', {
                             size: privateSubscription?.userCount ?? 0,
-                            date: SUBSCRIPTION_UNTIL,
+                            date: newSubscriptionEndDate,
                         })}
                     </Text>
                 </>
             )}
             <FixedFooter style={[styles.mtAuto]}>
-                {CAN_CHANGE_SUBSCRIPTION_SIZE ? (
+                {canChangeSubscriptionSize ? (
                     <Button
                         success
                         large
@@ -67,7 +74,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
                     <Button
                         success
                         large
-                        onPress={() => Navigation.goBack()}
+                        onPress={onClosePress}
                         text={translate('common.close')}
                     />
                 )}
