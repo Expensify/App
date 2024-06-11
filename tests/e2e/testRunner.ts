@@ -16,6 +16,7 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
+import type {TestResult} from '@libs/E2E/client';
 import type {TestConfig} from '@libs/E2E/types';
 import compare from './compare/compare';
 import defaultConfig from './config';
@@ -25,6 +26,7 @@ import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
 import * as Logger from './utils/logger';
+import {start, stop} from './utils/measure';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
@@ -91,18 +93,7 @@ const runTests = async (): Promise<void> => {
     // Create a dict in which we will store the run durations for all tests
     const results: Record<string, Result> = {};
 
-    // Collect results while tests are being executed
-    server.addTestResultListener((testResult) => {
-        const {isCritical = true} = testResult;
-
-        if (testResult?.error != null && isCritical) {
-            throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
-        }
-        if (testResult?.error != null && !isCritical) {
-            // force test completion, since we don't want to have timeout error for non being execute test
-            server.forceTestCompletion();
-            Logger.warn(`Test '${testResult.name}' failed with error: ${testResult.error}`);
-        }
+    const attachTestResult = (testResult: TestResult) => {
         let result = 0;
 
         if (testResult?.duration !== undefined) {
@@ -124,10 +115,26 @@ const runTests = async (): Promise<void> => {
         if (testResult?.branch && testResult?.name) {
             results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
         }
+    };
+
+    // Collect results while tests are being executed
+    server.addTestResultListener((testResult) => {
+        const {isCritical = true} = testResult;
+
+        if (testResult?.error != null && isCritical) {
+            throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
+        }
+        if (testResult?.error != null && !isCritical) {
+            // force test completion, since we don't want to have timeout error for non being execute test
+            server.forceTestCompletion();
+            Logger.warn(`Test '${testResult.name}' failed with error: ${testResult.error}`);
+        }
+
+        attachTestResult(testResult);
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
+    async function runTestIteration(appPackage: string, iterationText: string, branch: 'main' | 'delta', launchArgs: Record<string, boolean> = {}): Promise<void> {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -137,10 +144,31 @@ const runTests = async (): Promise<void> => {
         Logger.log('Launching', appPackage);
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
+        start(appPackage);
         await withFailTimeout(
             new Promise<void>((resolve) => {
-                server.addTestDoneListener(() => {
+                const subscription = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
+
+                    const metrics = stop();
+                    const test = server.getTestConfig();
+
+                    attachTestResult({
+                        name: `${test.name} (CPU)`,
+                        branch,
+                        duration: metrics.cpu,
+                    });
+                    attachTestResult({
+                        name: `${test.name} (FPS)`,
+                        branch,
+                        duration: metrics.fps,
+                    });
+                    attachTestResult({
+                        name: `${test.name} (RAM)`,
+                        branch,
+                        duration: metrics.ram,
+                    });
+                    subscription();
                     resolve();
                 });
             }),
@@ -188,10 +216,10 @@ const runTests = async (): Promise<void> => {
         const iterations = 2;
         for (let i = 0; i < iterations; i++) {
             // Warmup the main app:
-            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`);
+            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, 'main');
 
             // Warmup the delta app:
-            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`);
+            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, 'delta');
         }
 
         server.setReadyToAcceptTestResults(true);
@@ -226,10 +254,10 @@ const runTests = async (): Promise<void> => {
             const deltaIterationText = `[DELTA] ${iterationText}`;
             try {
                 // Run the test on the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, launchArgs);
+                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, 'main', launchArgs);
 
                 // Run the test on the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
+                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, 'delta', launchArgs);
             } catch (e) {
                 onError(e as Error);
             }

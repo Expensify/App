@@ -20,10 +20,11 @@ type TestDoneListener = () => void;
 
 type TestResultListener = (testResult: TestResult) => void;
 
-type AddListener<TListener> = (listener: TListener) => void;
+type AddListener<TListener> = (listener: TListener) => () => void;
 
 type ServerInstance = {
     setTestConfig: (testConfig: TestConfig) => void;
+    getTestConfig: () => TestConfig;
     addTestStartedListener: AddListener<TestStartedListener>;
     addTestResultListener: AddListener<TestResultListener>;
     addTestDoneListener: AddListener<TestDoneListener>;
@@ -114,6 +115,13 @@ const createServerInstance = (): ServerInstance => {
 
     const setTestConfig = (testConfig: TestConfig) => {
         activeTestConfig = testConfig;
+    };
+    const getTestConfig = (): TestConfig => {
+        if (!activeTestConfig) {
+            throw new Error('No test config set');
+        }
+
+        return activeTestConfig;
     };
 
     const server = createServer((req, res): ServerResponse<IncomingMessage> | void => {
@@ -213,6 +221,7 @@ const createServerInstance = (): ServerInstance => {
     return {
         setReadyToAcceptTestResults,
         setTestConfig,
+        getTestConfig,
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
