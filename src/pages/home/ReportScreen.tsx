@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
@@ -52,6 +53,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import HeaderView from './HeaderView';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
+import useReportPusherEventSubscription from './report/useReportPusherEventSubscription';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
@@ -304,7 +306,6 @@ function ReportScreen({
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
     const isTopMostReportId = currentReportID === reportIDFromRoute;
-    const didSubscribeToReportLeavingEvents = useRef(false);
 
     useEffect(() => {
         if (!report.reportID || shouldHideReport) {
@@ -453,6 +454,8 @@ function ReportScreen({
     useEffect(clearNotifications, [clearNotifications]);
     useAppFocusEvent(clearNotifications);
 
+    const subscriptionManagerMap = useReportPusherEventSubscription();
+
     useEffect(() => {
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
@@ -462,12 +465,7 @@ function ReportScreen({
         });
         return () => {
             interactionTask.cancel();
-            Report.unsubscribeFromReportChannel(report.reportID);
-            if (!didSubscribeToReportLeavingEvents.current) {
-                return;
-            }
-
-            Report.unsubscribeFromLeavingRoomReportChannel(report.reportID);
+            subscriptionManagerMap.forEach((manager) => manager.unsubscribe(report.reportID));
         };
 
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
@@ -583,10 +581,9 @@ function ReportScreen({
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
         let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
-        if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
+        if (didCreateReportSuccessfully) {
             interactionTask = InteractionManager.runAfterInteractions(() => {
-                Report.subscribeToReportLeavingEvents(reportIDFromRoute);
-                didSubscribeToReportLeavingEvents.current = true;
+                subscriptionManagerMap.get(Pusher.TYPE.USER_IS_LEAVING_ROOM)?.subscribe(reportIDFromRoute);
             });
         }
         return () => {
@@ -595,7 +592,7 @@ function ReportScreen({
             }
             interactionTask.cancel();
         };
-    }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
+    }, [report, reportIDFromRoute, subscriptionManagerMap]);
 
     const onListLayout = useCallback((event: LayoutChangeEvent) => {
         setListHeight((prev) => event.nativeEvent?.layout?.height ?? prev);
@@ -718,6 +715,7 @@ function ReportScreen({
                                         hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
                                         isReadyForCommentLinking={!shouldShowSkeleton}
                                         transactionThreadReportID={transactionThreadReportID}
+                                        userTypingEventSubscriptionManager={subscriptionManagerMap.get(Pusher.TYPE.USER_IS_TYPING)}
                                     />
                                 )}
 

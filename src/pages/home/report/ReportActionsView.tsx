@@ -32,6 +32,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
+import type {ReportPusherSubscriptionManager} from './useReportPusherEventSubscription/types';
 import UserTypingEventListener from './UserTypingEventListener';
 
 type ReportActionsViewOnyxProps = {
@@ -76,6 +77,8 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
+
+    userTypingEventSubscriptionManager?: ReportPusherSubscriptionManager;
 };
 
 const DIFF_BETWEEN_SCREEN_HEIGHT_AND_LIST = 120;
@@ -96,6 +99,7 @@ function ReportActionsView({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     isReadyForCommentLinking = false,
+    userTypingEventSubscriptionManager,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
@@ -547,7 +551,10 @@ function ReportActionsView({
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
-            <UserTypingEventListener report={report} />
+            <UserTypingEventListener
+                report={report}
+                userTypingEventSubscriptionManager={userTypingEventSubscriptionManager}
+            />
             <PopoverReactionList ref={reactionListRef} />
         </>
     );
