@@ -53,18 +53,22 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             // to avoid the keyboard in mobile web if using blur() and focus() function, we just need to dispatch the event to trigger the onFocus handler
 
-            textInputHTMLElement.dispatchEvent(new FocusEvent('focus', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            }))
+            textInputHTMLElement.dispatchEvent(
+                new FocusEvent('focus', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                }),
+            );
 
             // need to trigger the focusin event to make sure the onFocus handler is triggered
-            textInputHTMLElement.dispatchEvent(new FocusEvent('focusin', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            }))
+            textInputHTMLElement.dispatchEvent(
+                new FocusEvent('focusin', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                }),
+            );
             // eslint-disable-next-line no-empty
         } catch (e) {}
         // We only need to set the callback once.
