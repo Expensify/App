@@ -309,7 +309,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
         if (isEmptyObject(policies)) {
             return [];
         }
-        console.log('policies: ', policies);
+
         return Object.values(policies)
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map((policy): WorkspaceItem => {
