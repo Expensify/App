@@ -74,7 +74,7 @@ function ProcessMoneyReportHoldMenu({
         if (nonHeldAmount) {
             promptTranslation = isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount';
         } else {
-            promptTranslation = isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAmount';
+            promptTranslation = isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount';
         }
 
         return translate(promptTranslation);
