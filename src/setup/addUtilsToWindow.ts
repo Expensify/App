@@ -4,6 +4,11 @@ import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
 import * as Session from '@userActions/Session';
 import type {OnyxKey} from '@src/ONYXKEYS';
 
+type UtilsWindow = Window &
+    typeof globalThis & {
+        markAllPolicyReportsAsRead: (policyID: string) => void;
+    };
+
 /**
  * This is used to inject development/debugging utilities into the window object on web and desktop.
  * We do this only on non-production builds - these should not be used in any application code.
@@ -45,7 +50,6 @@ export default function addUtilsToWindow() {
         window.setSupportToken = Session.setSupportAuthToken;
 
         // Workaround to give employees the ability to mark reports as read via the JS console
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
+        (window as UtilsWindow).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }

@@ -91,19 +91,18 @@ const createAddListenerMock = (): ListenerMock => {
 };
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav: jest.Mocked<typeof NativeNavigation> = jest.requireActual('@react-navigation/native');
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     transitionEndCB = triggerTransitionEnd;
 
-    const useNavigation = () =>
-        ({
-            navigate: jest.fn(),
-            ...actualNav.useNavigation,
-            getState: () => ({
-                routes: [],
-            }),
-            addListener,
-        } as typeof NativeNavigation.useNavigation);
+    const useNavigation = () => ({
+        ...actualNav.useNavigation(),
+        navigate: jest.fn(),
+        getState: () => ({
+            routes: [],
+        }),
+        addListener,
+    });
 
     return {
         ...actualNav,

@@ -1,8 +1,7 @@
 import type {StepIdentifier as ActStepIdentifier} from '@kie/act-js';
 
 declare module '@kie/act-js' {
-    // eslint-disable-next-line rulesdir/no-inline-named-export
-    export declare type StepIdentifier = {
+    type StepIdentifierWithoutOmit = {
         id?: string;
         name: string;
         run?: string;
@@ -10,5 +9,9 @@ declare module '@kie/act-js' {
         with?: string;
         envs?: string[];
         inputs?: string[];
-    } & Omit<ActStepIdentifier, 'name' | 'id' | 'run' | 'mockWith'>;
+    };
+
+    type StepIdentifier = StepIdentifierWithoutOmit & Omit<ActStepIdentifier, 'name' | 'id' | 'run' | 'mockWith'>;
+
+    export type {StepIdentifier, StepIdentifierWithoutOmit};
 }

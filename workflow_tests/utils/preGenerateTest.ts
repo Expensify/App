@@ -1,5 +1,5 @@
 /* eslint no-console: ["error", { allow: ["warn", "log"] }] */
-import type {StepIdentifier} from '@kie/act-js';
+import type {StepIdentifierWithoutOmit} from '@kie/act-js';
 import type {PathLike} from 'fs';
 import fs from 'fs';
 import path from 'path';
@@ -94,7 +94,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 
-const mockStepTemplate = (stepMockName: string, step: StepIdentifier, jobId: string | undefined) => `
+const mockStepTemplate = (stepMockName: string, step: StepIdentifierWithoutOmit, jobId: string | undefined) => `
 const ${stepMockName} = utils.createMockStep(
     '${step.name ?? ''}',
     '${step.name ?? ''}',
@@ -219,7 +219,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
         let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks: string[] = [];
         job.steps.forEach((step) => {
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${(step.name as string)
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name
                 .replaceAll(' ', '_')
                 .replaceAll('-', '_')
                 .replaceAll(',', '')
