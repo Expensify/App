@@ -24,6 +24,7 @@ function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
             shouldUseScrollView
             headerText={translate('workspace.common.card')}
             route={route}
+            shouldSkipVBBACall={false}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
             shouldShowOfflineIndicatorInWideScreen
         >

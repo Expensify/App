@@ -27,6 +27,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
+import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 
@@ -79,7 +80,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<'pay' | 'approve'>();
+    const [requestType, setRequestType] = useState<ActionHandledType>();
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
@@ -124,7 +125,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
         setPaymentType(type);
-        setRequestType('pay');
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
@@ -135,7 +136,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     };
 
     const confirmApproval = () => {
-        setRequestType('approve');
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else {

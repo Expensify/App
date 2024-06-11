@@ -58,7 +58,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
     const policyID = policy?.id ?? '';
 
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState<boolean>(false);
