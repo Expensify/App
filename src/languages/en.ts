@@ -3225,8 +3225,8 @@ export default {
             title: 'Your plan',
             collect: {
                 title: 'Collect',
-                priceAnnual: 'From $5/active member with the Expensify Card, $10/active member without the Expensify Card.',
-                pricePayPerUse: 'From $10/active member with the Expensify Card, $20/active member without the Expensify Card.',
+                priceAnnual: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                pricePayPerUse: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Unlimited SmartScans and distance tracking',
                 benefit2: 'Expensify Cards with Smart Limits',
                 benefit3: 'Bill pay and invoicing',
@@ -3237,8 +3237,8 @@ export default {
             },
             control: {
                 title: 'Control',
-                priceAnnual: 'From $9/active member with the Expensify Card, $18/active member without the Expensify Card.',
-                pricePayPerUse: 'From $18/active member with the Expensify Card, $36/active member without the Expensify Card.',
+                priceAnnual: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                pricePayPerUse: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Everything in Collect, plus:',
                 benefit2: 'NetSuite and Sage Intacct integrations',
                 benefit3: 'Certinia and Workday sync',
