@@ -110,7 +110,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                     >
                         {styledHandle?.map(
                             ({text, isColored}, i) =>
-                                Boolean(text) && (
+                                !!text && (
                                     <Text
                                         // eslint-disable-next-line react/no-array-index-key
                                         key={`${text}${i}`}
