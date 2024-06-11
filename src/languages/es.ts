@@ -2007,17 +2007,17 @@ export default {
             classes: 'Clases',
             locations: 'Lugares',
             customers: 'Clientes/proyectos',
-            accountsDescription: 'Cuando estás conectado a Quickbooks Online, los planes de cuentas siempre se importan a Expensify como categorías.',
-            accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
+            accountsDescription: 'Tu plan de cuentas de Quickbooks Online se importará a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
-            classesDescription: 'Elige si quieres importar las clases y donde las clases son mostradas.',
-            customersDescription: 'Elige si queres importar clientes/proyectos y donde los clientes/proyectos son mostrados.',
-            locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
-            taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            classesDescription: 'Elige cómo gestionar las clases de QuickBooks Online en Expensify.',
+            customersDescription: 'Elige cómo gestionar los clientes/proyectos de QuickBooks Online en Expensify.',
+            locationsDescription: 'Elige cómo gestionar los lugares de QuickBooks Online en Expensify.',
+            taxesDescription: 'Elige cómo gestionar los impuestos de QuickBooks Online en Expensify.',
             taxesJournalEntrySwitchNote:
-                'QuickBooks Online no admite un campo para impuestos al exportar entradas en el libro diario. Cambia tu preferencia de exportación a factura de proveedor o cheque para importar impuestos.',
+                'QuickBooks Online no permite impuestos en los asientos contables. Por favor, cambia la opción de exportación a factura de proveedor o cheque.',
             locationsAdditionalDescription:
-                'QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Actualice su preferencia de exportación a asiento contable si desea importar ubicaciones como etiquetas.',
+                'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
             export: 'Exportar',
             exportAs: 'Exportar cómo',
             exportExpenses: 'Exportar gastos de bolsillo como',
@@ -2067,17 +2067,17 @@ export default {
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
-            exportCheckDescription: 'Crearemos un único cheque desglosado para cada informe de Expensify. Puedes emitir el cheque desde la cuenta bancaria que elijas (más abajo).',
+            exportCheckDescription: 'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
             exportJournalEntryDescription:
-                'Crearemos una única entrada de diario desglosada para cada informe de Expensify. Puedes enviar la compensación de la entrada de diario a la cuenta que elijas (más abajo).',
+                'Crearemos una entrada contable desglosada para cada informe de Expensify y lo contabilizaremos en la cuenta a continuación.',
             exportVendorBillDescription:
-                'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de tu elección (a continuación).',
+                'Crearemos una factura de proveedor desglosada para cada informe de Expensify y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
             outOfPocketTaxEnabledDescription:
                 'QuickBooks Online no admite un campo para impuestos en las exportaciones de anotación en el diario. A medida que importa impuestos, esta opción de exportación no está disponible.',
             outOfPocketTaxEnabledError: 'La anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona otra opción de exportación diferente.',
             outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Por favor, selecciona otra opción de exportación diferente.',
             outOfPocketLocationEnabledDescription:
-                'Nota: QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Al importar ubicaciones como etiquetas, esta opción de exportación no está disponible.',
+                'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
 
             advancedConfig: {
                 advanced: 'Avanzado',
@@ -2132,8 +2132,8 @@ export default {
             organization: 'Organización Xero',
             organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
-            accountsDescription: 'Cuando estás conectado a Xero, los planes de cuentas siempre se importan a Expensify como categorías.',
-            accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
+            accountsDescription: 'Tu plan de cuentas de Xero se importará a Expensify como categorías.',
+            accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
