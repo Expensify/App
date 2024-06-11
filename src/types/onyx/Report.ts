@@ -275,9 +275,15 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 
+        /** Trip data associated with the report */
         tripData?: {
+            /** Trip start date */
             startDate: string;
+
+            /** Trip end date */
             endDate: string;
+
+            /** ID of the trip */
             tripId: string;
         };
     },
