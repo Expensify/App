@@ -1,6 +1,6 @@
-import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
-import FocusTrapOriginal from 'focus-trap-react';
-import React, {useCallback, useMemo} from 'react';
+import { useFocusEffect, useIsFocused, useRoute } from '@react-navigation/native';
+import FocusTrap from 'focus-trap-react';
+import React, { useCallback, useMemo } from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import SCREENS_WITH_AUTOFOCUS from '@components/FocusTrap/SCREENS_WITH_AUTOFOCUS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
@@ -11,7 +11,7 @@ import type FocusTrapProps from './FocusTrapProps';
 
 let activeRouteName = '';
 
-function FocusTrap({children}: FocusTrapProps) {
+function FocusTrapForScreen({children}: FocusTrapProps) {
     const isFocused = useIsFocused();
     const route = useRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -41,7 +41,7 @@ function FocusTrap({children}: FocusTrapProps) {
     );
 
     return (
-        <FocusTrapOriginal
+        <FocusTrap
             active={isActive}
             paused={!isFocused}
             focusTrapOptions={{
@@ -64,10 +64,10 @@ function FocusTrap({children}: FocusTrapProps) {
             }}
         >
             {children}
-        </FocusTrapOriginal>
+        </FocusTrap>
     );
 }
 
-FocusTrap.displayName = 'FocusTrapView';
+FocusTrapForScreen.displayName = 'FocusTrapForScreen';
 
-export default FocusTrap;
+export default FocusTrapForScreen;

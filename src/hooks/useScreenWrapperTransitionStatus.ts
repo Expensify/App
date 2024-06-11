@@ -15,9 +15,3 @@ export default function useScreenWrapperTranstionStatus() {
 
     return value;
 }
-
-function useScreenWrapperTransitionStatusUnsafe() {
-    return useContext(ScreenWrapperStatusContext);
-}
-
-export {useScreenWrapperTransitionStatusUnsafe};

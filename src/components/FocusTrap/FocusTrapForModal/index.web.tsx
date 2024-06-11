@@ -1,11 +1,11 @@
-import FocusTrapOriginal from 'focus-trap-react';
+import FocusTrap from 'focus-trap-react';
 import React from 'react';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
 function FocusTrapForModal({children, active}: FocusTrapForModalProps) {
     return (
-        <FocusTrapOriginal
+        <FocusTrap
             active={active}
             focusTrapOptions={{
                 trapStack: sharedTrapStack,
@@ -14,7 +14,7 @@ function FocusTrapForModal({children, active}: FocusTrapForModalProps) {
             }}
         >
             {children}
-        </FocusTrapOriginal>
+        </FocusTrap>
     );
 }
 

@@ -1,9 +1,10 @@
 import type FocusTrapProps from './FocusTrapProps';
 
-function FocusTrapView({children}: FocusTrapProps) {
+
+function FocusTrapForScreen({children}: FocusTrapProps) {
     return children;
 }
 
-FocusTrapView.displayName = 'FocusTrapView';
+FocusTrapForScreen.displayName = 'FocusTrapForScreen';
 
-export default FocusTrapView;
+export default FocusTrapForScreen;

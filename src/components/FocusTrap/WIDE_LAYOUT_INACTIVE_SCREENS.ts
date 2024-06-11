@@ -1,6 +1,7 @@
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
+// Screens that should not have active focus trap when rendered on wide screen in order to allow Tab navigation in LHP and RHP
 const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     NAVIGATORS.BOTTOM_TAB_NAVIGATOR,
     SCREENS.HOME,
@@ -29,6 +30,7 @@ const WIDE_LAYOUT_INACTIVE_SCREENS: string[] = [
     SCREENS.WORKSPACE.TAGS,
     SCREENS.WORKSPACE.TAXES,
     SCREENS.WORKSPACE.DISTANCE_RATES,
+    SCREENS.SEARCH.CENTRAL_PANE,
 ];
 
 export default WIDE_LAYOUT_INACTIVE_SCREENS;
