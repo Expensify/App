@@ -112,13 +112,40 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined)
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    /**
+     * Fallback currency to USD if it empty string or undefined
+     */
+    let currencyWithFallback = currency;
+    if (!currency) {
+        currencyWithFallback = CONST.CURRENCY.USD;
+    }
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: currencyWithFallback,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
         // See: https://github.com/Expensify/PHP-Libs/pull/834
         minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+    });
+}
+
+/**
+ * Given the amount in the "cents", convert it to a short string (no decimals) for display in the UI.
+ * The backend always handle things in "cents" (subunit equal to 1/100)
+ *
+ * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
+ * @param currency - IOU currency
+ */
+function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+
+    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency,
+
+        // There will be no decimals displayed (e.g. $9)
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     });
 }
 
@@ -161,7 +188,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
  */
 function isValidCurrencyCode(currencyCode: string): boolean {
     const currency = currencyList?.[currencyCode];
-    return Boolean(currency);
+    return !!currency;
 }
 
 export {
@@ -177,4 +204,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
+    convertToShortDisplayString,
 };
