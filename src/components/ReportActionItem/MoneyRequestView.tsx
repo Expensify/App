@@ -171,7 +171,8 @@ function MoneyRequestView({
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
+            !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
         [canUseViolations, getViolationsForField],
     );
 
@@ -238,7 +239,7 @@ function MoneyRequestView({
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => transaction?.pendingFields?.[fieldPath] ?? pendingAction;
 
     const getErrorForField = useCallback(
-        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
+        (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
@@ -264,14 +265,14 @@ function MoneyRequestView({
             }
 
             // Return violations if there are any
-            if (canUseViolations && hasViolations(field, data)) {
-                const violations = getViolationsForField(field, data);
+            if (hasViolations(field, data, policyHasDependentTags, tagValue)) {
+                const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
                 return ViolationsUtils.getViolationTranslation(violations[0], translate);
             }
 
             return '';
         },
-        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+        [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
     const distanceRequestFields = canUseP2PDistanceRequests ? (
@@ -333,6 +334,37 @@ function MoneyRequestView({
         ...parentReportAction?.errors,
     };
 
+    const tagList = policyTagLists.map(({name, orderWeight}, index) => {
+        const tagError = getErrorForField(
+            'tag',
+            {
+                tagListIndex: index,
+                tagListName: name,
+            },
+            PolicyUtils.hasDependentTags(policy, policyTagList),
+            TransactionUtils.getTagForDisplay(transaction, index),
+        );
+        return (
+            <OfflineWithFeedback
+                key={name}
+                pendingAction={getPendingFieldAction('tag')}
+            >
+                <MenuItemWithTopDescription
+                    description={name ?? translate('common.tag')}
+                    title={TransactionUtils.getTagForDisplay(transaction, index)}
+                    interactive={canEdit}
+                    shouldShowRightIcon={canEdit}
+                    titleStyle={styles.flex1}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID))
+                    }
+                    brickRoadIndicator={tagError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={tagError}
+                />
+            </OfflineWithFeedback>
+        );
+    });
+
     return (
         <View style={styles.pRelative}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -340,7 +372,7 @@ function MoneyRequestView({
                 {shouldShowReceiptHeader && (
                     <ReceiptAuditHeader
                         notes={receiptViolations}
-                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
                     />
                 )}
                 {(hasReceipt || errors) && (
@@ -468,35 +500,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowTag &&
-                    policyTagLists.map(({name, orderWeight}, index) => (
-                        <OfflineWithFeedback
-                            key={name}
-                            pendingAction={getPendingFieldAction('tag')}
-                        >
-                            <MenuItemWithTopDescription
-                                description={name ?? translate('common.tag')}
-                                title={TransactionUtils.getTagForDisplay(transaction, index)}
-                                interactive={canEdit}
-                                shouldShowRightIcon={canEdit}
-                                titleStyle={styles.flex1}
-                                onPress={() =>
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID),
-                                    )
-                                }
-                                brickRoadIndicator={
-                                    getErrorForField('tag', {
-                                        tagListIndex: index,
-                                        tagListName: name,
-                                    })
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined
-                                }
-                                errorText={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
+                {shouldShowTag && tagList}
                 {isCardTransaction && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
                         <MenuItemWithTopDescription

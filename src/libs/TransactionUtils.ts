@@ -68,7 +68,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return Boolean(transaction?.receipt?.source) && transaction?.amount === 0;
+    return !!transaction?.receipt?.source && transaction?.amount === 0;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -519,7 +519,7 @@ function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
 function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+    return !!(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
 /**
@@ -533,9 +533,7 @@ function getTransactionViolations(transactionID: string, transactionViolations: 
  * Check if there is pending rter violation in transactionViolations.
  */
 function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
-    return Boolean(
-        transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern),
-    );
+    return !!transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern);
 }
 
 /**
@@ -563,12 +561,12 @@ function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: bo
     return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
-function getAllReportTransactions(reportID?: string, transactions?: OnyxCollection<Transaction>): Transaction[] {
+function getAllReportTransactions(reportID?: string): Transaction[] {
     // `reportID` from the `/CreateDistanceRequest` endpoint return's number instead of string for created `transaction`.
     // For reference, https://github.com/Expensify/App/pull/26536#issuecomment-1703573277.
     // We will update this in a follow-up Issue. According to this comment: https://github.com/Expensify/App/pull/26536#issuecomment-1703591019.
-    const nonNullableTransactions: Transaction[] = Object.values(transactions ?? allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
-    return nonNullableTransactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
+    const transactions: Transaction[] = Object.values(allTransactions ?? {}).filter((transaction): transaction is Transaction => transaction !== null);
+    return transactions.filter((transaction) => `${transaction.reportID}` === `${reportID}`);
 }
 
 function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
@@ -676,8 +674,8 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>): boolean {
-    return Boolean(
-        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION),
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION,
     );
 }
 
@@ -685,16 +683,14 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice');
 }
 
 /**
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(
-        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
-    );
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING);
 }
 
 /**

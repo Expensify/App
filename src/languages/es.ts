@@ -139,7 +139,7 @@ export default {
         magicCode: 'Código mágico',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
-        chats: 'Chats',
+        inbox: 'Bandeja de entrada',
         group: 'Grupo',
         profile: 'Perfil',
         referral: 'Remisión',
@@ -234,6 +234,7 @@ export default {
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
+            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar..',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -506,7 +507,6 @@ export default {
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAdminRoomPartOneParams) =>
             `¡Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
-        beginningOfChatHistoryAdminOnlyPostingRoom: 'Solo los administradores pueden enviar mensajes en esta sala.',
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartOneParams) =>
             `¡Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
@@ -532,6 +532,7 @@ export default {
             invoice: 'facturar un gasto',
         },
     },
+    adminOnlyCanPost: 'Solo los administradores pueden enviar mensajes en esta sala.',
     reportAction: {
         asCopilot: 'como copiloto de',
     },
@@ -682,7 +683,6 @@ export default {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -757,7 +757,6 @@ export default {
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
-        expensesOnHold: 'Todos los gastos quedaron bloqueado. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
         reviewDuplicates: 'Revisar duplicados',
         confirmApprove: 'Confirmar importe a aprobar',
@@ -1571,6 +1570,8 @@ export default {
         validateAccountError: {
             phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
             phrase2: 'vuelve a iniciar sesión con un código mágico',
+            phrase3: 'o',
+            phrase4: 'verifique tu cuenta aquí',
         },
         hasPhoneLoginError:
             'Para añadir una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes añadir tu número de teléfono como nombre de usuario secundario.',
@@ -2287,7 +2288,7 @@ export default {
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
-                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
         },
@@ -3731,8 +3732,8 @@ export default {
             title: 'Tu plan',
             collect: {
                 title: 'Recolectar',
-                priceAnnual: 'Desde $5/miembro activo con la Tarjeta Expensify, $10/miembro activo sin la Tarjeta Expensify.',
-                pricePayPerUse: 'Desde $10/miembro activo con la Tarjeta Expensify, $20/miembro activo sin la Tarjeta Expensify.',
+                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
                 benefit2: 'Tarjetas Expensify con Límites Inteligentes',
                 benefit3: 'Pago de facturas y facturación',
@@ -3743,8 +3744,8 @@ export default {
             },
             control: {
                 title: 'Control',
-                priceAnnual: 'Desde $9/miembro activo con la Tarjeta Expensify, $18/miembro activo sin la Tarjeta Expensify.',
-                pricePayPerUse: 'Desde $18/miembro activo con la Tarjeta Expensify, $36/miembro activo sin la Tarjeta Expensify.',
+                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Todo en Recolectar, más:',
                 benefit2: 'Integraciones con NetSuite y Sage Intacct',
                 benefit3: 'Sincronización de Certinia y Workday',
@@ -3772,7 +3773,7 @@ export default {
             eachMonth:
                 'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
             note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
-            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual:',
             subscriptionSize: 'Tamaño de suscripción',
             activeMembers: ({size}) => `${size} miembros activos/mes`,
             subscriptionRenews: 'Renovación de la suscripción',
@@ -3789,5 +3790,23 @@ export default {
             security: 'Expensify es PCI-DSS obediente, utiliza cifrado a nivel bancario, y emplea infraestructura redundante para proteger tus datos.',
             learnMoreAboutSecurity: 'Conozca más sobre nuestra seguridad.',
         },
+        subscriptionSettings: {
+            title: 'Configuración de suscripción',
+            autoRenew: 'Auto-renovación',
+            autoIncrease: 'Auto-incremento',
+            saveUpTo: ({amountSaved}) => `Ahorre hasta $${amountSaved} al mes por miembro activo`,
+            automaticallyIncrease:
+                'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
+            disableAutoRenew: 'Desactivar auto-renovación',
+            helpUsImprove: 'Ayúdanos a mejorar Expensify',
+            whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
+            renewsOn: ({date}) => `Se renovará el ${date}`,
+        },
+    },
+    feedbackSurvey: {
+        tooLimited: 'Hay que mejorar la funcionalidad',
+        tooExpensive: 'Demasiado caro',
+        inadequateSupport: 'Atención al cliente inadecuada',
+        businessClosing: 'Cierre, reducción, o adquisición de la empresa',
     },
 } satisfies EnglishTranslation;

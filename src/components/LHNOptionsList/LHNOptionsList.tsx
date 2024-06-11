@@ -4,7 +4,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -23,35 +23,27 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import OptionRowLHNData from './OptionRowLHNData';
-import type {LHNOptionsListOnyxProps, LHNOptionsListProps, RenderItemProps} from './types';
+import type {LHNOptionsListProps, RenderItemProps} from './types';
 
 const keyExtractor = (item: string) => `report_${item}`;
 
-function LHNOptionsList({
-    style,
-    contentContainerStyles,
-    data,
-    onSelectRow,
-    optionMode,
-    shouldDisableFocusOptions = false,
-    reports = {},
-    reportActions = {},
-    policy = {},
-    preferredLocale = CONST.LOCALES.DEFAULT,
-    personalDetails = {},
-    transactions = {},
-    draftComments = {},
-    transactionViolations = {},
-    onFirstItemRendered = () => {},
-}: LHNOptionsListProps) {
+function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
 
@@ -165,8 +157,8 @@ function LHNOptionsList({
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, policy, personalDetails, data.length, draftComments],
-        [reportActions, reports, policy, personalDetails, data.length, draftComments],
+        () => [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode],
+        [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -246,31 +238,6 @@ function LHNOptionsList({
 
 LHNOptionsList.displayName = 'LHNOptionsList';
 
-export default withOnyx<LHNOptionsListProps, LHNOptionsListOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    reportActions: {
-        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    },
-    policy: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    transactions: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION,
-    },
-    draftComments: {
-        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    },
-})(memo(LHNOptionsList));
+export default memo(LHNOptionsList);
 
 export type {LHNOptionsListProps};

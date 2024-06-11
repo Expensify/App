@@ -173,6 +173,7 @@ type GetOptionsConfig = {
     policyReportFieldOptions?: string[];
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    includeInvoiceRooms?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -598,6 +599,26 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     return showChatPreviewLine && option.lastMessageText
         ? option.lastMessageText
         : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
+}
+
+function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
+    let memberDetails = '';
+    if (personalDetail.login) {
+        memberDetails += ` ${personalDetail.login}`;
+    }
+    if (personalDetail.firstName) {
+        memberDetails += ` ${personalDetail.firstName}`;
+    }
+    if (personalDetail.lastName) {
+        memberDetails += ` ${personalDetail.lastName}`;
+    }
+    if (personalDetail.displayName) {
+        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail)}`;
+    }
+    if (personalDetail.phoneNumber) {
+        memberDetails += ` ${personalDetail.phoneNumber}`;
+    }
+    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
 /**
@@ -1686,26 +1707,6 @@ function getUserToInviteOption({
 }
 
 /**
- * Check whether report has violations
- */
-function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
-    if (!Permissions.canUseViolations(betas)) {
-        return false;
-    }
-    const {parentReportID, parentReportActionID} = report ?? {};
-    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-    if (!canGetParentReport) {
-        return false;
-    }
-    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
-    if (!parentReportAction) {
-        return false;
-    }
-    return ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
-}
-
-/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1746,6 +1747,7 @@ function getOptions(
         includePolicyReportFieldOptions = false,
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
+        includeInvoiceRooms = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1811,7 +1813,13 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-        const doesReportHaveViolations = shouldShowViolations(report, betas, transactionViolations);
+
+        const {parentReportID, parentReportActionID} = report ?? {};
+        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+        const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
+        const doesReportHaveViolations =
+            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -1945,8 +1953,17 @@ function getOptions(
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
-            // Skip if we aren't including multiple participant reports and this report has multiple participants
-            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
+            const shouldShowInvoiceRoom =
+                includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.isArchivedRoom;
+
+            /**
+                Exclude the report option if it doesn't meet any of the following conditions:
+                - It is not an owned policy expense chat that could be shown
+                - Multiple participant reports are not included
+                - It doesn't have a login
+                - It is not an invoice room that should be shown
+            */
+            if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login && !shouldShowInvoiceRoom) {
                 continue;
             }
 
@@ -2136,6 +2153,7 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     maxRecentReportsToShow = 5,
+    includeInvoiceRooms = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2162,6 +2180,7 @@ function getFilteredOptions(
             includePolicyReportFieldOptions,
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
+            includeInvoiceRooms,
         },
     );
 }
@@ -2472,6 +2491,7 @@ export {
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getSearchText,
+    isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
     getParticipantsOption,
@@ -2495,7 +2515,6 @@ export {
     getTaxRatesSection,
     getFirstKeyForList,
     getUserToInviteOption,
-    shouldShowViolations,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};

@@ -89,11 +89,13 @@ function MoneyRequestPreviewContent({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isScanning = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
-    const hasNoticeTypeViolations = Boolean(
-        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) && ReportUtils.isPaidGroupPolicy(iouReport) && canUseViolations,
+    const hasNoticeTypeViolations = !!(
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) &&
+        ReportUtils.isPaidGroupPolicy(iouReport) &&
+        canUseViolations
     );
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -161,11 +163,7 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                message += ` ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
-                if (shouldShowHoldMessage) {
-                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
-                }
-                return message;
+                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
