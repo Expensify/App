@@ -1248,6 +1248,13 @@ function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boo
     return currentUserAccountID === reportAction?.actorAccountID;
 }
 
+/**
+ * Check if the report action is the trip preview
+ */
+function isTripPreview(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1318,6 +1325,7 @@ export {
     isLinkedTransactionHeld,
     wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
+    isTripPreview,
 };
 
 export type {LastVisibleMessage};
