@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
+import ActiveWorkspaceContext from '@components/ActiveWorkspace/ActiveWorkspaceContext';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import ActiveWorkspaceContext from './ActiveWorkspaceContext';
 
 function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
     const [activeWorkspaceID, setActiveWorkspaceID] = useState<string | undefined>(undefined);
@@ -10,7 +10,7 @@ function ActiveWorkspaceContextProvider({children}: ChildrenProps) {
             activeWorkspaceID,
             setActiveWorkspaceID,
         }),
-        [activeWorkspaceID],
+        [activeWorkspaceID, setActiveWorkspaceID],
     );
 
     return <ActiveWorkspaceContext.Provider value={value}>{children}</ActiveWorkspaceContext.Provider>;

@@ -1,5 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';
@@ -254,6 +253,40 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // No popover to hide, call editAction immediately
             editAction();
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'iou.unholdExpense',
+        icon: Expensicons.Stopwatch,
+        shouldShow: (type, reportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
+        onPress: (closePopover, {reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                return;
+            }
+
+            // No popover to hide, call changeMoneyRequestHoldStatus immediately
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'iou.hold',
+        icon: Expensicons.Stopwatch,
+        shouldShow: (type, reportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
+        onPress: (closePopover, {reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                return;
+            }
+
+            // No popover to hide, call changeMoneyRequestHoldStatus immediately
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
         },
         getDescription: () => {},
     },
