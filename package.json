@@ -123,6 +123,7 @@
     "lodash": "4.17.21",
     "lottie-react-native": "6.5.1",
     "mapbox-gl": "^2.15.0",
+    "moize": "^6.1.6",
     "onfido-sdk-ui": "14.15.0",
     "process": "^0.11.10",
     "pusher-js": "8.3.0",
