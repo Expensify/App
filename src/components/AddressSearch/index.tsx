@@ -475,6 +475,7 @@ function AddressSearch(
                         }
                         placeholder=""
                         listViewDisplayed
+                        disableScroll
                     >
                         <LocationErrorMessage
                             onClose={() => setLocationErrorCode(null)}
