@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import BillingBanner from './BillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 
@@ -32,15 +31,6 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={
-                <BillingBanner
-                    title="Your card couldn’t be charged!"
-                    subtitle="Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card."
-                    isError // to show error icon
-                    shouldShowRedDotIndicator // to show red dot indicator
-                    isTrialActive
-                />
-            }
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
