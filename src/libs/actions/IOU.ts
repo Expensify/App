@@ -42,7 +42,7 @@ import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getReport, OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getCurrency} from '@libs/TransactionUtils';
@@ -5865,11 +5865,16 @@ function getSendMoneyParams(
     };
 }
 
+type OptimisticHoldReportExpenseActionID = {
+    optimisticReportActionID: string;
+    oldReportActionID?: string;
+};
+
 function getReportFromHoldRequestsOnyxData(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxTypes.Report,
     recipient: Participant,
-): {optimisticHoldReportID: string; optimisticData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
+): {optimisticHoldReportID: string; optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[]; optimisticData: OnyxUpdate[]; failureData: OnyxUpdate[]} {
     const holdTransactions: OnyxTypes.Transaction[] = Object.values(allTransactions).filter(
         (transaction): transaction is OnyxTypes.Transaction => !!transaction && transaction.reportID === iouReport.reportID && !!transaction.comment?.hold,
     );
@@ -5889,56 +5894,51 @@ function getReportFromHoldRequestsOnyxData(
         holdTransactions.find((transaction) => transaction?.transactionID === (reportAction.originalMessage as IOUMessage)?.IOUTransactionID),
     );
 
-    const deleteHoldReportActions: Record<string, OnyxTypes.ReportAction> = {};
-    holdReportActions.forEach((reportAction) => {
+    let previousReportActionID = '0';
+    const updateHeldReports: Record<string, OnyxTypes.Report> = {};
+    const addHoldReportActions: OnyxTypes.ReportActions = {};
+    const deleteHoldReportActions: OnyxTypes.ReportActions = {};
+    const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
+
+    holdReportActions.forEach((holdReportAction) => {
+        const reportAction = {...holdReportAction};
+        const originalMessage = reportAction.originalMessage as IOUMessage;
+
         deleteHoldReportActions[reportAction.reportActionID] = {
             ...reportAction,
             message: [
                 {
                     deleted: DateUtils.getDBTime(),
-                    type: 'TEXT',
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    text: '',
                 },
             ],
+        };
+
+        const reportActionID = rand64();
+        addHoldReportActions[reportActionID] = {
+            ...reportAction,
+            reportActionID,
+            previousReportActionID,
             originalMessage: {
-                deleted: DateUtils.getDBTime(),
+                ...originalMessage,
+                IOUReportID: optimisticExpenseReport.reportID,
             },
         };
-    });
 
-    let previousReportActionID = '0';
-    const updateHeldReports: Record<string, Report> = {};
-    const addHoldReportActions: OnyxTypes.ReportActions = {};
-    const removeReportActionsFromOptimisticReport: OnyxTypes.ReportActions = {};
-    holdReportActions.forEach((reportAction) => {
-        reportAction.originalMessage.IOUReportID = Number(optimisticExpenseReport.reportID);
-        reportAction.originalMessage.type = 'create';
-        reportAction.previousReportActionID = previousReportActionID;
-        const reportActionID = rand64();
-        reportAction.reportActionID = reportActionID;
+        const heldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`];
+        if (heldReport) {
+            optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: heldReport?.parentReportActionID});
 
-        addHoldReportActions[reportActionID] = reportAction;
-        removeReportActionsFromOptimisticReport[reportActionID] = {};
-
-        const heldReport = getReport(reportAction.childReportID);
-        updateHeldReports[heldReport?.reportID ?? '0'] = {
-            ...heldReport,
-            parentReportActionID: reportActionID,
-        };
+            updateHeldReports[heldReport.reportID] = {
+                ...heldReport,
+                parentReportActionID: reportActionID,
+            };
+        }
 
         previousReportActionID = reportActionID;
     });
 
-    const moveTransactions: Record<string, OnyxTypes.Transaction> = {};
-    holdTransactions.forEach((transaction: OnyxTypes.Transaction) => {
-        moveTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-            ...transaction,
-            reportID: optimisticExpenseReport.reportID,
-        };
-    });
-
-    // okazuje się, że backend nie przenosi report actions pomiędzy starym i nowym raportem
-    // wywala je z pierwszego i tak jakby tworzy nowe w nowym
-    // trzeba też w takim razie pamiętać o zmianie pola parentReportActionID w przenoszonych raportach (tych podłączonych pod przenoszone akcje)
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5954,12 +5954,6 @@ function getReportFromHoldRequestsOnyxData(
             value: {
                 ...optimisticExpenseReport,
             },
-        },
-        // add transaction to the new expense report
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-            value: moveTransactions,
         },
         // add preview report action to main chat
         {
@@ -5989,11 +5983,6 @@ function getReportFromHoldRequestsOnyxData(
         },
     ];
 
-    const moveTransactionsBack: Record<string, OnyxTypes.Transaction> = {};
-    holdTransactions.forEach((transaction: OnyxTypes.Transaction) => {
-        moveTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
-    });
-
     const bringReportActionsBack: Record<string, OnyxTypes.ReportAction> = {};
     holdReportActions.forEach((reportAction) => {
         bringReportActionsBack[reportAction.reportActionID] = reportAction;
@@ -6005,12 +5994,6 @@ function getReportFromHoldRequestsOnyxData(
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
             value: null,
-        },
-        // move transactions back to the old expense report
-        {
-            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
-            value: moveTransactionsBack,
         },
         // remove preview report action from the main chat
         {
@@ -6034,7 +6017,7 @@ function getReportFromHoldRequestsOnyxData(
         },
     ];
 
-    return {optimisticData, failureData, optimisticHoldReportID: optimisticExpenseReport.reportID};
+    return {optimisticData, failureData, optimisticHoldReportID: optimisticExpenseReport.reportID, optimisticHoldReportExpenseActionIDs};
 }
 
 function getPayMoneyRequestParams(
