@@ -5447,7 +5447,6 @@ function shouldReportBeInOptionList({
 
     return true;
 }
-
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
