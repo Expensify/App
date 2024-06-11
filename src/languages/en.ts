@@ -2045,9 +2045,9 @@ export default {
             bankAccountDescription: 'Choose where to send checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
-                "QuickBooks Online doesn't support a field for locations on vendor bill exports.",
+                "QuickBooks Online doesn't support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
-                "QuickBooks Online doesn't support a field for tax on journal entry exports.",
+                "QuickBooks Online doesn't support a field for taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entry is unavailable when tax is enabled. Please choose a different export option.',
             outOfPocketLocationEnabledError: 'Vendor bills are not available when locations are enabled. Please choose a different export option.',
             advancedConfig: {
