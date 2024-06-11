@@ -683,7 +683,6 @@ export default {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,

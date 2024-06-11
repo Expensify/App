@@ -1,5 +1,5 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,6 +25,7 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -36,9 +38,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {activeWorkspaceID} = useActiveWorkspace();
-
     const navigation = useNavigation();
+    const {activeWorkspaceID: contextActiveWorkspaceID} = useActiveWorkspace();
+    const activeWorkspaceID = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID) ?? contextActiveWorkspaceID;
 
     useEffect(() => {
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
@@ -68,13 +70,16 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
 
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
+    const navigateToChats = useCallback(() => {
+        const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/home` as Route) : ROUTES.HOME;
+        Navigation.navigate(route);
+    }, [activeWorkspaceID]);
+
     return (
         <View style={styles.bottomTabBarContainer}>
             <Tooltip text={translate('common.inbox')}>
                 <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.HOME);
-                    }}
+                    onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
@@ -96,7 +101,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL)));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}

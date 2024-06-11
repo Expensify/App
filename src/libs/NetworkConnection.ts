@@ -37,13 +37,13 @@ const triggerReconnectionCallbacks = throttle(
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
  * then all of the reconnection callbacks are triggered
  */
-function setOfflineStatus(isCurrentlyOffline: boolean): void {
-    NetworkActions.setIsOffline(isCurrentlyOffline);
+function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
+    NetworkActions.setIsOffline(isCurrentlyOffline, reason);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
     if (isOffline && !isCurrentlyOffline) {
-        NetworkActions.setIsBackendReachable(true);
+        NetworkActions.setIsBackendReachable(true, 'moved from offline to online');
         triggerReconnectionCallbacks('offline status changed');
     }
 
@@ -74,13 +74,13 @@ Onyx.connect({
         }
         shouldForceOffline = currentShouldForceOffline;
         if (shouldForceOffline) {
-            setOfflineStatus(true);
+            setOfflineStatus(true, 'shouldForceOffline was detected in the Onyx data');
             Log.info(`[NetworkStatus] Setting "offlineStatus" to "true" because user is under force offline`);
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
                 const isInternetReachable = (state.isInternetReachable ?? false) === false;
-                setOfflineStatus(isInternetReachable);
+                setOfflineStatus(isInternetReachable, 'NetInfo checked if the internet is reachable');
                 Log.info(
                     `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(
                         state,
@@ -122,20 +122,20 @@ function subscribeToBackendAndInternetReachability(): () => void {
             })
             .then((isBackendReachable: boolean) => {
                 if (isBackendReachable) {
-                    NetworkActions.setIsBackendReachable(true);
+                    NetworkActions.setIsBackendReachable(true, 'successfully completed API request');
                     return;
                 }
+                NetworkActions.setIsBackendReachable(false, 'request succeeded, but internet reachability test failed');
                 checkInternetReachability().then((isInternetReachable: boolean) => {
-                    setOfflineStatus(!isInternetReachable);
+                    setOfflineStatus(!isInternetReachable, 'checkInternetReachability was called after api/ping returned a non-200 jsonCode');
                     setNetWorkStatus(isInternetReachable);
-                    NetworkActions.setIsBackendReachable(false);
                 });
             })
             .catch(() => {
+                NetworkActions.setIsBackendReachable(false, 'request failed and internet reachability test failed');
                 checkInternetReachability().then((isInternetReachable: boolean) => {
-                    setOfflineStatus(!isInternetReachable);
+                    setOfflineStatus(!isInternetReachable, 'checkInternetReachability was called after api/ping request failed');
                     setNetWorkStatus(isInternetReachable);
-                    NetworkActions.setIsBackendReachable(false);
                 });
             });
     }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);
@@ -163,7 +163,7 @@ function subscribeToNetworkStatus(): () => void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
-        setOfflineStatus(state.isInternetReachable === false);
+        setOfflineStatus(state.isInternetReachable === false, 'NetInfo received a state change event');
         Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${!!state.isInternetReachable} with network state: ${JSON.stringify(state)}`);
         setNetWorkStatus(state.isInternetReachable);
     });
