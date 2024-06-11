@@ -688,7 +688,6 @@ export default {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -2294,7 +2293,7 @@ export default {
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
-                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
         },
@@ -3738,8 +3737,8 @@ export default {
             title: 'Tu plan',
             collect: {
                 title: 'Recolectar',
-                priceAnnual: 'Desde $5/miembro activo con la Tarjeta Expensify, $10/miembro activo sin la Tarjeta Expensify.',
-                pricePayPerUse: 'Desde $10/miembro activo con la Tarjeta Expensify, $20/miembro activo sin la Tarjeta Expensify.',
+                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
                 benefit2: 'Tarjetas Expensify con Límites Inteligentes',
                 benefit3: 'Pago de facturas y facturación',
@@ -3750,8 +3749,8 @@ export default {
             },
             control: {
                 title: 'Control',
-                priceAnnual: 'Desde $9/miembro activo con la Tarjeta Expensify, $18/miembro activo sin la Tarjeta Expensify.',
-                pricePayPerUse: 'Desde $18/miembro activo con la Tarjeta Expensify, $36/miembro activo sin la Tarjeta Expensify.',
+                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Todo en Recolectar, más:',
                 benefit2: 'Integraciones con NetSuite y Sage Intacct',
                 benefit3: 'Sincronización de Certinia y Workday',
@@ -3779,7 +3778,7 @@ export default {
             eachMonth:
                 'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
             note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
-            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual:',
             subscriptionSize: 'Tamaño de suscripción',
             activeMembers: ({size}) => `${size} miembros activos/mes`,
             subscriptionRenews: 'Renovación de la suscripción',
