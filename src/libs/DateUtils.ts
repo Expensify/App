@@ -845,7 +845,7 @@ const DateUtils = {
     getFormattedDateRange,
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
-    doesDateBelongToAPastYear
+    doesDateBelongToAPastYear,
 };
 
 export default DateUtils;

@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
-import DateUtils from "./DateUtils";
+import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {CentralPaneNavigatorParamList, RootStackParamList, State} from './Navigation/types';
@@ -82,7 +82,7 @@ function doesAtleastOneExpenseBelongToAPastYear(data: TransactionListItemType[] 
         return data.some((item: TransactionListItemType | ReportListItemType) => {
             if ('transactions' in item) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
-                return item.transactions.some(transaction => {
+                return item.transactions.some((transaction) => {
                     const transactionYear = new Date(transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '').getFullYear();
                     return transactionYear !== new Date().getFullYear();
                 });

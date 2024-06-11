@@ -13,12 +13,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
-import DateUtils from "@libs/DateUtils";
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
@@ -92,7 +92,7 @@ function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
     );
 }
 
-const getCreated = (item: TransactionListItemType) => item?.modifiedCreated ? item.modifiedCreated : item?.created || ''
+const getCreated = (item: TransactionListItemType) => (item?.modifiedCreated ? item.modifiedCreated : item?.created || '');
 
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
