@@ -71,6 +71,7 @@ function Composer(
         isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = false,
+        isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
@@ -78,7 +79,7 @@ function Composer(
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(value);
+    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? ['mentionReport'] : []);
     const StyleUtils = useStyleUtils();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
