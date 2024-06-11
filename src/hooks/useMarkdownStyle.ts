@@ -33,6 +33,7 @@ function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Arra
             },
             emoji: {
                 fontSize: inputContainsOnlyEmojis ? variables.fontSizeEmojisOnlyComposer : variables.fontSizeEmojisWithinText,
+                verticalAlign: 'middle',
             },
             blockquote: {
                 borderColor: theme.border,
