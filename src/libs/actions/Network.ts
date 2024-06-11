@@ -3,6 +3,7 @@ import Log from '@libs/Log';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+<<<<<<< HEAD
 function setIsBackendReachable(isBackendReachable: boolean, reason: string) {
     if (isBackendReachable) {
         Log.info(`[Network] Backend is reachable because: ${reason}`);
@@ -19,6 +20,9 @@ function setIsOffline(isOffline: boolean, reason = '') {
         textToLog += ` because: ${reason}`;
         Log.info(textToLog);
     }
+=======
+function setIsOffline(isOffline: boolean) {
+>>>>>>> parent of 783c3deef1 (Merge pull request #38377 from tienifr/fix/37565)
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 
@@ -41,4 +45,4 @@ function setShouldFailAllRequests(shouldFailAllRequests: boolean) {
     Onyx.merge(ONYXKEYS.NETWORK, {shouldFailAllRequests});
 }
 
-export {setIsBackendReachable, setIsOffline, setShouldForceOffline, setShouldFailAllRequests, setTimeSkew, setNetWorkStatus};
+export {setIsOffline, setShouldForceOffline, setShouldFailAllRequests, setTimeSkew, setNetWorkStatus};
