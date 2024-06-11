@@ -153,21 +153,23 @@ const runTests = async (): Promise<void> => {
                     const metrics = stop();
                     const test = server.getTestConfig();
 
-                    attachTestResult({
-                        name: `${test.name} (CPU)`,
-                        branch,
-                        duration: metrics.cpu,
-                    });
-                    attachTestResult({
-                        name: `${test.name} (FPS)`,
-                        branch,
-                        duration: metrics.fps,
-                    });
-                    attachTestResult({
-                        name: `${test.name} (RAM)`,
-                        branch,
-                        duration: metrics.ram,
-                    });
+                    if (server.isReadyToAcceptTestResults) {
+                        attachTestResult({
+                            name: `${test.name} (CPU)`,
+                            branch,
+                            duration: metrics.cpu,
+                        });
+                        attachTestResult({
+                            name: `${test.name} (FPS)`,
+                            branch,
+                            duration: metrics.fps,
+                        });
+                        attachTestResult({
+                            name: `${test.name} (RAM)`,
+                            branch,
+                            duration: metrics.ram,
+                        });
+                    }
                     subscription();
                     resolve();
                 });
