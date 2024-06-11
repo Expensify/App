@@ -18,6 +18,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import DateUtils from "@libs/DateUtils";
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
@@ -53,6 +54,7 @@ type TransactionListItemRowProps = {
     containerStyle?: StyleProp<ViewStyle>;
     isHovered?: boolean;
     isChildListItem?: boolean;
+    doesAtleastOneExpenseBelongToAPastYear: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -91,9 +93,13 @@ function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
     );
 }
 
+const getCreated = (item: TransactionListItemType) => item?.modifiedCreated ? item.modifiedCreated : item?.created || ''
+
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
-    const date = TransactionUtils.getCreated(transactionItem, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+
+    const created = getCreated(transactionItem);
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(transactionItem) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
     return (
         <TextWithTooltip
@@ -299,7 +305,7 @@ function TransactionListItemRow({
                         isHovered={isHovered}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE, item.doesAtleastOneExpenseBelongToAPastYear)]}>
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}

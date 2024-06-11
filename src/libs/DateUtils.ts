@@ -797,6 +797,11 @@ function getFormattedTransportDate(date: Date): string {
     return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
 }
 
+function doesDateBelongToAPastYear(date: string): boolean {
+    const transactionYear = new Date(date).getFullYear();
+    return transactionYear !== new Date().getFullYear();
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -840,6 +845,7 @@ const DateUtils = {
     getFormattedDateRange,
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
+    doesDateBelongToAPastYear
 };
 
 export default DateUtils;

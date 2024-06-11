@@ -122,6 +122,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isSortingAllowed = sortableSearchTabs.includes(query);
 
+    const doesAtleastOneExpenseBelongToAPastYear = SearchUtils.doesAtleastOneExpenseBelongToAPastYear(searchResults?.data as TransactionListItemType[] | ReportListItemType[]);
+
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
             customListHeader={
@@ -131,6 +133,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     sortOrder={sortOrder}
                     isSortingAllowed={isSortingAllowed}
                     sortBy={sortBy}
+                    doesAtleastOneExpenseBelongToAPastYear={doesAtleastOneExpenseBelongToAPastYear}
                 />
             }
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,

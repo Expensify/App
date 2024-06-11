@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import DateUtils from "./DateUtils";
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
 import type {CentralPaneNavigatorParamList, RootStackParamList, State} from './Navigation/types';
@@ -76,8 +77,38 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
+function doesAtleastOneExpenseBelongToAPastYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
+    if (Array.isArray(data)) {
+        return data.some((item: TransactionListItemType | ReportListItemType) => {
+            if ('transactions' in item) {
+                // If the item is a ReportListItemType, iterate over its transactions and check them
+                return item.transactions.some(transaction => {
+                    const transactionYear = new Date(transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '').getFullYear();
+                    return transactionYear !== new Date().getFullYear();
+                });
+            }
+
+            const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
+            return createdYear !== new Date().getFullYear();
+        });
+    }
+    for (const [key, transactionItem] of Object.entries(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            const item = transactionItem as SearchTransaction;
+            const date = item?.modifiedCreated ? item.modifiedCreated : item?.created || '';
+
+            if (DateUtils.doesDateBelongToAPastYear(date)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
+
+    const doesDataContainAPastYearTransaction = doesAtleastOneExpenseBelongToAPastYear(data);
 
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
@@ -104,12 +135,15 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 shouldShowTag: true,
                 shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
+                doesAtleastOneExpenseBelongToAPastYear: doesDataContainAPastYearTransaction,
             };
         });
 }
 
 function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
+
+    const doesDataContainAPastYearTransaction = doesAtleastOneExpenseBelongToAPastYear(data);
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
@@ -146,6 +180,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 shouldShowTag: true,
                 shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
+                doesAtleastOneExpenseBelongToAPastYear: doesDataContainAPastYearTransaction,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -230,5 +265,5 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, doesAtleastOneExpenseBelongToAPastYear};
 export type {SearchColumnType, SortOrder};
