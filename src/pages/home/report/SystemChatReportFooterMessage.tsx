@@ -70,7 +70,14 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
             containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
             icon={Expensicons.Lightbulb}
-            content={<Text suppressHighlighting>{content}</Text>}
+            content={
+                <Text
+                    suppressHighlighting
+                    style={styles.flex1}
+                >
+                    {content}
+                </Text>
+            }
         />
     );
 }
