@@ -683,7 +683,6 @@ export default {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -2289,7 +2288,7 @@ export default {
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
-                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
         },
