@@ -2014,7 +2014,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
 function navigateToSystemChat() {
     const systemChatReport = ReportUtils.getSystemChat();
 
-    if (systemChatReport && systemChatReport.reportID) {
+    if (systemChatReport?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(systemChatReport.reportID));
     }
 }
