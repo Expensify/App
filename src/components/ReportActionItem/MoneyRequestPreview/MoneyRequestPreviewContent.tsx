@@ -395,7 +395,7 @@ function MoneyRequestPreviewContent({
                     text={translate('violations.keepThisOne')}
                     success
                     medium
-                    style={styles.p2}
+                    style={styles.p4}
                     onPress={() => {
                         Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', duplicates);
                     }}

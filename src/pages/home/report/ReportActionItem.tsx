@@ -341,7 +341,7 @@ function ReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyObject(action.errors)) {
+            if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
                 return;
             }
 
@@ -367,7 +367,7 @@ function ReportActionItem({
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
+        [draftMessage, action.errors, action.reportActionID, shouldDisplayContextMenu, report.reportID, originalReportID, toggleContextMenuFromActiveReportAction, originalReport],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
