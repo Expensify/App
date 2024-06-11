@@ -2393,7 +2393,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             setup: 'Connect',
-            lastSync: 'Last synced just now',
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
