@@ -86,10 +86,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID || policyIDsFromState);
-
-            const isNewPolicyID =
-                (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
             const isOpeningSearch = matchingBottomTabRoute.name === SCREENS.SEARCH.BOTTOM_TAB;
+            const isNewPolicyID =
+                ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
+                ((matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '');
 
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID || isOpeningSearch)) {
                 root.dispatch({
