@@ -12,7 +12,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -253,7 +253,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Map>
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <PressableWithoutFeedback
+                    <PressableWithFeedback
                         accessibilityRole={CONST.ROLE.BUTTON}
                         onPress={centerMap}
                         accessibilityLabel={translate('common.center')}
@@ -266,7 +266,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                                 fill={theme.icon}
                             />
                         </View>
-                    </PressableWithoutFeedback>
+                    </PressableWithFeedback>
                 </View>
             </View>
         ) : (
