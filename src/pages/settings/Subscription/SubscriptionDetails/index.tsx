@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
 import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
@@ -58,12 +59,17 @@ function SubscriptionDetails() {
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
         subscriptionSizeSection = privateSubscription?.userCount ? (
-            <MenuItemWithTopDescription
-                description={translate('subscription.details.subscriptionSize')}
-                title={`${privateSubscription?.userCount}`}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                style={styles.mt5}
-            />
+            <OfflineWithFeedback
+                pendingAction={privateSubscription?.pendingFields?.userCount}
+                errors={privateSubscription?.errorFields?.userCount}
+            >
+                <MenuItemWithTopDescription
+                    description={translate('subscription.details.subscriptionSize')}
+                    title={`${privateSubscription?.userCount}`}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mt5}
+                />
+            </OfflineWithFeedback>
         ) : (
             <>
                 <MenuItemWithTopDescription

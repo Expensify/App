@@ -7,9 +7,9 @@ import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import {getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/SubscriptionSize/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,6 @@ type ConfirmationProps = SubStepProps;
 function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
@@ -57,13 +56,21 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
                 </>
             )}
             <FixedFooter style={[styles.mtAuto]}>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    large
-                    onPress={onNext}
-                    text={translate(CAN_CHANGE_SUBSCRIPTION_SIZE ? 'common.save' : 'common.close')}
-                />
+                {CAN_CHANGE_SUBSCRIPTION_SIZE ? (
+                    <Button
+                        success
+                        large
+                        onPress={onNext}
+                        text={translate('common.save')}
+                    />
+                ) : (
+                    <Button
+                        success
+                        large
+                        onPress={() => Navigation.goBack()}
+                        text={translate('common.close')}
+                    />
+                )}
             </FixedFooter>
         </View>
     );

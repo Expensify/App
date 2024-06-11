@@ -1,8 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of private subscription */
-type PrivateSubscription = {
+type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** "auto increase annual seats" setting */
     addNewUsersAutomatically: boolean;
 
@@ -26,6 +27,9 @@ type PrivateSubscription = {
 
     /** Subscription size */
     userCount?: number;
-};
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 export default PrivateSubscription;
