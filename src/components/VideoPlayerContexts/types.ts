@@ -1,7 +1,7 @@
-import type {TupleToUnion} from 'type-fest';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
+import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';

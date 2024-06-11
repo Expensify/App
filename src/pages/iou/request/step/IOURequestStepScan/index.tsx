@@ -1,8 +1,8 @@
-import type {TupleToUnion} from 'type-fest';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
