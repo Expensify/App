@@ -165,8 +165,8 @@ function LHNOptionsList({
     );
 
     const extraData = useMemo(
-        () => [reportActions, reports, policy, personalDetails, data.length, draftComments],
-        [reportActions, reports, policy, personalDetails, data.length, draftComments],
+        () => [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode],
+        [reportActions, reports, policy, personalDetails, data.length, draftComments, optionMode],
     );
 
     const previousOptionMode = usePrevious(optionMode);
