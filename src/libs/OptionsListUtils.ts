@@ -1937,7 +1937,7 @@ function getOptions(
                 includeInvoiceRooms &&
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
                 ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
-                !ReportUtils.isClosedReport(reportOption.item);
+                !ReportUtils.isArchivedRoom(reportOption.item);
 
             /**
                 Exclude the report option if it doesn't meet any of the following conditions:
