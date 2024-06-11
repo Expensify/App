@@ -91,6 +91,7 @@ function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParam
             // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
             shouldRetry: true,
             canCancel: true,
+            clientUpdateID: lastUpdateIDAppliedToClient,
         },
         ...onyxDataWithoutOptimisticData,
     };
@@ -139,6 +140,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType,
+        clientUpdateID: lastUpdateIDAppliedToClient,
     };
 
     // Assemble all the request data we'll be storing
