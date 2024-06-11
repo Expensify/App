@@ -10,6 +10,7 @@ import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -33,10 +34,10 @@ const options: Array<OptionsPickerItem<SubscriptionVariant>> = [
 function SubscriptionDetails() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
     const [selectedOption, setSelectedOption] = useState(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
 
@@ -81,7 +82,7 @@ function SubscriptionDetails() {
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon
-                        src={preferredTheme === CONST.THEME.LIGHT ? Illustrations.ExpensifyApprovedLogoLight : Illustrations.ExpensifyApprovedLogo}
+                        src={illustrations.ExpensifyApprovedLogo}
                         width={variables.modalTopIconWidth}
                         height={variables.menuIconSize}
                     />

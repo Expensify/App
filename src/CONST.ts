@@ -3394,6 +3394,11 @@ const CONST = {
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
         IMAGE: 'image',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        TEXTBOX: 'textbox',
     },
     /**
      * Acceptable values for the `role` attribute on react native components.
@@ -4753,6 +4758,7 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+        ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
     },
 
     RESERVATION_TYPE: {
