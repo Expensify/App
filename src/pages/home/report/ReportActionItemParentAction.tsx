@@ -109,7 +109,7 @@ function ReportActionItemParentAction({
                 >
                     <ThreadDivider
                         ancestor={ancestor}
-                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))}
+                        isLinkDisabled={!ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.reportID))}
                     />
                     <ReportActionItem
                         onPress={
@@ -136,6 +136,7 @@ function ReportActionItemParentAction({
                         index={index}
                         isFirstVisibleReportAction={isFirstVisibleReportAction}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                        hideThreadReplies={true}
                     />
                 </OfflineWithFeedback>
             ))}
