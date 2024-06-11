@@ -228,6 +228,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isArchivedRoom,
         isGroupChat,
         isDefaultRoom,
+        isThread,
         isChatThread,
         isPolicyEmployee,
         isPolicyExpenseChat,
