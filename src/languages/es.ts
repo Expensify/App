@@ -1686,8 +1686,8 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
-        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
-        checkPlease: 'Por favor, revisa.',
+        reviewTheFees: 'Por favor, revisa las siguientes tarifas.',
+        checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,

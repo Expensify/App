@@ -79,7 +79,7 @@ function TermsStep({onNext}: SubStepProps) {
 
     return (
         <View style={[styles.flexGrow1, styles.ph5]}>
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('termsStep.checkPlease')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('termsStep.checkTheBoxes')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.textSupporting]}>{translate('termsStep.agreeToTerms')}</Text>
             <View style={styles.flex1}>
                 <CheckboxWithLabel

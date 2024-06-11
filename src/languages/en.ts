@@ -1664,8 +1664,8 @@ export default {
         noOverdraftOrCredit: 'No overdraft/credit feature.',
         electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
-        takeALookAtSomeFees: 'Take a look at some fees.',
-        checkPlease: 'Check please.',
+        reviewTheFees: 'Please review the fees below.',
+        checkTheBoxes: 'Please check the boxes below.',
         agreeToTerms: 'Agree to the terms and you’ll be good to go!',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `The Expensify Wallet is issued by ${walletProgram}.`,
