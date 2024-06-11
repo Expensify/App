@@ -3721,7 +3721,7 @@ export default {
             title: 'Pago',
             subtitle: 'Añade una tarjeta de pago para abonar tu suscripción a Expensify',
             addCardButton: 'Añade tarjeta de pago',
-            cardNextPayment: 'Your next payment date is',
+            cardNextPayment: ({nextPayment}) => `Tu próxima fecha de pago es ${nextPayment}.`,
             cardEnding: ({cardNumber}) => `Tarjeta terminada en ${cardNumber}`,
             cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
