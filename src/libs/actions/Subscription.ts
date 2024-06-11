@@ -32,7 +32,6 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                autoRenew,
                 pendingAction: null,
                 errors: null,
             },
@@ -81,7 +80,6 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                addNewUsersAutomatically,
                 pendingAction: null,
                 errors: null,
             },
