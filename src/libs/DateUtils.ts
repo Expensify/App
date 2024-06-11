@@ -380,7 +380,8 @@ function getDBTime(timestamp: string | number = ''): string {
  */
 function getDBTimeWithSkew(timestamp: string | number = ''): string {
     if (networkTimeSkew > 0) {
-        return getDBTime(new Date(timestamp).valueOf() + networkTimeSkew);
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return getDBTime(datetime.valueOf() + networkTimeSkew);
     }
     return getDBTime(timestamp);
 }
