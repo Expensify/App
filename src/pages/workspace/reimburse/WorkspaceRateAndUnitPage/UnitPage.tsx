@@ -52,7 +52,6 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             headerText={translate('workspace.reimburse.trackDistanceUnit')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-            shouldSkipVBBACall
             backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
             shouldShowLoading={false}
             shouldShowBackButton
