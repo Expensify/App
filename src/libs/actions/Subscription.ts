@@ -93,7 +93,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                addNewUsersAutomatically,
+                addNewUsersAutomatically: !addNewUsersAutomatically,
                 pendingAction: null,
             },
         },
