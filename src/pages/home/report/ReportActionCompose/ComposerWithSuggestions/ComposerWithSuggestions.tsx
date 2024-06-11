@@ -775,6 +775,7 @@ function ComposerWithSuggestions(
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
+                    isGroupPolicyReport={isGroupPolicyReport}
                 />
             </View>
 

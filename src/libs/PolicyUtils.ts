@@ -424,6 +424,13 @@ function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
 }
 
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+}
+
 /** Get the Xero organizations connected to the policy */
 function getXeroTenants(policy: Policy | undefined): Tenant[] {
     // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
@@ -516,6 +523,7 @@ export {
     shouldShowPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
+    hasDependentTags,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
