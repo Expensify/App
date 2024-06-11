@@ -251,7 +251,7 @@ function Composer(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
-    useHtmlPaste(textInput, handlePaste, true, false);
+    useHtmlPaste(textInput, handlePaste, true);
 
     useEffect(() => {
         if (typeof ref === 'function') {

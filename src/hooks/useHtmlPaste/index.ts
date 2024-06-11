@@ -29,7 +29,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     }
 };
 
-const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false, shouldRefocusAfterPaste = true) => {
+const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeListenerOnScreenBlur = false) => {
     const navigation = useNavigation();
 
     /**
@@ -51,14 +51,20 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             }
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            // If shouldRefocusAfterPaste = false, we want to call `focus()` only as it won't change the focus state of the input since it is already focused
-            if (shouldRefocusAfterPaste || !textInputRef.current?.restoreSelectionPosition) {
-                textInputRef.current?.blur();
-                textInputRef.current?.focus();
-                return;
-            }
-            // just restore the selection position if the input is already focused
-            textInputRef.current?.restoreSelectionPosition?.();
+            // to avoid the keyboard in mobile web if using blur() and focus() function, we just need to dispatch the event to trigger the onFocus handler
+
+            textInputHTMLElement.dispatchEvent(new FocusEvent('focus', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            }))
+
+            // need to trigger the focusin event to make sure the onFocus handler is triggered
+            textInputHTMLElement.dispatchEvent(new FocusEvent('focusin', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            }))
             // eslint-disable-next-line no-empty
         } catch (e) {}
         // We only need to set the callback once.
