@@ -4,11 +4,24 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(inputContainsOnlyEmojis?: boolean): MarkdownStyle {
+function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Array<keyof MarkdownStyle> = []): MarkdownStyle {
     const theme = useTheme();
 
-    const markdownStyle = useMemo(
+    // this map is used to reset the styles that are not needed - passing undefined value can break the native side
+    const nonStylingDefaultValues: Record<string, string | number> = useMemo(
         () => ({
+            color: theme.text,
+            backgroundColor: 'transparent',
+            marginLeft: 0,
+            paddingLeft: 0,
+            borderColor: 'transparent',
+            borderWidth: 0,
+        }),
+        [theme],
+    );
+
+    const markdownStyle = useMemo(() => {
+        const styling = {
             syntax: {
                 color: theme.syntax,
             },
@@ -57,9 +70,21 @@ function useMarkdownStyle(inputContainsOnlyEmojis?: boolean): MarkdownStyle {
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
-        }),
-        [theme, inputContainsOnlyEmojis],
-    );
+        };
+
+        if (excludeStyles.length) {
+            excludeStyles.forEach((key) => {
+                const style: Record<string, unknown> = styling[key];
+                if (style) {
+                    Object.keys(style).forEach((styleKey) => {
+                        style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];
+                    });
+                }
+            });
+        }
+
+        return styling;
+    }, [theme, inputContainsOnlyEmojis, excludeStyles, nonStylingDefaultValues]);
 
     return markdownStyle;
 }
