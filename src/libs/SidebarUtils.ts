@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import AccountUtils from './AccountUtils';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -107,6 +108,12 @@ function getOrderedReportIDs(
             return;
         }
 
+        const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+
+        if (currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS)) {
+            reportsToDisplay.push(report);
+            return;
+        }
         if (
             ReportUtils.shouldReportBeInOptionList({
                 report,
