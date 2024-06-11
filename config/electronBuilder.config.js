@@ -47,12 +47,10 @@ module.exports = {
         },
         target: [
             {
-                target: "dmg",
-                arch: [
-                    "universal"
-                ]
-            }
-        ]
+                target: 'dmg',
+                arch: ['universal'],
+            },
+        ],
     },
     dmg: {
         title: 'New Expensify',
