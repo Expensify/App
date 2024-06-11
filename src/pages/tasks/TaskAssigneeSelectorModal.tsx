@@ -22,6 +22,8 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -69,8 +71,8 @@ function useOptions() {
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
-            Boolean(userToInvite),
+            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption,
+            !!userToInvite,
             debouncedSearchValue,
         );
 
@@ -158,6 +160,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
 
     const selectReport = useCallback(
         (option: ListItem) => {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
             if (!option) {
                 return;
             }
@@ -217,6 +220,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={headerMessage}

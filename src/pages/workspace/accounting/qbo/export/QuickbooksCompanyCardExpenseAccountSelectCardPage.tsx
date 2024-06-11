@@ -29,7 +29,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     const policyID = policy?.id ?? '';
     const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, syncLocations, nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {creditCards, bankAccounts, accountPayable, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isLocationEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     const sections = useMemo(() => {
         const options: AccountListItem[] = [
@@ -101,6 +101,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportCompanyCard}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={sections[0].data.find((option) => option.isSelected)?.keyForList}
                         footerContent={
                             isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>

@@ -10,7 +10,7 @@ let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
     callback: (value) => {
-        isLastSavedBeta = Boolean(value);
+        isLastSavedBeta = !!value;
     },
 });
 
@@ -22,7 +22,7 @@ function isBetaBuild(): IsBetaBuild {
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
             .then((json) => {
-                const productionVersion = json.tag_name;
+                const productionVersion: string | semver.SemVer = json.tag_name;
                 if (!productionVersion) {
                     AppUpdate.setIsAppInBeta(false);
                     resolve(false);

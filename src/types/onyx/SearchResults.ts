@@ -1,40 +1,105 @@
 import type {ValueOf} from 'type-fest';
-import type TransactionListItem from '@components/SelectionList/TransactionListItem';
+import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
+import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
+/** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
 
-type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? typeof TransactionListItem : never;
+/** Model of search result list item */
+type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+    ? typeof TransactionListItem
+    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
+    ? typeof ReportListItem
+    : never;
 
-type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? SearchTransaction[] : never;
+/** Model of search result section */
+type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+    ? TransactionListItemType[]
+    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
+    ? ReportListItemType[]
+    : never;
 
+/** Mapping of search results to list item */
 type SearchTypeToItemMap = {
     [K in SearchDataTypes]: {
+        /** Collection of search result list item */
         listItem: ListItemType<K>;
+
+        /** Returns search results sections based on search results data */
         getSections: (data: SearchResults['data']) => SectionsType<K>;
+
+        /** Returns sorted search results sections based on search results data */
+        getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
     };
 };
 
+/** Model of search result state */
 type SearchResultsInfo = {
+    /** Current search results offset/cursor */
     offset: number;
+
+    /** Type of search */
     type: string;
+
+    /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
+
+    /** Whether the search results are currently loading */
     isLoading: boolean;
 };
 
+/** Model of personal details search result */
 type SearchPersonalDetails = {
+    /** ID of user account */
     accountID: number;
+
+    /** User's avatar URL */
     avatar: string;
+
+    /** User's display name */
     displayName?: string;
+
+    /** User's email */
     login?: string;
 };
 
+/** Model of policy details search result */
 type SearchPolicyDetails = {
+    /** ID of the policy */
     id: string;
+
+    /** Policy avatar URL */
     avatarURL: string;
+
+    /** Policy name */
     name: string;
 };
 
+/** Model of report search result */
+type SearchReport = {
+    /** The ID of the report */
+    reportID?: string;
+
+    /** The name of the report */
+    reportName?: string;
+
+    /** The report total amount */
+    total?: number;
+
+    /** The report currency */
+    currency?: string;
+
+    /** The report type */
+    type?: string;
+
+    /** The action that can be performed for the report */
+    action?: string;
+};
+
+/** Model of transaction search result */
 type SearchTransaction = {
     /** The ID of the transaction */
     transactionID: string;
@@ -64,13 +129,19 @@ type SearchTransaction = {
     modifiedMerchant: string;
 
     /** The receipt object */
-    receipt?: {source?: string};
+    receipt?: {
+        /** Source of the receipt */
+        source?: string;
+    };
 
     /** The transaction tag */
     tag: string;
 
     /** The transaction description */
-    comment: {comment: string};
+    comment: {
+        /** Content of the transaction description */
+        comment: string;
+    };
 
     /** The transaction category */
     category: string;
@@ -113,19 +184,46 @@ type SearchTransaction = {
 
     /** The action that can be performed for the transaction */
     action: string;
+
+    /** The MCC Group associated with the transaction */
+    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+
+    /** The modified MCC Group associated with the transaction */
+    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+
+    /** The ID of the money request reportAction associated with the transaction */
+    moneyRequestReportActionID?: string;
 };
 
+/** Model of account details search result */
 type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
 
+/** Types of searchable transactions */
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
 
+/** Types of search queries */
 type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
 
+/** Model of search results */
 type SearchResults = {
+    /** Current search results state */
     search: SearchResultsInfo;
-    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails>;
+
+    /** Search results data */
+    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
 };
 
 export default SearchResults;
 
-export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails, SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap};
+export type {
+    SearchQuery,
+    SearchTransaction,
+    SearchTransactionType,
+    SearchPersonalDetails,
+    SearchPolicyDetails,
+    SearchAccountDetails,
+    SearchDataTypes,
+    SearchTypeToItemMap,
+    SearchReport,
+    SectionsType,
+};

@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import DeviceInfo from 'react-native-device-info';
 import type GenerateDeviceID from './types';
 

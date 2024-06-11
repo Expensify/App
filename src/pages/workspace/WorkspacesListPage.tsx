@@ -32,7 +32,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -309,7 +309,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
         if (isEmptyObject(policies)) {
             return [];
         }
-        console.log("policies: ", policies);
+        console.log('policies: ', policies);
         return Object.values(policies)
             .filter((policy): policy is PolicyType => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
             .map((policy): WorkspaceItem => {

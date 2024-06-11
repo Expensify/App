@@ -100,7 +100,6 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
-        '@typescript-eslint/no-unsafe-argument': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
@@ -156,6 +155,7 @@ module.exports = {
                 fixMixedExportsWithInlineTypeSpecifier: false,
             },
         ],
+        '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
 
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
@@ -235,8 +235,21 @@ module.exports = {
         ],
     },
 
-    // Remove once no JS files are left
     overrides: [
+        // Enforces every Onyx type and its properties to have a comment explaining its purpose.
+        {
+            files: ['src/types/onyx/**/*.ts'],
+            rules: {
+                'jsdoc/require-jsdoc': [
+                    'error',
+                    {
+                        contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSPropertySignature'],
+                    },
+                ],
+            },
+        },
+
+        // Remove once no JS files are left
         {
             files: ['*.js', '*.jsx'],
             rules: {

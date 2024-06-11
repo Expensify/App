@@ -16,6 +16,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -75,6 +76,7 @@ function Composer(
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
+    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? ['mentionReport'] : []);
@@ -123,7 +125,7 @@ function Composer(
         if (shouldCalculateCaretPosition && isRendered) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
-                setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
+                setValueBeforeCaret((webEvent.target as HTMLInputElement).value.slice(0, webEvent.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
             });
             const selectionValue = {
@@ -314,9 +316,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 
-        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (
