@@ -18,7 +18,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useNativeDriver from '@libs/useNativeDriver';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
