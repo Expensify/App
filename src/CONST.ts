@@ -523,6 +523,16 @@ const CONST = {
             shortcutKey: 'Tab',
             modifiers: [],
         },
+        DEBUG: {
+            descriptionKey: 'openDebug',
+            shortcutKey: 'D',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'd', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'd', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
+            },
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
