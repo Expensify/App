@@ -1852,6 +1852,24 @@ function getParticipantAccountIDs(reportID: string, includeOnlyActiveMembers = f
     return accountIDStrings.map((accountID) => Number(accountID));
 }
 
+function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false): number[] {
+    // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
+    // For system chat, we want to display Expensify as the only participant
+    const shouldFilterOutCurrentUser = isOneOnOneChat(report) || isSystemChat(report);
+
+    let accountIDs = shouldExcludeHidden
+        ? Object.entries(report?.participants ?? {})
+              .filter(([, participant]) => participant && !participant.hidden)
+              .map(([accountID]) => Number(accountID))
+        : Object.keys(report?.participants ?? {}).map(Number);
+
+    if (shouldFilterOutCurrentUser) {
+        accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
+    }
+
+    return accountIDs;
+}
+
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
     const finalParticipants: Participants = {};
     return accountIDs.reduce((participants, accountID) => {
@@ -3479,11 +3497,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
     const isSelfDMReport = isSelfDM(report);
     const isOneOnOneChatReport = isOneOnOneChat(report);
-
-    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-    const participantAccountID = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChatReport);
+    const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
@@ -3500,11 +3514,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>) {
  */
 function goBackToDetailsPage(report: OnyxEntry<Report>) {
     const isOneOnOneChatReport = isOneOnOneChat(report);
-
-    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-    const participantAccountID = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChatReport);
+    const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isOneOnOneChatReport) {
         Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
@@ -3523,9 +3533,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
     }
     const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        const participantAccountIDs = Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat(report));
+        const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
             Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
@@ -7044,6 +7052,7 @@ export {
     getParentNavigationSubtitle,
     getParsedComment,
     getParticipantAccountIDs,
+    getParticipantsAccountIDsForDisplay,
     getParticipants,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
