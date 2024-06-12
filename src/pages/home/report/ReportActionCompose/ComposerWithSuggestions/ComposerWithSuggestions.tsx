@@ -158,7 +158,7 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         isEmptyChat?: boolean;
 
         /** The last report action */
-        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction> | null;
+        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;

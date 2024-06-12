@@ -53,9 +53,9 @@ function setClipboardMessage(content: string) {
 
 type ShouldShow = (
     type: string,
-    reportAction: OnyxInputOrEntry<ReportAction>,
+    reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
-    betas: OnyxInputOrEntry<Beta[]>,
+    betas: OnyxEntry<Beta[]>,
     menuTarget: MutableRefObject<ContextMenuAnchor> | undefined,
     isChronosReport: boolean,
     reportID: string,

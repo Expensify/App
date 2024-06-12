@@ -41,10 +41,10 @@ type ReportFooterProps = {
     reportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
     /** The policy of the report */
-    policy: OnyxEntry<OnyxTypes.Policy> | null;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** The last report action */
-    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction> | null;
+    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether the chat is empty */
     isEmptyChat?: boolean;

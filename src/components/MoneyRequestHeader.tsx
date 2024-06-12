@@ -36,10 +36,10 @@ type MoneyRequestHeaderProps = {
     report: Report;
 
     /** The policy which the report is tied to */
-    policy: OnyxEntry<Policy> | null;
+    policy: OnyxEntry<Policy>;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: OnyxEntry<ReportAction> | null;
+    parentReportAction: OnyxEntry<ReportAction>;
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;

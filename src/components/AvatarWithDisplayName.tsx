@@ -34,7 +34,7 @@ type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
     report: OnyxEntry<Report>;
 
     /** The policy which the user has access to and which the report is tied to */
-    policy?: OnyxEntry<Policy> | null;
+    policy?: OnyxEntry<Policy>;
 
     /** The size of the avatar */
     size?: ValueOf<typeof CONST.AVATAR_SIZE>;

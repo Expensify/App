@@ -102,7 +102,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     report?: OnyxEntry<Report>;
 
     /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
-    policy?: OnyxEntry<Policy> | null;
+    policy?: OnyxEntry<Policy>;
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;

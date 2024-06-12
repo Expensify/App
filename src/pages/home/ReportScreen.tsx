@@ -294,15 +294,15 @@ function ReportScreen({
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
     const shouldHideReport = !hasHelpfulErrors && !ReportUtils.canAccessReport(report, policies, betas);
 
-    const lastReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null = useMemo(
+    const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
         () =>
             reportActions.length
-                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) ?? null
-                : null,
+                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action))
+                : undefined,
         [reportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     const isTopMostReportId = currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
 
