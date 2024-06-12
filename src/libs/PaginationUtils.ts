@@ -45,7 +45,8 @@ function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getI
  * Finds the id and index in sortedItems of the last item in the given page that's present in sortedItems.
  */
 function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): ItemWithIndex | null {
-    for (const id of page.slice().reverse()) {
+    for (let i = page.length - 1; i > 0; i--) {
+        const id = page[i];
         if (id === CONST.PAGINATION_END_ID) {
             return {id, index: sortedItems.length - 1};
         }
