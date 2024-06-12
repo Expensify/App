@@ -14,6 +14,9 @@ type ImageViewProps = {
     /** Handles errors while displaying the image */
     onError?: () => void;
 
+    /** Function to call when an user swipes down */
+    onSwipeDown?: () => void;
+
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 

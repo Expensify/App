@@ -39,6 +39,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /** Function for handle on press */
         onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
 
+        /** Function for handle on close */
+        onClose?: () => void | undefined;
+
         /** Whether this AttachmentView is shown as part of a AttachmentCarousel */
         isUsedInCarousel?: boolean;
 
@@ -84,6 +87,7 @@ function AttachmentView({
     isFocused,
     isUsedInCarousel,
     isUsedInAttachmentModal,
+    onClose,
     isWorkspaceAvatar,
     maybeIcon,
     fallbackSource,
@@ -220,6 +224,7 @@ function AttachmentView({
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
                 isImage={isImage}
+                onClose={onClose}
                 onPress={onPress}
                 onError={() => {
                     setImageError(true);

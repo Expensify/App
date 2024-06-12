@@ -33,7 +33,7 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, onClose, setDownloadButtonVisibility, type, accountID}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -174,6 +174,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ({item}: ListRenderItemInfo<Attachment>) => (
             <View style={[styles.h100, {width: cellWidth}]}>
                 <CarouselItem
+                    onClose={onClose}
                     item={item}
                     isFocused={activeSource === item.source}
                     onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
@@ -181,7 +182,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, onClose, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
