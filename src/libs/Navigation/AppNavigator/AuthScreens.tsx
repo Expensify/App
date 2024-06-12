@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
-import withPrepareCentralPaneScreen from '@components/withPrepareCentralPaneScreen';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -449,7 +448,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                                 key={centralPaneName}
                                 name={centralPaneName}
                                 initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
-                                getComponent={() => withPrepareCentralPaneScreen(componentGetter())}
+                                getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
                             />
                         );
