@@ -92,9 +92,10 @@ function getMatchRanking(testString: string, stringToRank: string): Ranking {
  * @param items - the items to filter
  * @param searchValue - the value to use for ranking
  * @param extractRankableValuesFromItem - an array of functions
+ * @param shouldLog - should we log when an item is filtered out?
  * @returns the new filtered array
  */
-function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, extractRankableValuesFromItem: (item: T) => string[]): T[] {
+function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string, extractRankableValuesFromItem: (item: T) => string[], shouldLog = false): T[] {
     const filteredItems = [];
     for (const item of items) {
         const valuesToRank = extractRankableValuesFromItem(item);
@@ -108,6 +109,8 @@ function filterArrayByMatch<T = string>(items: readonly T[], searchValue: string
 
         if (itemRank >= MATCH_RANK.MATCHES + 1) {
             filteredItems.push(item);
+        } else if (shouldLog) {
+            console.debug('[ChatFinderPage] filterArrayByMatch filtering: Filtering out item', {searchValue, itemRank});
         }
     }
     return filteredItems;

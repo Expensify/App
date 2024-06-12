@@ -104,9 +104,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time when user read the last message */
         lastReadTime?: string;
 
-        /** The sequence number of the last report visit */
-        lastReadSequenceNumber?: number;
-
         /** The time of the last mention of the report */
         lastMentionedTime?: string | null;
 
@@ -118,9 +115,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The policy name to use for an archived report */
         oldPolicyName?: string;
-
-        /** Whether the report has parent access */
-        hasParentAccess?: boolean;
 
         /** Description of the report */
         description?: string;

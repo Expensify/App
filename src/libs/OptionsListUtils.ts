@@ -56,6 +56,7 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
+import Log from './libs/Log';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;
@@ -1855,6 +1856,7 @@ function getOptions(
         const report = option.item;
 
         if (!report) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 1: Filtering out report', report);
             return;
         }
 
@@ -1872,36 +1874,44 @@ function getOptions(
             .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 2: Filtering out report', report);
             return;
         }
 
         // When passing includeP2P false we are trying to hide features from users that are not ready for P2P and limited to workspace chats only.
         if (!includeP2P && !isPolicyExpenseChat) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 3: Filtering out report', report);
             return;
         }
 
         if (isSelfDM && !includeSelfDM) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 4: Filtering out report', report);
             return;
         }
 
         if (isThread && !includeThreads) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 5: Filtering out report', report);
             return;
         }
 
         if (isTaskReport && !includeTasks) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 6: Filtering out report', report);
             return;
         }
 
         if (isMoneyRequestReport && !includeMoneyRequests) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 7: Filtering out report', report);
             return;
         }
 
         // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 8: Filtering out report', report);
             return;
         }
 
         if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+            console.debug('[ChatFinderPage] allReportOptions filtering - 9: Filtering out report', report);
             return;
         }
 
@@ -1942,11 +1952,13 @@ function getOptions(
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
             if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+                console.debug('[ChatFinderPage] includeRecentReports filtering - 1: Filtering out reportOption', reportOption);
                 break;
             }
 
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
+                console.debug('[ChatFinderPage] includeRecentReports filtering - 2: Filtering out reportOption', reportOption);
                 continue;
             }
 
@@ -1964,6 +1976,7 @@ function getOptions(
                 - It is not an invoice room that should be shown
             */
             if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login && !shouldShowInvoiceRoom) {
+                console.debug('[ChatFinderPage] includeRecentReports filtering - 3: Filtering out reportOption', reportOption);
                 continue;
             }
 
@@ -1973,6 +1986,7 @@ function getOptions(
                 (!!reportOption.login || reportOption.reportID) &&
                 optionsToExclude.some((option) => option.login === reportOption.login || option.reportID === reportOption.reportID)
             ) {
+                console.debug('[ChatFinderPage] includeRecentReports filtering - 4: Filtering out reportOption', reportOption);
                 continue;
             }
 
@@ -1988,6 +2002,7 @@ function getOptions(
                 const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
 
                 if (!isReportIdSearch && !isSearchMatch) {
+                    console.debug('[ChatFinderPage] includeRecentReports filtering - 5: Filtering out reportOption', reportOption);
                     continue;
                 }
             }

@@ -5361,15 +5361,18 @@ function shouldReportBeInOptionList({
             !isGroupChat(report) &&
             !isInvoiceRoom(report))
     ) {
+        console.debug('[ChatFinderPage] shouldReportBeInOptionList - 1: Filtering out report', report);
         return false;
     }
 
     if (!canAccessReport(report, policies, betas)) {
+        console.debug('[ChatFinderPage] shouldReportBeInOptionList - 2: Filtering out report', report);
         return false;
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
     if (isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
+        console.debug('[ChatFinderPage] shouldReportBeInOptionList - 3: Filtering out report', report);
         return false;
     }
 
@@ -5406,6 +5409,7 @@ function shouldReportBeInOptionList({
 
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && canHideReport && isEmptyChat) {
+        console.debug('[ChatFinderPage] shouldReportBeInOptionList - 4: Filtering out report', report);
         return false;
     }
 
@@ -5427,10 +5431,12 @@ function shouldReportBeInOptionList({
 
     // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && !isGroupChat(report) && canHideReport) {
+        console.debug('[ChatFinderPage] shouldReportBeInOptionList - 5: Filtering out report', report);
         return false;
     }
 
     if (isSelfDM(report)) {
+        console.debug('[ChatFinderPage] shouldReportBeInOptionList - 6: Filtering out report', report);
         return includeSelfDM;
     }
 
