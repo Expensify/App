@@ -137,6 +137,9 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, onSwipe
             if (dy >= maxTranslateY && scale.value === minScale) {
                 if (onSwipeDown) {
                     onSwipeDown();
+                } else {
+                    translationY.value = withSpring(0, SPRING_CONFIG);
+                    translationX.value = withSpring(0, SPRING_CONFIG);
                 }
             } else if (scale.value === minScale) {
                 translationY.value = withSpring(0, SPRING_CONFIG);
