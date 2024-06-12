@@ -503,6 +503,10 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
+        textLineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         colorReversed: {
             color: theme.textReversed,
         },

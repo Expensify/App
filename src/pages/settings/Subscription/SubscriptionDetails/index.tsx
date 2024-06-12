@@ -61,12 +61,7 @@ function SubscriptionDetails() {
                     style={styles.mt5}
                     title={`${privateSubscription?.userCount ?? ''}`}
                 />
-                {!privateSubscription?.userCount && (
-                    <Text style={styles.mt2}>
-                        <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                        <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-                    </Text>
-                )}
+                {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
             </>
         ) : null;
 
