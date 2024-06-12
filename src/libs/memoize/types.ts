@@ -1,3 +1,5 @@
+type CacheMode = 'array' | 'map';
+
 type MapCacheConfig = {
     cacheMode: 'map';
     equalityCheck: 'deep';
@@ -11,19 +13,18 @@ type ArrayCacheConfig = {
 type CacheConfig = MapCacheConfig | ArrayCacheConfig;
 
 type MemoizeConfig = {
-    maxSize?: number;
+    maxSize: number;
 } & CacheConfig;
 
-type CacheKey = any;
+type ExternalMemoizeConfig = Partial<MemoizeConfig>;
 
-type MemoizeStaticInstance<T> = {
-    get: (key: CacheKey) => T | undefined;
-    set: (key: CacheKey, value: T) => void;
+type CacheBuilder = <Fn extends () => unknown, C extends MemoizeConfig>(f: Fn, config: C) => MemoizedInterface<Fn>;
+
+type MemoizedInterface<Fn extends () => unknown, Key = Parameters<Fn>, Val = ReturnType<Fn>> = Fn & {
+    get: (key: Key) => Val | undefined;
+    set: (key: Key, value: Val) => void;
     clear: () => void;
+    snapshot: () => Array<[Key, Val]>;
 };
 
-type MemoizeInstance<Fn extends () => unknown> = Fn & MemoizeStaticInstance<ReturnType<Fn>>;
-
-type Memoize = <Fn extends () => unknown>(f: Fn, config: MemoizeConfig) => MemoizeInstance<Fn>;
-
-export type {Memoize, MemoizeConfig, MemoizeInstance};
+export type {MemoizeConfig, ExternalMemoizeConfig, CacheMode, MemoizedInterface, CacheBuilder};

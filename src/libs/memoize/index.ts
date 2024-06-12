@@ -1,2 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
-export {memoize} from './memoize';
+import memoize from './memoize';
+
+export default memoize;
