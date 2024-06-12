@@ -23,7 +23,6 @@ import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import listViewOverflow from './listViewOverflow';
 import type {AddressSearchProps, PredefinedPlace} from './types';
 
 /**
@@ -439,14 +438,7 @@ function AddressSearch(
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [
-                                StyleUtils.getGoogleListViewStyle(displayListViewBorder),
-                                listViewOverflow,
-                                styles.borderLeft,
-                                styles.borderRight,
-                                styles.flexGrow0,
-                                !isFocused && styles.h0,
-                            ],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.borderLeft, styles.borderRight, styles.flexGrow0, !isFocused && styles.h0],
                             row: [styles.pv4, styles.ph3, styles.overflowAuto],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],

@@ -1428,8 +1428,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getGoogleListViewStyle: (shouldDisplayBorder: boolean): ViewStyle => {
         if (shouldDisplayBorder) {
-            // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return {
                 ...styles.borderTopRounded,
                 ...styles.borderBottomRounded,
