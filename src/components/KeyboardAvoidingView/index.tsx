@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import {View} from 'react-native';
-import type KeyboardAvoidingViewProps from './types';
+import type {KeyboardAvoidingViewProps} from 'react-native';
 
 function KeyboardAvoidingView(props: KeyboardAvoidingViewProps) {
     const {behavior, contentContainerStyle, enabled, keyboardVerticalOffset, ...rest} = props;

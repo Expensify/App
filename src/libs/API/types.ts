@@ -550,6 +550,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     RECONNECT_APP: 'ReconnectApp',
+    SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -562,6 +563,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
