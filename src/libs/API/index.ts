@@ -189,13 +189,20 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     });
 }
 
-function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>>(
+function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData,
     config: PaginationConfig,
-): TRequestType extends typeof CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS ? Promise<Response | void> : void;
+): Promise<Response | void>;
+function paginate<TRequestType extends typeof CONST.API_REQUEST_TYPE.READ | typeof CONST.API_REQUEST_TYPE.WRITE, TCommand extends CommandOfType<TRequestType>>(
+    type: TRequestType,
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData: OnyxData,
+    config: PaginationConfig,
+): void;
 function paginate<TRequestType extends ApiRequestType, TCommand extends CommandOfType<TRequestType>>(
     type: TRequestType,
     command: TCommand,
