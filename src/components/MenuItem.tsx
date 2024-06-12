@@ -207,7 +207,7 @@ type MenuItemBaseProps = {
     shouldStackHorizontally?: boolean;
 
     /** Prop to represent the size of the avatar images to be shown */
-    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars?: IconType[];
