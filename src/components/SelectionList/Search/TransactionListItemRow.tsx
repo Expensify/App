@@ -69,7 +69,14 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
+        <View
+            style={[
+                StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
+                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
+                styles.overflowHidden,
+                {backgroundColor: theme.border},
+            ]}
+        >
             <ReceiptImage
                 source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
                 isEReceipt={transactionItem.hasEReceipt}
