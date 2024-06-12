@@ -36,6 +36,9 @@ function updateSubscriptionSize(newSubscriptionSize: number, currentSubscription
                 key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
                 value: {
                     userCount: newSubscriptionSize,
+                    errorFields: {
+                        userCount: null,
+                    },
                     pendingFields: {
                         userCount: null,
                     },
@@ -62,4 +65,12 @@ function updateSubscriptionSize(newSubscriptionSize: number, currentSubscription
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE, {userCount: newSubscriptionSize}, onyxData);
 }
 
-export {openSubscriptionPage, updateSubscriptionSize};
+function clearUpdateSubscriptionSizeError() {
+    Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {
+        errorFields: {
+            userCount: null,
+        },
+    });
+}
+
+export {openSubscriptionPage, updateSubscriptionSize, clearUpdateSubscriptionSizeError};

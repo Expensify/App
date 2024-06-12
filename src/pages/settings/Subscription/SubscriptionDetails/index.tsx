@@ -15,6 +15,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,6 +65,9 @@ function SubscriptionDetails() {
                 <OfflineWithFeedback
                     pendingAction={privateSubscription?.pendingFields?.userCount}
                     errors={privateSubscription?.errorFields?.userCount}
+                    onClose={() => {
+                        Subscription.clearUpdateSubscriptionSizeError();
+                    }}
                 >
                     <MenuItemWithTopDescription
                         description={translate('subscription.details.subscriptionSize')}
