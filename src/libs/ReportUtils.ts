@@ -87,7 +87,7 @@ type SpendBreakdown = {
 type ParticipantDetails = [number, string, AvatarSource, AvatarSource];
 
 type OptimisticAddCommentReportAction = Pick<
-    ReportAction,
+    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>,
     | 'reportActionID'
     | 'actionName'
     | 'actorAccountID'
@@ -2605,16 +2605,11 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
  *    This is used in conjunction with canEditRestrictedField to control editing of specific fields like amount, currency, created, receipt, and distance.
  *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
  */
-function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+function canEditMoneyRequest(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>): boolean {
     const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
 
     if (isDeleted) {
         return false;
-    }
-
-    // If the report action is not IOU type, return true early
-    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        return true;
     }
 
     const allowedReportActionType: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE];
@@ -2669,7 +2664,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
     ];
 
-    if (!canEditMoneyRequest(reportAction) || !ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+    if (!ReportActionsUtils.isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) {
         return false;
     }
 
@@ -2724,7 +2719,7 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return !!(
         reportAction?.actorAccountID === currentUserAccountID &&
         isCommentOrIOU &&
-        canEditMoneyRequest(reportAction) && // Returns true for non-IOU actions
+        (!ReportActionsUtils.isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction)) && // Returns true for non-IOU actions
         !isReportMessageAttachment(message) &&
         (isEmptyObject(reportAction.attachmentInfo) || !reportAction.isOptimisticAction) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
@@ -4293,7 +4288,13 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction: OnyxEntry<Transaction> = null, childReportID?: string): ReportAction {
+function buildOptimisticReportPreview(
+    chatReport: OnyxEntry<Report>,
+    iouReport: Report,
+    comment = '',
+    transaction: OnyxEntry<Transaction> = null,
+    childReportID?: string,
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);

@@ -3,7 +3,7 @@ import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {SetFieldType, SetRequired, ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -135,8 +135,8 @@ function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): reportAct
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
 }
 
-function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+function isSubmittedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED);
 }
 
 function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
@@ -153,6 +153,10 @@ function isChronosOOOListAction(reportAction: OnyxEntry<ReportAction>): reportAc
 
 function isAddCommentAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+}
+
+function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
 
 function isActionOfType<T extends ReportActionName[]>(
@@ -543,13 +547,13 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
-    if (isReportActionSubmitted(currentAction)) {
+    if (isSubmittedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
 
         return currentActionAdminAccountID === previousAction.actorAccountID || currentActionAdminAccountID === previousAction.adminAccountID;
     }
 
-    if (isReportActionSubmitted(previousAction)) {
+    if (isSubmittedAction(previousAction)) {
         return typeof previousAction.adminAccountID === 'number'
             ? currentAction.actorAccountID === previousAction.adminAccountID
             : currentAction.actorAccountID === previousAction.actorAccountID;
@@ -880,10 +884,11 @@ function getMostRecentReportActionLastModified(): string {
 /**
  * @returns The report preview action or `null` if one couldn't be found
  */
-function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
+function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
     return (
         Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
-            (reportAction) => reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
+            (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
+                reportAction && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
         ) ?? null
     );
 }
@@ -893,10 +898,6 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  */
 function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) ? getOriginalMessage(reportAction)?.linkedReportID ?? '0' : '0';
-}
-
-function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
 
 /**
@@ -913,15 +914,15 @@ function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>):
     return reportPreviewAction?.childMoneyRequestCount ?? 0;
 }
 
-function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): boolean {
+function isSplitBillAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
-function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
 
-function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): boolean {
+function isPayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
 }
 

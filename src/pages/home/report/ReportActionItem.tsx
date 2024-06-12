@@ -488,8 +488,6 @@ function ReportActionItem({
                 onPress: () => Report.resolveActionableMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING),
             },
         ];
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [action, isActionableWhisper, report.reportID]);
 
     const renderThreadDivider = useMemo(

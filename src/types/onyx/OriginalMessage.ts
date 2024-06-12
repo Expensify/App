@@ -70,9 +70,7 @@ type OriginalMessageIOU = {
     whisperedTo?: number[];
 };
 
-/**
- *
- */
+/** Names of moderation decisions */
 type DecisionName = ValueOf<
     Pick<
         typeof CONST.MODERATION,
@@ -322,9 +320,7 @@ type OriginalMessageModifiedExpense = {
 
 /** Model of `reimbursement queued` report action */
 type OriginalMessageReimbursementQueued = {
-    /**
-     *
-     */
+    /** How is the payment getting reimbursed */
     paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 };
 
@@ -404,235 +400,120 @@ type OriginalMessageApproved = {
 };
 
 /** The map type of original message */
-// eslint-disable-next-line jsdoc/require-jsdoc
 type OriginalMessageMap = {
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicyChangeLog;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.CREATED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.DONATION]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.FORWARDED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.SUBMITTED]: OriginalMessageSubmitted;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.TASK_EDITED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.UNHOLD]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
-    /**
-     *
-     */
+    /** */
     [CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW]: OriginalMessageTripRoomPreview;
 } & {
     [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
@@ -640,24 +521,19 @@ type OriginalMessageMap = {
     [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageChangeLog;
 };
 
-/**
- *
- */
+/** */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
     ReportActionName,
     keyof OriginalMessageMap,
     `Error: Types don't match, OriginalMessageMap type is missing: ${Exclude<ReportActionName, keyof OriginalMessageMap>}`
 >;
-/**
- *
- */
+
+/** */
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 
 // Note: type-fest's ConditionalKeys does not work correctly with objects containing `never`: https://github.com/sindresorhus/type-fest/issues/878
-/**
- *
- */
+/** */
 type ReportActionNamesWithHTMLMessage = {
     [TKey in keyof OriginalMessageMap]-?: OriginalMessageMap[TKey] extends {
         /**
@@ -672,9 +548,7 @@ type ReportActionNamesWithHTMLMessage = {
 }[keyof OriginalMessageMap];
 const REPORT_ACTIONS_WITH_HTML_MESSAGE = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.RENAMED] as const;
 
-/**
- *
- */
+/** */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type AssertAllActionsWithHTMLAreListed = AssertTypesEqual<
     ReportActionNamesWithHTMLMessage,
@@ -683,7 +557,6 @@ type AssertAllActionsWithHTMLAreListed = AssertTypesEqual<
 >;
 
 export default OriginalMessage;
-export {REPORT_ACTIONS_WITH_HTML_MESSAGE};
 export type {
     DecisionName,
     OriginalMessageIOU,

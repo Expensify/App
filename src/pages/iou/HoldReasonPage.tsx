@@ -60,7 +60,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
         // as we do not allow requestee to edit fields like description and amount.
         // But, we still want the requestee to be able to put the request on hold
-        if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+        if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
             return;
         }
 
@@ -78,7 +78,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
             // as we do not allow requestee to edit fields like description and amount.
             // But, we still want the requestee to be able to put the request on hold
-            if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+            if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
                 ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);

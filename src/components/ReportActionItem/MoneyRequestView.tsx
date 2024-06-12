@@ -136,7 +136,7 @@ function MoneyRequestView({
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditTaxFields = canEdit && !isDistanceRequest;
 
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
