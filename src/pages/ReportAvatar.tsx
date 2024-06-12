@@ -37,7 +37,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true, rou
         fileName = groupChatDraft?.originalFileName ?? undefined;
         // When user enters custom group name, it typically stored in groupChatDraft.reportName
         // If that is null then we will use ReportUtils.getGroupChatName to get the name
-        title = groupChatDraft?.reportName ?? ReportUtils.getGroupChatName(groupChatDraft?.participants.map((participant) => participant.accountID) ?? []);
+        title = groupChatDraft?.reportName || ReportUtils.getGroupChatName(groupChatDraft?.participants.map((participant) => participant.accountID) ?? [], true);
         shouldShowNotFoundPage = !isLoadingApp && !groupChatDraft;
     } else {
         avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
