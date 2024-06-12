@@ -120,17 +120,17 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         fileRef.current = image;
-                        Report.setGroupDraft({avatarUri: image?.uri ?? ''});
+                        Report.setGroupDraft({avatarUri: image?.uri ?? '', originalFileName: image?.name});
                     }}
                     onImageRemoved={() => {
                         fileRef.current = undefined;
-                        Report.setGroupDraft({avatarUri: null});
+                        Report.setGroupDraft({avatarUri: null, originalFileName: null});
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}
-                    shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}
                     editIconStyle={styles.smallEditIconAccount}
+                    onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(optimisticReportID.current, true))}
                     shouldUseStyleUtilityForAnchorPosition
                     style={styles.w100}
                 />
