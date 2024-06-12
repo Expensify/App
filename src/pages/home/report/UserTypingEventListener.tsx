@@ -1,14 +1,14 @@
 import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ReportPusherSubscriptionManager} from './useReportPusherEventSubscription/types';
 
 type UserTypingEventListenerOnyxProps = {
     /** Stores last visited path */
@@ -18,10 +18,9 @@ type UserTypingEventListenerOnyxProps = {
 type UserTypingEventListenerProps = UserTypingEventListenerOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
-
-    userTypingEventSubscriptionManager?: ReportPusherSubscriptionManager;
 };
-function UserTypingEventListener({report, lastVisitedPath, userTypingEventSubscriptionManager}: UserTypingEventListenerProps) {
+function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListenerProps) {
+    const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
@@ -38,17 +37,19 @@ function UserTypingEventListener({report, lastVisitedPath, userTypingEventSubscr
             // Existing reports created will have empty fields for `pendingFields`.
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
-            if (didCreateReportSuccessfully) {
+            if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
                 interactionTask = InteractionManager.runAfterInteractions(() => {
-                    userTypingEventSubscriptionManager?.subscribe(reportID);
+                    Report.subscribeToReportTypingEvents(reportID);
+                    didSubscribeToReportTypingEvents.current = true;
                 });
             }
         } else {
             const topmostReportId = Navigation.getTopmostReportId();
 
-            if (topmostReportId !== reportID) {
+            if (topmostReportId !== reportID && didSubscribeToReportTypingEvents.current) {
+                didSubscribeToReportTypingEvents.current = false;
                 InteractionManager.runAfterInteractions(() => {
-                    userTypingEventSubscriptionManager?.unsubscribe(reportID);
+                    Report.unsubscribeFromReportChannel(reportID);
                 });
             }
         }
@@ -58,7 +59,7 @@ function UserTypingEventListener({report, lastVisitedPath, userTypingEventSubscr
             }
             interactionTask.cancel();
         };
-    }, [isFocused, report.pendingFields, lastVisitedPath, reportID, route, userTypingEventSubscriptionManager]);
+    }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
 
     return null;
 }
