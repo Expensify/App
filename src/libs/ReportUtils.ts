@@ -1849,7 +1849,7 @@ function getParticipantAccountIDs(reportID: string, includeOnlyActiveMembers = f
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false): number[] {
     // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
     // For system chat, we want to display Expensify as the only participant
-    const shouldFilterOutCurrentUser = isOneOnOneChat(report) || isSystemChat(report);
+    const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report);
 
     let accountIDs = shouldExcludeHidden
         ? Object.entries(report?.participants ?? {})
@@ -1857,7 +1857,7 @@ function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldEx
               .map(([accountID]) => Number(accountID))
         : Object.keys(report?.participants ?? {}).map(Number);
 
-    if (shouldFilterOutCurrentUser) {
+    if (shouldExcludeCurrentUser) {
         accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
     }
 
