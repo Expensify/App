@@ -268,8 +268,7 @@ declare module 'react-native' {
     type LayoutEvent = {
         nativeEvent: {
             layout: LayoutValue;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            target: any;
+            target: unknown; // changed from "any" to "unknown"
         };
         timeStamp: number;
     };

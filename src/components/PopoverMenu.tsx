@@ -243,10 +243,10 @@ function PopoverMenu({
                             success={item.success}
                             containerStyle={item.containerStyle}
                             shouldRenderTooltip={item.shouldRenderTooltip}
-                        shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
-                        tooltipWrapperStyle={item.tooltipWrapperStyle}
-                        renderTooltipContent={item.renderTooltipContent}
-                    />
+                            shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
+                            tooltipWrapperStyle={item.tooltipWrapperStyle}
+                            renderTooltipContent={item.renderTooltipContent}
+                        />
                     ))}
                 </View>
             </FocusTrapForModal>
