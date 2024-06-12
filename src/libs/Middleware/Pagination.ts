@@ -25,7 +25,7 @@ type PaginationConfigMapValue = Omit<PaginationConfig<OnyxCollectionKey, OnyxPag
 };
 
 const paginationConfigs = new Map<string, PaginationConfigMapValue>();
-const ressources = new Map<OnyxCollectionKey, OnyxCollection<OnyxValues[OnyxCollectionKey]>>();
+const resources = new Map<OnyxCollectionKey, OnyxCollection<OnyxValues[OnyxCollectionKey]>>();
 const pages = new Map<OnyxPagesKey, OnyxCollection<OnyxValues[OnyxPagesKey]>>();
 
 function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>({
@@ -43,7 +43,7 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
         key: config.resourceCollectionKey as OnyxCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
-            ressources.set(config.resourceCollectionKey, data);
+            resources.set(config.resourceCollectionKey, data);
         },
     });
     Onyx.connect({
@@ -104,7 +104,7 @@ const Pagination: Middleware = (requestResponse, request) => {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
 
-        const resourceCollections = ressources.get(resourceCollectionKey) ?? {};
+        const resourceCollections = resources.get(resourceCollectionKey) ?? {};
         const existingItems = resourceCollections[resourceKey] ?? {};
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems);
