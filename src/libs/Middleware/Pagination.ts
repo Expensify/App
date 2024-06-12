@@ -43,17 +43,15 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     paginationConfigs.set(initialCommand, {...config, type: 'initial'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
-    Onyx.connect({
-        // TODO: Also not sure why this cast is needed.
-        key: config.resourceCollectionKey as OnyxCollectionKey,
+    Onyx.connect<OnyxCollectionKey>({
+        key: config.resourceCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
             resources.set(config.resourceCollectionKey, data);
         },
     });
-    Onyx.connect({
-        // TODO: Also not sure why this cast is needed.
-        key: config.pageCollectionKey as OnyxPagesKey,
+    Onyx.connect<OnyxPagesKey>({
+        key: config.pageCollectionKey,
         waitForCollectionCallback: true,
         callback: (data) => {
             pages.set(config.pageCollectionKey, data);
