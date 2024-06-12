@@ -18,6 +18,7 @@ import linkingConfig from './linkingConfig';
 import customGetPathFromState from './linkingConfig/customGetPathFromState';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import Navigation, {navigationRef} from './Navigation';
+import setupCustomAndroidBackHandler from './setupCustomAndroidBackHandler';
 import type {RootStackParamList} from './types';
 
 type NavigationRootProps = {
@@ -109,6 +110,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     useEffect(() => {
         if (firstRenderRef.current) {
+            setupCustomAndroidBackHandler();
+
             // we don't want to make the report back button go back to LHN if the user
             // started on the small screen so we don't set it on the first render
             // making it only work on consecutive changes of the screen size
