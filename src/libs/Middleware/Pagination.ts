@@ -24,8 +24,13 @@ type PaginationConfigMapValue = Omit<PaginationConfig<OnyxCollectionKey, OnyxPag
     type: 'initial' | 'next' | 'previous';
 };
 
+// Map of API commands to their pagination configs
 const paginationConfigs = new Map<string, PaginationConfigMapValue>();
+
+// Local cache of paginated Onyx resources
 const resources = new Map<OnyxCollectionKey, OnyxCollection<OnyxValues[OnyxCollectionKey]>>();
+
+// Local cache of Onyx pages objects
 const pages = new Map<OnyxPagesKey, OnyxCollection<OnyxValues[OnyxPagesKey]>>();
 
 function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey>({
