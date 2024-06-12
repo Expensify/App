@@ -68,7 +68,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                     <Text style={[styles.breadcrumbSeparator]}>/</Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb]}
+                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb, styles.flex1]}
                     >
                         {secondaryBreadcrumb.text}
                     </Text>

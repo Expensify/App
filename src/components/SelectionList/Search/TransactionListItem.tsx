@@ -48,16 +48,13 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {(hovered?: boolean) => (
-                <TransactionListItemRow
-                    item={transactionItem}
-                    showTooltip={showTooltip}
-                    onButtonPress={() => {
-                        onSelectRow(item);
-                    }}
-                    isHovered={hovered}
-                />
-            )}
+            <TransactionListItemRow
+                item={transactionItem}
+                showTooltip={showTooltip}
+                onButtonPress={() => {
+                    onSelectRow(item);
+                }}
+            />
         </BaseListItem>
     );
 }

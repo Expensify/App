@@ -125,6 +125,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
+            shouldSkipVBBACall={false}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
