@@ -206,6 +206,8 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** In task reports this is account ID of the user assigned to the task */
     childManagerAccountID?: number;
+
+    /** The owner account ID of the child report action */
     childOwnerAccountID?: number;
 
     /** The status of the child report */
