@@ -594,4 +594,5 @@ export {
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,
     deleteWorkspaceCategories,
+    buildOptimisticPolicyCategories,
 };
