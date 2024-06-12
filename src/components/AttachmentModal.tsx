@@ -547,6 +547,7 @@ function AttachmentModal({
                                             source={sourceForAttachmentView}
                                             isAuthTokenRequired={isAuthTokenRequiredState}
                                             file={file}
+                                            onClose={closeModal}
                                             onToggleKeyboard={updateConfirmButtonVisibility}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
