@@ -1617,13 +1617,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     }
 
     let finalParticipantAccountIDs: number[] = [];
-    if (isMoneyRequestReport(report)) {
-        // For money requests i.e the IOU (1:1 person) and Expense (1:* person) reports, use the full `participants`
-        // and add the `ownerAccountId`. Money request reports don't add `ownerAccountId` in `participants` array
-        const defaultParticipantAccountIDs = Object.keys(finalReport?.participants ?? {}).map(Number);
-        const setOfParticipantAccountIDs = new Set<number>(report?.ownerAccountID ? [...defaultParticipantAccountIDs, report.ownerAccountID] : defaultParticipantAccountIDs);
-        finalParticipantAccountIDs = [...setOfParticipantAccountIDs];
-    } else if (isTaskReport(report)) {
+    if (isTaskReport(report)) {
         // Task reports `managerID` will change when assignee is changed, in that case the old `managerID` is still present in `participants`
         // along with the new one. We only need the `managerID` as a participant here.
         finalParticipantAccountIDs = report?.managerID ? [report?.managerID] : [];
