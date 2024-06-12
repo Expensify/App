@@ -62,6 +62,10 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     return 0;
 }
 
+/**
+ * A mini report object that contains only the necessary information to sort reports.
+ * This is used to avoid copying the entire report object and only the necessary information.
+ */
 type MiniReport = {
     reportID?: string;
     displayName: string;
