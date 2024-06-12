@@ -43,6 +43,7 @@ import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -55,7 +56,6 @@ import type {Attributes, CompanyAddress, CustomUnit, Rate, TaxRate, Unit} from '
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import {buildOptimisticPolicyCategories} from './Category';
 
 type ReportCreationData = Record<
