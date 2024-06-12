@@ -2734,11 +2734,11 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
-    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
-    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+    const moneyRequestReportID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID ?? 0;
     const moneyRequestReport = getReport(String(moneyRequestReportID));
 
     if (!moneyRequestReportID || !moneyRequestReport) {
@@ -2747,7 +2747,7 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
 
     const isRequestSettled = isSettled(moneyRequestReport?.reportID);
     const isApproved = isReportApproved(moneyRequestReport);
-    const transactionID = moneyRequestReport ? reportAction?.originalMessage?.IOUTransactionID : 0;
+    const transactionID = moneyRequestReport ? ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID : 0;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
 
     const parentReport = getReport(String(moneyRequestReport.parentReportID));
@@ -2775,17 +2775,17 @@ function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canH
 }
 
 const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
-    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
-    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+    const moneyRequestReportID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUReportID ?? 0;
 
     const moneyRequestReport = getReport(String(moneyRequestReportID));
     if (!moneyRequestReportID || !moneyRequestReport) {
         return;
     }
 
-    const transactionID = reportAction?.originalMessage?.IOUTransactionID ?? '';
+    const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID ?? '';
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
