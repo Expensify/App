@@ -8,7 +8,6 @@ function mapCacheBuilder<Fn extends () => unknown, Key = Parameters<Fn>, Val = R
     const cache = new Map<string, Val>();
 
     // FIXME - how to type this?
-    // @ts-expect-error Key type is fine
     function memoized(...args: Key) {
         // FIXME - this undermines the effect of using map as a cache struct - serialization might be causing perf and stability issues even with fast map lookup:
         // - the added overhead is dependent on size of arguments provided not cache size so that's a plus
@@ -19,7 +18,6 @@ function mapCacheBuilder<Fn extends () => unknown, Key = Parameters<Fn>, Val = R
             return cache.get(key);
         }
 
-        // @ts-expect-error Key type is fine
         const result = f(...args) as Val;
         cache.set(key, result);
 
