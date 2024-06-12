@@ -75,6 +75,14 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                     />
                 )}
             </Hoverable>
+            <Text style={[styles.mt5, styles.mutedTextLabel]}>
+                {`${translate('billingCurrency.note')}`}{' '}
+                <TextLink
+                    style={[styles.mutedTextLabel, styles.link]}
+                    href={CONST.PRICING}
+                >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
+                {`${translate('billingCurrency.notDetails')}`}
+            </Text>
 
             {!!isSecurityCodeRequired && (
                 <InputWrapper
@@ -96,14 +104,6 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 onCurrencyChange={changeCurrency}
                 onClose={() => setIsCurrencyModalVisible(false)}
             />
-            <Text style={[styles.mt5, styles.mutedTextLabel]}>
-                {`${translate('billingCurrency.note')}`}{' '}
-                <TextLink
-                    style={[styles.mutedTextLabel, styles.link]}
-                    href={CONST.PRICING}
-                >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
-                {`${translate('billingCurrency.notDetails')}`}
-            </Text>
         </FormProvider>
     );
 }
