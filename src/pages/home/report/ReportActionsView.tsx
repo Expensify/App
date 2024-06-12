@@ -96,6 +96,7 @@ function ReportActionsView({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     isReadyForCommentLinking = false,
+    transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
@@ -154,11 +155,70 @@ function ReportActionsView({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route, isLoadingInitialReportActions, reportActionID]);
 
+    // When we are offline before opening an IOU/Expense report,
+    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
+    // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
+    // to display at least one expense action to match the total data.
+    const reportActionsToDisplay = useMemo(() => {
+        if (!ReportUtils.isMoneyRequestReport(report) || !allReportActions.length) {
+            return allReportActions;
+        }
+
+        const actions = [...allReportActions];
+        const lastAction = allReportActions[allReportActions.length - 1];
+
+        if (!ReportActionsUtils.isCreatedAction(lastAction)) {
+            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
+            optimisticCreatedAction.pendingAction = null;
+            actions.push(optimisticCreatedAction);
+        }
+
+        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
+        const moneyRequestActions = allReportActions.filter(
+            (action) =>
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+                action.originalMessage &&
+                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    !!(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
+                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
+        );
+
+        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
+            const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
+                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                0,
+                CONST.CURRENCY.USD,
+                '',
+                [],
+                NumberUtils.rand64(),
+                undefined,
+                report.reportID,
+                false,
+                false,
+                {},
+                false,
+                DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
+            ) as OnyxTypes.ReportAction;
+            moneyRequestActions.push(optimisticIOUAction);
+            actions.splice(actions.length - 1, 0, optimisticIOUAction);
+        }
+
+        // Update pending action of created action if we have some requests that are pending
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const createdAction = actions.pop()!;
+        if (moneyRequestActions.filter((action) => !!action.pendingAction).length > 0) {
+            createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        }
+
+        return [...actions, createdAction];
+    }, [allReportActions, report, transactionThreadReport]);
+
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(
-        () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions),
-        [allReportActions, transactionThreadReportActions],
+        () => ReportActionsUtils.getCombinedReportActions(reportActionsToDisplay, transactionThreadReportActions, undefined, !!transactionThreadReportID),
+        [reportActionsToDisplay, transactionThreadReportActions, transactionThreadReportID],
     );
 
     const parentReportActionForTransactionThread = useMemo(
@@ -460,65 +520,6 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    // When we are offline before opening an IOU/Expense report,
-    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
-    // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of expenses
-    // to display at least one expense action to match the total data.
-    const reportActionsToDisplay = useMemo(() => {
-        if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
-            return reportActions;
-        }
-
-        const actions = [...reportActions];
-        const lastAction = reportActions[reportActions.length - 1];
-
-        if (!ReportActionsUtils.isCreatedAction(lastAction)) {
-            const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(String(report?.ownerAccountID), DateUtils.subtractMillisecondsFromDateTime(lastAction.created, 1));
-            optimisticCreatedAction.pendingAction = null;
-            actions.push(optimisticCreatedAction);
-        }
-
-        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
-        const moneyRequestActions = reportActions.filter(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                action.originalMessage &&
-                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                    !!(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
-                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
-        );
-
-        if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
-            const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
-                CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                0,
-                CONST.CURRENCY.USD,
-                '',
-                [],
-                NumberUtils.rand64(),
-                undefined,
-                report.reportID,
-                false,
-                false,
-                {},
-                false,
-                DateUtils.subtractMillisecondsFromDateTime(actions[actions.length - 1].created, 1),
-            ) as OnyxTypes.ReportAction;
-            moneyRequestActions.push(optimisticIOUAction);
-            actions.splice(actions.length - 1, 0, optimisticIOUAction);
-        }
-
-        // Update pending action of created action if we have some requests that are pending
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const createdAction = actions.pop()!;
-        if (moneyRequestActions.filter((action) => !!action.pendingAction).length > 0) {
-            createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-        }
-
-        return [...actions, createdAction];
-    }, [reportActions, report, transactionThreadReport]);
-
     // Comments have not loaded at all yet do nothing
     if (!reportActions.length) {
         return null;
@@ -534,7 +535,7 @@ function ReportActionsView({
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
-                sortedReportActions={reportActionsToDisplay}
+                sortedReportActions={reportActions}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
