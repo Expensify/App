@@ -14,7 +14,7 @@ function openSubscriptionPage() {
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null);
 }
 
-function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID, disableAutoRenewAdditionalNote?: string) {
+function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -52,7 +52,6 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
     const parameters: UpdateSubscriptionAutoRenewParams = {
         autoRenew,
         disableAutoRenewReason,
-        disableAutoRenewAdditionalNote,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW, parameters, {
