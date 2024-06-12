@@ -2136,13 +2136,13 @@ export default {
             accountsSwitchTitle: 'Elige importar cuentas nuevas como categorías activadas o desactivadas.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
-            trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
+            trackingCategoriesDescription: 'Elige cómo gestionar categorías de seguimiento de Xero en Expensify.',
             mapTrackingCategoryTo: ({categoryName}) => `Asignar ${categoryName} de Xero a`,
             mapTrackingCategoryToDescription: ({categoryName}) => `Elige dónde mapear ${categoryName} al exportar a Xero.`,
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Elige si quieres volver a facturar a los clientes en Expensify. Tus contactos de clientes de Xero se pueden etiquetar como gastos, y se exportarán a Xero como una factura de venta.',
-            taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            taxesDescription: 'Elige cómo gestionar los impuestos de Xero en Expensify.',
             notImported: 'No importado',
             trackingCategoriesOptions: {
                 default: 'Contacto de Xero por defecto',
@@ -2175,7 +2175,7 @@ export default {
                 xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
                 invoiceAccountSelectorDescription:
-                    'Como ha activado la exportación de facturas de Expensify a Xero, esta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
+                    'Una vez que una factura se marca como pagada en Expensify y se exporta a Xero, aparecerá contra la cuenta a continuación.',
                 xeroBillPaymentAccountDescription:
                     'Elige una cuenta bancaria para los reembolsos y crearemos el pago en Xero.',
             },
