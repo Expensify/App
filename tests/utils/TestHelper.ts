@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
-type MockFetch = jest.Mock<typeof fetch> & {
+type MockFetch = ReturnType<typeof jest.fn> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
@@ -217,7 +217,7 @@ function getGlobalFetchMock() {
     mockFetch.mockAPICommand = (command: string, response: OnyxResponse['onyxData']) => {
         responses.set(command, response);
     };
-    return mockFetch;
+    return mockFetch as typeof fetch;
 }
 
 function setPersonalDetails(login: string, accountID: number) {

@@ -105,7 +105,7 @@ jest.mock('@react-navigation/native', () => {
     } as typeof NativeNavigation;
 });
 
-const fetchMock = TestHelper.getGlobalFetchMock();
+const fetchMock = TestHelper.getGlobalFetchMock() as TestHelper.MockFetch;
 
 beforeAll(() => {
     global.fetch = fetchMock as unknown as typeof global.fetch;

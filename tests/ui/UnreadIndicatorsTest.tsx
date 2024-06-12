@@ -120,8 +120,7 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    // @eslint-ignore-next-line @typescript-eslint/no-explicit-any
-    global.fetch = TestHelper.getGlobalFetchMock() as any;
+    global.fetch = TestHelper.getGlobalFetchMock();
 
     Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
