@@ -2497,7 +2497,7 @@ export default {
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Actualizando categorías';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Actualizando Clientes/proyectos';
+                            return 'Actualizando clientes/proyectos';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Actualizando empleados';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
