@@ -93,8 +93,8 @@ function isOffline(): boolean {
     return offline;
 }
 
-function getAuthToken(): string | null {
-    return authToken ?? null;
+function getAuthToken(): string | null | undefined {
+    return authToken;
 }
 
 function isSupportRequest(command: string): boolean {
