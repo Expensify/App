@@ -165,7 +165,7 @@ type ReportActionItemProps = {
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 
-    hideThreadReplies: boolean;
+    hideThreadReplies?: boolean;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
