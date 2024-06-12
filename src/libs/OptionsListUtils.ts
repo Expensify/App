@@ -2432,30 +2432,35 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         return keys;
     };
     const matchResults = searchTerms.reduceRight((items, term) => {
-        const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
-            let values: string[] = [];
-            if (item.text) {
-                values.push(item.text);
-            }
-
-            if (item.login) {
-                values.push(item.login);
-                values.push(item.login.replace(emailRegex, ''));
-            }
-
-            if (item.isThread) {
-                if (item.alternateText) {
-                    values.push(item.alternateText);
+        const recentReports = filterArrayByMatch(
+            items.recentReports,
+            term,
+            (item) => {
+                let values: string[] = [];
+                if (item.text) {
+                    values.push(item.text);
                 }
-            } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
-                if (item.subtitle) {
-                    values.push(item.subtitle);
-                }
-            }
-            values = values.concat(getParticipantsLoginsArray(item));
 
-            return uniqFast(values);
-        }, true);
+                if (item.login) {
+                    values.push(item.login);
+                    values.push(item.login.replace(emailRegex, ''));
+                }
+
+                if (item.isThread) {
+                    if (item.alternateText) {
+                        values.push(item.alternateText);
+                    }
+                } else if (!!item.isChatRoom || !!item.isPolicyExpenseChat) {
+                    if (item.subtitle) {
+                        values.push(item.subtitle);
+                    }
+                }
+                values = values.concat(getParticipantsLoginsArray(item));
+
+                return uniqFast(values);
+            },
+            true,
+        );
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
