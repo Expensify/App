@@ -1,6 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
-import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
@@ -86,9 +86,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID || policyIDsFromState);
+            const isOpeningSearch = matchingBottomTabRoute.name === SCREENS.SEARCH.BOTTOM_TAB;
             const isNewPolicyID =
-                (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
-            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
+                ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
+                ((matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '');
+
+            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID || isOpeningSearch)) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
