@@ -76,7 +76,7 @@ type ReportScreenOnyxProps = {
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** Pagination data */
-    pages: OnyxEntry<OnyxTypes.ReportActionsPages>;
+    pages: OnyxEntry<OnyxTypes.Pages>;
 };
 
 type OnyxHOCProps = {
