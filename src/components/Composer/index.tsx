@@ -169,7 +169,6 @@ function Composer(
 
             if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
-                console.log('%%%%%\n', 'i enter here'); // tu nie wchodzi
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
@@ -185,8 +184,6 @@ function Composer(
             const TEXT_HTML = 'text/html';
 
             const clipboardDataHtml = event.clipboardData?.getData(TEXT_HTML) ?? '';
-
-            console.log('%%%%%\n', 'clipboardDataHtml', clipboardDataHtml);
 
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
@@ -228,7 +225,6 @@ function Composer(
                     }
                 }
             }
-            console.log('%%%%%\n', 'onPaste returns false');
             return false;
         },
         [onPasteFile, checkComposerVisibility],
