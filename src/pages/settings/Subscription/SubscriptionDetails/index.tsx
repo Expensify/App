@@ -10,12 +10,15 @@ import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Subscription from '@userActions/Subscription';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const options: Array<OptionsPickerItem<SubscriptionType>> = [
     {
@@ -33,42 +36,39 @@ const options: Array<OptionsPickerItem<SubscriptionType>> = [
 function SubscriptionDetails() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
 
     const onOptionSelected = (option: SubscriptionType) => {
         Subscription.updateSubscriptionType(option);
     };
 
-    // This section is only shown when the subscription is annual
-    // An onPress action is going to be assigned to these buttons in phase 2
-    let subscriptionSizeSection: React.JSX.Element | null = null;
+    const onSubscriptionSizePress = () => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE);
+    };
 
-    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
-        subscriptionSizeSection = privateSubscription?.userCount ? (
-            <MenuItemWithTopDescription
-                description={translate('subscription.details.subscriptionSize')}
-                title={`${privateSubscription?.userCount}`}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                style={styles.mt5}
-            />
-        ) : (
+    // This section is only shown when the subscription is annual
+    const subscriptionSizeSection: React.JSX.Element | null =
+        selectedOption === CONST.SUBSCRIPTION.TYPE.ANNUAL ? (
             <>
                 <MenuItemWithTopDescription
                     description={translate('subscription.details.subscriptionSize')}
                     shouldShowRightIcon
+                    onPress={onSubscriptionSizePress}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
                     style={styles.mt5}
+                    title={`${privateSubscription?.userCount ?? ''}`}
                 />
-                <Text style={styles.mt2}>
-                    <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                    <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-                </Text>
+                {!privateSubscription?.userCount && (
+                    <Text style={styles.mt2}>
+                        <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
+                    </Text>
+                )}
             </>
-        );
-    }
+        ) : null;
 
     return (
         <Section
@@ -79,7 +79,7 @@ function SubscriptionDetails() {
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon
-                        src={preferredTheme === CONST.THEME.LIGHT ? Illustrations.ExpensifyApprovedLogoLight : Illustrations.ExpensifyApprovedLogo}
+                        src={illustrations.ExpensifyApprovedLogo}
                         width={variables.modalTopIconWidth}
                         height={variables.menuIconSize}
                     />
