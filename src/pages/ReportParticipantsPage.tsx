@@ -69,7 +69,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
+        const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];

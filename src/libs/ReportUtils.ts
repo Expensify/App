@@ -1904,20 +1904,6 @@ function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = f
     return Localize.translateLocal('groupChat.defaultReportName', {displayName: getDisplayNameForParticipant(participants[0], false)});
 }
 
-function getVisibleChatMemberAccountIDs(reportID: string): number[] {
-    const report = getReport(reportID);
-    if (!report || !report.participants) {
-        return [];
-    }
-    const visibleParticipantAccountIDs = Object.entries(report.participants).reduce<number[]>((accountIDs, [accountID, participant]) => {
-        if (participant && !participant.hidden) {
-            accountIDs.push(Number(accountID));
-        }
-        return accountIDs;
-    }, []);
-    return visibleParticipantAccountIDs;
-}
-
 function getParticipants(reportID: string) {
     const report = getReport(reportID);
     if (!report) {
@@ -7078,7 +7064,6 @@ export {
     getTransactionReportName,
     getTransactionsWithReceipts,
     getUserDetailTooltipText,
-    getVisibleChatMemberAccountIDs,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     getWorkspaceChats,

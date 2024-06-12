@@ -96,7 +96,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (isSystemChat) {
             return ReportUtils.getParticipantAccountIDs(report.reportID ?? '').filter((accountID) => accountID !== session?.accountID);
         }
-        return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
+        return ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
     }, [report, session, isGroupChat, isSystemChat]);
 
     // Get the active chat members by filtering out the pending members with delete action
