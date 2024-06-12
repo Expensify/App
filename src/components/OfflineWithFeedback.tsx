@@ -15,6 +15,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import CustomStyleProvider from './CustomStyleProvider';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -140,7 +141,7 @@ function OfflineWithFeedback({
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
-                    {children}
+                    <CustomStyleProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStyleProvider>
                 </View>
             )}
             {shouldShowErrorMessages && hasErrorMessages && (
