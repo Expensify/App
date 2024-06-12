@@ -1,10 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry,} from 'react-native-onyx';
-import {withOnyx, useOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import * as IOU from '@userActions/IOU';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
@@ -31,6 +30,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import ConfirmModal from '@src/components/ConfirmModal';
 import CONST from '@src/CONST';
@@ -252,7 +252,26 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
+    }, [
+        isSelfDM,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isSystemChat,
+        isPolicyExpenseChat,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        isTaskReport,
+        shouldShowLeaveButton,
+        activeChatMembers.length,
+        session,
+        leaveChat,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -456,12 +475,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         );
                     })}
 
-                    {canDeleteRequest && <MenuItem
-                        key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                        icon={Expensicons.Trashcan}
-                        title={translate('reportActionContextMenu.deleteAction', {action: parentReportAction})}
-                        onPress={() => setIsDeleteModalVisible(true)}
-                    />}
+                    {canDeleteRequest && (
+                        <MenuItem
+                            key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
+                            icon={Expensicons.Trashcan}
+                            title={translate('reportActionContextMenu.deleteAction', {action: parentReportAction})}
+                            onPress={() => setIsDeleteModalVisible(true)}
+                        />
+                    )}
                 </ScrollView>
                 <ConfirmModal
                     danger
