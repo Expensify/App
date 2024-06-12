@@ -331,15 +331,16 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, onSwipe
     }));
 
     const imgContainerStyle = useMemo(() => {
+        const aspectRatio = (imgHeight && imgWidth / imgHeight) || 1;
         if (imgWidth >= imgHeight || imgHeight < containerHeight) {
-            const imgStyle: ViewStyle[] = [{width: imgWidth < containerWidth ? '100%' : '100%', aspectRatio: (imgHeight && imgWidth / imgHeight) || 1}];
+            const imgStyle: ViewStyle[] = [{width: '100%', aspectRatio}];
             return imgStyle;
         }
         if (imgHeight > imgWidth) {
-            const imgStyle: ViewStyle[] = [{height: '100%', aspectRatio: (imgHeight && imgWidth / imgHeight) || 1}];
+            const imgStyle: ViewStyle[] = [{height: '100%', aspectRatio}];
             return imgStyle;
         }
-    }, [imgWidth, imgHeight, containerWidth, containerHeight]);
+    }, [imgWidth, imgHeight, containerHeight]);
 
     if (canUseTouchScreen) {
         return (
