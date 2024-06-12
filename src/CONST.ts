@@ -4854,6 +4854,8 @@ const CONST = {
             TRANSLATION_KEY: 'feedbackSurvey.businessClosing',
         },
     },
+
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
