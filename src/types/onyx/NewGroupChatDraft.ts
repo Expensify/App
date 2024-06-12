@@ -18,7 +18,10 @@ type NewGroupChatDraft = {
     /** New group chat avatar URI */
     avatarUri: string | null;
 
+    /** New group chat avatar file name */
     avatarFileName: string | null;
+
+    /** New group chat avatar file type */
     avatarFileType: string | null;
 };
 export type {SelectedParticipant};

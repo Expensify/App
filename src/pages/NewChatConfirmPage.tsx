@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -24,7 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
 
 type NewChatConfirmPageOnyxProps = {
     /** New group chat draft data */
@@ -46,7 +46,7 @@ function navigateToEditChatName() {
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
-    const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();    
+    const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
@@ -116,16 +116,20 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const onSuccess = (file: File) => {
-            setAvatarFile(file)
+            setAvatarFile(file);
         };
 
-    
         const onFailure = () => {
             setAvatarFile(undefined);
             Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
         };
+
+        // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
+        // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
         FileUtils.readFileAsync(stashedLocalAvatarImage.toString(), newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
-    
+
+        // we only need to run this when the component re-mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -140,7 +144,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
-                        Report.setGroupDraft({ avatarUri: image?.uri ?? '', avatarFileName: image?.name ?? '', avatarFileType: image?.type });
+                        Report.setGroupDraft({avatarUri: image?.uri ?? '', avatarFileName: image?.name ?? '', avatarFileType: image?.type});
                     }}
                     onImageRemoved={() => {
                         setAvatarFile(undefined);
