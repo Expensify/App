@@ -211,7 +211,7 @@ function ScreenWrapper(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileSafari());
+    const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileWebKit());
     const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
 
     return (

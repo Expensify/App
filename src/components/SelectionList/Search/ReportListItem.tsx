@@ -55,7 +55,7 @@ function ActionCell({onButtonPress}: ActionCellProps) {
             onPress={onButtonPress}
             small
             pressOnEnter
-            style={[styles.p0]}
+            style={[styles.w100]}
         />
     );
 }
@@ -78,6 +78,10 @@ function ReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
+
+    if (reportItem.transactions.length === 0) {
+        return;
+    }
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
@@ -142,64 +146,61 @@ function ReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {(hovered?: boolean) => (
-                <View style={styles.flex1}>
-                    {!isLargeScreenWidth && (
-                        <ExpenseItemHeaderNarrow
-                            participantFrom={participantFrom}
-                            participantFromDisplayName={participantFromDisplayName}
-                            participantTo={participantTo}
-                            participantToDisplayName={participantToDisplayName}
-                            buttonText={translate('common.view')}
-                            onButtonPress={handleOnButtonPress}
-                        />
-                    )}
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                                <View style={[styles.flexShrink1]}>
-                                    <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
-                                    <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
-                                </View>
-                            </View>
-                            <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
-                                <TotalCell
-                                    showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
-                                    reportItem={reportItem}
-                                />
+            <View style={styles.flex1}>
+                {!isLargeScreenWidth && (
+                    <ExpenseItemHeaderNarrow
+                        participantFrom={participantFrom}
+                        participantFromDisplayName={participantFromDisplayName}
+                        participantTo={participantTo}
+                        participantToDisplayName={participantToDisplayName}
+                        buttonText={translate('common.view')}
+                        onButtonPress={handleOnButtonPress}
+                    />
+                )}
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
+                            <View style={[styles.flexShrink1]}>
+                                <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
+                                <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                             </View>
                         </View>
-                        {isLargeScreenWidth && (
-                            <>
-                                {/** We add an empty view with type style to align the total with the table header */}
-                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
-                                <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>
-                                    <ActionCell
-                                        showTooltip={showTooltip}
-                                        isLargeScreenWidth={isLargeScreenWidth}
-                                        onButtonPress={handleOnButtonPress}
-                                    />
-                                </View>
-                            </>
-                        )}
+                        <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
+                            <TotalCell
+                                showTooltip={showTooltip}
+                                isLargeScreenWidth={isLargeScreenWidth}
+                                reportItem={reportItem}
+                            />
+                        </View>
                     </View>
-                    <View style={[styles.mt3, styles.reportListItemSeparator]} />
-                    {reportItem.transactions.map((transaction) => (
-                        <TransactionListItemRow
-                            item={transaction}
-                            showTooltip={showTooltip}
-                            onButtonPress={() => {
-                                openReportInRHP(transaction);
-                            }}
-                            showItemHeaderOnNarrowLayout={false}
-                            containerStyle={styles.mt3}
-                            isHovered={hovered}
-                            isChildListItem
-                        />
-                    ))}
+                    {isLargeScreenWidth && (
+                        <>
+                            {/** We add an empty view with type style to align the total with the table header */}
+                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
+                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>
+                                <ActionCell
+                                    showTooltip={showTooltip}
+                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    onButtonPress={handleOnButtonPress}
+                                />
+                            </View>
+                        </>
+                    )}
                 </View>
-            )}
+                <View style={[styles.mt3, styles.reportListItemSeparator]} />
+                {reportItem.transactions.map((transaction) => (
+                    <TransactionListItemRow
+                        item={transaction}
+                        showTooltip={showTooltip}
+                        onButtonPress={() => {
+                            openReportInRHP(transaction);
+                        }}
+                        showItemHeaderOnNarrowLayout={false}
+                        containerStyle={styles.mt3}
+                        isChildListItem
+                    />
+                ))}
+            </View>
         </BaseListItem>
     );
 }

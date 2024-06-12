@@ -71,7 +71,7 @@ platforms:
 
       - href: integrations
         title: Integrations
-        icon: /assets/images/workflow.svg
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
         description: Integrate with accounting or HR software to streamline expense approvals.
 
       - href: spending-insights
@@ -131,7 +131,7 @@ platforms:
 
       - href: connections
         title: Connections
-        icon: /assets/images/workflow.svg
+        icon: /assets/images/simple-illustration__monitor-remotesync.svg
         description: Connect to accounting software to streamline expense approvals.
 
       - href: settings
