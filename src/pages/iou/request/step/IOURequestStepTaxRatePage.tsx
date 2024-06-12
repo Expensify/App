@@ -115,7 +115,7 @@ function IOURequestStepTaxRatePage({
 
     const dismiss = () => {
         navigateBack();
-    }
+    };
 
     return (
         <StepScreenWrapper
