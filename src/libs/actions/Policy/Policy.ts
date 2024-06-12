@@ -2071,11 +2071,17 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
 }
 
 function buildOptimisticPolicyRecentlyUsedCurrencies(policyID?: string, currency?: string) {
-    if (!policyID || !currency) {
+    if (!currency) {
         return [];
     }
-
-    const policyRecentlyUsedCurrencies = allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${policyID}`] ?? [];
+    const personalPolicy = PolicyUtils.getPersonalPolicy();
+    const personalPolicyID = personalPolicy?.id;
+    if (!policyID && !personalPolicyID) {
+        return [];
+    }
+    const policyRecentlyUsedCurrencies = policyID
+        ? allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${policyID}`]
+        : allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${personalPolicyID}`];
 
     return lodashUnion([currency], policyRecentlyUsedCurrencies);
 }
