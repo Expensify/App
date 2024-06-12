@@ -3299,6 +3299,51 @@ function completeOnboarding(
         return acc;
     }, []);
 
+    const tasksForSuccessData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, completedTaskReportAction}) => {
+        acc.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
+                        reportName: null,
+                        description: null,
+                        managerID: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
+                },
+            },
+        );
+
+        if (completedTaskReportAction) {
+            acc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
+                },
+            });
+
+            acc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                value: {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                },
+            });
+        }
+
+        return acc;
+    }, []);
+
     const optimisticData: OnyxUpdate[] = [
         ...tasksForOptimisticData,
         {
@@ -3323,6 +3368,7 @@ function completeOnboarding(
         },
     ];
     const successData: OnyxUpdate[] = [
+        ...tasksForSuccessData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
