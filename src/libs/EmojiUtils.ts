@@ -1,6 +1,5 @@
 import {getUnixTime} from 'date-fns';
 import {Str} from 'expensify-common';
-import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
@@ -12,6 +11,7 @@ import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportA
 import type IconAsset from '@src/types/utils/IconAsset';
 import type EmojiTrie from './EmojiTrie';
 import type {SupportedLanguage} from './EmojiTrie';
+import memoize from './memoize';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
@@ -66,42 +66,45 @@ const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string =>
 /**
  * Get the unicode code of an emoji in base 16.
  */
-const getEmojiUnicode = memoize((input: string) => {
-    if (input.length === 0) {
-        return '';
-    }
-
-    if (input.length === 1) {
-        return input
-            .charCodeAt(0)
-            .toString()
-            .split(' ')
-            .map((val) => parseInt(val, 10).toString(16))
-            .join(' ');
-    }
-
-    const pairs = [];
-
-    // Some Emojis in UTF-16 are stored as a pair of 2 Unicode characters (e.g. Flags)
-    // The first char is generally between the range U+D800 to U+DBFF called High surrogate
-    // & the second char between the range U+DC00 to U+DFFF called low surrogate
-    // More info in the following links:
-    // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
-    // 2. https://thekevinscott.com/emojis-in-javascript/
-    for (let i = 0; i < input.length; i++) {
-        if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) {
-            // high surrogate
-            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
-                // low surrogate
-                pairs.push((input.charCodeAt(i) - 0xd800) * 0x400 + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000);
-            }
-        } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
-            // modifiers and joiners
-            pairs.push(input.charCodeAt(i));
+const getEmojiUnicode = memoize(
+    (input: string) => {
+        if (input.length === 0) {
+            return '';
         }
-    }
-    return pairs.map((val) => parseInt(String(val), 10).toString(16)).join(' ');
-});
+
+        if (input.length === 1) {
+            return input
+                .charCodeAt(0)
+                .toString()
+                .split(' ')
+                .map((val) => parseInt(val, 10).toString(16))
+                .join(' ');
+        }
+
+        const pairs = [];
+
+        // Some Emojis in UTF-16 are stored as a pair of 2 Unicode characters (e.g. Flags)
+        // The first char is generally between the range U+D800 to U+DBFF called High surrogate
+        // & the second char between the range U+DC00 to U+DFFF called low surrogate
+        // More info in the following links:
+        // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
+        // 2. https://thekevinscott.com/emojis-in-javascript/
+        for (let i = 0; i < input.length; i++) {
+            if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) {
+                // high surrogate
+                if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
+                    // low surrogate
+                    pairs.push((input.charCodeAt(i) - 0xd800) * 0x400 + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000);
+                }
+            } else if (input.charCodeAt(i) < 0xd800 || input.charCodeAt(i) > 0xdfff) {
+                // modifiers and joiners
+                pairs.push(input.charCodeAt(i));
+            }
+        }
+        return pairs.map((val) => parseInt(String(val), 10).toString(16)).join(' ');
+    },
+    {maxSize: Infinity},
+);
 
 /**
  * Function to remove Skin Tone and utf16 surrogates from Emoji
