@@ -92,7 +92,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
         />
     ) : (
         <NotFoundPage
-            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : undefined)}
+            onBackButtonPress={() => Navigation.goBack(policyID ? ROUTES.WORKSPACE_PROFILE.getRoute(policyID) : ROUTES.HOME)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
         />
