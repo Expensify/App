@@ -1,9 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry,} from 'react-native-onyx';
+import {withOnyx, useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as IOU from '@userActions/IOU';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
@@ -68,7 +69,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
@@ -114,6 +117,22 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy ?? null);
+
+    const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(parentReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
+
+    useEffect(() => {
+        if (canDeleteRequest) {
+            return;
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [canDeleteRequest]);
+
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
         if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
@@ -133,6 +152,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
     const shouldShowLeaveButton = isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null));
+
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+
+    const chatRoomAdminSubtitleText = translate('reportDetailsPage.inWorkspace', {policyName: report.policyName});
+
+    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
@@ -225,28 +251,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 },
             });
         }
-
         return items;
-    }, [
-        isSelfDM,
-        isArchivedRoom,
-        isGroupChat,
-        isDefaultRoom,
-        isChatThread,
-        isPolicyEmployee,
-        isUserCreatedPolicyRoom,
-        participants.length,
-        report,
-        isSystemChat,
-        isPolicyExpenseChat,
-        isMoneyRequestReport,
-        isInvoiceReport,
-        isTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        session,
-        leaveChat,
-    ]);
+    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -310,16 +316,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             </View>
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
-
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID) ?? null, [policies, report?.policyID]);
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
-
-    const chatRoomAdminSubtitleText = translate('reportDetailsPage.inWorkspace', {policyName: report.policyName});
-
-    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
-
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy ?? null);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -399,6 +395,19 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const deleteTransaction = useCallback(() => {
+        if (parentReportAction) {
+            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+                IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                return;
+            }
+            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+        }
+
+        setIsDeleteModalVisible(false);
+    }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -446,6 +455,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         );
                     })}
+
+                    {canDeleteRequest && <MenuItem
+                        key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
+                        icon={Expensicons.Trashcan}
+                        title={translate('reportActionContextMenu.deleteAction', {action: parentReportAction})}
+                        onPress={() => setIsDeleteModalVisible(true)}
+                    />}
                 </ScrollView>
                 <ConfirmModal
                     danger
@@ -459,6 +475,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     prompt={translate('groupChat.lastMemberWarning')}
                     confirmText={translate('common.leave')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('iou.deleteExpense')}
+                    isVisible={isDeleteModalVisible}
+                    onConfirm={deleteTransaction}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    prompt={translate('iou.deleteConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                    shouldEnableNewFocusManagement
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>

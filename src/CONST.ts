@@ -2109,6 +2109,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DELETE: 'delete',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
