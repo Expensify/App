@@ -462,7 +462,6 @@ function ReportScreen({
         });
         return () => {
             interactionTask.cancel();
-            Report.unsubscribeFromReportChannel(report.reportID);
             if (!didSubscribeToReportLeavingEvents.current) {
                 return;
             }
