@@ -4,7 +4,7 @@ import type {ExternalMemoizeConfig, MemoizeConfig, MemoizedInterface, MemoizeFnP
 const DEFAULT_CONFIG = {
     cacheMode: 'array',
     equalityCheck: 'shallow',
-    maxSize: 1,
+    maxSize: Infinity,
 } as const;
 
 function memoize<Fn extends MemoizeFnPredicate>(f: Fn, config: ExternalMemoizeConfig = DEFAULT_CONFIG): MemoizedInterface<Fn> {
