@@ -597,7 +597,6 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
-        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
     },
 
     SIGN_IN_FORM_WIDTH: 300,
@@ -4821,6 +4820,15 @@ const CONST = {
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
+
+    PAYMENT_CARD_CURRENCY: {
+        USD: 'USD',
+        AUD: 'AUD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+    },
+
+    SUBSCRIPTION_PRICE_FACTOR: 2,
     SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
         COLLECT_PLAN: 10,
         CONTROL_PLAN: 18,
