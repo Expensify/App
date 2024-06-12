@@ -113,6 +113,10 @@ function IOURequestStepTaxRatePage({
         navigateBack();
     };
 
+    const dismiss = () => {
+        navigateBack();
+    }
+
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.taxRate')}
@@ -127,6 +131,7 @@ function IOURequestStepTaxRatePage({
                 onSubmit={updateTaxRates}
                 action={action}
                 iouType={iouType}
+                onDismiss={dismiss}
             />
         </StepScreenWrapper>
     );
