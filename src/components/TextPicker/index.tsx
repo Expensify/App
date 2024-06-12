@@ -29,7 +29,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeNormal) : null;
 
     return (
         <View>
@@ -37,7 +37,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={value ?? placeholder ?? ''}
-                descriptionTextStyle={descStyle}
+                //descriptionTextStyle={descStyle}
                 description={description}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}

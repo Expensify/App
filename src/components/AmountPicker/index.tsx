@@ -29,7 +29,7 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
+    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeNormal) : null;
 
     return (
         <View>
