@@ -58,13 +58,29 @@ type RequestData = {
 /** Model of requests sent to the API */
 type Request = RequestData & OnyxData;
 
+/**
+ * An object used to describe how a request can be paginated.
+ */
 type PaginationConfig = {
+    /**
+     * The ID of the resource we're trying to paginate (i.e: the reportID in the case of paginating reportActions).
+     */
     resourceID: string;
+
+    /**
+     * The ID used as a cursor/offset when making a paginated request.
+     */
     cursorID?: string | null;
 };
 
+/**
+ *
+ */
 type PaginatedRequest = Request &
     PaginationConfig & {
+        /**
+         * A boolean flag to mark a request as Paginated.
+         */
         isPaginated: true;
     };
 
