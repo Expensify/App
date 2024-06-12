@@ -663,7 +663,7 @@ function ReportScreen({
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isReportOpenInRHP}
                     testID={ReportScreen.displayName}
                 >
                     <FullPageNotFoundView

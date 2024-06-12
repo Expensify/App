@@ -1829,7 +1829,7 @@ const CONST = {
         NAME_DISTANCE: 'Distance',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
-        MILEAGE_IRS_RATE: 0.655,
+        MILEAGE_IRS_RATE: 0.67,
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
@@ -3394,6 +3394,11 @@ const CONST = {
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
         IMAGE: 'image',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        TEXTBOX: 'textbox',
     },
     /**
      * Acceptable values for the `role` attribute on react native components.
@@ -4753,6 +4758,7 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+        ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
     },
 
     RESERVATION_TYPE: {
@@ -4815,6 +4821,15 @@ const CONST = {
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
+
+    PAYMENT_CARD_CURRENCY: {
+        USD: 'USD',
+        AUD: 'AUD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+    },
+
+    SUBSCRIPTION_PRICE_FACTOR: 2,
     SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
         COLLECT_PLAN: 10,
         CONTROL_PLAN: 18,
