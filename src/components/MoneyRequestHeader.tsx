@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -67,7 +68,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
-    // Only the requestor can take delete the expense, admins can only edit it.
+    const navigateBackToAfterDelete = useRef<Route>();
+
+    // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -78,10 +81,10 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         if (parentReportAction) {
             const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-                IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
-                return;
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+            } else {
+                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
             }
-            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
         }
 
         setIsDeleteModalVisible(false);
@@ -273,6 +276,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
+                onModalHide={() => {
+                    if (!navigateBackToAfterDelete.current) {
+                        return;
+                    }
+                    Navigation.goBack(navigateBackToAfterDelete.current);
+                }}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
