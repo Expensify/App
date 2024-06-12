@@ -861,7 +861,13 @@ type WelcomeVideoModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: {policyID?: string};
+    [SCREENS.SEARCH.BOTTOM_TAB]: {
+        query: string;
+        policyID?: string;
+        offset?: number;
+        sortBy?: SearchColumnType;
+        sortOrder?: SortOrder;
+    };
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 

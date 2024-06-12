@@ -683,7 +683,7 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice');
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.NOTICE);
 }
 
 /**
