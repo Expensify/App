@@ -85,8 +85,8 @@ Onyx.connect({
     },
 });
 
-function getCredentials(): Credentials | null {
-    return credentials ?? null;
+function getCredentials(): Credentials | null | undefined {
+    return credentials;
 }
 
 function isOffline(): boolean {
