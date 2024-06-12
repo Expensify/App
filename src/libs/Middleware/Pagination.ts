@@ -39,7 +39,6 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     nextCommand,
     ...config
 }: PaginationConfig<TResourceKey, TPageKey>): void {
-    // TODO: Is there a way to avoid these casts?
     paginationConfigs.set(initialCommand, {...config, type: 'initial'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
     paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
