@@ -1,0 +1,25 @@
+diff --git a/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts b/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts
+index d6983c1..ccacf09 100644
+--- a/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts
++++ b/node_modules/@perf-profiler/android/src/commands/platforms/UnixProfiler.ts
+@@ -136,7 +136,19 @@ export abstract class UnixProfiler implements Profiler {
+         const subProcessesStats = processOutput(cpu, pid);
+ 
+         const ram = processRamOutput(ramStr, this.getRAMPageSize());
+-        const { frameTimes, interval: atraceInterval } = frameTimeParser.getFrameTimes(atrace, pid);
++
++        let output;
++        try {
++          output = frameTimeParser.getFrameTimes(atrace, pid);
++        } catch (e) {
++          console.error(e);
++        }
++
++        if (!output) {
++          return;
++        }
++
++        const { frameTimes, interval: atraceInterval } = output;
+ 
+         if (!initialTime) {
+           initialTime = timestamp;
