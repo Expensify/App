@@ -1,7 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -18,13 +19,13 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
-import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
 
 type PaymentCardFormProps = {
     shouldShowPaymentCardForm?: boolean;
@@ -129,14 +130,13 @@ function PaymentCardForm({
     headerContent,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
+    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM);
+
     const {translate} = useLocalize();
     const route = useRoute();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
-
-    const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
-    const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
 
     const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
@@ -172,13 +172,8 @@ function PaymentCardForm({
         return errors;
     };
 
-    const showCurrenciesModal = useCallback(() => {
-        setIsCurrencyModalVisible(true);
-    }, []);
-
-    const changeCurrency = useCallback((newCurrency: keyof typeof CONST.CURRENCY) => {
-        setCurrency(newCurrency);
-        setIsCurrencyModalVisible(false);
+    const openCurrenciesSelectScreen = useCallback(() => {
+        Navigation.navigate(ROUTES.SETTINGS_CHANGE_CURRENCY);
     }, []);
 
     if (!shouldShowPaymentCardForm) {
@@ -191,7 +186,7 @@ function PaymentCardForm({
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
-                onSubmit={(formData) => addPaymentCard(formData, currency)}
+                onSubmit={addPaymentCard}
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
@@ -279,8 +274,8 @@ function PaymentCardForm({
                                 aria-label={translate('common.currency')}
                                 role={CONST.ROLE.COMBOBOX}
                                 icon={Expensicons.ArrowRight}
-                                onPress={showCurrenciesModal}
-                                value={currency}
+                                onPress={openCurrenciesSelectScreen}
+                                value={data?.currency ?? CONST.CURRENCY.USD}
                                 containerStyles={[styles.mt5]}
                                 inputStyle={isHovered && styles.cursorPointer}
                                 hideFocusedState
@@ -302,14 +297,6 @@ function PaymentCardForm({
                         />
                     </View>
                 )}
-
-                <PaymentCardCurrencyModal
-                    isVisible={isCurrencyModalVisible}
-                    currencies={Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>}
-                    currentCurrency={currency}
-                    onCurrencyChange={changeCurrency}
-                    onClose={() => setIsCurrencyModalVisible(false)}
-                />
                 {footerContent}
             </FormProvider>
         </>

@@ -29,6 +29,7 @@ import type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
+import ChangeCurrency from '@pages/settings/PaymentCard/ChangeCurrency';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -331,6 +332,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAX_CREATE]: () => require('../../../../pages/workspace/taxes/WorkspaceCreateTaxPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require('../../../../pages/settings/Subscription/PaymentCard/AddPaymentCard').default as React.ComponentType,
+    [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: () => require('../../../../pages/settings/Subscription/PaymentCard/ChangeBillingCurrency').default as React.ComponentType,
+    [SCREENS.SETTINGS.ADD_PAYMENT_CARD_CHANGE_CURRENCY]: () => require('../../../../pages/settings/PaymentCard/ChangeCurrency').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({

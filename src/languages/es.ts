@@ -1048,6 +1048,17 @@ export default {
             genericFailureMessage: 'Las notas privadas no han podido ser guardadas.',
         },
     },
+    billingCurrency: {
+        error: {
+            securityCode: 'Por favor, introduce un código de seguridad válido.',
+        },
+        securityCode: 'Código de seguridad',
+        changePaymentCurrency: 'Cambiar la moneda de pago',
+        paymentCurrency: 'Moneda de pago',
+        note: 'Nota: Cambiar tu moneda de pago puede afectar cuánto pagarás por Expensify. Consulta nuestra',
+        noteLink: 'página de precios',
+        notDetails: 'para conocer todos los detalles.',
+    },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',
         nameOnCard: 'Nombre en la tarjeta',

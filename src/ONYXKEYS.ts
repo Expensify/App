@@ -450,6 +450,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusSetClearAfterFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
+        CHANGE_BILLING_CURRENCY_FORM: 'changeBillingCurrencyForm',
+        CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'changeBillingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         PRIVATE_NOTES_FORM_DRAFT: 'privateNotesFormDraft',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
@@ -524,6 +526,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
+    [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: FormTypes.SettingsStatusSetClearAfterForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;

@@ -16,6 +16,7 @@ export type {MoneyRequestDescriptionForm} from './MoneyRequestDescriptionForm';
 export type {MoneyRequestMerchantForm} from './MoneyRequestMerchantForm';
 export type {MoneyRequestHoldReasonForm} from './MoneyRequestHoldReasonForm';
 export type {NewContactMethodForm} from './NewContactMethodForm';
+export type {ChangeBillingCurrencyForm} from './ChangeBillingCurrencyForm';
 export type {NewRoomForm} from './NewRoomForm';
 export type {NewTaskForm} from './NewTaskForm';
 export type {PersonalBankAccountForm} from './PersonalBankAccountForm';

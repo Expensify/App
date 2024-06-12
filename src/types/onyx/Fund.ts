@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {BankName} from './Bank';
 import type {BankAccountAdditionalData} from './BankAccount';
@@ -33,7 +34,7 @@ type AccountData = {
     created?: string;
 
     /** Debit card currency */
-    currency?: string;
+    currency?: ValueOf<typeof CONST.CURRENCY>;
 
     /** Debit card ID number */
     fundID?: number;

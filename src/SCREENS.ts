@@ -41,6 +41,7 @@ const SCREENS = {
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
+        ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         ADD_BANK_ACCOUNT_REFACTOR: 'Settings_Add_Bank_Account_Refactor',
         CLOSE: 'Settings_Close',
@@ -109,6 +110,7 @@ const SCREENS = {
             SIZE: 'Settings_Subscription_Size',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
         },
     },
     SAVE_THE_WORLD: {

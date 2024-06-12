@@ -130,6 +130,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.ADD_PAYMENT_CARD_CHANGE_CURRENCY]: {
+                            path: ROUTES.SETTINGS_CHANGE_CURRENCY,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.THEME]: {
                             path: ROUTES.SETTINGS_THEME,
                             exact: true,

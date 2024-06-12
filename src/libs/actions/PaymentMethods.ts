@@ -5,7 +5,14 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
+import {
+    AddPaymentCardParams,
+    DeletePaymentCardParams,
+    MakeDefaultPaymentMethodParams,
+    PaymentCardParams,
+    TransferWalletBalanceParams,
+    UpdateBillingCurrencyParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -273,6 +280,17 @@ function clearDebitCardFormErrorAndSubmit() {
         [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
         [INPUT_IDS.ADDRESS_STATE]: '',
         [INPUT_IDS.ACCEPT_TERMS]: '',
+        [INPUT_IDS.CURRENCY]: CONST.CURRENCY.USD,
+    });
+}
+
+/**
+ * Set currency for payments
+ *
+ */
+function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.CURRENCY>) {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+        [INPUT_IDS.CURRENCY]: currency,
     });
 }
 
@@ -425,6 +443,54 @@ function deletePaymentCard(fundID: number) {
     });
 }
 
+/**
+ * Call the API to change billing currency.
+ *
+ */
+function updateBillingCurrency(currency: ValueOf<typeof CONST.CURRENCY>, cardCVV: string) {
+    const parameters: UpdateBillingCurrencyParams = {
+        cardCVV,
+        currency,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_BILLING_CARD_CURRENCY, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     deletePaymentCard,
     addPaymentCard,
@@ -440,8 +506,10 @@ export {
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     hasPaymentMethodError,
+    updateBillingCurrency,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
+    setPaymentMethodCurrency,
     clearWalletTermsError,
 };
