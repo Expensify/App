@@ -876,16 +876,16 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | null {
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-        return null;
+        return;
     }
 
     const reportActionsArray = Object.values(reportActions ?? {});
     if (!reportActionsArray.length) {
-        return null;
+        return;
     }
 
     // Get all IOU report actions for the report.
@@ -913,17 +913,17 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
-        return null;
+        return;
     }
 
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
     if (((iouRequestActions[0] as OriginalMessageIOU).originalMessage?.deleted ?? '') !== '') {
-        return null;
+        return;
     }
 
     // Ensure we have a childReportID associated with the IOU report action
-    return iouRequestActions[0].childReportID ?? null;
+    return iouRequestActions[0].childReportID;
 }
 
 /**

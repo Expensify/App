@@ -557,6 +557,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
+    if (!lodashIsEqual(oldProps.transactionThreadReport, newProps.transactionThreadReport)) {
+        return false;
+    }
+
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
