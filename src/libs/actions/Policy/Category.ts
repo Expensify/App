@@ -14,8 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import {navigateWhenEnableFeature} from './Policy';
+import {removePendingFieldsFromCustomUnit, navigateWhenEnableFeature} from '@libs/PolicyUtils';
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({

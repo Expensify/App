@@ -489,6 +489,12 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
+function navigateWhenEnableFeature(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -544,6 +550,7 @@ export {
     getCustomUnitRate,
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
+    navigateWhenEnableFeature,
 };
 
 export type {MemberEmailsToAccountIDs};

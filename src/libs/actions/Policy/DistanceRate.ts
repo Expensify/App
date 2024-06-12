@@ -20,8 +20,7 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
-import {navigateWhenEnableFeature} from './Policy';
+import {removePendingFieldsFromCustomUnit, navigateWhenEnableFeature} from '@libs/PolicyUtils';
 
 type NewCustomUnit = {
     customUnitID: string;

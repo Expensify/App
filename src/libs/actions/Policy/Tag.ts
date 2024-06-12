@@ -15,7 +15,7 @@ import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Rep
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature} from './Policy';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 
 type NewCustomUnit = {
     customUnitID: string;
