@@ -5453,10 +5453,10 @@ function shouldReportBeInOptionList({
  */
 function getSystemChat(): OnyxEntry<Report> {
     if (!allReports) {
-        return null;
+        return undefined;
     }
 
-    return Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM) ?? null;
+    return Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM);
 }
 
 /**
