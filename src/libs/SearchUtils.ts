@@ -77,25 +77,28 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
+const currentYear = new Date().getFullYear();
+
 function doesAtleastOneExpenseBelongToAPastYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
     if (Array.isArray(data)) {
         return data.some((item: TransactionListItemType | ReportListItemType) => {
             if ('transactions' in item) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
-                    const transactionYear = new Date(transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '').getFullYear();
-                    return transactionYear !== new Date().getFullYear();
+                    const transactionYear = new Date(TransactionUtils.getCreatedDate(transaction)).getFullYear();
+                    return transactionYear !== currentYear;
                 });
             }
 
             const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
-            return createdYear !== new Date().getFullYear();
+            return createdYear !== currentYear;
         });
     }
+
     for (const [key, transactionItem] of Object.entries(data)) {
         if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const item = transactionItem as SearchTransaction;
-            const date = item?.modifiedCreated ? item.modifiedCreated : item?.created || '';
+            const date = TransactionUtils.getCreatedDate(item);
 
             if (DateUtils.doesDateBelongToAPastYear(date)) {
                 return true;

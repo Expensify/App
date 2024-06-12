@@ -92,12 +92,10 @@ function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
     );
 }
 
-const getCreated = (item: TransactionListItemType) => (item?.modifiedCreated ? item.modifiedCreated : item?.created || '');
-
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
 
-    const created = getCreated(transactionItem);
+    const created = TransactionUtils.getCreatedDate(transactionItem);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
     return (
