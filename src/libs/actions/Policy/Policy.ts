@@ -2843,18 +2843,6 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
-/**
- * Takes removes pendingFields and errorFields from a customUnit
- */
-function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
-    const cleanedCustomUnit = {...customUnit};
-
-    delete cleanedCustomUnit.pendingFields;
-    delete cleanedCustomUnit.errorFields;
-
-    return cleanedCustomUnit;
-}
-
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = getPolicy(policyID);
     const originalCustomTaxName = policy?.taxRates?.name;
@@ -3073,7 +3061,6 @@ export {
     createDraftWorkspace,
     buildPolicyData,
     navigateWhenEnableFeature,
-    removePendingFieldsFromCustomUnit,
     createPolicyExpenseChats,
 };
 
