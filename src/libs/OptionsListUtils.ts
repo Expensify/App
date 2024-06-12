@@ -529,8 +529,8 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
 
         return Object.assign(prevReportActionErrors, action.errors);
     }, {});
-    const parentReportAction: OnyxEntry<ReportAction> | null =
-        !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
+    const parentReportAction: OnyxEntry<ReportAction> =
+        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''];
 
     if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;

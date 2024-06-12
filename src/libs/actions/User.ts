@@ -61,7 +61,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject | null = {};
+let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -69,7 +69,7 @@ Onyx.connect({
             return;
         }
 
-        myPersonalDetails = value[currentUserAccountID];
+        myPersonalDetails = value[currentUserAccountID] ?? {};
     },
 });
 
