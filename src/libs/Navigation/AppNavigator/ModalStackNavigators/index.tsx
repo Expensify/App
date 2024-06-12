@@ -29,7 +29,6 @@ import type {
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
-import ChangeCurrency from '@pages/settings/PaymentCard/ChangeCurrency';
 import type {ThemeStyles} from '@styles/index';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';

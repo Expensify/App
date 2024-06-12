@@ -5,7 +5,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import {
+import type {
     AddPaymentCardParams,
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
