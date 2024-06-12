@@ -3303,6 +3303,13 @@ function completeOnboarding(
         acc.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [taskReportAction.reportAction.reportActionID]: {pendingAction: null},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
                 value: {
                     pendingFields: {
@@ -3318,7 +3325,7 @@ function completeOnboarding(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
+                    [taskCreatedAction.reportActionID]: {pendingAction: null},
                 },
             },
         );
@@ -3328,16 +3335,7 @@ function completeOnboarding(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
-                    [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
-                },
-            });
-
-            acc.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
-                value: {
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    [completedTaskReportAction.reportActionID]: {pendingAction: null},
                 },
             });
         }
