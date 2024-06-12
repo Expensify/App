@@ -3,7 +3,7 @@
  * only one tab is processing those saved requests or we would be duplicating data (or creating errors).
  * This file ensures exactly that by tracking all the clientIDs connected, storing the most recent one last and it considers that last clientID the "leader".
  */
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import * as ActiveClients from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -45,6 +45,34 @@ Onyx.connect({
     },
 });
 
+let isPromotingNewLeader = false;
+
+/**
+ * The last GUID is the most recent GUID, so that should be the leader
+ */
+const isClientTheLeader: IsClientTheLeader = () => {
+    /**
+     * When a new leader is being promoted, there is a brief period during which the current leader's clientID
+     * is removed from the activeClients list due to asynchronous operations, but the new leader has not officially
+     * taken over yet. This can result in a situation where, upon page refresh, multiple leaders are being reported.
+     * This early return statement here will prevent that from happening by maintaining the current leader as
+     * the 'active leader' until the other leader is fully promoted.
+     */
+    if (isPromotingNewLeader) {
+        return true;
+    }
+
+    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
+
+    return lastActiveClient === clientID;
+};
+
+const cleanUpClientId = () => {
+    isPromotingNewLeader = isClientTheLeader();
+    activeClients = activeClients.filter((id) => id !== clientID);
+    ActiveClients.setActiveClients(activeClients);
+};
+
 /**
  * Add our client ID to the list of active IDs.
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
@@ -53,15 +81,8 @@ const init: Init = () => {
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
     ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
-};
 
-/**
- * The last GUID is the most recent GUID, so that should be the leader
- */
-const isClientTheLeader: IsClientTheLeader = () => {
-    const lastActiveClient = activeClients.length && activeClients[activeClients.length - 1];
-
-    return lastActiveClient === clientID;
+    window.addEventListener('beforeunload', cleanUpClientId);
 };
 
 export {init, isClientTheLeader, isReady};

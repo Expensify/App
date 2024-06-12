@@ -1,12 +1,12 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useActiveWorkspaceFromNavigationState from '@hooks/useActiveWorkspaceFromNavigationState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import Performance from '@libs/Performance';
-import {getPolicyIDFromNavigationState} from '@libs/PolicyUtils';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ const startTimer = () => {
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
-    const activeWorkspaceID = getPolicyIDFromNavigationState();
+    const activeWorkspaceID = useActiveWorkspaceFromNavigationState();
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -40,7 +40,7 @@ function BaseSidebarScreen() {
             {({insets}) => (
                 <>
                     <TopBar
-                        breadcrumbLabel={translate('common.chats')}
+                        breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
                     />
                     <View style={[styles.flex1]}>

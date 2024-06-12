@@ -12,7 +12,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy';
+import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -41,17 +41,17 @@ const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG
 function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const taglistName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0].name, [policyTags]);
+    const taglistName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateTaglistName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
             if (values[INPUT_IDS.POLICY_TAGS_NAME] !== taglistName) {
-                Policy.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags);
+                Tag.renamePolicyTaglist(route.params.policyID, {oldName: taglistName, newName: values[INPUT_IDS.POLICY_TAGS_NAME]}, policyTags, route.params.orderWeight);
             }
             Navigation.goBack();
         },
-        [policyTags, route.params.policyID, taglistName],
+        [policyTags, route.params.orderWeight, route.params.policyID, taglistName],
     );
 
     return (

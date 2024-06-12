@@ -1,10 +1,11 @@
 // Issue - https://github.com/Expensify/App/issues/26719
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
 import type {
     GetMissingOnyxMessagesParams,
@@ -18,6 +19,7 @@ import type {
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import DateUtils from '@libs/DateUtils';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-import * as Policy from './Policy';
+import * as Policy from './Policy/Policy';
 import * as Session from './Session';
 import Timing from './Timing';
 
@@ -59,10 +61,17 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | null;
+let preferredLocale: string | null = null;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val),
+    callback: (val) => {
+        preferredLocale = val;
+        if (preferredLocale) {
+            importEmojiLocale(preferredLocale as Locale).then(() => {
+                buildEmojisTrie(preferredLocale as Locale);
+            });
+        }
+    },
 });
 
 let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | null;
@@ -149,6 +158,10 @@ function setLocale(locale: Locale) {
     const parameters: UpdatePreferredLocaleParams = {
         value: locale,
     };
+
+    importEmojiLocale(locale).then(() => {
+        buildEmojisTrie(locale);
+    });
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
 }

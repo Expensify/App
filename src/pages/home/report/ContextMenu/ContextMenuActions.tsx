@@ -1,5 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';
@@ -45,7 +44,9 @@ function setClipboardMessage(content: string) {
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(parser.htmlToMarkdown(content));
     } else {
-        const plainText = parser.htmlToText(content);
+        const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
+        const isAnchorTag = anchorRegex.test(content);
+        const plainText = isAnchorTag ? parser.htmlToMarkdown(content) : parser.htmlToText(content);
         Clipboard.setHtml(content, plainText);
     }
 }
@@ -214,7 +215,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
         onPress: (closePopover, {reportID}) => {
-            Report.readNewestAction(reportID);
+            Report.readNewestAction(reportID, true);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -252,6 +253,40 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // No popover to hide, call editAction immediately
             editAction();
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'iou.unholdExpense',
+        icon: Expensicons.Stopwatch,
+        shouldShow: (type, reportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
+        onPress: (closePopover, {reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                return;
+            }
+
+            // No popover to hide, call changeMoneyRequestHoldStatus immediately
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'iou.hold',
+        icon: Expensicons.Stopwatch,
+        shouldShow: (type, reportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
+        onPress: (closePopover, {reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                return;
+            }
+
+            // No popover to hide, call changeMoneyRequestHoldStatus immediately
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
         },
         getDescription: () => {},
     },
@@ -359,14 +394,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
-                    setClipboardMessage('What would you like to do with this expense?');
+                    setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
                 } else if (content) {
                     setClipboardMessage(
-                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, innerContent, closeTag): string => {
+                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
                             const modifiedContent = Str.removeSMSDomain(innerContent) || '';
                             return openTag + modifiedContent + closeTag || '';
                         }),

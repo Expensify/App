@@ -1,5 +1,5 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -44,9 +44,9 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
-import variables from '@styles/variables';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
+import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -177,6 +177,11 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         policyID: string;
     };
 
+type SwitchToCurrentReportProps = {
+    preexistingReportID: string;
+    callback: () => void;
+};
+
 const {RNTextInputReset} = NativeModules;
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
@@ -281,7 +286,11 @@ function ComposerWithSuggestions(
 
     const parentReportAction = parentReportActions?.[parentReportActionID ?? ''] ?? null;
     const shouldAutoFocus =
-        !modal?.isVisible && isFocused && (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) && shouldShowComposeInput;
+        !modal?.isVisible &&
+        Modal.areAllModalsHidden() &&
+        isFocused &&
+        (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) &&
+        shouldShowComposeInput;
 
     const valueRef = useRef(value);
     valueRef.current = value;
@@ -318,7 +327,6 @@ function ComposerWithSuggestions(
      */
     const setTextInputRef = useCallback(
         (el: TextInput) => {
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = el;
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
@@ -337,7 +345,7 @@ function ComposerWithSuggestions(
 
     const debouncedSaveReportComment = useMemo(
         () =>
-            lodashDebounce((selectedReportID, newComment) => {
+            lodashDebounce((selectedReportID: string, newComment: string | null) => {
                 Report.saveReportDraftComment(selectedReportID, newComment);
                 isCommentPendingSaved.current = false;
             }, 1000),
@@ -345,7 +353,7 @@ function ComposerWithSuggestions(
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
             if (!commentRef.current) {
                 callback();
                 return;
@@ -406,11 +414,8 @@ function ComposerWithSuggestions(
             raiseIsScrollLikelyLayoutTriggered();
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const {
-                text: newComment,
-                emojis,
-                cursorPosition,
-            } = EmojiUtils.replaceAndExtractEmojis(isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue, preferredSkinTone, preferredLocale);
+            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
             if (emojis.length) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -435,7 +440,7 @@ function ComposerWithSuggestions(
             if (commentValue !== newComment) {
                 const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
-                if (isIOSNative) {
+                if (commentWithSpaceInserted !== newComment && isIOSNative) {
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
                 }
 
@@ -485,6 +490,7 @@ function ComposerWithSuggestions(
         debouncedSaveReportComment.cancel();
         isCommentPendingSaved.current = false;
 
+        setSelection({start: 0, end: 0});
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
@@ -499,7 +505,9 @@ function ComposerWithSuggestions(
      */
     const replaceSelectionWithText = useCallback(
         (text: string) => {
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text));
+            // selection replacement should be debounced to avoid conflicts with text typing
+            // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
+            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
@@ -649,7 +657,6 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            // @ts-expect-error need to reassign this ref
             ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
@@ -673,6 +680,12 @@ function ComposerWithSuggestions(
             // eslint-disable-next-line no-param-reassign
             isNextModalWillOpenRef.current = false;
         }
+
+        // We want to blur the input immediately when a screen is out of focus.
+        if (!isFocused) {
+            textInputRef.current?.blur();
+        }
+
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
@@ -728,11 +741,6 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const isOnlyEmojiLineHeight = useMemo(() => {
-        const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(value);
-        return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
-    }, [value]);
-
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -746,7 +754,7 @@ function ComposerWithSuggestions(
                     onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, isOnlyEmojiLineHeight]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
@@ -767,6 +775,7 @@ function ComposerWithSuggestions(
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
                     shouldContainScroll={Browser.isMobileSafari()}
+                    isGroupPolicyReport={isGroupPolicyReport}
                 />
             </View>
 

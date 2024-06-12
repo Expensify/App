@@ -19,7 +19,6 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
                 html: 'hey',
                 isDeletedParentAction: false,
                 isEdited: false,
-                reactions: [],
                 text: 'test',
                 type: 'TEXT',
                 whisperedTo: [],
@@ -30,6 +29,9 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
             lastModified: '2021-07-14T15:00:00Z',
             // IOUReportID: index,
             linkedReportID: index.toString(),
+            whisperedTo: [],
+            reason: '',
+            violationName: '',
         },
         pendingAction: null,
         person: [
@@ -41,11 +43,8 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
         ],
         reportActionID: index.toString(),
         previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
-        reportActionTimestamp: 1696243169753,
         sequenceNumber: 0,
         shouldShow: true,
-        timestamp: 1696243169,
-        whisperedToAccountIDs: [],
     } as ReportAction);
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>

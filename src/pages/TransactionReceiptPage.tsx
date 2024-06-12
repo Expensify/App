@@ -50,7 +50,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isTrackExpenseReport ? !transaction : (moneyRequestReportID ?? '') !== transaction?.reportID;
+    const shouldShowNotFoundPage = isTrackExpenseReport || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID ? !transaction : (moneyRequestReportID ?? '') !== transaction?.reportID;
 
     return (
         <AttachmentModal
@@ -64,7 +64,7 @@ function TransactionReceipt({transaction, report, reportMetadata = {isLoadingIni
             originalFileName={receiptURIs?.filename}
             defaultOpen
             onModalClose={() => {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? ''));
             }}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}

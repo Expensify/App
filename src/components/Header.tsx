@@ -30,7 +30,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
             <>
                 {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
                 {typeof subtitle === 'string'
-                    ? Boolean(subtitle) && (
+                    ? !!subtitle && (
                           <Text
                               style={[styles.mutedTextLabel, styles.pre]}
                               numberOfLines={1}
@@ -47,7 +47,7 @@ function Header({title = '', subtitle = '', textStyles = [], containerStyles = [
         <View style={[styles.flex1, styles.flexRow, containerStyles]}>
             <View style={styles.mw100}>
                 {typeof title === 'string'
-                    ? Boolean(title) && (
+                    ? !!title && (
                           <Text
                               numberOfLines={2}
                               style={[styles.headerText, styles.textLarge, textStyles]}
