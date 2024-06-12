@@ -8,6 +8,7 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -42,6 +43,14 @@ type OnyxData = {
     finallyData?: OnyxUpdate[];
 };
 
+// For all write requests, we'll send the lastUpdateID that is applied to this client. This will
+// allow us to calculate previousUpdateID faster.
+let lastUpdateIDAppliedToClient = 0;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
+});
+
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
  */
@@ -73,8 +82,10 @@ function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: Ap
         ...onyxDataWithoutOptimisticData,
     };
 
-    // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
     if (isWriteRequest) {
+        request.data.clientUpdateID = lastUpdateIDAppliedToClient;
+
+        // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
         request.data.shouldRetry = true;
         request.data.canCancel = true;
     }
@@ -139,8 +150,6 @@ function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParam
  * @param [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
  * @param [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  * @param [onyxData.finallyData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200 or jsonCode !== 200.
- * @param [apiRequestType] - Can be either 'read', 'write', or 'makeRequestWithSideEffects'. We use this to either return the chained
- *                                    response back to the caller or to trigger reconnection callbacks when re-authentication is required.
  * @returns
  */
 function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(

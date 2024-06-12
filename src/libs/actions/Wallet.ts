@@ -218,7 +218,7 @@ function openEnablePaymentsPage() {
     API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, {});
 }
 
-function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
+function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
