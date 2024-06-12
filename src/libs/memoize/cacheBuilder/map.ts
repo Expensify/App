@@ -43,7 +43,7 @@ function mapCacheBuilder<Fn extends () => unknown, Key = Parameters<Fn>, Val = R
         cache.clear();
     };
 
-    memoized.snapshot = () => cache.entries();
+    memoized.snapshot = () => Array.from(cache.entries());
 
     return memoized;
 }
