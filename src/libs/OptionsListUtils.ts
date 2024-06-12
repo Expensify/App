@@ -2455,7 +2455,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             values = values.concat(getParticipantsLoginsArray(item));
 
             return uniqFast(values);
-        });
+        }, true);
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
