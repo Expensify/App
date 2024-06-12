@@ -37,7 +37,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={value ?? placeholder ?? ''}
-                //descriptionTextStyle={descStyle}
+                descriptionTextStyle={descStyle}
                 description={description}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
