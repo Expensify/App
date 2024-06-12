@@ -590,6 +590,8 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: `${USE_EXPENSIFY_URL}/tools/integrations/downloadPackage`,
+    HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1783,6 +1785,7 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
+                SAGE_INTACCT: 'intacct',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -4820,15 +4823,6 @@ const CONST = {
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
-
-    PAYMENT_CARD_CURRENCY: {
-        USD: 'USD',
-        AUD: 'AUD',
-        GBP: 'GBP',
-        NZD: 'NZD',
-    },
-
-    SUBSCRIPTION_PRICE_FACTOR: 2,
     SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
         COLLECT_PLAN: 10,
         CONTROL_PLAN: 18,

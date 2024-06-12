@@ -610,6 +610,9 @@ type Connections = {
 
     /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+
+    /** Sage Intacct integration connection */
+    intacct: Connection<XeroConnectionData, XeroConnectionConfig>; // zmien na normalne dane do saga
 };
 
 /** Names of integration connections */
