@@ -18,6 +18,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {Options} from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -355,6 +356,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
             shouldDebounceRowSelect
             footerContent={footerContent}
