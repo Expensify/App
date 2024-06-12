@@ -4,13 +4,13 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../../package.json';
-import type IsBetaBuild from './types';
+import type {IsBetaBuild} from './types';
 
 let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
     callback: (value) => {
-        isLastSavedBeta = Boolean(value);
+        isLastSavedBeta = !!value;
     },
 });
 

@@ -27,13 +27,13 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
+function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
     const message = reportAction?.message?.at(-1) ?? null;
     return message?.html ?? '';
 }
@@ -253,6 +253,40 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // No popover to hide, call editAction immediately
             editAction();
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'iou.unholdExpense',
+        icon: Expensicons.Stopwatch,
+        shouldShow: (type, reportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canUnholdRequest,
+        onPress: (closePopover, {reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                return;
+            }
+
+            // No popover to hide, call changeMoneyRequestHoldStatus immediately
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'iou.hold',
+        icon: Expensicons.Stopwatch,
+        shouldShow: (type, reportAction) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && ReportUtils.canHoldUnholdReportAction(reportAction).canHoldRequest,
+        onPress: (closePopover, {reportAction}) => {
+            if (closePopover) {
+                hideContextMenu(false, () => ReportUtils.changeMoneyRequestHoldStatus(reportAction));
+                return;
+            }
+
+            // No popover to hide, call changeMoneyRequestHoldStatus immediately
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
         },
         getDescription: () => {},
     },
