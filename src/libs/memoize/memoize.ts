@@ -1,5 +1,5 @@
 import * as cacheBuilders from './cacheBuilder';
-import type {ExternalMemoizeConfig, MemoizeConfig, MemoizedInterface} from './types';
+import type {ExternalMemoizeConfig, MemoizeConfig, MemoizedInterface, MemoizeFnPredicate} from './types';
 
 const DEFAULT_CONFIG = {
     cacheMode: 'array',
@@ -7,7 +7,7 @@ const DEFAULT_CONFIG = {
     maxSize: 1,
 } as const;
 
-function memoize<Fn extends () => unknown>(f: Fn, config: ExternalMemoizeConfig = DEFAULT_CONFIG): MemoizedInterface<Fn> {
+function memoize<Fn extends MemoizeFnPredicate>(f: Fn, config: ExternalMemoizeConfig = DEFAULT_CONFIG): MemoizedInterface<Fn> {
     // Make sure default values are provided
     const preparedConfig = (config !== DEFAULT_CONFIG ? {...DEFAULT_CONFIG, ...config} : config) as MemoizeConfig;
 

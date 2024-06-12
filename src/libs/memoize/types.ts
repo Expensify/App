@@ -18,13 +18,17 @@ type MemoizeConfig = {
 
 type ExternalMemoizeConfig = Partial<MemoizeConfig>;
 
-type CacheBuilder = <Fn extends () => unknown, C extends MemoizeConfig>(f: Fn, config: C) => MemoizedInterface<Fn>;
+// Anys are needed as this is only a predicate passed to extends clause
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MemoizeFnPredicate = (...args: any[]) => any;
 
-type MemoizedInterface<Fn extends () => unknown, Key = Parameters<Fn>, Val = ReturnType<Fn>> = Fn & {
+type CacheBuilder = <Fn extends MemoizeFnPredicate, C extends MemoizeConfig>(f: Fn, config: C) => MemoizedInterface<Fn>;
+
+type MemoizedInterface<Fn extends MemoizeFnPredicate, Key = Parameters<Fn>, Val = ReturnType<Fn>> = Fn & {
     get: (key: Key) => Val | undefined;
     set: (key: Key, value: Val) => void;
     clear: () => void;
     snapshot: () => Array<[Key, Val]>;
 };
 
-export type {MemoizeConfig, ExternalMemoizeConfig, CacheMode, MemoizedInterface, CacheBuilder};
+export type {MemoizeConfig, ExternalMemoizeConfig, CacheMode, MemoizedInterface, CacheBuilder, MemoizeFnPredicate};
