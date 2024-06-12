@@ -5,7 +5,6 @@
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
-import type {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import Config from 'react-native-config';
@@ -13,11 +12,7 @@ import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 import installNetworkInterceptor from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
-import type { TestConfig } from './types';
-
-type Test = (config: TestConfig) => void;
-type TestModule = { default: Test}
-type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, Test>;
+import type {  TestModule, Tests } from './types';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');

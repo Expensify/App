@@ -16,6 +16,8 @@ import type ReactNativeOnyxMock from '../../__mocks__/react-native-onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type OnResolved = (params: {jsonCode?: string | number}) => void;
+
 const Onyx = MockedOnyx as typeof ReactNativeOnyxMock;
 
 jest.mock('@src/libs/Log');
@@ -289,7 +291,7 @@ describe('NetworkTests', () => {
     test('test Failed to fetch error for non-retryable requests resolve with unable to retry jsonCode', () => {
         // Setup xhr handler that rejects once with a Failed to Fetch
         global.fetch = jest.fn().mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
-        const onResolved = jest.fn() as jest.MockedFunction<(params: {jsonCode?: string | number}) => void>;
+        const onResolved = jest.fn() as jest.MockedFunction<OnResolved>;
 
         // Given we have a request made while online
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})

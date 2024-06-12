@@ -31,8 +31,7 @@ import withFailTimeout from './utils/withFailTimeout';
 type Result = Record<string, number[]>;
 
 type CustomConfig = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    default: any;
+    default: unknown;
 };
 
 // VARIABLE CONFIGURATION
@@ -51,7 +50,7 @@ const setConfigPath = (configPathParam: string | undefined) => {
     if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = (require(configPath) as CustomConfig).default;
+    const customConfig = require<CustomConfig>(configPath).default;
     config = Object.assign(defaultConfig, customConfig);
 };
 

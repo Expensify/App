@@ -28,13 +28,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getActionForBottomTabNavigator from './getActionForBottomTabNavigator';
 import getMinimalAction from './getMinimalAction';
-
-type ActionParams = {
-    screen: string;
-    params?: {
-        policyIDs?: string;
-    };
-};
+import type {ActionPayloadParams} from './types';
 
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
     if (!navigation) {
@@ -75,7 +69,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        const actionParams: ActionParams | undefined = action.payload.params;
+        const actionParams: ActionPayloadParams = action.payload.params;
         const topRouteName = rootState?.routes?.at(-1)?.name;
 
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
@@ -112,7 +106,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
             // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
             if (actionParams?.screen === SCREENS.SEARCH.CENTRAL_PANE && actionParams?.params && policyID) {
-                actionParams.params.policyIDs = policyID;
+                (actionParams.params as Record<string, string | undefined>).policyIDs = policyID;
             }
 
             // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push

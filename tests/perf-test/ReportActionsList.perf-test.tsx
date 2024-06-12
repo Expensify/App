@@ -22,7 +22,7 @@ import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-type LHNTestUtilsProps = {
+type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
 };
 
@@ -30,13 +30,12 @@ const mockedNavigate = jest.fn();
 
 jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const lazyLoadLHNTestUtils = () => require('../utils/LHNTestUtils');
+    const lazyLoadLHNTestUtils = () => require<LazyLoadLHNTestUtils>('../utils/LHNTestUtils');
 
     return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
         function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
             const currentUserAccountID = 5;
-            const LHNTestUtils: LHNTestUtilsProps = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
+            const LHNTestUtils = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
 
             return (
                 <Component

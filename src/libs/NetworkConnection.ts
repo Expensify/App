@@ -117,7 +117,7 @@ function subscribeToBackendAndInternetReachability(): () => void {
                 }
                 return response
                     .json()
-                    .then((json) => Promise.resolve((json as ResponseJSON).jsonCode === 200))
+                    .then((json: ResponseJSON) => Promise.resolve(json.jsonCode === 200))
                     .catch(() => Promise.resolve(false));
             })
             .then((isBackendReachable: boolean) => {

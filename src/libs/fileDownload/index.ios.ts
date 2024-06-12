@@ -3,7 +3,7 @@ import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import CONST from '@src/CONST';
 import * as FileUtils from './FileUtils';
-import type {FileDownload} from './types';
+import type {FileDownload, FileDownloadError} from './types';
 
 /**
  * Downloads the file to Documents section in iOS
@@ -94,10 +94,10 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
 
                 FileUtils.showSuccessAlert(successMessage);
             })
-            .catch((err) => {
+            .catch((err: FileDownloadError) => {
                 // iOS shows permission popup only once. Subsequent request will only throw an error.
                 // We catch the error and show a redirection link to the settings screen
-                if ((err as {message?: string}).message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
+                if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
                     FileUtils.showPermissionErrorAlert();
                 } else {
                     FileUtils.showGeneralErrorAlert();

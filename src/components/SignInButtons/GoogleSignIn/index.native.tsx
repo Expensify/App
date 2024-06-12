@@ -34,10 +34,11 @@ function googleSignInRequest() {
               - The common status codes documentation: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes
               - The Google Sign In codes documentation: https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes
             */
-            if ((error as GoogleError).code === statusCodes.SIGN_IN_CANCELLED) {
+            const googleError = error as GoogleError;
+            if (googleError.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
             } else {
-                Log.alert(`[Google Sign In] Error Code: ${(error as GoogleError).code}. ${(error as GoogleError).message}`, {}, false);
+                Log.alert(`[Google Sign In] Error Code: ${googleError.code}. ${googleError.message}`, {}, false);
             }
         });
 }
