@@ -13,14 +13,16 @@ type StepAssertion = {
     output: string;
 };
 
+type Jobs = Record<
+    string,
+    {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'runs-on': string;
+    }
+>;
+
 type Workflow = {
-    jobs: Record<
-        string,
-        {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'runs-on': string;
-        }
-    >;
+    jobs: Jobs;
 };
 
 function setUpActParams(

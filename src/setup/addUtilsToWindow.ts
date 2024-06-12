@@ -4,7 +4,7 @@ import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
 import * as Session from '@userActions/Session';
 import type {OnyxKey} from '@src/ONYXKEYS';
 
-type UtilsWindow = Window &
+type WindowWithCustomMethods = Window &
     typeof globalThis & {
         markAllPolicyReportsAsRead: (policyID: string) => void;
     };
@@ -50,6 +50,6 @@ export default function addUtilsToWindow() {
         window.setSupportToken = Session.setSupportAuthToken;
 
         // Workaround to give employees the ability to mark reports as read via the JS console
-        (window as UtilsWindow).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
+        (window as WindowWithCustomMethods).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }

@@ -12,7 +12,7 @@ import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 import installNetworkInterceptor from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
-import type {  TestModule, Tests } from './types';
+import type {TestModule, Tests} from './types';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');

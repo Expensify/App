@@ -28,14 +28,14 @@ function googleSignInRequest() {
         .then((token) => Session.beginGoogleSignIn(token))
         .catch((error) => {
             // Handle unexpected error shape
-            if (error === undefined || (error as GoogleError).code === undefined) {
+            const googleError = error as GoogleError;
+            if (error === undefined || googleError.code === undefined) {
                 Log.alert(`[Google Sign In] Google sign in failed: ${error}`);
             }
             /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
               - The common status codes documentation: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes
               - The Google Sign In codes documentation: https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes
             */
-            const googleError = error as GoogleError;
             if (googleError.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
             } else {

@@ -26,7 +26,6 @@ type OnfidoProps = {
 };
 
 type OnfidoError = Error & {
-    message?: string;
     type?: string;
 };
 
