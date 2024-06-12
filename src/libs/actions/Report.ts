@@ -1,6 +1,5 @@
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
+import {ExpensiMark, Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -8,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
+import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -161,14 +161,6 @@ Onyx.connect({
         }
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
-    },
-});
-
-let guideCalendarLink: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => {
-        guideCalendarLink = value?.guideCalendarLink ?? undefined;
     },
 });
 
@@ -478,7 +470,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 
     const optimisticReport: Partial<Report> = {
-        lastVisibleActionCreated: currentTime,
+        lastVisibleActionCreated: lastAction?.created,
         lastMessageTranslationKey: lastComment?.translationKey ?? '',
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
@@ -1028,7 +1020,6 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  */
 function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: Partial<ReportAction> = {}, parentReportID = '0') {
     if (childReportID !== '0') {
-        openReport(childReportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
@@ -1158,8 +1149,11 @@ function expandURLPreview(reportID: string, reportActionID: string) {
     API.read(READ_COMMANDS.EXPAND_URL_PREVIEW, parameters);
 }
 
-/** Marks the new report actions as read */
-function readNewestAction(reportID: string) {
+/** Marks the new report actions as read
+ * @param shouldResetUnreadMarker Indicates whether the unread indicator should be reset.
+ * Currently, the unread indicator needs to be reset only when users mark a report as read.
+ */
+function readNewestAction(reportID: string, shouldResetUnreadMarker = false) {
     const lastReadTime = DateUtils.getDBTime();
 
     const optimisticData: OnyxUpdate[] = [
@@ -1178,7 +1172,9 @@ function readNewestAction(reportID: string) {
     };
 
     API.write(WRITE_COMMANDS.READ_NEWEST_ACTION, parameters, {optimisticData});
-    DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
+    if (shouldResetUnreadMarker) {
+        DeviceEventEmitter.emit(`readNewestAction_${reportID}`, lastReadTime);
+    }
 }
 
 /**
@@ -2012,6 +2008,17 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
+/**
+ * Navigates to the 1:1 system chat
+ */
+function navigateToSystemChat() {
+    const systemChatReport = ReportUtils.getSystemChat();
+
+    if (systemChatReport?.reportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(systemChatReport.reportID));
+    }
+}
+
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -2731,12 +2738,17 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         ...newPersonalDetailsOnyxData.optimisticData,
     ];
 
+    const successPendingChatMembers = report?.pendingChatMembers
+        ? report?.pendingChatMembers?.filter(
+              (pendingMember) => !(inviteeAccountIDs.includes(Number(pendingMember.accountID)) && pendingMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+          )
+        : null;
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingChatMembers: report?.pendingChatMembers ?? null,
+                pendingChatMembers: successPendingChatMembers,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
@@ -3114,7 +3126,9 @@ function completeOnboarding(
     },
     adminsChatReportID?: string,
 ) {
-    const targetEmail = CONST.EMAIL.CONCIERGE;
+    const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
+    const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
+
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
@@ -3154,7 +3168,6 @@ function completeOnboarding(
             typeof task.description === 'function'
                 ? task.description({
                       adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
-                      guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
@@ -3404,6 +3417,7 @@ function completeOnboarding(
         engagementChoice,
         firstName,
         lastName,
+        actorAccountID,
         guidedSetupData: JSON.stringify(guidedSetupData),
     };
 
@@ -3683,6 +3697,7 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     navigateToConciergeChat,
+    navigateToSystemChat,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,

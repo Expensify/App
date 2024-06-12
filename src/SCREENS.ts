@@ -106,6 +106,9 @@ const SCREENS = {
 
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
+            SIZE: 'Settings_Subscription_Size',
+            ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
+            DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
         },
     },
     SAVE_THE_WORLD: {
@@ -320,6 +323,8 @@ const SCREENS = {
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
+        DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
+        DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
     },
 
     EDIT_REQUEST: {

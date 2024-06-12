@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/lib/fastMerge';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -11,6 +11,7 @@ import type {
     ActionName,
     ChangeLog,
     IOUMessage,
+    JoinWorkspaceResolution,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageActionableReportMentionWhisper,
     OriginalMessageActionableTrackedExpenseWhisper,
@@ -872,18 +873,11 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
-function getOneTransactionThreadReportID(
-    reportID: string,
-    reportActions: OnyxEntry<ReportActions> | ReportAction[],
-    skipReportTypeCheck: boolean | undefined = undefined,
-    isOffline: boolean | undefined = undefined,
-): string | null {
-    if (!skipReportTypeCheck) {
-        // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
-            return null;
-        }
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | null {
+    // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
+        return null;
     }
 
     const reportActionsArray = Object.values(reportActions ?? {});
@@ -908,7 +902,7 @@ function getOneTransactionThreadReportID(
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            (Boolean(action.originalMessage.IOUTransactionID) ||
+            (!!action.originalMessage.IOUTransactionID ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
@@ -1173,7 +1167,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
-    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+    return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
 }
 
 /**
@@ -1205,7 +1199,9 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
     const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
-    const findPendingRequest = sortedReportActions.find((reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === '');
+    const findPendingRequest = sortedReportActions.find(
+        (reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === ('' as JoinWorkspaceResolution),
+    );
     return !!findPendingRequest;
 }
 
@@ -1231,6 +1227,13 @@ function getDismissedViolationMessageText(originalMessage: OriginalMessageDismis
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
+}
+
+/**
+ * Check if the current user is the requestor of the action
+ */
+function wasActionTakenByCurrentUser(reportAction: OnyxEntry<ReportAction>): boolean {
+    return currentUserAccountID === reportAction?.actorAccountID;
 }
 
 export {
@@ -1299,7 +1302,9 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
     isLinkedTransactionHeld,
+    wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
 };
 
