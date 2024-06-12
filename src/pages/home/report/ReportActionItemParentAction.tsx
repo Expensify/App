@@ -38,7 +38,7 @@ type ReportActionItemParentActionProps = {
     reportActions: OnyxTypes.ReportAction[];
 
     /** Report actions belonging to the report's parent */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;

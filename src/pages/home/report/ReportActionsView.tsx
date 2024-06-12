@@ -53,7 +53,7 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     reportActions?: OnyxTypes.ReportAction[];
 
     /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The report metadata loading states */
     isLoadingInitialReportActions?: boolean;
@@ -164,7 +164,7 @@ function ReportActionsView({
     const parentReportActionForTransactionThread = useMemo(
         () =>
             isEmptyObject(transactionThreadReportActions)
-                ? null
+                ? undefined
                 : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );

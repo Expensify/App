@@ -1359,7 +1359,7 @@ function isChildReport(report: OnyxEntry<Report>): boolean {
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  */
-function isExpenseRequest(report: OnyxEntry<Report>): boolean {
+function isExpenseRequest(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -1372,7 +1372,7 @@ function isExpenseRequest(report: OnyxEntry<Report>): boolean {
  * An IOU Request is a thread where the parent report is an IOU Report and
  * the parentReportAction is a transaction.
  */
-function isIOURequest(report: OnyxEntry<Report>): boolean {
+function isIOURequest(report: OnyxInputOrEntry<Report>): boolean {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
@@ -1397,7 +1397,7 @@ function isTrackExpenseReport(report: OnyxInputOrEntry<Report>): boolean {
  * Checks if a report is an IOU or expense request.
  */
 function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? undefined : reportOrID;
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return isIOURequest(report) || isExpenseRequest(report);
 }
 
@@ -1405,7 +1405,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
  * Checks if a report is an IOU or expense report.
  */
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string): boolean {
-    const report = typeof reportOrID === 'object' ? reportOrID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? undefined;
+    const report = typeof reportOrID === 'string' ?  allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
 

@@ -126,12 +126,12 @@ type ReportActionItemProps = {
     reportActions: OnyxTypes.ReportAction[];
 
     /** Report action belonging to the report's parent */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The transaction thread report's parentReportAction */
     /** It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
-    parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction> | null;
+    parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** All the data of the action item */
     action: OnyxTypes.ReportAction;

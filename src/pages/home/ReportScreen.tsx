@@ -105,9 +105,9 @@ function isEmpty(report: OnyxTypes.Report): boolean {
     return !Object.values(report).some((value) => value !== undefined && value !== '');
 }
 
-function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> | null {
+function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
     if (!parentReportActions || !parentReportActionID) {
-        return null;
+        return;
     }
     return parentReportActions[parentReportActionID ?? '0'];
 }
