@@ -64,7 +64,7 @@ function Avatar({
     fill,
     fallbackIcon = Expensicons.FallbackAvatar,
     fallbackIconTestID = '',
-    type = CONST.ICON_TYPE_AVATAR,
+    type,
     name = '',
     avatarID,
 }: AvatarProps) {
@@ -79,7 +79,7 @@ function Avatar({
         setImageError(false);
     }, [originalSource]);
 
-    const isWorkspace = type === 'workspace';
+    const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
     const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, userAccountID);
