@@ -35,7 +35,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
 
         if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
-            errors.securityCode = 'billingCurrency.error.securityCode';
+            errors.securityCode = 'addPaymentCardPage.error.securityCode';
         }
 
         return errors;
@@ -88,8 +88,8 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.SECURITY_CODE}
-                    label={translate('billingCurrency.securityCode')}
-                    aria-label={translate('billingCurrency.securityCode')}
+                    label={translate('addDebitCardPage.cvv')}
+                    aria-label={translate('addDebitCardPage.cvv')}
                     role={CONST.ROLE.PRESENTATION}
                     maxLength={4}
                     containerStyles={[styles.mt5]}

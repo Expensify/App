@@ -455,7 +455,7 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.CURRENCY>, cardCVV
 
     const optimisticData: OnyxUpdate[] = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
             value: {
                 isLoading: true,
@@ -466,7 +466,7 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.CURRENCY>, cardCVV
 
     const successData: OnyxUpdate[] = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
             value: {
                 isLoading: false,
@@ -476,7 +476,7 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.CURRENCY>, cardCVV
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: 'merge',
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
             value: {
                 isLoading: false,
