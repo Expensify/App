@@ -43,7 +43,7 @@ import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 import Log from './Log';
 
-type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 

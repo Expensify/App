@@ -79,7 +79,7 @@ Onyx.connect({
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
-                const isInternetReachable = !!state.isInternetReachable;
+                const isInternetReachable = (state.isInternetReachable ?? false) === false;
                 setOfflineStatus(isInternetReachable, 'NetInfo checked if the internet is reachable');
                 Log.info(
                     `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(

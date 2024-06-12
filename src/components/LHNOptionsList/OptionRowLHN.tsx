@@ -221,7 +221,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
                                                 !!optionItem.isInvoiceReport ||
-                                                ReportUtils.isGroupChat(report)
+                                                ReportUtils.isGroupChat(report) ||
+                                                ReportUtils.isSystemChat(report)
                                             }
                                         />
                                         {isStatusVisible && (

@@ -6,14 +6,11 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@navigation/Navigation';
-// TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
-// import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 function HaveReadAndAgreeLabel() {
     const {translate} = useLocalize();
@@ -28,18 +25,22 @@ function HaveReadAndAgreeLabel() {
 
 function AgreeToTheLabel() {
     const {translate} = useLocalize();
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+
+    const walletAgreementUrl =
+        userWallet?.walletProgramID && userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID ? CONST.BANCORP_WALLET_AGREEMENT_URL : CONST.WALLET_AGREEMENT_URL;
 
     return (
         <Text>
             {`${translate('termsStep.agreeToThe')} `}
             <TextLink href={CONST.PRIVACY_URL}>{`${translate('common.privacy')} `}</TextLink>
             {`${translate('common.and')} `}
-            <TextLink href={CONST.WALLET_AGREEMENT_URL}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
+            <TextLink href={walletAgreementUrl}>{`${translate('termsStep.walletAgreement')}.`}</TextLink>
         </Text>
     );
 }
 
-function TermsStep() {
+function TermsStep({onNext}: SubStepProps) {
     const styles = useThemeStyles();
     const [hasAcceptedDisclosure, setHasAcceptedDisclosure] = useState(false);
     const [hasAcceptedPrivacyPolicyAndWalletAgreement, setHasAcceptedPrivacyPolicyAndWalletAgreement] = useState(false);
@@ -58,6 +59,15 @@ function TermsStep() {
         setHasAcceptedPrivacyPolicyAndWalletAgreement(!hasAcceptedPrivacyPolicyAndWalletAgreement);
     };
 
+    const submit = () => {
+        if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
+            setError(true);
+            return;
+        }
+        setError(false);
+        onNext();
+    };
+
     /** clear error */
     useEffect(() => {
         if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
@@ -69,7 +79,7 @@ function TermsStep() {
 
     return (
         <View style={[styles.flexGrow1, styles.ph5]}>
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('termsStep.checkPlease')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('termsStep.checkTheBoxes')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.textSupporting]}>{translate('termsStep.agreeToTerms')}</Text>
             <View style={styles.flex1}>
                 <CheckboxWithLabel
@@ -86,20 +96,7 @@ function TermsStep() {
             </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('termsStep.enablePayments')}
-                onSubmit={() => {
-                    if (!hasAcceptedDisclosure || !hasAcceptedPrivacyPolicyAndWalletAgreement) {
-                        setError(true);
-                        return;
-                    }
-
-                    setError(false);
-                    // TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
-                    // BankAccounts.acceptWalletTerms({
-                    //     hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                    //     reportID: walletTerms?.chatReportID ?? '-1',
-                    // });
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
-                }}
+                onSubmit={submit}
                 message={errorMessage}
                 isAlertVisible={error || !!errorMessage}
                 isLoading={!!walletTerms?.isLoading}

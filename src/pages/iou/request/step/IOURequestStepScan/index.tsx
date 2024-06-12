@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, 
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -194,7 +195,7 @@ function IOURequestStepScan({
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
                     )
                 ) {
                     setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');

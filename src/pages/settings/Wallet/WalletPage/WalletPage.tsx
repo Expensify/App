@@ -467,7 +467,7 @@ function WalletPage({bankAccountList = {}, cardList = {}, fundList = {}, isLoadi
                                                         <Button
                                                             ref={buttonRef as ForwardedRef<View>}
                                                             text={translate('walletPage.enableWallet')}
-                                                            onPress={triggerKYCFlow}
+                                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS)}
                                                             isDisabled={network.isOffline}
                                                             success
                                                             large
