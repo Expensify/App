@@ -29,15 +29,12 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeNormal) : null;
-
     return (
         <View>
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={value ?? placeholder ?? ''}
-                descriptionTextStyle={descStyle}
                 description={description}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}

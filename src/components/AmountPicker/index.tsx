@@ -29,15 +29,12 @@ function AmountPicker({value, description, title, errorText = '', onInputChange,
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeNormal) : null;
-
     return (
         <View>
             <MenuItemWithTopDescription
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={callOrReturn(title, value)}
-                descriptionTextStyle={descStyle}
                 description={description}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
