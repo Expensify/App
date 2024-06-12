@@ -1,4 +1,3 @@
-// TODO: Is this a legit use case for exposing `OnyxCache`, or should we use `Onyx.connect`?
 import fastMerge from 'expensify-common/dist/fastMerge';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
