@@ -3311,6 +3311,7 @@ function completeOnboarding(
                         description: null,
                         managerID: null,
                     },
+                    isOptimisticReport: false,
                 },
             },
             {
