@@ -1,4 +1,4 @@
-import {addMonths, format, isBefore} from 'date-fns';
+import {addDays, addMonths, differenceInMonths, format, isValid} from 'date-fns';
 import CONST from '@src/CONST';
 
 /**
@@ -8,14 +8,18 @@ import CONST from '@src/CONST';
  * @returns - The next billing date in 'yyyy-MM-dd' format.
  */
 function getNextBillingDate(initialDate: string): string {
-    const start = new Date(initialDate);
-    let current = new Date(start);
+    let start = new Date(`${initialDate}T00:00:00`);
 
-    while (isBefore(current, new Date())) {
-        current = addMonths(current, 1);
+    if (!isValid(start)) {
+        start = new Date();
     }
 
-    return format(current, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    const current = new Date(start);
+
+    const monthsDiff = differenceInMonths(current, start);
+    const nextBillingDate = addDays(addMonths(start, monthsDiff + 1), 1);
+
+    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
 export default getNextBillingDate;

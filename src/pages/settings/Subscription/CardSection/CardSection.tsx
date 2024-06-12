@@ -26,9 +26,9 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const nextPaymentDate = !isEmptyObject(privateSubscription) ? getNextBillingDate(privateSubscription.startDate) : '';
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? getNextBillingDate(privateSubscription.startDate) : undefined;
 
-    const sectionSubtitle = defaultCard && nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
+    const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
 
     return (
         <Section
