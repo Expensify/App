@@ -56,7 +56,6 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
-import Log from './libs/Log';
 
 type SearchOption<T> = ReportUtils.OptionData & {
     item: T;
@@ -2456,7 +2455,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             values = values.concat(getParticipantsLoginsArray(item));
 
             return uniqFast(values);
-        });
+        }, );
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
