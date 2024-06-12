@@ -1,11 +1,11 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import lodashMemoize from 'lodash/memoize';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
@@ -36,6 +36,8 @@ type SearchProps = {
 };
 
 const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
+const transactionItemMobileHeight = 100;
+const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 
 function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
@@ -43,28 +45,32 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
     return transactionListItem.transactionID !== undefined;
 }
 
-const getItemHeight = lodashMemoize((item: TransactionListItemType | ReportListItemType) => {
-    if (isTransactionListItemType(item)) {
-        return variables.optionRowHeight + listItemPadding;
-    }
-
-    if (item.transactions.length === 0) {
-        return 0;
-    }
-
-    if (item.transactions.length === 1) {
-        return variables.optionRowHeight + listItemPadding;
-    }
-
-    const baseReportItemHeight = 72;
-    return baseReportItemHeight + item.transactions.length * 52 + listItemPadding;
-});
-
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+
+    const getItemHeight = useCallback(
+        (item: TransactionListItemType | ReportListItemType) => {
+            if (isTransactionListItemType(item)) {
+                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
+            }
+
+            if (item.transactions.length === 0) {
+                return 0;
+            }
+
+            if (item.transactions.length === 1) {
+                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
+            }
+
+            const baseReportItemHeight = isLargeScreenWidth ? 72 : 108;
+            return baseReportItemHeight + item.transactions.length * reportItemTransactionHeight + listItemPadding;
+        },
+        [isLargeScreenWidth],
+    );
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
     const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
