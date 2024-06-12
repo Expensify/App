@@ -30,6 +30,7 @@ type ServerInstance = {
     addTestDoneListener: AddListener<TestDoneListener>;
     forceTestCompletion: () => void;
     setReadyToAcceptTestResults: (isReady: boolean) => void;
+    isReadyToAcceptTestResults: boolean;
     start: () => Promise<void>;
     stop: () => Promise<Error | undefined>;
 };
@@ -220,6 +221,9 @@ const createServerInstance = (): ServerInstance => {
 
     return {
         setReadyToAcceptTestResults,
+        get isReadyToAcceptTestResults() {
+            return isReadyToAcceptTestResults;
+        },
         setTestConfig,
         getTestConfig,
         addTestStartedListener,
