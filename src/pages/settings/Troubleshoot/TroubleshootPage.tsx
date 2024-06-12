@@ -53,6 +53,10 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
 
+    const exportOnyxState = () => {
+        console.log('export state here');
+    };
+
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
@@ -66,6 +70,11 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 icon: Expensicons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
             },
+            {
+                translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
+                icon: Expensicons.Download,
+                action: exportOnyxState
+            }
         ];
 
         if (shouldStoreLogs) {
