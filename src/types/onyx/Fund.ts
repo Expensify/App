@@ -34,7 +34,7 @@ type AccountData = {
     created?: string;
 
     /** Debit card currency */
-    currency?: ValueOf<typeof CONST.CURRENCY>;
+    currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 
     /** Debit card ID number */
     fundID?: number;

@@ -2405,6 +2405,14 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 }
 
 /**
+ * Check if Report has any held expenses
+ */
+function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): boolean {
+    const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
+    return isActionCreator(holdReportAction);
+}
+
+/**
  * Check if report fields are available to use in a report
  */
 function reportFieldsEnabled(report: Report) {
@@ -2720,6 +2728,71 @@ function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
         reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
     );
 }
+
+function canHoldUnholdReportAction(reportAction: OnyxEntry<ReportAction>): {canHoldRequest: boolean; canUnholdRequest: boolean} {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return {canHoldRequest: false, canUnholdRequest: false};
+    }
+
+    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+    const moneyRequestReport = getReport(String(moneyRequestReportID));
+
+    if (!moneyRequestReportID || !moneyRequestReport) {
+        return {canHoldRequest: false, canUnholdRequest: false};
+    }
+
+    const isRequestSettled = isSettled(moneyRequestReport?.reportID);
+    const isApproved = isReportApproved(moneyRequestReport);
+    const transactionID = moneyRequestReport ? reportAction?.originalMessage?.IOUTransactionID : 0;
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
+
+    const parentReport = getReport(String(moneyRequestReport.parentReportID));
+    const parentReportAction = ReportActionsUtils.getParentReportAction(moneyRequestReport);
+
+    const isRequestIOU = parentReport?.type === 'iou';
+    const isRequestHoldCreator = isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
+    const isTrackExpenseMoneyReport = isTrackExpenseReport(moneyRequestReport);
+    const isActionOwner =
+        typeof parentReportAction?.actorAccountID === 'number' &&
+        typeof currentUserPersonalDetails?.accountID === 'number' &&
+        parentReportAction.actorAccountID === currentUserPersonalDetails?.accountID;
+    const isApprover = isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && currentUserPersonalDetails?.accountID === moneyRequestReport?.managerID;
+    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+
+    const canModifyStatus = !isTrackExpenseMoneyReport && (isPolicyAdmin || isActionOwner || isApprover);
+    const isDeletedParentAction = isEmptyObject(parentReportAction) || ReportActionsUtils.isDeletedAction(parentReportAction);
+
+    const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isDeletedParentAction;
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)) && !isScanning;
+    const canUnholdRequest = !!(canHoldOrUnholdRequest && isOnHold && (isRequestHoldCreator || (!isRequestIOU && canModifyStatus)));
+
+    return {canHoldRequest, canUnholdRequest};
+}
+
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
+        return;
+    }
+    const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
+
+    const moneyRequestReport = getReport(String(moneyRequestReportID));
+    if (!moneyRequestReportID || !moneyRequestReport) {
+        return;
+    }
+
+    const transactionID = reportAction?.originalMessage?.IOUTransactionID ?? '';
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
+    const isOnHold = TransactionUtils.isOnHold(transaction);
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport.policyID}`] ?? null;
+
+    if (isOnHold) {
+        IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
+    } else {
+        const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', activeRoute));
+    }
+};
 
 /**
  * Gets all transactions on an IOU report with a receipt
@@ -5365,6 +5438,17 @@ function shouldReportBeInOptionList({
 }
 
 /**
+ * Returns the system report from the list of reports.
+ */
+function getSystemChat(): OnyxEntry<Report> {
+    if (!allReports) {
+        return null;
+    }
+
+    return Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM) ?? null;
+}
+
+/**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
 function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
@@ -6387,14 +6471,6 @@ function navigateToPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
 }
 
 /**
- * Check if Report has any held expenses
- */
-function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): boolean {
-    const holdReportAction = ReportActionsUtils.getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
-    return isActionCreator(holdReportAction);
-}
-
-/**
  * Get all held transactions of a iouReport
  */
 function getAllHeldTransactions(iouReportID: string): Transaction[] {
@@ -6905,6 +6981,7 @@ export {
     canCreateTaskInReport,
     canCurrentUserOpenReport,
     canDeleteReportAction,
+    canHoldUnholdReportAction,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditPolicyDescription,
@@ -6992,6 +7069,7 @@ export {
     getRoomWelcomeMessage,
     getRootParentReport,
     getRouteFromLink,
+    getSystemChat,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
@@ -7132,6 +7210,7 @@ export {
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
+    changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
 };
 

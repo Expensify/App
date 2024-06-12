@@ -43,7 +43,6 @@ const SCREENS = {
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
-        ADD_BANK_ACCOUNT_REFACTOR: 'Settings_Add_Bank_Account_Refactor',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
@@ -90,10 +89,6 @@ const SCREENS = {
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
-            // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
-            ENABLE_PAYMENTS_REFACTOR: 'Settings_Wallet_EnablePayments_Refactor',
-            // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
-            ENABLE_PAYMENTS_TEMPORARY_TERMS: 'Settings_Wallet_EnablePayments_Temporary_Terms',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
