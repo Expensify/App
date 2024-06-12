@@ -7,6 +7,12 @@ import type CONST from '@src/CONST';
  */
 type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
 
+/**
+ * Types of violation data.
+ * Derived from ONST.VIOLATION_DATA_TYPES` to maintain a single source of truth.
+ */
+type ViolationDataType = ValueOf<typeof CONST.VIOLATION_DATA_TYPES>;
+
 /** Model of transaction violation data */
 type TransactionViolationData = {
     /** Who rejected the transaction */
@@ -62,6 +68,9 @@ type TransactionViolationData = {
 
     /** Whether the current violation is `pending RTER` */
     pendingPattern?: boolean;
+
+    /** Violation data type */
+    type?: ViolationDataType;
 };
 
 /** Model of a transaction violation */
@@ -79,5 +88,5 @@ type TransactionViolation = {
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName};
+export type {TransactionViolation, ViolationName, ViolationDataType};
 export default TransactionViolations;
