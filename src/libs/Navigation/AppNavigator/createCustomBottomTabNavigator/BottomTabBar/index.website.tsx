@@ -17,6 +17,7 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
+import isCentralPaneName from '@libs/NavigationUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -48,7 +49,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const currentRoute = routes?.[navigationState?.index ?? 0];
         // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
         // To prevent this, the value of the bottomTabRoute?.name is checked here
-        if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
+        if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
             return;
         }
 

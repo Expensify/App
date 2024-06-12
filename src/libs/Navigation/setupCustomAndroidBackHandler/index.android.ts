@@ -41,7 +41,7 @@ function setupCustomAndroidBackHandler() {
                 (!centralPaneRouteAfterPop || centralPaneRouteAfterPop.name !== SCREENS.SEARCH.CENTRAL_PANE)
             ) {
                 const {policyID, ...restParams} = bottomTabRoutes[bottomTabRoutes.length - 2].params as SearchPageProps['route']['params'];
-                navigationRef.dispatch({...StackActions.push(NAVIGATORS.CENTRAL_PANE_NAVIGATOR, {screen: SCREENS.SEARCH.CENTRAL_PANE, params: {...restParams, policyIDs: policyID}})});
+                navigationRef.dispatch({...StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {...restParams, policyIDs: policyID})});
             }
 
             return true;
@@ -53,7 +53,7 @@ function setupCustomAndroidBackHandler() {
         // In that case we have to push the proper one.
         if (bottomTabRoutes && bottomTabRoutes?.length >= 2 && bottomTabRoutes[bottomTabRoutes.length - 2].name === SCREENS.SEARCH.BOTTOM_TAB && rootState.routes.length === 1) {
             const {policyID, ...restParams} = bottomTabRoutes[bottomTabRoutes.length - 2].params as SearchPageProps['route']['params'];
-            navigationRef.dispatch({...StackActions.push(NAVIGATORS.CENTRAL_PANE_NAVIGATOR, {screen: SCREENS.SEARCH.CENTRAL_PANE, params: {...restParams, policyIDs: policyID}})});
+            navigationRef.dispatch({...StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {...restParams, policyIDs: policyID})});
             navigationRef.dispatch({...StackActions.pop(), target: bottomTabRoute?.state?.key});
             return true;
         }
