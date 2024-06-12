@@ -309,7 +309,14 @@ function MoneyRequestConfirmationList({
     useEffect(() => {
         // previousTransaction is in the condition because if it is falsey, it means this is the first time the useEffect is triggered after we load it, so we should calculate the default
         // tax even if the other parameters are the same against their previous values.
-        if (!shouldShowTax || !transaction || (transaction.taxCode && previousTransactionModifiedCurrency === transaction.modifiedCurrency && previousTransactionCurrency === transaction.currency && previousCustomUnitRateID === customUnitRateID)) {
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxCode &&
+                previousTransactionModifiedCurrency === transaction.modifiedCurrency &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID)
+        ) {
             return;
         }
         const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
@@ -386,7 +393,15 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        if (!shouldShowTax || !transaction || (transaction.taxAmount !== undefined && previousTransactionAmount === transaction.amount && previousTransactionCurrency === transaction.currency && previousCustomUnitRateID === customUnitRateID && previousTaxCode === transaction.taxCode)) {
+        if (
+            !shouldShowTax ||
+            !transaction ||
+            (transaction.taxAmount !== undefined &&
+                previousTransactionAmount === transaction.amount &&
+                previousTransactionCurrency === transaction.currency &&
+                previousCustomUnitRateID === customUnitRateID &&
+                previousTaxCode === transaction.taxCode)
+        ) {
             return;
         }
 
