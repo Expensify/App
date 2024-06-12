@@ -1405,7 +1405,7 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
  * Checks if a report is an IOU or expense report.
  */
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string): boolean {
-    const report = typeof reportOrID === 'string' ?  allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return isIOUReport(report) || isExpenseReport(report);
 }
 
