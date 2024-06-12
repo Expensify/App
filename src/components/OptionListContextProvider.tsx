@@ -127,7 +127,6 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
 
     const loadOptions = useCallback(() => {
         const optionLists = OptionsListUtils.createOptionList(personalDetails, reports);
-        console.log('[CHATFINDERPAGE-CONTEXT] Loading options: ', optionLists);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
@@ -161,7 +160,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         if (!shouldInitialize || areOptionsInitialized) {
             return;
         }
-        console.log('[CHATFINDERPAGE-CONTEXT]Initializing options');
+
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
 
