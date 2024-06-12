@@ -2,6 +2,7 @@
 // This eslint-disable comment is here to allow accessing private properties in the Act class
 import type {RunOpts, Step, Workflow} from '@kie/act-js';
 import {Act} from '@kie/act-js';
+import os from 'os';
 import path from 'path';
 import JobMocker from './JobMocker';
 import type {MockJobs} from './JobMocker';
@@ -21,6 +22,10 @@ class ExtendedAct extends Act {
 
         if (opts?.actor) {
             actArguments.push('--actor', opts.actor);
+        }
+
+        if (os.arch() === 'arm64') {
+            actArguments.push('--container-architecture', 'linux/amd64');
         }
 
         return {cwd, actArguments, proxy};

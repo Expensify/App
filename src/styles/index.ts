@@ -2819,7 +2819,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionSelectCircle: {
-            backgroundColor: colors.productDark200,
+            backgroundColor: theme.highlightBG,
         },
 
         qrShareSection: {
@@ -2846,6 +2846,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             height: variables.iconSizeExtraLarge,
             width: variables.iconSizeExtraLarge,
+        },
+
+        trialBannerBackgroundColor: {
+            backgroundColor: theme.trialBannerBackgroundColor,
         },
 
         selectCircle: {
