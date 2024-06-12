@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
@@ -48,9 +49,6 @@ type ThumbnailImageProps = {
 
     /** The object position of image */
     objectPosition?: ImageObjectPosition;
-
-    /** Whether the component is hovered */
-    isHovered?: boolean;
 };
 
 type UpdateImageSizeParams = {
@@ -69,7 +67,6 @@ function ThumbnailImage({
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
-    isHovered = false,
 }: ThumbnailImageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -78,6 +75,7 @@ function ThumbnailImage({
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
     const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
+    const StyleUtils = useStyleUtils();
 
     useEffect(() => {
         setFailedToLoad(false);
@@ -110,7 +108,7 @@ function ThumbnailImage({
 
     if (failedToLoad || previewSourceURL === '') {
         return (
-            <View style={[style, styles.overflowHidden, isHovered ? styles.activeComponentBG : styles.hoveredComponentBG]}>
+            <View style={[style, styles.overflowHidden, StyleUtils.getBackgroundColorStyle(theme.border)]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
                         src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
