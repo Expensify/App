@@ -85,6 +85,7 @@ type ThemeColors = {
     ourMentionBG: Color;
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
+    trialBannerBackgroundColor: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
