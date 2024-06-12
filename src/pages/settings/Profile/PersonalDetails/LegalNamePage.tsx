@@ -65,7 +65,7 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                 if (!ValidationUtils.isValidLegalName(values.legalLastName)) {
                     ErrorUtils.addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (!values.legalLastName) {
-                    errors.legalLastName = 'common.error.fieldRequired';
+                    errors.legalLastName = translate('common.error.fieldRequired');
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                     ErrorUtils.addErrorMessage(
                         errors,

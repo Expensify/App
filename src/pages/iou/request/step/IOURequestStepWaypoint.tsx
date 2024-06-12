@@ -214,7 +214,7 @@ function IOURequestStepWaypoint({
                             ref={(e: HTMLElement | null) => {
                                 textInput.current = e as unknown as TextInput;
                             }}
-                            hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
+                            hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}

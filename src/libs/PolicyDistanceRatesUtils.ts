@@ -31,7 +31,7 @@ function validateTaxClaimableValue(values: FormOnyxValues<TaxReclaimableForm>, r
     const errors: FormInputErrors<TaxReclaimableForm> = {};
 
     if (rate.rate && Number(values.taxClaimableValue) > rate.rate / 100) {
-        errors.taxClaimableValue = 'workspace.taxes.error.updateTaxClaimableFailureMessage';
+        errors.taxClaimableValue = Localize.translateLocal('workspace.taxes.error.updateTaxClaimableFailureMessage');
     }
     return errors;
 }

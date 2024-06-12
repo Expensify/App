@@ -80,7 +80,7 @@ function AddressFormFields({shouldSaveDraft = false, defaultValues, values, erro
                     value={values?.state as State}
                     defaultValue={defaultValues?.state}
                     onInputChange={(value) => onFieldChange?.({state: value})}
-                    errorText={errors?.state ? 'bankAccount.error.addressState' : ''}
+                    errorText={errors?.state ? translate('bankAccount.error.addressState') : ''}
                 />
             </View>
             <InputWrapper

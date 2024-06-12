@@ -303,7 +303,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError?.recoveryCode ?? ''}
+                            errorText={formError?.recoveryCode ? translate(formError?.recoveryCode) : ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
