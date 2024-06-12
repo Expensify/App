@@ -2,17 +2,33 @@ import CONST from '@src/CONST';
 import type Pages from '@src/types/onyx/Pages';
 
 type PageWithIndex = {
+    /** The IDs we store in Onyx and which make up the page. */
     ids: string[];
+
+    /** The first ID in the page. */
     firstID: string;
+
+    /** The index of the first ID in the page in the complete set of sorted items. */
     firstIndex: number;
+
+    /** The last ID in the page. */
     lastID: string;
+
+    /** The index of the last ID in the page in the complete set of sorted items. */
     lastIndex: number;
+};
+
+// It's useful to be able to reference and item along with its index in a sorted array,
+// since the index is needed for ordering but the id is what we actually store.
+type ItemWithIndex = {
+    id: string;
+    index: number;
 };
 
 /**
  * Finds the id and index in sortedItems of the first item in the given page that's present in sortedItems.
  */
-function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): {id: string; index: number} | null {
+function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): ItemWithIndex | null {
     for (const id of page) {
         if (id === CONST.PAGINATION_START_ID) {
             return {id, index: 0};
@@ -28,7 +44,7 @@ function findFirstItem<TResource>(sortedItems: TResource[], page: string[], getI
 /**
  * Finds the id and index in sortedItems of the last item in the given page that's present in sortedItems.
  */
-function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): {id: string; index: number} | null {
+function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID: (item: TResource) => string): ItemWithIndex | null {
     for (const id of page.slice().reverse()) {
         if (id === CONST.PAGINATION_END_ID) {
             return {id, index: sortedItems.length - 1};
@@ -78,6 +94,9 @@ function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, 
         .filter((page): page is PageWithIndex => page !== null);
 }
 
+/**
+ * Given a sorted array of items and an array of Pages of item IDs, find any overlapping pages and merge them together.
+ */
 function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string): Pages {
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getItemID);
     if (pagesWithIndexes.length === 0) {
