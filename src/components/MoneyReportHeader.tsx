@@ -38,7 +38,7 @@ type MoneyReportHeaderProps = {
     report: OnyxTypes.Report;
 
     /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy> | null;
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for the report */
     reportActions: OnyxTypes.ReportAction[];
