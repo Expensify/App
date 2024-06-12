@@ -506,6 +506,7 @@ function buildOnyxDataForMoneyRequest(
                 ...iouReport,
                 lastMessageText: iouAction.message?.[0]?.text,
                 lastMessageHtml: iouAction.message?.[0]?.html,
+                lastVisibleActionCreated: iouAction.created,
                 pendingFields: {
                     ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
@@ -822,7 +823,15 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        !!policy.requiresTag,
+        policyTagList ?? {},
+        !!policy.requiresCategory,
+        policyCategories ?? {},
+        PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -1136,7 +1145,15 @@ function buildOnyxDataForInvoice(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        !!policy.requiresTag,
+        policyTagList ?? {},
+        !!policy.requiresCategory,
+        policyCategories ?? {},
+        PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -1505,7 +1522,15 @@ function buildOnyxDataForTrackExpense(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        !!policy.requiresTag,
+        policyTagList ?? {},
+        !!policy.requiresCategory,
+        policyCategories ?? {},
+        PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -1983,6 +2008,7 @@ function getMoneyRequestInformation(
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction as ReportPreviewAction, false, comment, optimisticTransaction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
         // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
@@ -2283,7 +2309,6 @@ function createDistanceRequest(
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
 
     const optimisticReceipt: Receipt = {
         source: ReceiptGeneric as ReceiptSource,
@@ -2307,7 +2332,7 @@ function createDistanceRequest(
         comment,
         amount,
         currency,
-        currentCreated,
+        created,
         merchant,
         optimisticReceipt,
         undefined,
@@ -2335,7 +2360,7 @@ function createDistanceRequest(
         createdIOUReportActionID,
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
         waypoints: JSON.stringify(validWaypoints),
-        created: currentCreated,
+        created,
         category,
         tag,
         taxCode,
@@ -2675,6 +2700,7 @@ function getUpdateMoneyRequestParams(
                 policyTagList ?? {},
                 !!policy.requiresCategory,
                 policyCategories ?? {},
+                PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
             ),
         );
         failureData.push({
@@ -3390,7 +3416,6 @@ function requestMoney(
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
     const {
@@ -3412,7 +3437,7 @@ function requestMoney(
         comment,
         amount,
         currency,
-        currentCreated,
+        created,
         merchant,
         receipt,
         isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
@@ -3456,7 +3481,7 @@ function requestMoney(
                 currency,
                 comment,
                 merchant,
-                currentCreated,
+                created,
                 receipt,
             );
             break;
@@ -3468,7 +3493,7 @@ function requestMoney(
                 amount,
                 currency,
                 comment,
-                created: currentCreated,
+                created,
                 merchant,
                 iouReportID: iouReport.reportID,
                 chatReportID: chatReport.reportID,
@@ -3571,7 +3596,6 @@ function trackExpense(
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
         createdWorkspaceParams,
         iouReport,
@@ -3591,7 +3615,7 @@ function trackExpense(
         comment,
         amount,
         currency,
-        currentCreated,
+        created,
         merchant,
         receipt,
         category,
@@ -3631,7 +3655,7 @@ function trackExpense(
                 currency,
                 comment,
                 merchant,
-                currentCreated,
+                created,
                 category,
                 tag,
                 taxCode,
@@ -3662,7 +3686,7 @@ function trackExpense(
                 currency,
                 comment,
                 merchant,
-                currentCreated,
+                created,
                 category,
                 tag,
                 taxCode,
@@ -3678,7 +3702,7 @@ function trackExpense(
                 amount,
                 currency,
                 comment,
-                created: currentCreated,
+                created,
                 merchant,
                 iouReportID: iouReport?.reportID,
                 chatReportID: chatReport.reportID,
@@ -3835,6 +3859,7 @@ function createSplitsAndOnyxData(
     splitChatReport.lastMessageText = splitIOUReportAction.message?.[0]?.text;
     splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0]?.html;
     splitChatReport.lastActorAccountID = currentUserAccountID;
+    splitChatReport.lastVisibleActionCreated = splitIOUReportAction.created;
 
     let splitChatReportNotificationPreference = splitChatReport.notificationPreference;
     if (splitChatReportNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
@@ -4217,7 +4242,6 @@ function splitBill({
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -4226,7 +4250,7 @@ function splitBill({
         comment,
         currency,
         merchant,
-        currentCreated,
+        created,
         category,
         tag,
         splitShares,
@@ -4245,7 +4269,7 @@ function splitBill({
         comment,
         category,
         merchant,
-        created: currentCreated,
+        created,
         tag,
         billable,
         transactionID: splitData.transactionID,
@@ -4285,7 +4309,6 @@ function splitBillAndOpenReport({
     taxCode = '',
     taxAmount = 0,
 }: SplitBillActionsParams) {
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
         currentUserLogin,
@@ -4294,7 +4317,7 @@ function splitBillAndOpenReport({
         comment,
         currency,
         merchant,
-        currentCreated,
+        created,
         category,
         tag,
         splitShares,
@@ -4311,7 +4334,7 @@ function splitBillAndOpenReport({
         splits: JSON.stringify(splits),
         currency,
         merchant,
-        created: currentCreated,
+        created,
         comment,
         category,
         tag,
@@ -4639,7 +4662,7 @@ function startSplitBill({
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
     Navigation.dismissModalWithReport(splitChatReport);
-    Report.notifyNewAction(splitChatReport.chatReportID ?? '', currentUserAccountID);
+    Report.notifyNewAction(splitChatReport.reportID ?? '', currentUserAccountID);
 }
 
 /** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
@@ -5130,6 +5153,7 @@ function editRegularMoneyRequest(
             policyTags,
             !!policy.requiresCategory,
             policyCategories,
+            PolicyUtils.hasDependentTags(policy, policyTags),
         );
         optimisticData.push(updatedViolationsOnyxData);
         failureData.push({
@@ -5510,13 +5534,12 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
-        return;
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
     }
 
     if (iouReport?.chatReportID && shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID));
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID);
     }
 }
 
@@ -5536,7 +5559,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (isSingleTransactionView && shouldDeleteTransactionThread) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? ''));
+        return ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? '');
     }
 }
 
