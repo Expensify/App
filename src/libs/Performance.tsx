@@ -3,7 +3,7 @@ import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
 import React, {forwardRef, Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
-import type {PerformanceEntry, PerformanceMark, PerformanceMeasure, Performance as RNPerformance, PerformanceObserver as RNPerformanceObserver} from 'react-native-performance';
+import type {PerformanceEntry, PerformanceMark, PerformanceMeasure, ReactNativePerformance, Performance as RNPerformance} from 'react-native-performance';
 import type {PerformanceObserverEntryList} from 'react-native-performance/lib/typescript/performance-observer';
 import CONST from '@src/CONST';
 import isE2ETestSession from './E2E/isE2ETestSession';
@@ -44,12 +44,6 @@ type PerformanceModule = {
     traceRender: TraceRender;
     withRenderTrace: WithRenderTrace;
     subscribeToMeasurements: SubscribeToMeasurements;
-};
-
-type ReactNativePerformance = {
-    default: RNPerformance;
-    setResourceLoggingEnabled: (enabled?: boolean) => void;
-    PerformanceObserver: typeof RNPerformanceObserver;
 };
 
 let rnPerformance: RNPerformance;

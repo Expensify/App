@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -97,6 +97,14 @@ function getCustomUnit(policy: OnyxEntry<Policy> | EmptyObject) {
     return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
 }
 
+/**
+ * Retrieves custom unit rate object from the given customUnitRateID
+ */
+function getCustomUnitRate(policy: OnyxEntry<Policy> | EmptyObject, customUnitRateID: string): Rate | EmptyObject {
+    const distanceUnit = getCustomUnit(policy);
+    return distanceUnit?.rates[customUnitRateID] ?? {};
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -129,7 +137,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<t
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
         !!policy &&
-        (policy?.isPolicyExpenseChatEnabled || Boolean(policy?.isJoinRequestPending)) &&
+        (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
         (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
@@ -349,10 +357,10 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
-        return Boolean(policy?.tax?.trackingEnabled);
+        return !!policy?.tax?.trackingEnabled;
     }
 
-    return Boolean(policy?.[featureName]);
+    return !!policy?.[featureName];
 }
 
 function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
@@ -414,6 +422,13 @@ function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
 /** Whether the user can send invoice */
 function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
+}
+
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -508,11 +523,13 @@ export {
     shouldShowPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
+    hasDependentTags,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
     getCustomUnit,
+    getCustomUnitRate,
     sortWorkspacesBySelected,
 };
 

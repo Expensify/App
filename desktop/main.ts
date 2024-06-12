@@ -13,13 +13,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
-import type {DownloadItem} from './createDownloadQueue';
+import type {CreateDownloadQueue, DownloadItem} from './createDownloadQueue';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-
-type CreateDownloadQueue = () => {
-    enqueueDownloadItem: (item: DownloadItem) => void;
-    dequeueDownloadItem: () => DownloadItem | undefined;
-};
 
 const createDownloadQueue = require<{default: CreateDownloadQueue}>('./createDownloadQueue').default;
 

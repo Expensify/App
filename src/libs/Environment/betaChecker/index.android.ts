@@ -15,7 +15,7 @@ let isLastSavedBeta = false;
 Onyx.connect({
     key: ONYXKEYS.IS_BETA,
     callback: (value) => {
-        isLastSavedBeta = Boolean(value);
+        isLastSavedBeta = !!value;
     },
 });
 

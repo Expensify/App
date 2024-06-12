@@ -17,6 +17,11 @@ type DownloadItem = {
     options: Options;
 };
 
+type CreateDownloadQueue = () => {
+    enqueueDownloadItem: (item: DownloadItem) => void;
+    dequeueDownloadItem: () => DownloadItem | undefined;
+};
+
 /**
  * Returns the filename with extension based on the given name and MIME type.
  * @param name - The name of the file.
@@ -28,7 +33,7 @@ const getFilenameFromMime = (name: string, mime: string): string => {
     return `${name}.${extensions}`;
 };
 
-const createDownloadQueue = () => {
+const createDownloadQueue: CreateDownloadQueue = () => {
     const downloadItemProcessor = (item: DownloadItem): Promise<void> =>
         new Promise((resolve, reject) => {
             let downloadTimeout: NodeJS.Timeout;
@@ -114,4 +119,4 @@ const createDownloadQueue = () => {
 };
 
 export default createDownloadQueue;
-export type {DownloadItem};
+export type {DownloadItem, CreateDownloadQueue};

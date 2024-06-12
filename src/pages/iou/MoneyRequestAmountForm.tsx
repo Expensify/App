@@ -10,7 +10,7 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
-import isAnimatedTextInputFocused from '@components/TextInput/BaseTextInput/isAnimatedTextInputFocused';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -132,7 +132,7 @@ function MoneyRequestAmountForm(
             return;
         }
 
-        if (!isAnimatedTextInputFocused(textInput)) {
+        if (!isTextInputFocused(textInput)) {
             textInput.current.focus();
         }
     };
@@ -173,7 +173,7 @@ function MoneyRequestAmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !isAnimatedTextInputFocused(textInput)) {
+            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
@@ -200,7 +200,7 @@ function MoneyRequestAmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !isAnimatedTextInputFocused(textInput)) {
+        if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
     }, []);
@@ -230,19 +230,7 @@ function MoneyRequestAmountForm(
     );
 
     const buttonText: string = useMemo(() => {
-        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
         if (skipConfirmation) {
-            if (currentAmount !== '') {
-                const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
-                let text = translate('iou.submitAmount', {amount: currencyAmount});
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    text = translate('iou.splitAmount', {amount: currencyAmount});
-                } else if (iouType === CONST.IOU.TYPE.TRACK) {
-                    text = translate('iou.trackAmount', {amount: currencyAmount});
-                }
-                return text[0].toUpperCase() + text.slice(1);
-            }
-
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 return translate('iou.splitExpense');
             }
@@ -252,7 +240,7 @@ function MoneyRequestAmountForm(
             return translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
-    }, [skipConfirmation, iouType, currency, isEditing, translate]);
+    }, [skipConfirmation, iouType, isEditing, translate]);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 

@@ -16,7 +16,7 @@ const updateMultilineInputRange: UpdateMultilineInputRange = (input, shouldAutoF
 
     if ('value' in input && typeof input.value === 'string' && input.setSelectionRange) {
         const length = input.value.length;
-        if (shouldAutoFocus && 'setSelectionRange' in input) {
+        if (shouldAutoFocus) {
             (input as HTMLInputElement).setSelectionRange(length, length);
         }
         // eslint-disable-next-line no-param-reassign
