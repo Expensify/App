@@ -7,6 +7,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {useSession} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -16,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -36,6 +38,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const {accountID} = useSession();
 
     useDisableModalDismissOnEscape();
 
@@ -54,7 +57,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 onboardingPurposeSelected,
                 CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                 {
-                    login: currentUserPersonalDetails.login ?? '',
                     firstName,
                     lastName,
                 },
@@ -62,6 +64,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             );
 
             Welcome.setOnboardingAdminsChatReportID();
+            Welcome.setOnboardingPolicyID();
 
             Navigation.dismissModal();
 
@@ -69,6 +72,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             // Otherwise stay on the chats screen.
             if (isSmallScreenWidth) {
                 Navigation.navigate(ROUTES.HOME);
+            } else if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
+                Report.navigateToSystemChat();
             } else {
                 Report.navigateToConciergeChat();
             }
@@ -79,7 +84,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID],
+        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

@@ -11,8 +11,9 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@libs/actions/Policy';
+import * as Tag from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -31,12 +32,11 @@ type WorkspaceTagsSettingsPageProps = WorkspaceTagsSettingsPageOnyxProps & Stack
 function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
-
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
+    const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const updateWorkspaceRequiresTag = useCallback(
         (value: boolean) => {
-            Policy.setPolicyRequiresTag(route.params.policyID, value);
+            Tag.setPolicyRequiresTag(route.params.policyID, value);
         },
         [route.params.policyID],
     );
@@ -62,16 +62,17 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
                         >
                             <View style={[styles.mt2, styles.mh4]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.requiresTag')}</Text>
+                                    <Text style={[styles.textNormal]}>{translate('workspace.tags.requiresTag')}</Text>
                                     <Switch
                                         isOn={policy?.requiresTag ?? false}
                                         accessibilityLabel={translate('workspace.tags.requiresTag')}
                                         onToggle={updateWorkspaceRequiresTag}
+                                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
                                     />
                                 </View>
                             </View>
                         </OfflineWithFeedback>
-                        {doesPolicyContainOnlyOneTagList && (
+                        {!isMultiLevelTags && (
                             <OfflineWithFeedback
                                 errors={policyTags?.[policyTagLists[0].name]?.errors}
                                 pendingAction={policyTags?.[policyTagLists[0].name]?.pendingAction}

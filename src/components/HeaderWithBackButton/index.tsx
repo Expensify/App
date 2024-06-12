@@ -158,7 +158,7 @@ function HeaderWithBackButton({
                                 }
                             }}
                             style={[styles.touchableButtonImage]}
-                            role="button"
+                            role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                         >
@@ -182,7 +182,7 @@ function HeaderWithBackButton({
                         containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
                         source={policyAvatar?.source}
                         name={policyAvatar?.name}
-                        accountID={policyAvatar?.id}
+                        avatarID={policyAvatar?.id}
                         type={policyAvatar?.type}
                     />
                 )}

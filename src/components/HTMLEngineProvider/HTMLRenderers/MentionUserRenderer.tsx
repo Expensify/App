@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
@@ -69,7 +69,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
 
         accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
-        navigationRoute = ROUTES.DETAILS.getRoute(mentionDisplayText);
+        navigationRoute = ROUTES.PROFILE.getRoute(accountID, undefined, mentionDisplayText);
         mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
@@ -105,7 +105,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             {...defaultRendererProps}
                             style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
                             role={CONST.ROLE.LINK}
-                            testID="span"
+                            testID="mention-user"
                             href={`/${navigationRoute}`}
                         >
                             {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}

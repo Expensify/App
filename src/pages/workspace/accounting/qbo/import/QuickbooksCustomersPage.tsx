@@ -21,7 +21,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncCustomers, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isSwitchOn = !!(syncCustomers && syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
     return (
         <AccessOrNotFoundWrapper
@@ -63,7 +63,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                             <MenuItemWithTopDescription
                                 interactive={false}
                                 title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                                description={translate('workspace.qbo.displayedAs')}
+                                description={translate('workspace.common.displayedAs')}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                         </OfflineWithFeedback>

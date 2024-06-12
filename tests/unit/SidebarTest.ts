@@ -12,6 +12,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked Permissions and Expensicons libraries as well as the usePermissions hook or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
 jest.mock('@src/hooks/usePermissions.ts');
+jest.mock('@src/hooks/useActiveWorkspaceFromNavigationState');
 jest.mock('@src/components/Icon/Expensicons');
 
 describe('Sidebar', () => {
@@ -54,9 +55,9 @@ describe('Sidebar', () => {
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
                         const reportCollection: ReportCollectionDataSet = {
@@ -107,9 +108,9 @@ describe('Sidebar', () => {
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
                         const reportCollection: ReportCollectionDataSet = {

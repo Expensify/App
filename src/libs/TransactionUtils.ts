@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -12,10 +12,9 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
-import {getCleanedTagName} from './PolicyUtils';
+import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -27,11 +26,28 @@ Onyx.connect({
     },
 });
 
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
+});
+
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
+});
+
+let currentUserEmail = '';
+let currentUserAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = val?.email ?? '';
+        currentUserAccountID = val?.accountID ?? -1;
+    },
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -52,7 +68,7 @@ function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
-    return Boolean(transaction?.receipt?.source);
+    return !!transaction?.receipt?.source && transaction?.amount === 0;
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
@@ -503,7 +519,39 @@ function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
 function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
-    return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+    return !!(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
+}
+
+/**
+ * Get all transaction violations of the transaction with given tranactionID.
+ */
+function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
+}
+
+/**
+ * Check if there is pending rter violation in transactionViolations.
+ */
+function hasPendingRTERViolation(transactionViolations?: TransactionViolations | null): boolean {
+    return !!transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern);
+}
+
+/**
+ * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
+ */
+function allHavePendingRTERViolation(transactionIds: string[]): boolean {
+    const transactionsWithRTERViolations = transactionIds.map((transactionId) => {
+        const transactionViolations = getTransactionViolations(transactionId, allTransactionViolations);
+        return hasPendingRTERViolation(transactionViolations);
+    });
+    return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
+}
+
+/**
+ * Check if the transaction is pending or has a pending rter violation.
+ */
+function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
+    return isReceiptBeingScanned(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
 }
 
 /**
@@ -565,12 +613,12 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
             return acc;
         }
 
-        const validatedWaypoints: WaypointCollection = {...acc, [`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`]: currentWaypoint};
+        acc[`waypoint${reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
 
         lastWaypointIndex = index;
         waypointIndex += 1;
 
-        return validatedWaypoints;
+        return acc;
     }, {});
 }
 
@@ -584,6 +632,23 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction has duplicatedTransaction violation.
+ * @param transactionID - the transaction to check
+ * @param checkDismissed - whether to check if the violation has already been dismissed as well
+ */
+function isDuplicate(transactionID: string, checkDismissed = false): boolean {
+    const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    );
+    if (!checkDismissed) {
+        return hasDuplicatedViolation;
+    }
+    const didDismissedViolation =
+        allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.comment?.dismissedViolations?.duplicatedTransaction?.[currentUserEmail] === `${currentUserAccountID}`;
+    return hasDuplicatedViolation && !didDismissedViolation;
+}
+
+/**
  * Check if transaction is on hold
  */
 function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
@@ -591,7 +656,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold;
+    return !!transaction.comment?.hold || isDuplicate(transaction.transactionID, true);
 }
 
 /**
@@ -608,9 +673,9 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
 /**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
-function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(
-        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION),
+function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations>): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some(
+        (violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION,
     );
 }
 
@@ -618,15 +683,18 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
-    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
-}
-
-function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.NOTICE);
 }
 
 /**
- * this is the formulae to calculate tax
+ * Checks if any violations for the provided transaction are of type 'warning'
+ */
+function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING);
+}
+
+/**
+ * Calculates tax amount from the given expense amount and tax percentage
  */
 function calculateTaxAmount(percentage: string, amount: number) {
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
@@ -647,6 +715,10 @@ function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean 
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.receipt?.reservationList && transaction?.receipt?.reservationList.length > 0;
+}
+
 /**
  * Get rate ID from the transaction object
  */
@@ -655,13 +727,19 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
- * Gets the tax code based on selected currency.
- * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
+ * Gets the tax code based on the type of transaction and selected currency.
+ * If it is distance request, then returns the tax code corresponding to the custom unit rate
+ * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
-function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, currency?: string | undefined) {
+    if (isDistanceRequest(transaction)) {
+        const customUnitRateID = getRateID(transaction) ?? '';
+        const customUnitRate = getCustomUnitRate(policy, customUnitRateID);
+        return customUnitRate?.attributes?.taxRateExternalID ?? '';
+    }
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    return policy?.outputCurrency === getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    return policy?.outputCurrency === (currency ?? getCurrency(transaction)) ? defaultExternalID : foreignTaxDefault;
 }
 
 /**
@@ -703,7 +781,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
 }
 
 /**
- * Gets the tax name
+ * Gets the name corresponding to the taxCode that is displayed to the user
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
@@ -752,6 +830,7 @@ export {
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isCardTransaction,
+    isDuplicate,
     isPending,
     isPosted,
     isOnHold,
@@ -763,11 +842,16 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    hasPendingRTERViolation,
+    allHavePendingRTERViolation,
+    hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
     getRecentTransactions,
+    hasReservationList,
     hasViolation,
     hasNoticeTypeViolation,
+    hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
 };

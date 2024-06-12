@@ -201,14 +201,18 @@ function ReportActionsList({
         () =>
             sortedReportActions.filter(
                 (reportAction) =>
-                    (isOffline || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
+                    (isOffline ||
+                        ReportActionsUtils.isDeletedParentAction(reportAction) ||
+                        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                        reportAction.errors) &&
                     ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID),
             ),
         [sortedReportActions, isOffline],
     );
+
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedVisibleReportActions?.[0]?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -300,12 +304,12 @@ function ReportActionsList({
             setCurrentUnreadMarker(null);
         };
 
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime) => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime) => {
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
             resetUnreadMarker(newLastReadTime);
             setMessageManuallyMarkedUnread(0);
         });
@@ -508,31 +512,6 @@ function ReportActionsList({
     }, [calculateUnreadMarker, report.lastReadTime, messageManuallyMarkedUnread]);
 
     useEffect(() => {
-        const scrollToFirstUnreadMessage = () => {
-            if (!currentUnreadMarker) {
-                return;
-            }
-
-            const unreadMessageIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === currentUnreadMarker);
-
-            // Checking that we have a valid unread message index and the user scroll
-            // offset is less than the threshold since we don't want to auto-scroll when
-            // the report is already open and New Messages marker is shown as user might be reading.
-            if (unreadMessageIndex !== -1 && scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD) {
-                // We're passing viewPosition: 1 to scroll to the top of the
-                // unread message (marker) since we're using an inverted FlatList.
-                reportScrollManager?.scrollToIndex(unreadMessageIndex, false, 1);
-            }
-        };
-
-        // Call the scroll function after a small delay to ensure all items
-        // have been measured and the list is ready to be scrolled.
-        InteractionManager.runAfterInteractions(scrollToFirstUnreadMessage);
-        // We only want to run this effect once, when we're navigating to a report with unread messages.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedVisibleReportActions]);
-
-    useEffect(() => {
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
@@ -618,7 +597,7 @@ function ReportActionsList({
     const extraData = useMemo(() => [isSmallScreenWidth ? currentUnreadMarker : undefined, ReportUtils.isArchivedRoom(report)], [currentUnreadMarker, isSmallScreenWidth, report]);
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(personalDetailsList, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
-    const canShowHeader = !isOffline && !hasHeaderRendered.current && scrollingVerticalOffset.current > VERTICAL_OFFSET_THRESHOLD;
+    const canShowHeader = isOffline || hasHeaderRendered.current;
 
     const contentContainerStyle: StyleProp<ViewStyle> = useMemo(
         () => [styles.chatContentScrollView, isLoadingNewerReportActions && canShowHeader ? styles.chatContentScrollViewWithHeaderLoader : {}],

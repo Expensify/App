@@ -21,7 +21,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncClasses, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncClasses && syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isSwitchOn = !!(syncClasses && syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = syncClasses === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
@@ -64,7 +64,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                             <MenuItemWithTopDescription
                                 interactive={false}
                                 title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                                description={translate('workspace.qbo.displayedAs')}
+                                description={translate('workspace.common.displayedAs')}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                         </OfflineWithFeedback>

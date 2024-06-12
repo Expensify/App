@@ -83,6 +83,7 @@ const darkTheme = {
     ourMentionBG: colors.green600,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
+    trialBannerBackgroundColor: colors.green700,
     skeletonLHNIn: colors.productDark400,
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
@@ -129,7 +130,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },

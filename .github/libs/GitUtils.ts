@@ -66,11 +66,11 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
         console.log(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = spawn('git', args);
         spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk) => {
+        spawnedProcess.stdout.on('data', (chunk: Buffer) => {
             console.log(chunk.toString());
             stdout += chunk.toString();
         });
-        spawnedProcess.stderr.on('data', (chunk) => {
+        spawnedProcess.stderr.on('data', (chunk: Buffer) => {
             console.error(chunk.toString());
             stderr += chunk.toString();
         });
