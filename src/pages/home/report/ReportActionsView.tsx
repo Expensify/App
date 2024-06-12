@@ -404,38 +404,6 @@ function ReportActionsView({
         Timing.end(CONST.TIMING.SWITCH_REPORT, hasCachedActionOnFirstRender ? CONST.TIMING.WARM : CONST.TIMING.COLD);
     }, [hasCachedActionOnFirstRender]);
 
-    useEffect(() => {
-        // TODO: Can this be deleted now?
-        // Temporary solution for handling REPORT_PREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
-        // This code should be removed once REPORT_PREVIEW is no longer repositioned.
-        // We need to call openReport for gaps created by moving REPORT_PREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
-        const shouldOpenReport =
-            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-            !hasCreatedAction &&
-            isReadyForCommentLinking &&
-            reportActions.length < 24 &&
-            reportActions.length >= 1 &&
-            !isLoadingInitialReportActions &&
-            !isLoadingOlderReportActions &&
-            !isLoadingNewerReportActions &&
-            !ReportUtils.isInvoiceRoom(report);
-
-        if (shouldOpenReport) {
-            Report.openReport(reportID, reportActionID);
-        }
-    }, [
-        hasCreatedAction,
-        reportID,
-        reportActions,
-        reportActionID,
-        newestReportAction?.actionName,
-        isReadyForCommentLinking,
-        isLoadingOlderReportActions,
-        isLoadingNewerReportActions,
-        isLoadingInitialReportActions,
-        report,
-    ]);
-
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
 
