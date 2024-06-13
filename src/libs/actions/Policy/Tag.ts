@@ -220,6 +220,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
+                                        ...policyTag.tags[key].pendingFields,
                                         enabled: null,
                                     },
                                     pendingAction: null,
@@ -245,6 +246,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...tagsToUpdate[key],
                                     errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                                     pendingFields: {
+                                        ...policyTag.tags[key].pendingFields,
                                         enabled: null,
                                     },
                                     pendingAction: null,
@@ -401,6 +403,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [newTagName]: {
                                 pendingAction: null,
                                 pendingFields: {
+                                    ...tag.pendingFields,
                                     name: null,
                                 },
                             },
@@ -421,6 +424,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 ...tag,
                                 pendingAction: null,
                                 pendingFields: {
+                                    ...tag.pendingFields,
                                     name: null,
                                 },
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
