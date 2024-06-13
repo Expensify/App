@@ -668,7 +668,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                         required: policyTag.required,
                         pendingFields: {required: null},
                         errorFields: {
-                            required: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            required: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                         },
                     },
                 },
