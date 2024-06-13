@@ -14,10 +14,15 @@ function getNextBillingDate(initialDate: string): string {
         start = new Date();
     }
 
-    const current = new Date(start);
+    const today = new Date();
 
-    const monthsDiff = differenceInMonths(current, start);
-    const nextBillingDate = addDays(addMonths(start, monthsDiff + 1), 1);
+    const monthsDiff = differenceInMonths(today, start);
+
+    let nextBillingDate = addDays(addMonths(start, monthsDiff), 1);
+
+    if (nextBillingDate.toUTCString() < today.toUTCString()) {
+        nextBillingDate = addMonths(nextBillingDate, 1);
+    }
 
     return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }

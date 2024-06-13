@@ -1,24 +1,40 @@
-import {addDays, addMonths, format} from 'date-fns';
 import getNextBillingDate from '@src/pages/settings/Subscription/CardSection/utils';
 
 describe('getNextBillingDate', () => {
-    it('should return the next billing date one month after the initial date', () => {
-        const endDate = '2023-01-15';
-        const nextBillingDate = getNextBillingDate(endDate);
-        expect(nextBillingDate).toBe('February 16, 2023');
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date(2024, 6, 5));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
+    it('should return the next billing date when initial date is valid', () => {
+        const initialDate = '2024-06-01';
+        const expectedNextBillingDate = 'July 2, 2024';
+
+        expect(getNextBillingDate(initialDate)).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const initialDate = '2023-01-31';
+        const initialDate = '2024-01-31';
         const nextBillingDate = getNextBillingDate(initialDate);
-        const expectedNextBillingDate = format(addDays(addMonths(new Date('2023-01-31'), 1), 1), 'MMMM d, yyyy');
+        const expectedNextBillingDate = 'July 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
-    it('should handle invalid dates correctly', () => {
-        const initialDate = 'invalid date';
+    it('should handle date when it at the current month', () => {
+        const initialDate = '2024-06-06';
         const nextBillingDate = getNextBillingDate(initialDate);
-        const expectedNextBillingDate = format(addDays(addMonths(new Date(), 1), 1), 'MMMM d, yyyy');
+        const expectedNextBillingDate = 'June 7, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
+    });
+
+    it('should return the next billing date when initial date is invalid', () => {
+        const initialDate = 'invalid-date';
+        const expectedNextBillingDate = 'July 6, 2024';
+
+        expect(getNextBillingDate(initialDate)).toEqual(expectedNextBillingDate);
     });
 });
