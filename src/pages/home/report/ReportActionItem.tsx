@@ -36,7 +36,6 @@ import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -203,7 +202,6 @@ function ReportActionItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const {canUseSpotnanaTravel} = usePermissions();
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => ReportActionContextMenu.isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
 
@@ -544,7 +542,7 @@ function ReportActionItem({
                     isWhisper={isWhisper}
                 />
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW && canUseSpotnanaTravel) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW) {
             children = (
                 <TripRoomPreview
                     action={action}
