@@ -44,7 +44,7 @@ function TransactionDuplicateReview() {
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <View style={[styles.justifyContentCenter, styles.pl4, styles.pb4, styles.pr4, styles.borderBottom]}>
+            <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                 <Button
                     text={translate('iou.keepAll')}
                     onPress={keepAll}
