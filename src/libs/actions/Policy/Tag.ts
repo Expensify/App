@@ -194,6 +194,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
+                                        ...policyTag.tags[key].pendingFields,
                                         enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
                                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -379,6 +380,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
+                                    ...tag.pendingFields,
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 previousTagName: oldTagName,
