@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import Lottie from '@components/Lottie';
+import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -37,10 +38,12 @@ function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalPro
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
-                    <Icon
-                        width={variables.modalTopIconWidth}
-                        height={variables.modalTopIconHeight}
-                        src={Illustrations.MagicCode}
+                    <Lottie
+                        source={LottieAnimations.MagicCode}
+                        style={styles.magicCodeAnimation}
+                        webStyle={styles.magicCodeAnimation}
+                        autoPlay
+                        loop
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
