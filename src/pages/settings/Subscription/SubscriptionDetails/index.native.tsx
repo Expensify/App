@@ -8,6 +8,7 @@ import OptionItem from '@components/OptionsPicker/OptionItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -16,6 +17,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SubscriptionDetails() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
+
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -32,10 +35,7 @@ function SubscriptionDetails() {
                 style={styles.mt5}
             />
         ) : (
-            <Text style={styles.mt5}>
-                <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-            </Text>
+            <Text style={[styles.mt5, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>
         );
     }
 
@@ -48,7 +48,7 @@ function SubscriptionDetails() {
             {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                 <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                     <Icon
-                        src={Illustrations.ExpensifyApprovedLogo}
+                        src={illustrations.ExpensifyApprovedLogo}
                         width={variables.modalTopIconWidth}
                         height={variables.menuIconSize}
                     />
