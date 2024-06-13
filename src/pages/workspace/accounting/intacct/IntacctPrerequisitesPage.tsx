@@ -2,21 +2,21 @@ import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText} from 'react-native';
+import Computer from '@assets/images/computer.svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import LottieAnimations from '@components/LottieAnimations';
+import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Section from '@components/Section';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 function IntacctPrerequisitesPage() {
     const {translate} = useLocalize();
@@ -26,26 +26,32 @@ function IntacctPrerequisitesPage() {
     const menuItems = useMemo(
         () => [
             {
-                translationKey: 'workspace.intacct.downloadExpensifyPackage',
+                title: translate('workspace.intacct.downloadExpensifyPackage'),
+                key: 'workspace.intacct.downloadExpensifyPackage',
                 icon: Expensicons.Download,
                 iconRight: Expensicons.NewWindow,
+                shouldShowRightIcon: true,
                 action: () => {
                     Link.openExternalLink(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT);
                     return Promise.resolve();
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, popoverAnchor.current),
+                numberOfLinesTitle: 2,
             },
             {
-                translationKey: 'workspace.intacct.followSteps',
-                icon: Expensicons.Download,
+                title: translate('workspace.intacct.followSteps'),
+                key: 'workspace.intacct.followSteps',
+                icon: Expensicons.Task,
                 iconRight: Expensicons.NewWindow,
+                shouldShowRightIcon: true,
                 action: () => {
                     Link.openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
                     return Promise.resolve();
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT, popoverAnchor.current),
+                numberOfLinesTitle: 3,
             },
         ],
         [],
@@ -60,21 +66,18 @@ function IntacctPrerequisitesPage() {
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.flex1]}>
-                <Section
-                    title={translate('workspace.intacct.prerequisitesTitle')}
-                    illustration={LottieAnimations.Coin}
-                    titleStyles={styles.accountSettingsSectionTitle}
-                >
-                    <View style={[styles.flex1, styles.mt5]}>
-                        <MenuItemList
-                            menuItems={menuItems}
-                            shouldUseSingleExecution
-                        />
-                    </View>
-                </Section>
+                <View style={{width: 'auto', height: 188}}>
+                    <ImageSVG src={Computer} />
+                </View>
+
+                <Text style={[styles.textHeadlineH1, styles.p5, styles.pb6]}>{translate('workspace.intacct.prerequisitesTitle')}</Text>
+                <MenuItemList
+                    menuItems={menuItems}
+                    shouldUseSingleExecution
+                />
 
                 <FixedFooter style={[styles.mtAuto]}>
                     <Button

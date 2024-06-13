@@ -2175,7 +2175,7 @@ export default {
         intacct: {
             sageIntacctSetup: 'Sage Intacct setup',
             prerequisitesTitle: 'Before you connect...',
-            downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
+            downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
             followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
         },
         type: {
