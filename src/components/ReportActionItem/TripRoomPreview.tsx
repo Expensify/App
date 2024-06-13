@@ -10,6 +10,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
@@ -55,6 +56,7 @@ type ReservationViewProps = {
 function ReservationView({reservation}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(reservation.type);
@@ -95,7 +97,7 @@ function ReservationView({reservation}: ReservationViewProps) {
             interactive={false}
             iconHeight={variables.iconSizeSmall}
             iconWidth={variables.iconSizeSmall}
-            iconStyles={[styles.tripReservationIconContainer(true), styles.mr3]}
+            iconStyles={[StyleUtils.getTripReservationIconContainer(true), styles.mr3]}
             isSmallAvatarSubscriptMenu
         />
     );

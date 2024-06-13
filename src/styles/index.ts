@@ -4999,15 +4999,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        tripReservationIconContainer: (isSmallIcon: boolean) => ({
-            width: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
-            height: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
-            borderRadius: isSmallIcon ? variables.avatarSizeSmallNormal : variables.componentBorderRadiusXLarge,
-            backgroundColor: theme.border,
-            alignItems: 'center',
-            justifyContent: 'center',
-        }),
-
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
