@@ -17,13 +17,14 @@ function arrayCacheBuilder<Args, RT>(f: (...args: Args[]) => RT, c: ArrayCacheCo
     const moized = moize(f, moizeConfig);
 
     moized.snapshot = () => {
-        const {keys, values} = moized.cache.snapshot;
+        const keys = moized.cache.snapshot.keys;
+        const values = moized.cache.snapshot.values as Args[];
 
         if (!keys?.length) {
             return [];
         }
 
-        return keys.map((k, i) => [k, values[i]] as [Args[], RT[]]);
+        return keys.map((k, i) => [k, values[i]]);
     };
 
     return moized;
