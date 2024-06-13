@@ -482,6 +482,30 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
+    const onyxUpdatesToDisableCategories: OnyxUpdate[] = [];
+    if (!enabled) {
+        onyxUpdatesToDisableCategories.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: Object.fromEntries(
+                    Object.entries(allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {}).map(([categoryName]) => [
+                            categoryName,
+                            {
+                                enabled: false,
+                            },
+                        ]),
+                ),
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresCategory: false,
+                },
+            },
+        );
+    }
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -519,6 +543,10 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
             },
         ],
     };
+
+    if (onyxUpdatesToDisableCategories.length > 0) {
+        onyxData.optimisticData?.push(...onyxUpdatesToDisableCategories);
+    }
 
     const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
 
