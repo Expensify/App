@@ -109,7 +109,6 @@ function MoneyRequestPreviewContent({
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
 
-
     /*
      Show the merchant for IOUs and expenses only if:
      - the merchant is not empty, is custom, or is not related to scanning smartscan;
