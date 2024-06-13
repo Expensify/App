@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
@@ -33,10 +33,10 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import ConfirmModal from '@src/components/ConfirmModal';
-import type {Route} from '@src/ROUTES';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -267,7 +267,27 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, shouldShowMenuItem, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
+    }, [
+        isSelfDM,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isSystemChat,
+        isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        isTaskReport,
+        shouldShowLeaveButton,
+        activeChatMembers.length,
+        session,
+        leaveChat,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -416,7 +436,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (parentReportAction) {
             const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-                if(isMoneyRequestReport || isInvoiceReport) {
+                if (isMoneyRequestReport || isInvoiceReport) {
                     navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, parentReportAction, true);
                 } else if (isSingleTransactionView) {
                     navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
