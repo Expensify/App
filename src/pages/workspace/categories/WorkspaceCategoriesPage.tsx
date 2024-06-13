@@ -256,7 +256,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isLoading = !isOffline && policyCategories === null;
 
-    const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
+    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
@@ -309,7 +309,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!shouldUseNarrowLayout || shouldShowEmptyState || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || (!hasVisibleCategories && !isLoading) || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -317,14 +317,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {shouldShowEmptyState && (
+                {!hasVisibleCategories && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.categories.emptyCategories.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     />
                 )}
-                {!shouldShowEmptyState && !isLoading && (
+                {hasVisibleCategories && !isLoading && (
                     <SelectionList
                         canSelectMultiple
                         sections={[{data: categoryList, isDisabled: false}]}
