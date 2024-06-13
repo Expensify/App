@@ -12,6 +12,7 @@ import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
+    exitApp: () => void;
 };
 
 type RNTextInputResetModule = {
