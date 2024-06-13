@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
@@ -9,7 +9,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,10 +147,6 @@ function SettlementButton({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID) ?? null, [activePolicyID]);
-
-    useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
 
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
