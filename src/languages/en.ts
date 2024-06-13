@@ -754,6 +754,7 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        unhold: 'Unhold',
         holdExpense: 'Hold expense',
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',

@@ -766,6 +766,7 @@ export default {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
+        unhold: 'Desbloqueada',
         holdEducationalTitle: 'Este gasto está',
         whatIsHoldTitle: '¿Qué es Bloquear?',
         whatIsHoldExplain: 'Bloquear es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',

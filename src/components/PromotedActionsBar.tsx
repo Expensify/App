@@ -18,6 +18,8 @@ type PromotedAction = {
 
 type PromotedActionsType = Record<'pin' | 'share' | 'join', (report: OnyxReport) => PromotedAction> & {
     message: (params: {accountID?: number; login?: string}) => PromotedAction;
+} & {
+    hold: (params: {isTextHold: boolean; changeMoneyRequestStatus: () => void}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -51,6 +53,12 @@ const PromotedActions = {
                 ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
             }
         },
+    }),
+    hold: ({isTextHold, changeMoneyRequestStatus}) => ({
+        key: 'hold',
+        icon: Expensicons.Stopwatch,
+        text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
+        onSelected: changeMoneyRequestStatus,
     }),
 } satisfies PromotedActionsType;
 
