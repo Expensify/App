@@ -70,8 +70,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
+
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
+    const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
@@ -79,13 +81,23 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
-    const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
+    const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+    const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
+    const shouldShowRoomName =
+        !ReportUtils.isChatThread(report) &&
+        !isDeprecatedGroupDM &&
+        !isPolicyExpenseChat &&
+        !isTaskReport &&
+        !isMoneyRequestReport &&
+        !isInvoiceRoom &&
+        !(isMoneyRequestReport || isInvoiceReport || isMoneyRequest);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
-    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
@@ -98,17 +110,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     }, [report, session, isGroupChat, isSystemChat]);
-
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
         const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
-
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
-
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
-
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     useEffect(() => {
@@ -306,40 +314,64 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            : ReportUtils.getReportName(report);
+
+    const additionalRoomDetails =
+        (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
+            ? chatRoomSubtitle
+            : `${translate('threads.in')} ${chatRoomSubtitle}`;
+
+    const roomTitle = isPolicyExpenseChat || isGroupChat ? reportName : report?.reportName ?? reportName;
+
+    let roomDescription;
+    if (isInvoiceRoom || isPolicyExpenseChat) {
+        roomDescription = translate('common.name');
+    } else if (isGroupChat) {
+        roomDescription = translate('groupConfirmPage.groupName');
+    } else {
+        roomDescription = translate('newRoomPage.roomName');
+    }
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
-                    <View style={styles.reportDetailsTitleContainer}>
+                    <View style={[styles.reportDetailsTitleContainer, !shouldShowRoomName && styles.mb5]}>
                         {renderedAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-                            <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
-                                <DisplayNames
-                                    fullTitle={reportName ?? ''}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
-                                    shouldUseFullTitle={shouldUseFullTitle}
-                                />
-                            </View>
-                            {isPolicyAdmin ? (
-                                <PressableWithoutFeedback
-                                    style={[styles.w100]}
-                                    disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={chatRoomSubtitle ?? ''}
-                                    accessible
-                                    onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
-                                    }}
-                                >
-                                    {chatRoomSubtitleText}
-                                </PressableWithoutFeedback>
-                            ) : (
-                                chatRoomSubtitleText
+                            {!shouldShowRoomName && (
+                                <>
+                                    <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
+                                        <DisplayNames
+                                            fullTitle={reportName ?? ''}
+                                            displayNamesWithTooltips={displayNamesWithTooltips}
+                                            tooltipEnabled
+                                            numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
+                                            textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
+                                            shouldUseFullTitle={shouldUseFullTitle}
+                                        />
+                                    </View>
+                                    {isPolicyAdmin ? (
+                                        <PressableWithoutFeedback
+                                            style={[styles.w100]}
+                                            disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                            role={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={chatRoomSubtitle ?? ''}
+                                            accessible
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                            }}
+                                        >
+                                            {chatRoomSubtitleText}
+                                        </PressableWithoutFeedback>
+                                    ) : (
+                                        chatRoomSubtitleText
+                                    )}
+                                </>
                             )}
                             {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
                                 <ParentNavigationSubtitle
@@ -351,6 +383,28 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                     </View>
+                    {shouldShowRoomName && (
+                        <OfflineWithFeedback
+                            pendingAction={report?.pendingFields?.reportName}
+                            errors={report?.errorFields?.reportName}
+                            errorRowStyles={[styles.ph5]}
+                            onClose={() => Report.clearPolicyRoomNameErrors(report?.reportID)}
+                        >
+                            <View style={[styles.flex1, !shouldDisableRename && styles.mt3, isGroupChat && styles.mb5]}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon={!shouldDisableRename}
+                                    interactive={!shouldDisableRename}
+                                    title={roomTitle}
+                                    titleStyle={styles.newKansasLarge}
+                                    shouldCheckActionAllowedOnPress={false}
+                                    description={!shouldDisableRename ? roomDescription : ''}
+                                    furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
+                                    shouldCenter={shouldDisableRename}
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    )}
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback
                             pendingAction={report.pendingFields?.description}

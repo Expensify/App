@@ -286,6 +286,9 @@ type MenuItemBaseProps = {
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
+
+    /** Should we center all text or not */
+    shouldCenter?: boolean;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -370,6 +373,7 @@ function MenuItem(
         onFocus,
         onBlur,
         avatarID,
+        shouldCenter = false,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -387,6 +391,7 @@ function MenuItem(
         [
             styles.flexShrink1,
             styles.popoverMenuText,
+            shouldCenter ? styles.textAlignCenter : {},
             // eslint-disable-next-line no-nested-ternary
             shouldPutLeftPaddingWhenNoIcon || (icon && !Array.isArray(icon)) ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {},
             shouldShowBasicTitle ? {} : styles.textStrong,
@@ -595,7 +600,7 @@ function MenuItem(
                                                     </Text>
                                                 )}
                                                 {(!!title || !!shouldShowTitleIcon) && (
-                                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                    <View style={[!shouldCenter && styles.flexRow, styles.alignItemsCenter]}>
                                                         {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                             <View style={styles.renderHTMLTitle}>
                                                                 <RenderHTML html={processedTitle} />
@@ -629,7 +634,7 @@ function MenuItem(
                                                     </Text>
                                                 )}
                                                 {!!furtherDetails && (
-                                                    <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
+                                                    <View style={[!shouldCenter && styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                         {!!furtherDetailsIcon && (
                                                             <Icon
                                                                 src={furtherDetailsIcon}
@@ -639,7 +644,10 @@ function MenuItem(
                                                             />
                                                         )}
                                                         <Text
-                                                            style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
+                                                            style={[
+                                                                furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting,
+                                                                shouldCenter && styles.textAlignCenter,
+                                                            ]}
                                                             numberOfLines={2}
                                                         >
                                                             {furtherDetails}
