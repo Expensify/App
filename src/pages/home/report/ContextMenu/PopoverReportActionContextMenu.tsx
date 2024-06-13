@@ -34,7 +34,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const {translate} = useLocalize();
     const reportIDRef = useRef('-1');
     const typeRef = useRef<ContextMenuType>();
-    const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
+    const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
     const reportActionIDRef = useRef('-1');
     const originalReportIDRef = useRef('-1');
     const selectionRef = useRef('');
@@ -294,7 +294,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         onComfirmDeleteModal.current = onConfirm;
 
         reportIDRef.current = reportID;
-        reportActionRef.current = reportAction;
+        reportActionRef.current = reportAction ?? null;
 
         setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
         setIsDeleteCommentConfirmModalVisible(true);

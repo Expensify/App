@@ -504,6 +504,10 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
+        textLineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         colorReversed: {
             color: theme.textReversed,
         },
@@ -2820,7 +2824,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionSelectCircle: {
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.cardBG,
         },
 
         qrShareSection: {
