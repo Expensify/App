@@ -789,7 +789,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
 }
 
 function getTransaction(transactionID: string): OnyxEntry<Transaction> {
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
 export {
