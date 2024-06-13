@@ -1,7 +1,8 @@
-import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {StepIdentifier as ActStepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 
 declare module '@kie/act-js' {
-    type StepIdentifierCustom = {
+    // eslint-disable-next-line rulesdir/no-inline-named-export
+    export declare type StepIdentifier = {
         id?: string;
         name: string;
         run?: string;
@@ -9,7 +10,5 @@ declare module '@kie/act-js' {
         with?: string;
         envs?: string[];
         inputs?: string[];
-    } & Omit<StepIdentifier, 'name' | 'id' | 'run' | 'mockWith'>;
-
-    export type {StepIdentifier, StepIdentifierCustom};
+    } & Omit<ActStepIdentifier, 'name' | 'id' | 'run' | 'mockWith'>;
 }

@@ -1,5 +1,5 @@
 /* eslint no-console: ["error", { allow: ["warn", "log"] }] */
-import type {StepIdentifierCustom} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js';
 import type {PathLike} from 'fs';
 import fs from 'fs';
 import path from 'path';
@@ -92,7 +92,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 
-const mockStepTemplate = (stepMockName: string, step: StepIdentifierCustom, jobId: string | undefined) => `
+const mockStepTemplate = (stepMockName: string, step: StepIdentifier, jobId: string | undefined) => `
 const ${stepMockName} = utils.createMockStep(
     '${step.name ?? ''}',
     '${step.name ?? ''}',
@@ -199,7 +199,7 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
         workflowJobs[jobId] = {
             steps: [],
         };
-        job.steps.forEach((step: StepIdentifierCustom) => {
+        job.steps.forEach((step: StepIdentifier) => {
             const workflowStep = {
                 name: step.name,
                 inputs: Object.keys(step.with ?? {}),
@@ -243,7 +243,7 @@ const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>): string => 
 
     Object.entries(jobs).forEach(([jobId, job]) => {
         let stepAssertionsContent = '';
-        job.steps.forEach((step: StepIdentifierCustom) => {
+        job.steps.forEach((step: StepIdentifier) => {
             stepAssertionsContent += stepAssertionTemplate(step.name, jobId.toUpperCase(), step.name, step.inputs, step.envs);
         });
         const jobAssertionName = `assert${jobId.charAt(0).toUpperCase() + jobId.slice(1)}JobExecuted`;

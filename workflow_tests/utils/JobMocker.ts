@@ -1,4 +1,4 @@
-import type {StepIdentifierCustom} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js';
 import type {PathOrFileDescriptor} from 'fs';
 import fs from 'fs';
 import path from 'path';
@@ -12,7 +12,7 @@ type YamlWorkflow = {
 };
 
 type MockJob = {
-    steps: StepIdentifierCustom[];
+    steps: StepIdentifier[];
     uses?: string;
     secrets?: string[];
     with?: string;
@@ -50,8 +50,8 @@ class JobMocker {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = mockJob.steps.map((step): StepIdentifierCustom => {
-                    const mockStep: StepIdentifierCustom = {
+                job.steps = mockJob.steps.map((step): StepIdentifier => {
+                    const mockStep: StepIdentifier = {
                         name: step.name,
                         run: step.mockWith,
                     };
