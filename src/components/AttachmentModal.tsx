@@ -398,6 +398,13 @@ function AttachmentModal({
     }, [onModalClose]);
 
     /**
+     * scale handler for attachment
+     */
+    const scaleChanged = (value: number) => {
+        setZoomScale(value);
+    };
+
+    /**
      *  open the modal
      */
     const openModal = useCallback(() => {
@@ -476,9 +483,7 @@ function AttachmentModal({
             isPagerScrolling: nope,
             isScrollEnabled: nope,
             onTap: () => {},
-            onScaleChanged: (value: number) => {
-                setZoomScale(value);
-            },
+            onScaleChanged: scaleChanged,
             onSwipeDown: closeModal,
         }),
         [closeModal, nope, sourceForAttachmentView],

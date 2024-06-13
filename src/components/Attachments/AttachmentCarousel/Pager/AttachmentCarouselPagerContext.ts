@@ -18,28 +18,28 @@ type AttachmentCarouselPagerItems = {
 };
 
 type AttachmentCarouselPagerContextValue = {
-    /** The list of items that are shown in the pager */
+    /** List of items displayed in the attachment */
     pagerItems: AttachmentCarouselPagerItems[];
 
-    /** The index of the active page */
+    /** Index of the currently active page */
     activePage: number;
 
-    /** The ref of the active attachment */
+    /** Ref to the active attachment */
     pagerRef?: ForwardedRef<PagerView | GestureType>;
 
-    /** The scroll state of the attachment */
+    /** Indicates if the pager is currently scrolling */
     isPagerScrolling: SharedValue<boolean>;
 
-    /** The scroll active of the attachment */
+    /** Indicates if scrolling is enabled for the attachment */
     isScrollEnabled: SharedValue<boolean>;
 
-    /** The function to call after tap */
+    /** Function to call after a tap event */
     onTap: () => void;
 
-    /** The function to call after scale */
+    /** Function to call when the scale changes */
     onScaleChanged: (scale: number) => void;
 
-    /** The function to call after swipe down */
+    /** Function to call after a swipe down event */
     onSwipeDown: () => void;
 };
 
