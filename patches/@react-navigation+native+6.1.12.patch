@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
-index 16fdbef..e660dd6 100644
+index 16fdbef..231a520 100644
 --- a/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
 +++ b/node_modules/@react-navigation/native/lib/module/createMemoryHistory.js
 @@ -1,8 +1,23 @@
@@ -68,7 +68,7 @@ index 16fdbef..e660dd6 100644
        // Need to keep the hash part of the path if there was no previous history entry
        // or the previous history entry had the same path
 -      let pathWithHash = path;
-+      let pathWithHash = path.replace(/(\/{2,})|(\/$)/g, (match, p1) => (p1 ? '/' : ''));
++      let pathWithHash = path.replace(/(\/{2,})/g, '/');
        if (!items.length || items.findIndex(item => item.id === id) < 0) {
          // There are two scenarios for creating an array with only one history record:
          // - When loaded id not found in the items array, this function by default will replace

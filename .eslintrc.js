@@ -165,6 +165,7 @@ module.exports = {
 
         // Rulesdir specific rules
         'rulesdir/no-default-props': 'error',
+        'rulesdir/prefer-type-fest': 'error',
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',

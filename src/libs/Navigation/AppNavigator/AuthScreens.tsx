@@ -128,7 +128,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value: OnyxEntry<number>) => {
+    callback: (value) => {
         lastUpdateIDAppliedToClient = value;
     },
 });
