@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections = [
