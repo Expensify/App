@@ -914,6 +914,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
     },
+    POLICY_ACCOUNTING_ENTER_SAGE_INTACCT_CREDENTIALS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
+    },
 } as const;
 
 /**

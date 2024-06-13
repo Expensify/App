@@ -340,6 +340,8 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        companyID: 'Company ID',
+        userID: 'User ID',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2177,6 +2179,7 @@ export default {
             prerequisitesTitle: 'Before you connect...',
             downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
             followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
+            enterCredentials: 'Enter your Sage Intacct credentials',
         },
         type: {
             free: 'Free',

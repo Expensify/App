@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -14,14 +15,20 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-function IntacctPrerequisitesPage() {
+type IntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+
+function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
+    const policyID = route.params.policyID;
 
     const menuItems = useMemo(
         () => [
@@ -83,7 +90,7 @@ function IntacctPrerequisitesPage() {
                     <Button
                         success
                         text={translate('common.next')}
-                        onPress={() => {}}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ENTER_SAGE_INTACCT_CREDENTIALS.getRoute(policyID))}
                         pressOnEnter
                         large
                     />
