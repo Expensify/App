@@ -727,7 +727,7 @@ export default {
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
-            invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten the name or choose a different category.',
+            invalidCategoryLength: 'The category name exceeds 255 characters. Please shorten it or choose a different category.',
             invalidAmount: 'Please enter a valid amount before continuing',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'The sum of splits must equal the total amount',
