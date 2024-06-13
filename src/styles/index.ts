@@ -1700,7 +1700,7 @@ const styles = (theme: ThemeColors) =>
 
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
-            paddingVertical: 12,
+            paddingVertical: 16,
         },
 
         createMenuHeaderText: {

@@ -75,7 +75,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 };
                 modalContainerStyle = {
                     boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
-                    borderRadius: 12,
+                    borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
                 };
@@ -102,7 +102,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
-                    borderRadius: isSmallScreenWidth ? 0 : 12,
+                    borderRadius: isSmallScreenWidth ? 0 : variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
                 };
@@ -129,7 +129,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
-                    borderRadius: isSmallScreenWidth ? 0 : 12,
+                    borderRadius: isSmallScreenWidth ? 0 : variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth, true),
                 };
@@ -151,7 +151,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 };
                 modalContainerStyle = {
                     boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
-                    borderRadius: 12,
+                    borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 0,
                 };
 
