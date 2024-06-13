@@ -83,6 +83,9 @@ type TransactionViolation = {
 
     /** Additional violation information to provide the user */
     data?: TransactionViolationData;
+
+    /** Percent Variance for modified amount violations */
+    displayPercentVariance?: number;
 };
 
 /** Collection of transaction violations */
