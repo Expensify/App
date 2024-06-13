@@ -6,9 +6,7 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
@@ -68,7 +66,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
                     return false;
                 }
 
-                return (route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+                return (!!route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE;
             });
             const filteredRoutes = searchCentralPaneIndex !== -1 ? [...routes.slice(0, searchCentralPaneIndex), ...routes.slice(searchCentralPaneIndex + 1)] : [...routes];
             return {
