@@ -169,7 +169,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
 
-        const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
+        const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
         const initialBounds = useMemo(() => {
             if (!waypoints) {

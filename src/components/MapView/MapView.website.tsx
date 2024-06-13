@@ -208,7 +208,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
 
-        const initialViewState: Partial<ViewState> = useMemo(() => {
+        const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
             if (!interactive) {
                 if (!waypoints) {
                     return undefined;
@@ -221,13 +221,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     zoom: initialState.zoom,
                     bounds: [northEast, southWest],
                 };
-            } else {
-                return {
-                    longitude: currentPosition?.longitude,
-                    latitude: currentPosition?.latitude,
-                    zoom: initialState.zoom,
-                };
             }
+            return {
+                longitude: currentPosition?.longitude,
+                latitude: currentPosition?.latitude,
+                zoom: initialState.zoom,
+            };
         }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
 
         return !isOffline && !!accessToken && !!initialViewState ? (
