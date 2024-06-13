@@ -394,14 +394,14 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
-        loggedInAs: ({email}: LoggedInAsParams) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        loggedInAs: ({email}: LoggedInAsParams) => "You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.",
         doNotSeePrompt: "Can't see the prompt?",
         tryAgain: 'Try again',
         or: ', or',
         continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
-        successfulSignInTitle: 'Abracadabra,\nyou're signed in!',
+        successfulSignInTitle: "Abracadabra,\nyou're signed in!",
         successfulSignInDescription: 'Head back to your original tab to continue.',
         title: 'Here's your magic code',
         description: 'Please enter the code from the device\nwhere it was originally requested',
@@ -411,7 +411,7 @@ export default {
         expiredCodeDescription: 'Go back to the original device and request a new code.',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two-factor authentication\nrequired',
-        tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you're trying to sign in.',
+        tfaRequiredDescription: "Please enter the two-factor authentication code\nwhere you're trying to sign in.",
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
@@ -435,7 +435,7 @@ export default {
         phrase2: "Money talks. And now that chat and payments are in one place, it's also easy.",
         phrase3: 'Your payments get to you as fast as you can get your point across.',
         enterPassword: 'Please enter your password',
-        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => `${login}, it's always great to see a new face around here!`,
+        welcomeNewFace: ({login}: SignUpNewFaceCodeParams) => "${login}, it's always great to see a new face around here!",
         welcomeEnterMagicCode: ({login}: WelcomeEnterMagicCodeParams) => `Please enter the magic code sent to ${login}. It should arrive within a minute or two.`,
     },
     login: {
@@ -445,8 +445,8 @@ export default {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: ({email}: AlreadySignedInParams) => `You're already signed in as ${email}.`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `Don't want to sign in with ${provider}?`,
+        alreadySignedIn: ({email}: AlreadySignedInParams) => "You're already signed in as ${email}.",
+        goBackMessage: ({provider}: GoBackMessageParams) => "Don't want to sign in with ${provider}?",
         continueWithMyCurrentSession: 'Continue with my current session',
         redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
         signInAgreementMessage: 'By logging in, you agree to the',
@@ -478,7 +478,7 @@ export default {
         ],
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
-        localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
+        localTime: ({user, time}: LocalTimeParams) => "It's ${time} for ${user}",
         edited: '(edited)',
         emoji: 'Emoji',
         collapse: 'Collapse',
@@ -546,7 +546,7 @@ export default {
         hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
-    youHaveBeenBanned: 'Note: You've been banned from chatting in this channel',
+    youHaveBeenBanned: "Note: You've been banned from chatting in this channel.",
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -794,8 +794,8 @@ export default {
         },
     },
     loginField: {
-        numberHasNotBeenValidated: 'The number hasn't been validated. Click the button to resend the validation link via text.',
-        emailHasNotBeenValidated: 'The email hasn't been validated. Click the button to resend the validation link via text.',
+        numberHasNotBeenValidated: "The number hasn't been validated. Click the button to resend the validation link via text.",
+        emailHasNotBeenValidated: "The email hasn't been validated. Click the button to resend the validation link via text.",
     },
     avatarWithImagePicker: {
         uploadPhoto: 'Upload photo',
@@ -857,7 +857,7 @@ export default {
         yourDefaultContactMethod:
             'This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.',
         removeContactMethod: 'Remove contact method',
-        removeAreYouSure: 'Are you sure you want to remove this contact method? This action can't be undone.',
+        removeAreYouSure: "Are you sure you want to remove this contact method? This action can't be undone.",
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
@@ -1125,7 +1125,7 @@ export default {
         assignedCardsDescription: 'These are cards assigned by a workspace admin to manage company spend.',
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information. Please check back in a few minutes!",
-        walletActivationFailed: 'Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.',
+        walletActivationFailed: "Unfortunately, your wallet can't be enabled at this time. Please chat with Concierge for further assistance.",
         addYourBankAccount: 'Add your bank account',
         addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
         chooseYourBankAccount: 'Choose your bank account',
@@ -1200,12 +1200,12 @@ export default {
         },
     },
     workflowsDelayedSubmissionPage: {
-        autoReportingErrorMessage: 'Delayed submission couldn't be changed. Please try again or contact support.',
-        autoReportingFrequencyErrorMessage: 'Submission frequency couldn't be changed. Please try again or contact support.',
-        monthlyOffsetErrorMessage: 'Monthly frequency couldn't be changed. Please try again or contact support.',
+        autoReportingErrorMessage: "Delayed submission couldn't be changed. Please try again or contact support.",
+        autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
+        monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsApprovalPage: {
-        genericErrorMessage: 'The approver couldn't be changed. Please try again or contact support.',
+        genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -1388,7 +1388,7 @@ export default {
         error: {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
-        cannotGetAccountDetails: "Couldn't retrieve account details, please try to sign in again.",
+        cannotGetAccountDetails: "Couldn't retrieve account details. Please try to sign in again.",
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
@@ -1612,7 +1612,7 @@ export default {
         },
     },
     messages: {
-        errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
+        errorMessageInvalidPhone: "Please enter a valid phone number without brackets or dashes. If you're outside the US, please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).",
         errorMessageInvalidEmail: 'Invalid email',
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} is already a member of ${name}`,
     },
@@ -1622,7 +1622,7 @@ export default {
         tryAgain: 'Try again',
         verifyIdentity: 'Verify identity',
         letsVerifyIdentity: "Let's verify your identity.",
-        butFirst: `But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.`,
+        butFirst: "But first, the boring stuff. Read up on the legalese in the next step and click "Accept" when you're ready.",
         genericError: 'There was an error while processing this step. Please try again.',
         cameraPermissionsNotGranted: 'Enable camera access',
         cameraRequestMessage: 'We need access to your camera to complete bank account verification. Please enable via Settings > New Expensify.',
@@ -1631,7 +1631,7 @@ export default {
         originalDocumentNeeded: 'Please upload an original image of your ID rather than a screenshot or scanned image.',
         documentNeedsBetterQuality: 'Your ID appears to be damaged or has missing security features. Please upload an original image of an undamaged ID that is entirely visible.',
         imageNeedsBetterQuality: "There's an issue with the image quality of your ID. Please upload a new image where your entire ID can be seen clearly.",
-        selfieIssue: "There's an issue with your selfie/video. Please upload a new selfie/video in real time.",
+        selfieIssue: "There's an issue with your selfie/video. Please upload a live selfie/video.",
         selfieNotMatching: "Your selfie/video doesn't match your ID. Please upload a new selfie/video where your face can be clearly seen.",
         selfieNotLive: "Your selfie/video doesn't appear to be a live photo/video. Please upload a live selfie/video.",
     },
@@ -1693,19 +1693,19 @@ export default {
             feeAmountHeader: 'Fee amount',
             moreDetailsHeader: 'More details',
             openingAccountTitle: 'Opening an account',
-            openingAccountDetails: 'There's no fee to open an account.',
-            monthlyFeeDetails: 'There's no monthly fee.',
+            openingAccountDetails: "There's no fee to open an account.",
+            monthlyFeeDetails: "There's no monthly fee.",
             customerServiceTitle: 'Customer service',
             customerServiceDetails: 'There are no customer service fees.',
-            inactivityDetails: 'There's no inactivity fee.',
+            inactivityDetails: "There's no inactivity fee.",
             sendingFundsTitle: 'Sending funds to another account holder',
-            sendingFundsDetails: 'There's no fee to send funds to another account holder using your balance, bank account, or debit card.',
+            sendingFundsDetails: "There's no fee to send funds to another account holder using your balance, bank account, or debit card.",
             electronicFundsStandardDetails:
-                'There's no fee to transfer funds from your Expensify Wallet ' +
+                "There's no fee to transfer funds from your Expensify Wallet " +
                 'to your bank account using the standard option. This transfer usually completes within 1-3 business' +
                 ' days.',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                'There's a fee to transfer funds from your Expensify Wallet to ' +
+                "There's a fee to transfer funds from your Expensify Wallet to " +
                 'your linked debit card using the instant transfer option. This transfer usually completes within ' +
                 `several minutes. The fee is ${percentage}% of the transfer amount (with a minimum fee of ${amount}).`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
@@ -1774,7 +1774,7 @@ export default {
         enterYourAddress: 'What's your address?',
         address: 'Address',
         letsDoubleCheck: "Let's double check that everything looks right.",
-        byAddingThisBankAccount: 'By adding this bank account, you confirm that you've read, understand, and accept',
+        byAddingThisBankAccount: "By adding this bank account, you confirm that you've read, understand, and accept",
         whatsYourLegalName: 'What’s your legal name?',
         whatsYourDOB: 'What’s your date of birth?',
         whatsYourAddress: 'What’s your address?',
@@ -1832,7 +1832,7 @@ export default {
         letsDoubleCheck: 'Let’s double check that everything looks right.',
         legalName: 'Legal name',
         address: 'Address',
-        byAddingThisBankAccount: 'By adding this bank account, you confirm that you've read, understand, and accept',
+        byAddingThisBankAccount: "By adding this bank account, you confirm that you've read, understand, and accept",
         owners: 'Owners',
     },
     validationStep: {
@@ -2674,7 +2674,7 @@ export default {
             hasFailedSettlementsTitle: 'Cannot transfer ownership',
             hasFailedSettlementsButtonText: 'Got it',
             hasFailedSettlementsText: ({email}) =>
-                'You can't take over billing because ${email} has an overdue expensify Expensify Card settlement. Please ask them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.",
+                "You can't take over billing because ${email} has an overdue expensify Expensify Card settlement. Please ask them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.",
             failedToClearBalanceTitle: 'Failed to clear balance',
             failedToClearBalanceButtonText: 'OK',
             failedToClearBalanceText: 'We were unable to clear the balance. Please try again later.',
@@ -2740,7 +2740,7 @@ export default {
     },
     roomMembersPage: {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the invite button above.',
-        notAuthorized: `You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
+        notAuthorized: "You don't have access to this page. If you're trying to join this room, just ask a room member to add you. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}",
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
         error: {
             genericAdd: 'There was a problem adding this room member.',
@@ -2767,7 +2767,7 @@ export default {
             completed: 'marked as complete',
             canceled: 'deleted task',
             reopened: 'marked as incomplete',
-            error: 'You don't have permission to take the requested action.',
+            error: "You don't have permission to take the requested action.",
         },
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
@@ -3146,7 +3146,7 @@ export default {
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
                 return isAdmin
-                    ? `Can't auto-match receipt due to broken bank connection which ${email} needs to fix`
+                    ? "Can't auto-match receipt due to broken bank connection which ${email} needs to fix"
                     : "Can't auto-match receipt due to broken bank connection which you need to fix";
             }
             if (!isTransactionOlderThan7Days) {
