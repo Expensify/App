@@ -204,7 +204,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (!isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)))) {
+        if (!isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin))) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -232,6 +232,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isChatThread,
         isPolicyEmployee,
         isPolicyExpenseChat,
+        isPolicyAdmin,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
