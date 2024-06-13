@@ -1008,7 +1008,7 @@ export default {
         stepCodes: 'Recovery codes',
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
-            'If you lose access to your authenticator app and don’t have these codes, you'll lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.',
+            "If you lose access to your authenticator app and don’t have these codes, you'll lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.",
         errorStepCodes: 'Please copy or download codes before continuing.',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
