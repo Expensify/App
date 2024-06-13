@@ -35,6 +35,11 @@ type SearchProps = {
 
 const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
 
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
+}
+
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();

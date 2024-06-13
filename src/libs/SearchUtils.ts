@@ -80,15 +80,14 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 const currentYear = new Date().getFullYear();
 
 
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
-    const transactionListItem = item as TransactionListItemType;
-    return transactionListItem.transactionID !== undefined;
+function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+    return 'transactions' in item;
 }
 
 function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
     if (Array.isArray(data)) {
         return data.some((item: TransactionListItemType | ReportListItemType) => {
-            if ('transactions' in item) {
+            if (isReportListItemType(item)) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
                     const transactionYear = new Date(TransactionUtils.getCreated(transaction)).getFullYear();
