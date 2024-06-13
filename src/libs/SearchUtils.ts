@@ -213,7 +213,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
             return 0;
         }
 
-        // We are guaranteed that both a and b will be string or number at the same time
+        // We are guaranteed that both a and b will be string or number at the same time.
         if (typeof aValue === 'string' && typeof bValue === 'string') {
             return sortOrder === CONST.SORT_ORDER.ASC ? aValue.toLowerCase().localeCompare(bValue) : bValue.toLowerCase().localeCompare(aValue);
         }
