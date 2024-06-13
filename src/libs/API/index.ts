@@ -46,8 +46,8 @@ let lastUpdateIDAppliedToClient = -1;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => {
-        if (value ?? 0) {
-            lastUpdateIDAppliedToClient = value ?? 0;
+        if (value) {
+            lastUpdateIDAppliedToClient = value;
         } else {
             lastUpdateIDAppliedToClient = -1;
         }
