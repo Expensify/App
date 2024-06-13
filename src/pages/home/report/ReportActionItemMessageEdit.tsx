@@ -109,17 +109,12 @@ function ReportActionItemMessageEdit(
 
     useEffect(() => {
         const parser = new ExpensiMark();
-        const videoAttributesCache: Record<string, string> = {};
+        draftMessageVideoAttributeCache.clear();
         const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '', {
             cacheVideoAttributes: (videoSource, attrs) => {
-                videoAttributesCache[videoSource] = attrs;
+                draftMessageVideoAttributeCache.set(videoSource, attrs);
             },
         });
-
-        draftMessageVideoAttributeCache.clear();
-        for (const [videoSource, attrs] of Object.entries(videoAttributesCache)) {
-            draftMessageVideoAttributeCache.set(videoSource, attrs);
-        }
 
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
