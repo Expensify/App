@@ -32,7 +32,7 @@ function UserInfoCell({participant, displayName}: UserInfoCellProps) {
             />
             <Text
                 numberOfLines={1}
-                style={[isLargeScreenWidth ? styles.textBold : styles.textBold, styles.flexShrink1]}
+                style={[isLargeScreenWidth ? styles.textBold : styles.textMicro, styles.flexShrink1]}
             >
                 {displayName}
             </Text>
