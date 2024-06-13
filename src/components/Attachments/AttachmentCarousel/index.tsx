@@ -190,7 +190,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         () =>
             Gesture.Pan()
                 .enabled(canUseTouchScreen && zoomScale === 1)
-                .onUpdate(({translationX}) => scrollTo(scrollRef, page * cellWidth - translationX, 0, false))
+                .onUpdate(({translationX}) => scrollTo(scrollRef, page * cellWidth - translationX * 2, 0, false))
                 .onEnd(({translationX, velocityX}) => {
                     let newIndex;
                     if (velocityX > MIN_FLING_VELOCITY) {
