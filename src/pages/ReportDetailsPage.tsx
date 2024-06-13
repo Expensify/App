@@ -269,7 +269,27 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
         return items;
-    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, shouldShowMenuItem, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
+    }, [
+        isSelfDM,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isSystemChat,
+        isPolicyExpenseChat,
+        shouldShowMenuItem,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        isTaskReport,
+        shouldShowLeaveButton,
+        activeChatMembers.length,
+        session,
+        leaveChat,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
