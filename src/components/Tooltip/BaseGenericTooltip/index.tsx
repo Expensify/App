@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import {isMobile} from '@libs/Browser';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
 import type {BaseGenericTooltipProps} from './types';
@@ -105,7 +104,13 @@ function BaseGenericTooltip({
         );
     }
 
-    const innerTooltip = (
+    const body = document.querySelector('body');
+
+    if (!body) {
+        return null;
+    }
+
+    return ReactDOM.createPortal(
         <Animated.View
             ref={viewRef(rootWrapper)}
             style={[rootWrapperStyle, animationStyle]}
@@ -114,20 +119,9 @@ function BaseGenericTooltip({
             <View style={pointerWrapperStyle}>
                 <View style={pointerStyle} />
             </View>
-        </Animated.View>
+        </Animated.View>,
+        body,
     );
-
-    if (isMobile()) {
-        return innerTooltip;
-    }
-
-    const body = document.querySelector('body');
-
-    if (!body) {
-        return null;
-    }
-
-    return ReactDOM.createPortal(innerTooltip, body);
 }
 
 BaseGenericTooltip.displayName = 'BaseGenericTooltip';

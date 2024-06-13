@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {Animated} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -6,6 +6,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import StringUtils from '@libs/StringUtils';
+import TooltipRefManager from '@libs/TooltipRefManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
@@ -134,6 +135,8 @@ function GenericTooltip({
 
         setIsVisible(false);
     }, []);
+
+    useImperativeHandle(TooltipRefManager.ref, () => ({hideTooltip}), [hideTooltip]);
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
