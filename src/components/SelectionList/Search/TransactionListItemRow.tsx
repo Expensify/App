@@ -95,7 +95,7 @@ function ReceiptCell({transactionItem, isHovered = false}: ReceiptCellProps) {
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
 
-    const created = TransactionUtils.getCreatedDate(transactionItem);
+    const created = TransactionUtils.getCreated(transactionItem);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
     return (
@@ -302,7 +302,7 @@ function TransactionListItemRow({
                         isHovered={isHovered}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE, item.doesAtleastOneExpenseBelongToAPastYear)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}

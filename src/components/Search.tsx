@@ -35,11 +35,6 @@ type SearchProps = {
 
 const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
 
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
-    const transactionListItem = item as TransactionListItemType;
-    return transactionListItem.transactionID !== undefined;
-}
-
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -122,7 +117,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isSortingAllowed = sortableSearchTabs.includes(query);
 
-    const doesAtleastOneExpenseBelongToAPastYear = SearchUtils.doesAtleastOneExpenseBelongToAPastYear(searchResults?.data);
+    const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
@@ -133,7 +128,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     sortOrder={sortOrder}
                     isSortingAllowed={isSortingAllowed}
                     sortBy={sortBy}
-                    doesAtleastOneExpenseBelongToAPastYear={doesAtleastOneExpenseBelongToAPastYear}
+                    shouldShowYear={shouldShowYear}
                 />
             }
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,

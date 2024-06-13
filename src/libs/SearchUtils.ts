@@ -79,13 +79,19 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 
 const currentYear = new Date().getFullYear();
 
-function doesAtleastOneExpenseBelongToAPastYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
+
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
+}
+
+function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
     if (Array.isArray(data)) {
         return data.some((item: TransactionListItemType | ReportListItemType) => {
             if ('transactions' in item) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
-                    const transactionYear = new Date(TransactionUtils.getCreatedDate(transaction)).getFullYear();
+                    const transactionYear = new Date(TransactionUtils.getCreated(transaction)).getFullYear();
                     return transactionYear !== currentYear;
                 });
             }
@@ -98,7 +104,7 @@ function doesAtleastOneExpenseBelongToAPastYear(data: TransactionListItemType[] 
     for (const [key, transactionItem] of Object.entries(data)) {
         if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
             const item = transactionItem as SearchTransaction;
-            const date = TransactionUtils.getCreatedDate(item);
+            const date = TransactionUtils.getCreated(item);
 
             if (DateUtils.doesDateBelongToAPastYear(date)) {
                 return true;
@@ -111,7 +117,7 @@ function doesAtleastOneExpenseBelongToAPastYear(data: TransactionListItemType[] 
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
-    const doesDataContainAPastYearTransaction = doesAtleastOneExpenseBelongToAPastYear(data);
+    const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
@@ -138,7 +144,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 shouldShowTag: true,
                 shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
-                doesAtleastOneExpenseBelongToAPastYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: doesDataContainAPastYearTransaction,
             };
         });
 }
@@ -146,7 +152,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
 function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
-    const doesDataContainAPastYearTransaction = doesAtleastOneExpenseBelongToAPastYear(data);
+    const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
@@ -183,7 +189,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 shouldShowTag: true,
                 shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
-                doesAtleastOneExpenseBelongToAPastYear: doesDataContainAPastYearTransaction,
+                shouldShowYear: doesDataContainAPastYearTransaction,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -268,5 +274,5 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, doesAtleastOneExpenseBelongToAPastYear};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
 export type {SearchColumnType, SortOrder};

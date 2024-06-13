@@ -169,8 +169,10 @@ type TransactionListItemType = ListItem &
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
 
-        /** Info about whether there's atleast one transaction that doesn't belong to the present year */
-        doesAtleastOneExpenseBelongToAPastYear: boolean;
+        /** Whether we should show the transaction year.
+         * This is true if at least one transaction in the data set was create in a previous year
+         */
+        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &

@@ -459,7 +459,7 @@ function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number
     return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
-function getCreatedDate(transaction: OnyxEntry<Transaction>): string {
+function getCreated(transaction: OnyxEntry<Transaction>): string {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
 }
@@ -467,8 +467,8 @@ function getCreatedDate(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
-    const created = getCreatedDate(transaction);
+function getFormattedCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const created = getCreated(transaction);
     return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
@@ -815,8 +815,8 @@ export {
     getOriginalAmount,
     getMerchant,
     getMCCGroup,
-    getCreatedDate,
     getCreated,
+    getFormattedCreated,
     getCategory,
     getBillable,
     getTag,
