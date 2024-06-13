@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
@@ -13,7 +13,7 @@ import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
-let lastUpdateIDAppliedToClient: OnyxEntry<number> = 0;
+let lastUpdateIDAppliedToClient: number | undefined = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
@@ -102,7 +102,7 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
         return Promise.resolve();
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
@@ -151,4 +151,4 @@ function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0)
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, doesClientNeedToBeUpdated, apply};
+export {apply, doesClientNeedToBeUpdated, saveUpdateInformation};
