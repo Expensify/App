@@ -9,7 +9,6 @@ import type {TextPickerProps} from './types';
 
 function TextPicker({value, description, placeholder = '', errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: TextPickerProps, forwardedRef: ForwardedRef<View>) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {

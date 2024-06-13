@@ -8,7 +8,6 @@ import AmountSelectorModal from './AmountSelectorModal';
 import type {AmountPickerProps} from './types';
 
 function AmountPicker({value, description, title, errorText = '', onInputChange, furtherDetails, rightLabel, ...rest}: AmountPickerProps, forwardedRef: ForwardedRef<View>) {
-    const StyleUtils = useStyleUtils();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
