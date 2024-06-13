@@ -693,8 +693,6 @@ function ReportActionItem({
                                         Session.signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    // TODO: Remove toggleEmojiReaction and use the new API
-                                    // Report.toggleEmojiReaction(report.reportID, action, emoji, emojiReactions);
                                     toggleReaction(emoji);
                                 }
                             }}
