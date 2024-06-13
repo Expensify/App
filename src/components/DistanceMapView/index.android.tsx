@@ -5,6 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MapView from '@components/MapView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type DistanceMapViewProps from './types';
 
@@ -13,6 +14,7 @@ function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const theme = useTheme();
 
     return (
         <>
@@ -33,6 +35,7 @@ function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
                         title={translate('distance.mapPending.title')}
                         subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
                         shouldShowLink={false}
+                        iconColor={theme.border}
                     />
                 </View>
             )}

@@ -85,6 +85,8 @@ function BaseSelectionList<TItem extends ListItem>(
         onEndReachedThreshold,
         windowSize = 5,
         updateCellsBatchingPeriod = 50,
+        removeClippedSubviews = true,
+        shouldDelayFocus = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -506,27 +508,28 @@ function BaseSelectionList<TItem extends ListItem>(
         };
     }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
 
+    /** Function to focus text input */
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef.current) {
+            return;
+        }
+
+        innerTextInputRef.current.focus();
+    }, []);
+
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
-            if (!textInputAutoFocus) {
-                return;
-            }
-            if (shouldShowTextInput) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    if (!innerTextInputRef.current) {
-                        return;
-                    }
-                    innerTextInputRef.current.focus();
-                }, CONST.ANIMATED_TRANSITION);
-            }
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
+            if (textInputAutoFocus && shouldShowTextInput) {
+                if (shouldDelayFocus) {
+                    focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+                } else {
+                    focusTextInput();
                 }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [shouldShowTextInput, textInputAutoFocus]),
+            }
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldShowTextInput, textInputAutoFocus, shouldDelayFocus, focusTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
@@ -677,6 +680,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         <>
                             {!listHeaderContent && header()}
                             <SectionList
+                                removeClippedSubviews={removeClippedSubviews}
                                 ref={listRef}
                                 sections={slicedSections}
                                 stickySectionHeadersEnabled={false}

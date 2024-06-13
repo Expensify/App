@@ -134,7 +134,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-13-large
+    runs-on: macos-14-large
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -365,6 +365,17 @@ jobs:
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Build a version of iOS and Android HybridApp if we are deploying to staging
+  hybridApp:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name == 'push' }}
+    steps:
+      - name: 'Deploy HybridApp'
+        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true
+        env:
+            GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
