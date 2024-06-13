@@ -355,7 +355,7 @@ export default {
         errorWhileSelectingCorruptedAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
-        chooseDocument: 'Elegir documento',
+        chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
@@ -1641,6 +1641,8 @@ export default {
         facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
+        letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
+        butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
         cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
@@ -1684,8 +1686,8 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
-        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
-        checkPlease: 'Por favor, revisa.',
+        reviewTheFees: 'Por favor, revisa las siguientes tarifas.',
+        checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
@@ -2537,7 +2539,7 @@ export default {
             VBANoECardCopy:
                 'Añade tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
-            benefit1: 'Hasta un 2% de devolución en tus gastos',
+            benefit1: 'Devolución de dinero en cada compra en Estados Unidos',
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
@@ -3762,9 +3764,8 @@ export default {
             annual: 'Suscripción anual',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
-            headsUpTitle: 'Atención: ',
-            headsUpBody:
-                'Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            headsUp:
+                'Atención: Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
             zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
         },
         subscriptionSize: {
