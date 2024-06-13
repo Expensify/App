@@ -84,7 +84,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID), [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
