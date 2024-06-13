@@ -86,16 +86,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID), [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
-    const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const shouldShowRoomName =
-        !ReportUtils.isChatThread(report) &&
-        !isDeprecatedGroupDM &&
-        !isPolicyExpenseChat &&
-        !isTaskReport &&
-        !isMoneyRequestReport &&
-        !isInvoiceRoom &&
-        !(isMoneyRequestReport || isInvoiceReport || isMoneyRequest);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
@@ -200,7 +191,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !ReportUtils.isTaskReport(report)) {
+        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -340,10 +331,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
-                    <View style={[styles.reportDetailsTitleContainer, !shouldShowRoomName && styles.mb5]}>
+                    <View style={[styles.reportDetailsTitleContainer, shouldDisableRename && styles.mb5]}>
                         {renderedAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-                            {!shouldShowRoomName && (
+                            {shouldDisableRename && (
                                 <>
                                     <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                         <DisplayNames
@@ -383,7 +374,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                     </View>
-                    {shouldShowRoomName && (
+                    {!shouldDisableRename && (
                         <OfflineWithFeedback
                             pendingAction={report?.pendingFields?.reportName}
                             errors={report?.errorFields?.reportName}

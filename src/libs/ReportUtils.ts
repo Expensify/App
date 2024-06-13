@@ -6101,11 +6101,9 @@ function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => (report?.policyID ?? '') === policyID);
 }
 
-/**
- * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
- */
-function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (isDefaultRoom(report) || isArchivedRoom(report) || isThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
+
+function shouldDisableRename(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): boolean {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isThread(report) || isMoneyRequest(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isInvoiceRoom(report) || isInvoiceReport(report)) {
         return true;
     }
 
@@ -6113,13 +6111,16 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return false;
     }
 
-    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
-    // which means this has to be a public room we want to disable renaming for
-    if (!policy) {
+    if (isDeprecatedGroupDM(report) || isTaskReport(report)) {
         return true;
     }
 
-    // If there is a linked workspace, that means the user is a member of the workspace the report is in and is allowed to rename.
+    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
+    // which means this has to be a public room we want to disable renaming for
+    if (isChatRoom(report) && !policy) {
+        return true;
+    }
+
     return false;
 }
 
