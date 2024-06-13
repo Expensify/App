@@ -36,7 +36,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
 
     const adminChatReport = useMemo(() => {
         const adminPolicy = activePolicyID
-            ? PolicyUtils.getPolicy(activePolicyID ?? '')
+            ? PolicyUtils.getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
         return ReportUtils.getReport(String(adminPolicy?.chatReportIDAdmins));
@@ -70,7 +70,14 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
             containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
             icon={Expensicons.Lightbulb}
-            content={<Text suppressHighlighting>{content}</Text>}
+            content={
+                <Text
+                    suppressHighlighting
+                    style={styles.flex1}
+                >
+                    {content}
+                </Text>
+            }
         />
     );
 }
@@ -86,6 +93,5 @@ export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFoot
     },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        initialValue: null,
     },
 })(SystemChatReportFooterMessage);

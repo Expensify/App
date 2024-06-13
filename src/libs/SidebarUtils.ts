@@ -63,6 +63,16 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
 }
 
 /**
+ * A mini report object that contains only the necessary information to sort reports.
+ * This is used to avoid copying the entire report object and only the necessary information.
+ */
+type MiniReport = {
+    reportID?: string;
+    displayName: string;
+    lastVisibleActionCreated?: string;
+};
+
+/**
  * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(
@@ -132,10 +142,10 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedAndGBRReports: Array<OnyxEntry<Report>> = [];
-    const draftReports: Array<OnyxEntry<Report>> = [];
-    const nonArchivedReports: Array<OnyxEntry<Report>> = [];
-    const archivedReports: Array<OnyxEntry<Report>> = [];
+    const pinnedAndGBRReports: MiniReport[] = [];
+    const draftReports: MiniReport[] = [];
+    const nonArchivedReports: MiniReport[] = [];
+    const archivedReports: MiniReport[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
@@ -144,24 +154,23 @@ function getOrderedReportIDs(
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
-        let report = reportToDisplay as OnyxEntry<Report>;
-        if (report) {
-            report = {
-                ...report,
-                displayName: ReportUtils.getReportName(report),
-            };
-        }
+        const report = reportToDisplay as OnyxEntry<Report>;
+        const miniReport: MiniReport = {
+            reportID: report?.reportID,
+            displayName: ReportUtils.getReportName(report),
+            lastVisibleActionCreated: report?.lastVisibleActionCreated,
+        };
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
-            pinnedAndGBRReports.push(report);
+            pinnedAndGBRReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID ?? '')) {
-            draftReports.push(report);
+            draftReports.push(miniReport);
         } else if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
+            archivedReports.push(miniReport);
         } else {
-            nonArchivedReports.push(report);
+            nonArchivedReports.push(miniReport);
         }
     });
 

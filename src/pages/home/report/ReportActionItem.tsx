@@ -111,7 +111,7 @@ type ReportActionItemOnyxProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction (linked with the report action) route error */
-    linkedTransactionRouteError: OnyxEntry<Errors>;
+    linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
 
 type ReportActionItemProps = {

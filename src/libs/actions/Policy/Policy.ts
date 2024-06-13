@@ -120,14 +120,14 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = null;
+let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
 });
 
-let lastAccessedWorkspacePolicyID: OnyxEntry<string> = null;
+let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
     callback: (value) => (lastAccessedWorkspacePolicyID = value),
@@ -159,7 +159,7 @@ Onyx.connect({
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
 function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID);
+    Onyx.set(ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID, policyID ?? null);
 }
 
 /**
@@ -334,7 +334,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
-        updateLastAccessedWorkspace(null);
+        updateLastAccessedWorkspace(undefined);
     }
 }
 
