@@ -1,3 +1,8 @@
+/**
+ * Internal cache structure type.
+ * - `array` - it operates on an array, which enables both `shallow` and `deep` comparison of keys. Check `ArrayCacheConfig` for more details.
+ * - `map` - it operates on a map, which enables faster lookup but requires `deep` comparison of keys only. Check `MapCacheConfig` for more details.
+ */
 type CacheMode = 'array' | 'map';
 
 type MapCacheConfig = {
