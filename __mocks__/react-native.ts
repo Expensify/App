@@ -86,7 +86,7 @@ jest.doMock('react-native', () => {
             },
             Dimensions: {
                 ...ReactNative.Dimensions,
-                addEventListener: jest.fn(),
+                addEventListener: jest.fn(() => ({remove: jest.fn()})),
                 get: () => dimensions,
                 set: (newDimensions: Record<string, number>) => {
                     dimensions = newDimensions;
