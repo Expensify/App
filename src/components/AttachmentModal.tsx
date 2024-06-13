@@ -620,7 +620,6 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
             const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '0' : '0';
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
-        initWithStoredValues: false,
     },
 })(memo(AttachmentModal));
 
