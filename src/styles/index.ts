@@ -2582,7 +2582,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
             paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         reportDetailsRoomInfo: {
