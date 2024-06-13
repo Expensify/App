@@ -94,20 +94,22 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                 accessibilityLabel={translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
-                    <Checkbox
-                        style={[styles.mr2]}
-                        containerStyle={[styles.taskCheckbox]}
-                        isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
-                        onPress={Session.checkIfActionIsAllowed(() => {
-                            if (isTaskCompleted) {
-                                Task.reopenTask(taskReport);
-                            } else {
-                                Task.completeTask(taskReport);
-                            }
-                        })}
-                        accessibilityLabel={translate('task.task')}
-                    />
+                    <View style={[styles.taskCheckboxWrapper]}>
+                        <Checkbox
+                            style={[styles.mr2]}
+                            containerStyle={[styles.taskCheckbox]}
+                            isChecked={isTaskCompleted}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
+                            onPress={Session.checkIfActionIsAllowed(() => {
+                                if (isTaskCompleted) {
+                                    Task.reopenTask(taskReport);
+                                } else {
+                                    Task.completeTask(taskReport);
+                                }
+                            })}
+                            accessibilityLabel={translate('task.task')}
+                        />
+                    </View>
                     <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                 </View>
                 <Icon
