@@ -106,7 +106,7 @@ function ReportActionItemSingle({
     }
 
     // If this is a report preview, display names and avatars of both people involved
-    const secondaryAvatar = ReportUtils.getSecondaryAvatar(report, iouReport ?? null, displayAllActors, isWorkspaceActor, actorAccountID);
+    const secondaryAvatar = ReportUtils.getSecondaryAvatar(report, iouReport, displayAllActors, isWorkspaceActor, actorAccountID);
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
