@@ -123,7 +123,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
-    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
@@ -221,7 +221,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
                                                 !!optionItem.isInvoiceReport ||
-                                                ReportUtils.isGroupChat(report)
+                                                ReportUtils.isGroupChat(report) ||
+                                                ReportUtils.isSystemChat(report)
                                             }
                                         />
                                         {isStatusVisible && (
