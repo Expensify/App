@@ -79,7 +79,6 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 
 const currentYear = new Date().getFullYear();
 
-
 function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
     return 'transactions' in item;
 }

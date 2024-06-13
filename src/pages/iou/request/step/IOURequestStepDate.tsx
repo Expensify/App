@@ -70,7 +70,8 @@ function IOURequestStepDate({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
-    const currentCreated = isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getFormattedCreated(splitDraftTransaction) : TransactionUtils.getFormattedCreated(transaction);
+    const currentCreated =
+        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? TransactionUtils.getFormattedCreated(splitDraftTransaction) : TransactionUtils.getFormattedCreated(transaction);
     const parentReportAction = reportActions?.[(isEditingSplitBill ? reportActionID : report?.parentReportActionID) ?? -1];
     const canEditingSplitBill =
         isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
