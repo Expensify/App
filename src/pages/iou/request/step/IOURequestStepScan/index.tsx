@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +15,7 @@ import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -62,7 +64,7 @@ function IOURequestStepScan({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState<TranslationPaths>();
     const [attachmentInvalidReason, setAttachmentValidReason] = useState<TranslationPaths>();
-
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -187,6 +189,7 @@ function IOURequestStepScan({
         setIsAttachmentInvalid(isInvalid);
         setAttachmentInvalidReasonTitle(title);
         setAttachmentValidReason(reason);
+        setPdfFile(null);
     };
 
     function validateReceipt(file: FileObject) {
@@ -415,9 +418,13 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
+    const setReceiptAndNavigate = (file: FileObject, isPdfValidated?: boolean) => {
         validateReceipt(file).then((isFileValid) => {
             if (!isFileValid) {
+                return;
+            }
+            if (Str.isPDF(file.name ?? '') && !isPdfValidated) {
+                setPdfFile(file);
                 return;
             }
             // Store the receipt on the transaction object in Onyx
@@ -512,6 +519,28 @@ function IOURequestStepScan({
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
+                {pdfFile && (
+                    <PDFThumbnail
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        previewSourceURL={pdfFile.uri ?? ''}
+                        // We don't support scanning password protected PDF receipt
+                        // enabled={!isAttachmentInvalid}
+                        onLoadSuccess={() => {
+                            setPdfFile(null);
+                            setReceiptAndNavigate(pdfFile, true);
+                        }}
+                        onPassword={() => {
+                            // setIsAttachmentInvalid(true);
+                            // setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
+                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        }}
+                        onLoadError={() => {
+                            // setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            // setIsAttachmentInvalid(true);
+                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        }}
+                    />
+                )}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -610,6 +639,23 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
+            {pdfFile && (
+                <View style={{position: 'absolute', opacity: 0}}>
+                    <PDFThumbnail
+                        previewSourceURL={pdfFile.uri ?? ''}
+                        onPassword={() => {
+                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        }}
+                        onLoadSuccess={() => {
+                            setPdfFile(null);
+                            setReceiptAndNavigate(pdfFile, true);
+                        }}
+                        onLoadError={() => {
+                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        }}
+                    />
+                </View>
+            )}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
