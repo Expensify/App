@@ -91,9 +91,9 @@ function MoneyRequestPreviewContent({
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
-    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '-1', transactionViolations);
     const hasNoticeTypeViolations = !!(
-        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations) &&
+        TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '-1', transactionViolations) &&
         ReportUtils.isPaidGroupPolicy(iouReport) &&
         canUseViolations
     );
@@ -197,7 +197,7 @@ function MoneyRequestPreviewContent({
         if (TransactionUtils.isPending(transaction)) {
             return {shouldShow: true, messageIcon: Expensicons.CreditCardHourglass, messageDescription: translate('iou.transactionPending')};
         }
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
             return {shouldShow: true, messageIcon: Expensicons.Hourglass, messageDescription: translate('iou.pendingMatchWithCreditCard')};
         }
         return {shouldShow: false};

@@ -90,7 +90,7 @@ function ReportActionItemMessage({action, transaction, displayAsGroup, reportID,
                 pendingAction={action.pendingAction}
                 actionName={action.actionName}
                 source={(action.originalMessage as OriginalMessageAddComment['originalMessage'])?.source}
-                accountID={action.actorAccountID ?? 0}
+                accountID={action.actorAccountID ?? -1}
                 style={style}
                 displayAsGroup={displayAsGroup}
                 isApprovedOrSubmittedReportAction={isApprovedOrSubmittedReportAction}
@@ -125,6 +125,6 @@ ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
 export default withOnyx<ReportActionItemMessageProps, ReportActionItemMessageOnyxProps>({
     transaction: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(action) ?? -1}`,
     },
 })(ReportActionItemMessage);

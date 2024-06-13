@@ -71,7 +71,7 @@ function AvatarWithDisplayName({
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
         actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
     }, [parentReportActions, report]);
 
@@ -182,7 +182,7 @@ AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
         canEvict: false,
     },
     personalDetails: {
