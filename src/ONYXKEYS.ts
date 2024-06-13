@@ -169,6 +169,9 @@ const ONYXKEYS = {
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
 
+    /** The start date of the workspace owner’s free trial period. */
+    NVP_FIRST_DAY_FREE_TRIAL: 'nvp_private_firstDayFreeTrial',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -699,6 +702,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
+    [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
