@@ -170,7 +170,28 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
 
         const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
-        return !isOffline && !!accessToken && !!currentPosition ? (
+        const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
+            if (!interactive) {
+                if (!waypoints) {
+                    return undefined;
+                }
+                const {northEast, southWest} = utils.getBounds(
+                    waypoints.map((waypoint) => waypoint.coordinate),
+                    directionCoordinates,
+                );
+                return {
+                    zoomLevel: initialState?.zoom,
+                    bounds: {ne: northEast, sw: southWest},
+                };
+            } else {
+                return {
+                    centerCoordinate,
+                    zoomLevel: initialState?.zoom,
+                };
+            }
+        }, [waypoints, directionCoordinates, interactive]);
+
+        return !isOffline && !!accessToken && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     style={{flex: 1}}
@@ -186,43 +207,42 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 >
                     <Mapbox.Camera
                         ref={cameraRef}
-                        defaultSettings={{
-                            centerCoordinate,
-                            zoomLevel: initialState?.zoom,
-                        }}
+                        defaultSettings={defaultSettings}
                         // Include centerCoordinate here as well to address the issue of incorrect coordinates
                         // displayed after the first render when the app's storage is cleared.
                         centerCoordinate={centerCoordinate}
                     />
-                    <Mapbox.ShapeSource
-                        id="user-location"
-                        shape={{
-                            type: 'FeatureCollection',
-                            features: [
-                                {
-                                    type: 'Feature',
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                    {interactive && (
+                        <Mapbox.ShapeSource
+                            id="user-location"
+                            shape={{
+                                type: 'FeatureCollection',
+                                features: [
+                                    {
+                                        type: 'Feature',
+                                        geometry: {
+                                            type: 'Point',
+                                            coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                                        },
+                                        properties: {},
                                     },
-                                    properties: {},
-                                },
-                            ],
-                        }}
-                    >
-                        <Mapbox.CircleLayer
-                            id="user-location-layer"
-                            sourceID="user-location"
-                            style={{
-                                circleColor: colors.blue400,
-                                circleRadius: 8,
+                                ],
                             }}
-                        />
-                    </Mapbox.ShapeSource>
+                        >
+                            <Mapbox.CircleLayer
+                                id="user-location-layer"
+                                sourceID="user-location"
+                                style={{
+                                    circleColor: colors.blue400,
+                                    circleRadius: 8,
+                                }}
+                            />
+                        </Mapbox.ShapeSource>
+                    )}
 
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
-                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0])) {
+                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
                             return null;
                         }
                         return (
@@ -238,22 +258,24 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <PressableWithoutFeedback
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        onPress={centerMap}
-                        accessibilityLabel={translate('common.center')}
-                    >
-                        <View style={styles.primaryMediumIcon}>
-                            <Icon
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                                src={Expensicons.Crosshair}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </PressableWithoutFeedback>
-                </View>
+                {interactive && (
+                    <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                        <PressableWithoutFeedback
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            onPress={centerMap}
+                            accessibilityLabel={translate('common.center')}
+                        >
+                            <View style={styles.primaryMediumIcon}>
+                                <Icon
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                    src={Expensicons.Crosshair}
+                                    fill={theme.icon}
+                                />
+                            </View>
+                        </PressableWithoutFeedback>
+                    </View>
+                )}
             </View>
         ) : (
             <PendingMapView
