@@ -451,11 +451,8 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             lineHeight: variables.lineHeightHero,
         },
+
         fontSizeNormal: {
-            fontSize: variables.fontSizeNormal,
-        },
-        textNewKansasNormal: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeNormal,
         },
 
