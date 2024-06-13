@@ -2829,6 +2829,7 @@ export default {
             search: 'Abrir diálogo de búsqueda',
             newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
+            openDebug: 'Open testing preferences',
         },
     },
     guides: {
