@@ -67,6 +67,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -110,7 +111,7 @@ type ReportActionItemOnyxProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction (linked with the report action) route error */
-    linkedTransactionRouteError: OnyxEntry<Errors>;
+    linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
 
 type ReportActionItemProps = {
@@ -398,7 +399,7 @@ function ReportActionItem({
     const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || action.originalMessage.choice !== '')) {
+        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || action.originalMessage.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
 
@@ -944,7 +945,7 @@ function ReportActionItem({
 
     const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
-    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
+    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
@@ -955,7 +956,7 @@ function ReportActionItem({
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
             onPress={draftMessage === undefined ? onPress : undefined}
-            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
             onPressIn={() => isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={() => ControlSelection.unblock()}
             onSecondaryInteraction={showPopover}
