@@ -181,6 +181,9 @@ const ONYXKEYS = {
     /** The amount owed by the workspace’s owner. */
     NVP_PRIVATE_AMOUNT_OWNED: 'nvp_private_amountOwed',
 
+    /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
+    NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -715,6 +718,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: number;
+    [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
