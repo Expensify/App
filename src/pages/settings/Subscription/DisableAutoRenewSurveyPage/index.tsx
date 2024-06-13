@@ -13,8 +13,8 @@ function DisableAutoRenewSurveyPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const handleSubmit = (key: FeedbackSurveyOptionID) => {
-        Subscription.updateSubscriptionAutoRenew(false, key);
+    const handleSubmit = (key: FeedbackSurveyOptionID, additionalNote?: string) => {
+        Subscription.updateSubscriptionAutoRenew(false, key, additionalNote);
         Navigation.goBack();
     };
 

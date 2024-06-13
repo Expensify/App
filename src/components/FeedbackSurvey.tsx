@@ -11,6 +11,7 @@ import FixedFooter from './FixedFooter';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import SingleOptionSelector from './SingleOptionSelector';
 import Text from './Text';
+import TextInput from './TextInput';
 
 type FeedbackSurveyProps = {
     /** Title of the survey */
@@ -20,7 +21,7 @@ type FeedbackSurveyProps = {
     description: string;
 
     /** Callback to be called when the survey is submitted */
-    onSubmit: (reason: FeedbackSurveyOptionID) => void;
+    onSubmit: (reason: FeedbackSurveyOptionID, additionalNote?: string) => void;
 
     /** Styles for the option row element */
     optionRowStyles?: StyleProp<ViewStyle>;
@@ -45,6 +46,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
 
     const selectCircleStyles: StyleProp<ViewStyle> = {borderColor: theme.border};
     const [reason, setReason] = useState<Option>();
+    const [additionalNote, setAdditionalNote] = useState('');
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
     const handleOptionSelect = (option: Option) => {
@@ -58,7 +60,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
             return;
         }
 
-        onSubmit(reason.key);
+        onSubmit(reason.key, additionalNote);
     };
 
     return (
@@ -73,6 +75,18 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
                     selectedOptionKey={reason?.key}
                     onSelectOption={handleOptionSelect}
                 />
+                {!!reason && (
+                    <>
+                        <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
+                        <TextInput
+                            label={translate('feedbackSurvey.additionalInfoInputLabel')}
+                            accessibilityLabel={translate('feedbackSurvey.additionalInfoInputLabel')}
+                            role={CONST.ROLE.PRESENTATION}
+                            onChangeText={setAdditionalNote}
+                            value={additionalNote}
+                        />
+                    </>
+                )}
             </View>
             <FixedFooter>
                 <FormAlertWithSubmitButton

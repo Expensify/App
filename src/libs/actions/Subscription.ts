@@ -61,7 +61,7 @@ function updateSubscriptionType(type: SubscriptionType) {
     });
 }
 
-function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID) {
+function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID, disableAutoRenewAdditionalNote?: string) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -99,6 +99,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
     const parameters: UpdateSubscriptionAutoRenewParams = {
         autoRenew,
         disableAutoRenewReason,
+        disableAutoRenewAdditionalNote,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW, parameters, {

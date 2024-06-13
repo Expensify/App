@@ -3800,7 +3800,7 @@ export default {
                 'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
             disableAutoRenew: 'Desactivar auto-renovación',
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
-            whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación de tu suscripción?',
+            whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
         },
     },
@@ -3809,5 +3809,7 @@ export default {
         tooExpensive: 'Demasiado caro',
         inadequateSupport: 'Atención al cliente inadecuada',
         businessClosing: 'Cierre, reducción, o adquisición de la empresa',
+        additionalInfoTitle: 'What software are you moving to and why?',
+        additionalInfoInputLabel: 'Tu respuesta',
     },
 } satisfies EnglishTranslation;
