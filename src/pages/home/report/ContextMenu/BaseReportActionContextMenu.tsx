@@ -130,9 +130,9 @@ function BaseReportActionContextMenu({
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
         if (isEmptyObject(reportActions) || reportActionID === '0') {
-            return null;
+            return;
         }
-        return reportActions[reportActionID] ?? null;
+        return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
@@ -239,7 +239,7 @@ function BaseReportActionContextMenu({
                     {filteredContextMenuActions.map((contextAction, index) => {
                         const closePopup = !isMini;
                         const payload: ContextMenuActionPayload = {
-                            reportAction: reportAction as ReportAction,
+                            reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
                             draftMessage,
                             selection,

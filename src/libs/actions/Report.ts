@@ -83,7 +83,6 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
-    PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
@@ -863,8 +862,8 @@ function openReport(
         });
 
         // Add optimistic personal details for new participants
-        const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
-        const settledPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+        const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
         const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
