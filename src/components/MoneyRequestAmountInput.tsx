@@ -88,6 +88,9 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
+
+    /** The width of inner content */
+    contentWidth?: number;
 };
 
 type Selection = {

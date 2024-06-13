@@ -13,7 +13,6 @@ import {MouseProvider} from '@hooks/useMouseContext';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -227,7 +226,6 @@ function MoneyRequestConfirmationList({
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
@@ -499,7 +497,6 @@ function MoneyRequestConfirmationList({
         }
 
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
-        const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
         const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
@@ -534,7 +531,6 @@ function MoneyRequestConfirmationList({
         shouldShowReadOnlySplits,
         currencyList,
         iouCurrencyCode,
-        StyleUtils,
         iouAmount,
         selectedParticipants,
         styles.flexWrap,
