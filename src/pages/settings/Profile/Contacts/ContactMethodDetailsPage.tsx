@@ -35,7 +35,7 @@ import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
-    id: policy?.id ?? '',
+    id: policy?.id ?? '-1',
     ownerAccountID: policy?.ownerAccountID,
     owner: policy?.owner ?? '',
 });

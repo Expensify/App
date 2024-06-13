@@ -60,7 +60,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID ?? '')) {
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, report?.policyID ?? '-1')) {
                 // The room name can't be set to one that already exists on the policy
                 ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
@@ -81,7 +81,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'))}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

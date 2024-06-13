@@ -241,8 +241,8 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? '';
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const transactionID = transaction?.transactionID ?? '-1';
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
         if (customUnitRateID || !canUseP2PDistanceRequests) {
@@ -511,7 +511,7 @@ function MoneyRequestConfirmationList({
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
                     disableKeyboard={false}
@@ -524,7 +524,7 @@ function MoneyRequestConfirmationList({
                     containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
             ),
@@ -1188,7 +1188,9 @@ function MoneyRequestConfirmationList({
                         isLabelHoverable={false}
                         interactive={!isReadOnly && canUpdateSenderWorkspace}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()),
+                            );
                         }}
                         style={styles.moneyRequestMenuItem}
                         labelStyle={styles.mt2}

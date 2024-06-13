@@ -7,6 +7,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -15,7 +16,6 @@ import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Rep
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
