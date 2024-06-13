@@ -36,13 +36,13 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             }
 
             setShowModal(true);
-            setHasError(status === RESULTS.BLOCKED);
+            setHasError(status === RESULTS.BLOCKED || status === RESULTS.DENIED);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
     const onConfirm = () => {
-        requestLocationPermission()
+        requestLocationPermission(hasError)
             .then((status) => {
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
@@ -70,7 +70,7 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             isVisible={showModal}
             onConfirm={onConfirm}
             onCancel={onCancel}
-            confirmText={translate('common.continue')}
+            confirmText={hasError ? translate('common.settings') : translate('common.continue')}
             cancelText={translate('common.notNow')}
             prompt={translate(hasError ? 'receipt.locationErrorMessage' : 'receipt.locationAccessMessage')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}

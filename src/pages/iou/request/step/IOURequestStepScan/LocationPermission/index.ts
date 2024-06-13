@@ -1,7 +1,8 @@
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 
-function requestLocationPermission(): Promise<PermissionStatus> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function requestLocationPermission(hasError: boolean): Promise<PermissionStatus> {
     return new Promise((resolve) => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
