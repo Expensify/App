@@ -62,7 +62,7 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     report: OnyxTypes.Report;
 
     /** The report action the transaction is tied to from the parent report */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportAction: OnyxEntry<OnyxTypes.ReportAction> | null;
 
     /** The reportID of the current report */
     reportID: string;
@@ -319,7 +319,7 @@ function HeaderView({
                                             <PressableWithoutFeedback
                                                 onPress={() => {
                                                     if (ReportUtils.canEditPolicyDescription(policy)) {
-                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? ''));
+                                                        Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(report.policyID ?? '-1'));
                                                         return;
                                                     }
                                                     Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
@@ -386,8 +386,7 @@ export default memo(
     withOnyx<HeaderViewProps, HeaderViewOnyxProps>({
         guideCalendarLink: {
             key: ONYXKEYS.ACCOUNT,
-            selector: (account) => account?.guideCalendarLink ?? null,
-            initialValue: null,
+            selector: (account) => account?.guideCalendarLink,
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`,
@@ -396,7 +395,7 @@ export default memo(
             key: ONYXKEYS.SESSION,
         },
         policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,

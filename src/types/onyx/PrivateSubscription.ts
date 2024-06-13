@@ -1,5 +1,5 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {SubscriptionType} from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of private subscription */
 type PrivateSubscription = {
@@ -22,10 +22,16 @@ type PrivateSubscription = {
     startDate: string;
 
     /** Subscription variant. "yearly2018" - annual, "monthly2018" - pay-per-use */
-    type: ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+    type: SubscriptionType;
 
     /** Subscription size */
     userCount?: number;
+
+    /** Pending action */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** An error message */
+    errors?: OnyxCommon.Errors;
 };
 
 export default PrivateSubscription;

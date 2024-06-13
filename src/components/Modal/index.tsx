@@ -22,7 +22,7 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const hideModal = () => {
         setStatusBarColor(previousStatusBarColor);
         onModalHide();
-        if (window.history.state.shouldGoBack) {
+        if (window.history.state?.shouldGoBack) {
             window.history.back();
         }
     };
