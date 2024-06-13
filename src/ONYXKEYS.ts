@@ -391,6 +391,10 @@ const ONYXKEYS = {
 
         // Search Page related
         SNAPSHOT: 'snapshot_',
+
+        // Shared NVPs
+        /** Collection of objects where each objects represents a workspace’s owner which is past due billing AND the user is a member of. */
+        SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_'
     },
 
     /** List of Form ids */
@@ -604,6 +608,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
 };
 
 type OnyxValuesMapping = {
