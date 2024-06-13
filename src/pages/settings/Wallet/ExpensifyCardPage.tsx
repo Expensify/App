@@ -140,7 +140,7 @@ function ExpensifyCardPage({
     const goToGetPhysicalCardFlow = () => {
         let updatedDraftValues = draftValues;
         if (!draftValues) {
-            updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(null, privatePersonalDetails, loginList);
+            updatedDraftValues = GetPhysicalCardUtils.getUpdatedDraftValues(undefined, privatePersonalDetails, loginList);
             // Form draft data needs to be initialized with the private personal details
             // If no draft data exists
             FormActions.setDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM, updatedDraftValues);

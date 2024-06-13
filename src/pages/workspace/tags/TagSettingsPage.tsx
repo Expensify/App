@@ -43,8 +43,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
 
-    const currentPolicyTag =
-        policyTag.tags[decodeURIComponent(route.params.tagName)] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === decodeURIComponent(route.params.tagName));
+    const currentPolicyTag = policyTag.tags[route.params.tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === route.params.tagName);
 
     useEffect(() => {
         if (currentPolicyTag?.name === route.params.tagName || !currentPolicyTag) {

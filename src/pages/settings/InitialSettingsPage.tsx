@@ -85,7 +85,7 @@ type MenuData = {
     iconStyles?: StyleProp<ViewStyle>;
     fallbackIcon?: IconAsset;
     shouldStackHorizontally?: boolean;
-    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     floatRightAvatars?: TIcon[];
     title?: string;
     shouldShowRightIcon?: boolean;
