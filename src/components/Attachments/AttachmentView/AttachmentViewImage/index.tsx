@@ -15,18 +15,14 @@ type AttachmentViewImageProps = Pick<AttachmentViewProps, 'isAuthTokenRequired' 
 
     /** Function for handle on error */
     onError?: () => void;
-
-    /** Function for handle on close */
-    onClose?: () => void;
 };
 
-function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, onClose, isImage}: AttachmentViewImageProps) {
+function AttachmentViewImage({url, file, isAuthTokenRequired, loadComplete, onPress, onError, isImage}: AttachmentViewImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const children = (
         <ImageView
             onError={onError}
-            onSwipeDown={onClose}
             url={url}
             fileName={file?.name ?? ''}
             isAuthTokenRequired={isImage && isAuthTokenRequired}

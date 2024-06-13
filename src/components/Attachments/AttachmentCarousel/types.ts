@@ -1,4 +1,6 @@
+import type {ForwardedRef} from 'react';
 import type {ViewToken} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
@@ -38,6 +40,12 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
 
     /** A callback that is called when swipe-down-to-close gesture happens */
     onClose: () => void;
+
+    /** The ref of the pager */
+    pagerRef: ForwardedRef<GestureType>;
+
+    /** The zoom scale of the attachment */
+    zoomScale?: number;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};

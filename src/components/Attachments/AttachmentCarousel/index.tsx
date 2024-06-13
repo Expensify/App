@@ -1,7 +1,9 @@
 import isEqual from 'lodash/isEqual';
+import type {MutableRefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef} from 'react-native-reanimated';
@@ -33,7 +35,7 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, onClose, setDownloadButtonVisibility, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, pagerRef, zoomScale}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -174,7 +176,6 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         ({item}: ListRenderItemInfo<Attachment>) => (
             <View style={[styles.h100, {width: cellWidth}]}>
                 <CarouselItem
-                    onClose={onClose}
                     item={item}
                     isFocused={activeSource === item.source}
                     onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
@@ -182,13 +183,13 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, onClose, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
         () =>
             Gesture.Pan()
-                .enabled(canUseTouchScreen)
+                .enabled(canUseTouchScreen && zoomScale === 1)
                 .onUpdate(({translationX}) => scrollTo(scrollRef, page * cellWidth - translationX, 0, false))
                 .onEnd(({translationX, velocityX}) => {
                     let newIndex;
@@ -205,8 +206,9 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                     }
 
                     scrollTo(scrollRef, newIndex * cellWidth, 0, true);
-                }),
-        [attachments.length, canUseTouchScreen, cellWidth, page, scrollRef],
+                })
+                .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
+        [attachments.length, canUseTouchScreen, cellWidth, page, pagerRef, scrollRef, zoomScale],
     );
 
     return (

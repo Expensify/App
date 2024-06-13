@@ -1,20 +1,17 @@
 import type {SyntheticEvent} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, ViewStyle} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
 import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
 import type {ImageOnLoadEvent} from '@components/Image/types';
-import {SPRING_CONFIG} from '@components/MultiGestureCanvas/constants';
+import Lightbox from '@components/Lightbox';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
@@ -22,7 +19,7 @@ import type ImageViewProps from './types';
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
-function ImageView({isAuthTokenRequired = false, url, fileName, onError, onSwipeDown}: ImageViewProps) {
+function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +33,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, onSwipe
     const [initialX, setInitialX] = useState(0);
     const [initialY, setInitialY] = useState(0);
     const [imgWidth, setImgWidth] = useState(0);
-    const [imgContainerHeight, setImgContainerHeight] = useState(0);
-    const [imgContainerWidth, setImgContainerWidth] = useState(0);
     const [imgHeight, setImgHeight] = useState(0);
     const [zoomScale, setZoomScale] = useState(0);
     const [zoomDelta, setZoomDelta] = useState<ZoomDelta>();
@@ -53,134 +48,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, onSwipe
         const newZoomScale = Math.min(newContainerWidth / newImageWidth, newContainerHeight / newImageHeight);
         setZoomScale(newZoomScale);
     };
-    const scale = useSharedValue(1);
-    const deltaScale = useSharedValue(1);
-    const minScale = 1.0;
-    const maxScale = 20;
-    const translationX = useSharedValue(1);
-    const translationY = useSharedValue(1);
-    const prevTranslationX = useSharedValue(0);
-    const prevTranslationY = useSharedValue(0);
-    const zoomedContentWidth = useDerivedValue(() => imgContainerWidth * scale.value, [imgContainerWidth, scale.value]);
-    const zoomedContentHeight = useDerivedValue(() => imgContainerHeight * scale.value, [imgContainerHeight, scale.value]);
-    const maxTranslateX = useMemo(() => imgContainerWidth / 2, [imgContainerWidth]);
-    const maxTranslateY = useMemo(() => containerHeight / 2, [containerHeight]);
-    const horizontalBoundaries = useMemo(() => {
-        let horizontalBoundary = 0;
-        if (containerWidth < zoomedContentWidth.value) {
-            horizontalBoundary = Math.abs(containerWidth - zoomedContentWidth.value) / 2;
-        }
-        return {min: -horizontalBoundary, max: horizontalBoundary};
-    }, [containerWidth, zoomedContentWidth.value]);
-    const verticalBoundaries = useMemo(() => {
-        let verticalBoundary = 0;
-        if (containerHeight < zoomedContentHeight.value) {
-            verticalBoundary = Math.abs(zoomedContentHeight.value - containerHeight) / 2;
-        }
-        return {min: -verticalBoundary, max: verticalBoundary};
-    }, [containerHeight, zoomedContentHeight.value]);
-    const pinchGesture = Gesture.Pinch()
-        .onStart(() => {
-            deltaScale.value = scale.value;
-        })
-        .onUpdate((e) => {
-            if (scale.value < minScale / 2) {
-                return;
-            }
-            scale.value = deltaScale.value * e.scale;
-        })
-        .onEnd(() => {
-            if (scale.value < minScale) {
-                scale.value = withSpring(minScale, SPRING_CONFIG);
-                translationX.value = 0;
-                translationY.value = 0;
-            }
-            if (scale.value > maxScale) {
-                scale.value = withSpring(maxScale, SPRING_CONFIG);
-            }
-            deltaScale.value = scale.value;
-        })
-        .runOnJS(true);
-    const clamp = (val: number, min: number, max: number) => {
-        'worklet';
-
-        return Math.min(Math.max(val, min), max);
-    };
-    const panGesture = Gesture.Pan()
-        .onStart(() => {
-            'worklet';
-
-            prevTranslationX.value = translationX.value;
-            prevTranslationY.value = translationY.value;
-        })
-        .onUpdate((e) => {
-            'worklet';
-
-            if (scale.value === minScale) {
-                if (e.translationX === 0 && e.translationY > 0) {
-                    translationY.value = clamp(prevTranslationY.value + e.translationY, -maxTranslateY, maxTranslateY);
-                } else {
-                    return;
-                }
-            }
-            translationX.value = clamp(prevTranslationX.value + e.translationX, -maxTranslateX, maxTranslateX);
-            if (zoomedContentHeight.value < containerHeight) {
-                return;
-            }
-            translationY.value = clamp(prevTranslationY.value + e.translationY, -maxTranslateY, maxTranslateY);
-        })
-        .onEnd(() => {
-            'worklet';
-
-            const swipeDownPadding = 150;
-            const dy = translationY.value + swipeDownPadding;
-            if (dy >= maxTranslateY && scale.value === minScale) {
-                if (onSwipeDown) {
-                    onSwipeDown();
-                } else {
-                    translationY.value = withSpring(0, SPRING_CONFIG);
-                    translationX.value = withSpring(0, SPRING_CONFIG);
-                }
-            } else if (scale.value === minScale) {
-                translationY.value = withSpring(0, SPRING_CONFIG);
-                translationX.value = withSpring(0, SPRING_CONFIG);
-                return;
-            }
-            const tsx = translationX.value * scale.value;
-            const tsy = translationY.value * scale.value;
-            const inHorizontalBoundaries = tsx >= horizontalBoundaries.min && tsx <= horizontalBoundaries.max;
-            const inVerticalBoundaries = tsy >= verticalBoundaries.min && tsy <= verticalBoundaries.max;
-            if (!inHorizontalBoundaries) {
-                const halfx = zoomedContentWidth.value / 2;
-                const diffx = halfx - translationX.value * scale.value;
-                const valx = maxTranslateX - diffx;
-                if (valx > 0) {
-                    const p = (translationX.value * scale.value - valx) / scale.value;
-                    translationX.value = withSpring(p, SPRING_CONFIG);
-                }
-                if (valx < 0) {
-                    const p = (translationX.value * scale.value - valx) / scale.value;
-                    translationX.value = withSpring(-p, SPRING_CONFIG);
-                }
-            }
-            if (!inVerticalBoundaries) {
-                if (zoomedContentHeight?.value < containerHeight) {
-                    return;
-                }
-                const halfy = zoomedContentHeight.value / 2;
-                const diffy = halfy - translationY.value * scale.value;
-                const valy = maxTranslateY - diffy;
-                if (valy > 0) {
-                    const p = (translationY.value * scale.value - valy) / scale.value;
-                    translationY.value = withSpring(p, SPRING_CONFIG);
-                }
-                if (valy < 0) {
-                    const p = (translationY.value * scale.value - valy) / scale.value;
-                    translationY.value = withSpring(-p, SPRING_CONFIG);
-                }
-            }
-        })
-        .runOnJS(true);
 
     const onContainerLayoutChanged = (e: LayoutChangeEvent) => {
         const {width, height} = e.nativeEvent.layout;
@@ -329,63 +196,13 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError, onSwipe
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{scale: scale.value}, {translateX: translationX.value}, {translateY: translationY.value}],
-    }));
-
-    const imgContainerStyle = useMemo(() => {
-        const aspectRatio = (imgHeight && imgWidth / imgHeight) || 1;
-        if (imgWidth >= imgHeight || imgHeight < containerHeight) {
-            const imgStyle: ViewStyle[] = [{width: '100%', aspectRatio}];
-            return imgStyle;
-        }
-        if (imgHeight > imgWidth) {
-            const imgStyle: ViewStyle[] = [{height: '100%', aspectRatio}];
-            return imgStyle;
-        }
-    }, [imgWidth, imgHeight, containerHeight]);
-
     if (canUseTouchScreen) {
         return (
-            <View
-                style={[styles.imageViewContainer, styles.overflowHidden, StyleUtils.getFullscreenCenteredContentStyles()]}
-                onLayout={onContainerLayoutChanged}
-            >
-                <GestureDetector gesture={Gesture.Race(pinchGesture, panGesture)}>
-                    <Animated.View
-                        style={[animatedStyle, imgContainerStyle]}
-                        onLayout={(e) => {
-                            const {width, height} = e.nativeEvent.layout;
-                            setImgContainerHeight(height);
-                            setImgContainerWidth(width);
-                        }}
-                    >
-                        <Animated.Image
-                            source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(url) : url}}
-                            // Hide image until finished loading to prevent showing preview with wrong dimensions.
-                            // style={isLoading || zoomScale === 0 ? undefined : [styles.w100, styles.h100]}
-                            style={[styles.w100, styles.h100]}
-                            // When Image dimensions are lower than the container boundary(zoomscale <= 1), use `contain` to render the image with natural dimensions.
-                            // Both `center` and `contain` keeps the image centered on both x and y axis.
-                            resizeMode={RESIZE_MODES.contain}
-                            onLoadStart={imageLoadingStart}
-                            onLoad={(e) => {
-                                const {width, height} = e.nativeEvent.source;
-                                const params = {
-                                    nativeEvent: {
-                                        width,
-                                        height,
-                                    },
-                                };
-                                imageLoad(params);
-                            }}
-                            onError={onError}
-                        />
-                    </Animated.View>
-                </GestureDetector>
-                {isLoading && !isOffline && <FullscreenLoadingIndicator />}
-                {isLoading && <AttachmentOfflineIndicator />}
-            </View>
+            <Lightbox
+                uri={url}
+                isAuthTokenRequired={isAuthTokenRequired}
+                onError={onError}
+            />
         );
     }
     return (

@@ -19,9 +19,6 @@ type CarouselItemProps = {
     /** onPress callback */
     onPress?: () => void;
 
-    /** onClose callback */
-    onClose?: () => void;
-
     /** Whether attachment carousel modal is hovered over */
     isModalHovered?: boolean;
 
@@ -29,7 +26,7 @@ type CarouselItemProps = {
     isFocused: boolean;
 };
 
-function CarouselItem({item, onPress, onClose, isFocused, isModalHovered}: CarouselItemProps) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -80,7 +77,6 @@ function CarouselItem({item, onPress, onClose, isFocused, isModalHovered}: Carou
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     onPress={onPress}
-                    onClose={onClose}
                     transactionID={item.transactionID}
                     reportActionID={item.reportActionID}
                     isHovered={isModalHovered}

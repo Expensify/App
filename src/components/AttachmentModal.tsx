@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -185,6 +186,8 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
+    const pagerRef = useRef<GestureType>(null);
+    const [zoomScale, setZoomScale] = useState(1);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -469,11 +472,13 @@ function AttachmentModal({
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
-            pagerRef: undefined,
+            pagerRef,
             isPagerScrolling: nope,
             isScrollEnabled: nope,
             onTap: () => {},
-            onScaleChanged: () => {},
+            onScaleChanged: (value: number) => {
+                setZoomScale(value);
+            },
             onSwipeDown: closeModal,
         }),
         [closeModal, nope, sourceForAttachmentView],
@@ -528,15 +533,19 @@ function AttachmentModal({
                         )}
                         {!shouldShowNotFoundPage &&
                             (!isEmptyObject(report) && !isReceiptAttachment ? (
-                                <AttachmentCarousel
-                                    accountID={accountID}
-                                    type={type}
-                                    report={report}
-                                    onNavigate={onNavigate}
-                                    onClose={closeModal}
-                                    source={source}
-                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
-                                />
+                                <AttachmentCarouselPagerContext.Provider value={context}>
+                                    <AttachmentCarousel
+                                        accountID={accountID}
+                                        type={type}
+                                        pagerRef={pagerRef}
+                                        report={report}
+                                        onNavigate={onNavigate}
+                                        onClose={closeModal}
+                                        source={source}
+                                        zoomScale={zoomScale}
+                                        setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                    />
+                                </AttachmentCarouselPagerContext.Provider>
                             ) : (
                                 !!sourceForAttachmentView &&
                                 shouldLoadAttachment &&
@@ -547,7 +556,6 @@ function AttachmentModal({
                                             source={sourceForAttachmentView}
                                             isAuthTokenRequired={isAuthTokenRequiredState}
                                             file={file}
-                                            onClose={closeModal}
                                             onToggleKeyboard={updateConfirmButtonVisibility}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
