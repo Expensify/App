@@ -169,6 +169,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
 
+    const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowWriteCapability = !isMoneyRequestReport;
+    const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
+
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
 
@@ -220,16 +224,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        items.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
-            translationKey: 'common.settings',
-            icon: Expensicons.Gear,
-            isAnonymousAction: false,
-            shouldShowRightIcon: true,
-            action: () => {
-                Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
-            },
-        });
+        if (shouldShowMenuItem) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
+                translationKey: 'common.settings',
+                icon: Expensicons.Gear,
+                isAnonymousAction: false,
+                shouldShowRightIcon: true,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
+                },
+            });
+        }
 
         // Prevent displaying private notes option for threads and task reports
         if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !isTaskReport) {
@@ -261,26 +267,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
         return items;
-    }, [
-        isSelfDM,
-        isArchivedRoom,
-        isGroupChat,
-        isDefaultRoom,
-        isChatThread,
-        isPolicyEmployee,
-        isUserCreatedPolicyRoom,
-        participants.length,
-        report,
-        isSystemChat,
-        isPolicyExpenseChat,
-        isMoneyRequestReport,
-        isInvoiceReport,
-        isTaskReport,
-        shouldShowLeaveButton,
-        activeChatMembers.length,
-        session,
-        leaveChat,
-    ]);
+    }, [isSelfDM, isArchivedRoom, isGroupChat, isDefaultRoom, isChatThread, isPolicyEmployee, isUserCreatedPolicyRoom, participants.length, report, isSystemChat, isPolicyExpenseChat, shouldShowMenuItem, isMoneyRequestReport, isInvoiceReport, isTaskReport, shouldShowLeaveButton, activeChatMembers.length, session, leaveChat]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
