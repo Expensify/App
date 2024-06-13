@@ -126,7 +126,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
 
         // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
         // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
-        FileUtils.readFileAsync(stashedLocalAvatarImage.toString(), newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
+        FileUtils.readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
