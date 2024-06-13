@@ -2625,7 +2625,7 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
-            addressContext: 'A Workspace Address is required to enable Expensify Travel. Please enter an address associated with your business.',
+            addressContext: 'A workspace address is required to enable Expensify Travel. Please enter an address associated with your business.',
         },
         bankAccount: {
             continueWithSetup: 'Continue with setup',
@@ -2650,7 +2650,7 @@ export default {
             clearProgress: 'Starting over will clear the progress you have made so far.',
             areYouSure: 'Are you sure?',
             workspaceCurrency: 'Workspace currency',
-            updateCurrencyPrompt: 'It looks like your Workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
+            updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateToUSD: 'Update to USD',
         },
         changeOwner: {
@@ -3268,9 +3268,8 @@ export default {
             annual: 'Annual subscription',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
-            headsUpTitle: 'Heads up: ',
-            headsUpBody:
-                "If you don’t set your subscription size now, we’ll set it automatically to your first month's active member count. You’ll then be committed to paying for at least this number of members for the next 12 months. You can increase your subscription size at any time, but you can’t decrease it until your subscription is over.",
+            headsUp:
+                "Heads up: If you don’t set your subscription size now, we’ll set it automatically to your first month's active member count. You’ll then be committed to paying for at least this number of members for the next 12 months. You can increase your subscription size at any time, but you can’t decrease it until your subscription is over.",
             zeroCommitment: 'Zero commitment at the discounted annual subscription rate',
         },
         subscriptionSize: {
