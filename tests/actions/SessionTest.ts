@@ -35,13 +35,13 @@ describe('Session', () => {
         const TEST_INITIAL_AUTH_TOKEN = 'initialAuthToken';
         const TEST_REFRESHED_AUTH_TOKEN = 'refreshedAuthToken';
 
-        let credentials: OnyxEntry<Credentials> = null;
+        let credentials: OnyxEntry<Credentials>;
         Onyx.connect({
             key: ONYXKEYS.CREDENTIALS,
             callback: (val) => (credentials = val),
         });
 
-        let session: OnyxEntry<Session> = null;
+        let session: OnyxEntry<Session>;
         Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (val) => (session = val),
