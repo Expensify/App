@@ -3370,7 +3370,6 @@ function completeOnboarding(
         },
     ];
     const successData: OnyxUpdate[] = [
-        ...tasksForSuccessData,
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
@@ -3380,6 +3379,9 @@ function completeOnboarding(
             },
         },
     ];
+    if (tasksForSuccessData) {
+        successData.unshift(...tasksForSuccessData)
+    }
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
