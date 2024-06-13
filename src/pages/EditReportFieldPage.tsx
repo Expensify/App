@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -51,7 +51,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const styles = useThemeStyles();
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
+    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
 
@@ -123,6 +123,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
+                shouldEnableNewFocusManagement
             />
 
             {(reportField.type === 'text' || isReportFieldTitle) && (
@@ -147,7 +148,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
             {reportField.type === 'dropdown' && (
                 <EditReportFieldDropdown
-                    policyID={report.policyID ?? ''}
+                    policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions[index])}

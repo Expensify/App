@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -73,10 +73,10 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
         TaskActions.setDetailsValue(values.taskTitle, values.taskDescription);
 
         if (skipConfirmation) {
-            TaskActions.setShareDestinationValue(task?.parentReportID ?? '');
+            TaskActions.setShareDestinationValue(task?.parentReportID ?? '-1');
             playSound(SOUNDS.DONE);
             TaskActions.createTaskAndNavigate(
-                task?.parentReportID ?? '',
+                task?.parentReportID ?? '-1',
                 values.taskTitle,
                 values.taskDescription ?? '',
                 task?.assignee ?? '',

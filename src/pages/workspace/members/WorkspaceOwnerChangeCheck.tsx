@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as WorkspaceSettingsUtils from '@libs/WorkspacesSettingsUtils';
 import Navigation from '@navigation/Navigation';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,7 +39,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         buttonText: '',
     });
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const updateDisplayTexts = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -63,13 +63,13 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
     const confirm = useCallback(() => {
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
-            PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+            MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
             return;
         }
 
-        PolicyActions.requestWorkspaceOwnerChange(policyID);
+        MemberActions.requestWorkspaceOwnerChange(policyID);
     }, [accountID, error, policyID]);
 
     return (
