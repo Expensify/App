@@ -107,6 +107,7 @@ function MoneyRequestPreviewContent({
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
 
     /*
@@ -141,7 +142,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getPreviewHeaderText = (): string => {
-        let message = translate('iou.cash');
+        let message = showCashOrCard;
 
         if (isDistanceRequest) {
             message = translate('common.distance');
@@ -364,7 +365,7 @@ function MoneyRequestPreviewContent({
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             shouldUseHapticsOnLongPress
-            accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
+            accessibilityLabel={isBillSplit ? translate('iou.split') : showCashOrCard}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
