@@ -5177,12 +5177,12 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     if (isEmptyReport(report)) {
         return false;
     }
-    // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
-    const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
-    const lastReadTime = report.lastReadTime ?? '';
-    const lastMentionedTime = report.lastMentionedTime ?? '';
 
-    return new Date(lastReadTime).getTime() < new Date(lastVisibleActionCreated).getTime() || new Date(lastReadTime).getTime() < new Date(lastMentionedTime).getTime();
+    const lastVisibleActionCreated = new Date(report.lastVisibleActionCreated ?? '').getTime();
+    const lastReadTime = new Date(report.lastReadTime ?? '').getTime();
+    const lastMentionedTime = new Date(report.lastMentionedTime ?? '').getTime();
+
+    return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): boolean {
