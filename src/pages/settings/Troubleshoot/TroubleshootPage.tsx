@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import ClientSideLoggingToolMenu from '@components/ClientSideLoggingToolMenu';
@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
+import ExportOnyxState from '@libs/ExportOnyxState';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -95,36 +96,8 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
         return Promise.all(promises);
     };
 
-    const readFromIndexedDB = () => new Promise((resolve) => {
-        let db: IDBDatabase;
-        const openRequest = indexedDB.open('OnyxDB', 1);
-        openRequest.onsuccess = () => {
-            db = openRequest.result;
-            const transaction = db.transaction('keyvaluepairs');
-            const objectStore = transaction.objectStore('keyvaluepairs');
-            const cursor = objectStore.openCursor();
-
-            const queryResult: Record<string, unknown> = {};
-
-            cursor.onerror = () => {
-                console.error('Error reading cursor');
-            }
-
-            cursor.onsuccess = (event) => {
-                const { result } = event.target as IDBRequest<IDBCursorWithValue>;
-                if (result) {
-                    queryResult[result.primaryKey as string] = result.value;
-                    result.continue();
-                }
-                else {
-                    resolve(queryResult);
-                }
-            }
-        };
-    });
-
     const exportOnyxState = () => {
-        readFromIndexedDB().then((value) => {
+        ExportOnyxState.readFromIndexedDB().then((value) => {
             console.log('exported indexedDB state: ', value);
         });
 
