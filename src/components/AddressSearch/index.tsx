@@ -39,7 +39,7 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
         return false;
     }
     const fullSearchSentence = `${place.name ?? ''} ${place.description}`;
-    return search.split(' ').every((searchTerm) => !searchTerm || (searchTerm && fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase())));
+    return search.split(' ').every((searchTerm) => !searchTerm || fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
 }
 
 // The error that's being thrown below will be ignored until we fork the
