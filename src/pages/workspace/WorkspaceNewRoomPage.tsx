@@ -295,6 +295,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                     maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                     autoCapitalize="none"
                                     shouldInterceptSwipe
+                                    isMarkdownEnabled
                                 />
                             </View>
                             <View style={[styles.mhn5]}>
@@ -358,6 +359,5 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        initialValue: null,
     },
 })(WorkspaceNewRoomPage);
