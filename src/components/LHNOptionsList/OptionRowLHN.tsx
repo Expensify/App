@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -14,10 +14,10 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -37,7 +37,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -95,7 +95,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
      * @param [event] - A press event.
      */
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isFocusedRef.current && isSmallScreenWidth) {
+        if (!isFocusedRef.current && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
@@ -123,7 +123,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
     const report = ReportUtils.getReport(optionItem.reportID ?? '');
-    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
@@ -221,7 +221,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
                                                 !!optionItem.isInvoiceReport ||
-                                                ReportUtils.isGroupChat(report)
+                                                ReportUtils.isGroupChat(report) ||
+                                                ReportUtils.isSystemChat(report)
                                             }
                                         />
                                         {isStatusVisible && (

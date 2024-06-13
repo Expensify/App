@@ -112,7 +112,7 @@ function WorkspacePageWithSections({
     reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     route,
     shouldUseScrollView = false,
-    shouldSkipVBBACall = false,
+    shouldSkipVBBACall = true,
     shouldShowBackButton = false,
     user,
     shouldShowLoading = true,

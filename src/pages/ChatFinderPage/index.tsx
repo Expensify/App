@@ -8,6 +8,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCancelSearchOnModalClose from '@hooks/useCancelSearchOnModalClose';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -69,6 +70,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         },
         [setSearchValue, setSearchValueInServer],
     );
+    useCancelSearchOnModalClose();
 
     useEffect(() => {
         Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
@@ -93,7 +95,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
         const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), '');
+        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, !!optionList.userToInvite, '');
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
@@ -107,7 +109,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, betas);
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {betas, preferChatroomsOverThreads: true});
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
@@ -191,6 +193,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={!!isSearchingForReports}
+                shouldDelayFocus={false}
             />
         </ScreenWrapper>
     );

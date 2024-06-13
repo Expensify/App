@@ -86,10 +86,9 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 }
 
 /**
- * TODO: remove the previous function and rename this function to openPersonalBankAccountSetupView after migrating to the new flow
- * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * Open the personal bank account setup flow using Plaid, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
+function openPersonalBankAccountSetupWithPlaid(exitReportID?: string) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
@@ -229,6 +228,13 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                     isLoading: false,
                     errors: null,
                     shouldShowSuccess: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    currentStep: CONST.WALLET.STEP.ADDITIONAL_DETAILS,
                 },
             },
         ],
@@ -561,7 +567,7 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
-    openPersonalBankAccountSetupViewRefactor,
+    openPersonalBankAccountSetupWithPlaid,
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,

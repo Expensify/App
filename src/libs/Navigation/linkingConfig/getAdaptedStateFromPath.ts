@@ -1,9 +1,11 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
@@ -17,7 +19,7 @@ import replacePathInNestedState from './replacePathInNestedState';
 
 const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS, SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE] satisfies Screen[];
 
-type RHPScreenOpenedFromLHN = (typeof RHP_SCREENS_OPENED_FROM_LHN)[number];
+type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
 type Metainfo = {
     // Sometimes modal screens don't have information about what should be visible under the overlay.
@@ -163,8 +165,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
+    const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
     const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
-    const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
     if (rhpNavigator) {
         // Routes
@@ -298,25 +300,27 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (reportAttachmentsScreen) {
+    if (attachmentsScreen) {
         // Routes
         // - matching bottom tab
         // - central pane (report screen) of the attachment
         // - found report attachments
         const routes = [];
-        const reportAttachments = reportAttachmentsScreen as Route<'ReportAttachments', RootStackParamList['ReportAttachments']>;
+        const reportAttachments = attachmentsScreen as Route<'Attachments', RootStackParamList['Attachments']>;
 
-        const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
-        routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
-        if (!isNarrowLayout) {
-            routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? ''}}));
+        if (reportAttachments.params?.type === CONST.ATTACHMENT_TYPE.REPORT) {
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
+            routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
+            if (!isNarrowLayout) {
+                routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? ''}}));
+            }
+            routes.push(reportAttachments);
+
+            return {
+                adaptedState: getRoutesWithIndex(routes),
+                metainfo,
+            };
         }
-        routes.push(reportAttachments);
-
-        return {
-            adaptedState: getRoutesWithIndex(routes),
-            metainfo,
-        };
     }
 
     // We need to make sure that this if only handles states where we deeplink to the bottom tab directly

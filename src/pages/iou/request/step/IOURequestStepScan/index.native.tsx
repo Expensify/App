@@ -7,6 +7,7 @@ import {RESULTS} from 'react-native-permissions';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
 import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import Shutter from '@assets/images/shutter.svg';
 import type {FileObject} from '@components/AttachmentModal';
@@ -27,6 +28,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -62,6 +64,10 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -158,7 +164,9 @@ function IOURequestStepScan({
     const validateReceipt = (file: FileObject) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
         if (
-            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
+            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+            )
         ) {
             Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
             return false;
@@ -243,6 +251,8 @@ function IOURequestStepScan({
                         category: '',
                         tag: '',
                         currency: transaction?.currency ?? 'USD',
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                     return;
                 }
@@ -353,6 +363,8 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             navigateToParticipantPage,
             policy,
+            transactionTaxCode,
+            transactionTaxAmount,
         ],
     );
 
@@ -439,7 +451,7 @@ function IOURequestStepScan({
             includeSafeAreaPaddingBottom
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
             {cameraPermissionStatus !== RESULTS.GRANTED && (

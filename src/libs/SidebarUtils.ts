@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import AccountUtils from './AccountUtils';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -98,9 +99,16 @@ function getOrderedReportIDs(
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
-        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
+        const isSystemChat = ReportUtils.isSystemChat(report);
+        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
+        }
+
+        const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+
+        if (currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS)) {
+            return true;
         }
 
         return ReportUtils.shouldReportBeInOptionList({

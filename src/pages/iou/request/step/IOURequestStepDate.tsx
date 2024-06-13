@@ -74,7 +74,7 @@ function IOURequestStepDate({
     const parentReportAction = reportActions?.[(isEditingSplitBill ? reportActionID : report?.parentReportActionID) ?? 0];
     const canEditingSplitBill =
         isEditingSplitBill && session && parentReportAction && session.accountID === parentReportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
-    const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction ?? null, CONST.EDIT_REQUEST_FIELD.DATE);
+    const canEditMoneyRequest = isEditing && ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFound = !IOUUtils.isValidMoneyRequestType(iouType) || (isEditing && !canEditMoneyRequest && !canEditingSplitBill);
 
@@ -176,8 +176,8 @@ const IOURequestStepDateWithOnyx = withOnyx<IOURequestStepDateProps, IOURequestS
 })(IOURequestStepDate);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithOnyx);
+const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDateWithWritableReportOrNotFound);
+const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
 
-export default IOURequestStepDateWithFullTransactionOrNotFound;
+export default IOURequestStepDateWithWritableReportOrNotFound;

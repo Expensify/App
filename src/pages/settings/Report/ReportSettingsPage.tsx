@@ -30,7 +30,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const isGroupChat = ReportUtils.isGroupChat(report);
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
@@ -96,11 +96,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                     shouldShowRightIcon
                                     title={report?.reportName === '' ? reportName : report?.reportName}
                                     description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                                    onPress={() =>
-                                        isGroupChat
-                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
-                                            : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
-                                    }
+                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(reportID))}
                                 />
                             )}
                         </OfflineWithFeedback>
@@ -130,7 +126,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             </View>
                         ))}
                     <View style={[styles.ph5]}>
-                        {linkedWorkspace !== null && (
+                        {linkedWorkspace != null && (
                             <View style={[styles.pv3]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
