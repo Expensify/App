@@ -5182,8 +5182,7 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     const lastReadTime = report.lastReadTime ?? '';
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
-    // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
-    return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
+    return new Date(lastReadTime).getTime() < new Date(lastVisibleActionCreated).getTime() || new Date(lastReadTime).getTime() < new Date(lastMentionedTime).getTime();
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): boolean {
