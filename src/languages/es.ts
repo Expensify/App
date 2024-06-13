@@ -701,7 +701,7 @@ export default {
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} añada una cuenta bancaria`,
         adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}canceló el pago de ${amount}.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
-            `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu billetera Expensify en un plazo de 30 días.`,
+            `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({payer, amount}: PaidElsewhereWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} de otra forma`,
@@ -851,7 +851,7 @@ export default {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Por favor, introduce el código mágico enviado a ${contactMethod}`,
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
-            'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
+            'Este es tu método de contacto predeterminado. Antes de poder eliminarlo, tendrás que elegir otro método de contacto y haz clic en "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
@@ -991,7 +991,7 @@ export default {
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de Nuevo Expensify.',
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
-        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
+        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua y contener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
@@ -1058,16 +1058,16 @@ export default {
         growlMessageOnSave: 'Tu tarteja de débito se añadió correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'El nombre sólo puede incluir letras.',
-            addressZipCode: 'Por favor, introduce un código postal válido.',
-            debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido.',
-            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida.',
-            securityCode: 'Por favor, introduce un código de seguridad válido.',
-            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
-            addressState: 'Por favor, selecciona un estado.',
-            addressCity: 'Por favor, introduce una ciudad.',
-            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Vuelva a intentarlo.',
-            password: 'Por favor, introduce tu contraseña de Expensify.',
+            invalidName: 'El nombre sólo puede incluir letras',
+            addressZipCode: 'Por favor, introduce un código postal válido',
+            debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
+            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
+            securityCode: 'Por favor, introduce un código de seguridad válido',
+            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal',
+            addressState: 'Por favor, selecciona un estado',
+            addressCity: 'Por favor, introduce una ciudad',
+            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
+            password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
     addPaymentCardPage: {
@@ -1081,16 +1081,16 @@ export default {
         growlMessageOnSave: 'Tu tarjeta de pago se añadió correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'El nombre sólo puede incluir letras.',
-            addressZipCode: 'Por favor, introduce un código postal válido.',
-            paymentCardNumber: 'Por favor, introduce un número de tarjeta de pago válido.',
-            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida.',
-            securityCode: 'Por favor, introduce un código de seguridad válido.',
-            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal.',
-            addressState: 'Por favor, selecciona un estado.',
-            addressCity: 'Por favor, introduce una ciudad.',
-            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Vuelva a intentarlo.',
-            password: 'Por favor, introduce tu contraseña de Expensify.',
+            invalidName: 'El nombre sólo puede incluir letras',
+            addressZipCode: 'Por favor, introduce un código postal válido',
+            paymentCardNumber: 'Por favor, introduce un número de tarjeta de pago válido',
+            expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
+            securityCode: 'Por favor, introduce un código de seguridad válido',
+            addressStreet: 'Por favor, introduce una dirección de facturación válida que no sea un apartado postal',
+            addressState: 'Por favor, selecciona un estado',
+            addressCity: 'Por favor, introduce una ciudad',
+            genericFailureMessage: 'Se produjo un error al añadir tu tarjeta. Por favor, vuelva a intentarlo.',
+            password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
     walletPage: {
@@ -1100,10 +1100,10 @@ export default {
         deleteAccount: 'Eliminar cuenta',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta cuenta?',
         error: {
-            notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como método de pago predeterminado.',
-            invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida.',
-            notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como método de pago predeterminado.',
-            setDefaultFailure: 'No se ha podido configurar el método de pago.',
+            notOwnerOfBankAccount: 'Ha ocurrido un error al establecer esta cuenta bancaria como método de pago predeterminado',
+            invalidBankAccount: 'Esta cuenta bancaria está temporalmente suspendida',
+            notOwnerOfFund: 'Ha ocurrido un error al establecer esta tarjeta de crédito como método de pago predeterminado',
+            setDefaultFailure: 'No se ha podido configurar el método de pago',
         },
         addBankAccountFailure: 'Ocurrió un error inesperado al intentar añadir la cuenta bancaria. Inténtalo de nuevo.',
         getPaidFaster: 'Cobra más rápido',
@@ -1114,20 +1114,20 @@ export default {
         expensifyWallet: 'Billetera Expensify',
         sendAndReceiveMoney: 'Envía y recibe dinero desde tu Billetera Expensify.',
         enableWalletToSendAndReceiveMoney: 'Habilita tu Billetera Expensify para comenzar a enviar y recibir dinero con amigos',
-        enableWallet: 'Habilitar Billetera',
+        enableWallet: 'Habilitar billetera',
         bankAccounts: 'Cuentas bancarias',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para enviar y recibir pagos directamente en la aplicación.',
         addBankAccount: 'Añadir cuenta bancaria',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Son tarjetas asignadas por un administrador del espacio de trabajo para gestionar los gastos de la empresa.',
         expensifyCard: 'Tarjeta Expensify',
-        walletActivationPending: 'Estamos revisando tu información, por favor vuelve en unos minutos.',
+        walletActivationPending: 'Estamos revisando tu información. Por favor, vuelve en unos minutos.',
         walletActivationFailed: 'Lamentablemente, no podemos activar tu billetera en este momento. Chatea con Concierge para obtener más ayuda.',
-        addYourBankAccount: 'Añadir tu cuenta bancaria.',
+        addYourBankAccount: 'Añadir tu cuenta bancaria',
         addBankAccountBody: 'Conectemos tu cuenta bancaria a Expensify para que sea más fácil que nunca enviar y recibir pagos directamente en la aplicación.',
-        chooseYourBankAccount: 'Elige tu cuenta bancaria.',
+        chooseYourBankAccount: 'Elige tu cuenta bancaria',
         chooseAccountBody: 'Asegúrese de elegir el adecuado.',
-        confirmYourBankAccount: 'Confirma tu cuenta bancaria.',
+        confirmYourBankAccount: 'Confirma tu cuenta bancaria',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -1637,7 +1637,7 @@ export default {
         userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} ya es miembro de ${name}`,
     },
     onfidoStep: {
-        acceptTerms: 'Al continuar con la solicitud para activar tu billetera Expensify, confirma que ha leído, comprende y acepta ',
+        acceptTerms: 'Al continuar con la solicitud para activar tu Billetera Expensify, confirma que ha leído, comprende y acepta ',
         facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
@@ -1659,7 +1659,7 @@ export default {
     },
     additionalDetailsStep: {
         headerTitle: 'Detalles adicionales',
-        helpText: 'Necesitamos confirmar la siguiente información antes de que puedas enviar y recibir dinero desde tu Billetera.',
+        helpText: 'Necesitamos confirmar la siguiente información antes de que puedas enviar y recibir dinero desde tu billetera.',
         helpTextIdologyQuestions: 'Tenemos que preguntarte unas preguntas más para terminar de verificar tu identidad',
         helpLink: 'Obtén más información sobre por qué necesitamos esto.',
         legalFirstNameLabel: 'Primer nombre legal',
@@ -1670,7 +1670,7 @@ export default {
         needSSNFull9: 'Estamos teniendo problemas para verificar tu número de seguridad social. Introduce los 9 dígitos del número de seguridad social.',
         weCouldNotVerify: 'No se pudo verificar',
         pleaseFixIt: 'Corrige esta información antes de continuar.',
-        failedKYCTextBefore: 'No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde y comunicate con ',
+        failedKYCTextBefore: 'No se ha podido verificar correctamente tu identidad. Vuelve a intentarlo más tarde o comunicate con ',
         failedKYCTextAfter: ' si tienes alguna pregunta.',
     },
     termsStep: {
@@ -1690,7 +1690,7 @@ export default {
         checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
-            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
+            expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La Billetera Expensify es emitida por ${walletProgram}.`,
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro en cajeros automáticos',
             cashReload: 'Recarga de efectivo',
@@ -1710,7 +1710,7 @@ export default {
             electronicFundsInstantFeeMin: ({amount}: TermsParams) => `(mínimo ${amount})`,
         },
         longTermsForm: {
-            listOfAllFees: 'Una lista de todas las tarifas de la billetera Expensify',
+            listOfAllFees: 'Una lista de todas las tarifas de la Billetera Expensify',
             typeOfFeeHeader: 'Tipo de tarifa',
             feeAmountHeader: 'Importe de la tarifa',
             moreDetailsHeader: 'Más detalles',
@@ -1723,11 +1723,11 @@ export default {
             sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
             sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando tu saldo cuenta bancaria o tarjeta de débito',
             electronicFundsStandardDetails:
-                'No hay cargo por transferir fondos desde tu billetera Expensify ' +
+                'No hay cargo por transferir fondos desde tu Billetera Expensify ' +
                 'a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
                 '1-3 días laborables.',
             electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
-                'Hay una tarifa para transferir fondos desde tu billetera Expensify a ' +
+                'Hay una tarifa para transferir fondos desde tu Billetera Expensify a ' +
                 'la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
                 `generalmente se completa dentro de varios minutos. La tarifa es el ${percentage}% del importe de la ` +
                 `transferencia (con una tarifa mínima de ${amount}). `,
@@ -1750,7 +1750,7 @@ export default {
     activateStep: {
         headerTitle: 'Habilitar pagos',
         activatedTitle: '¡Billetera  activada!',
-        activatedMessage: 'Felicidades, tu Billetera está configurada y lista para hacer pagos.',
+        activatedMessage: 'Felicidades, tu billetera está configurada y lista para hacer pagos.',
         checkBackLaterTitle: 'Un momento...',
         checkBackLaterMessage: 'Todavía estamos revisando tu información. Por favor, vuelve más tarde.',
         continueToPayment: 'Continuar al pago',
