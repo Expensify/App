@@ -1,6 +1,6 @@
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import {BackHandler} from 'react-native';
+import {BackHandler, NativeModules} from 'react-native';
 import getTopmostCentralPaneRoute from '@navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@navigation/navigationRef';
 import type {BottomTabNavigatorParamList, RootStackParamList, State} from '@navigation/types';
@@ -21,6 +21,12 @@ function setupCustomAndroidBackHandler() {
         // Shoudn't happen but for type safety.
         if (!bottomTabRoutes) {
             return false;
+        }
+
+        const isLastScreenOnStack = bottomTabRoutes.length === 1 && rootState.routes.length === 1;
+
+        if (NativeModules.HybridAppModule && isLastScreenOnStack) {
+            NativeModules.HybridAppModule.exitApp()
         }
 
         // Handle back press on the search page.

@@ -10,6 +10,7 @@ import type {BootSplashModule} from '@libs/BootSplash/types';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
+    exitApp: () => void;
 };
 
 declare module 'react-native' {
