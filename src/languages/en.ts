@@ -344,7 +344,7 @@ export default {
     location: {
         useCurrent: 'Use current location',
         notFound: 'We were unable to find your location. Please try again or enter an address manually.',
-        permissionDenied: 'It looks like you've denied access to your location.',
+        permissionDenied: "It looks like you've denied access to your location.",
         please: 'Please',
         allowPermission: 'allow location access in settings',
         tryAgain: 'and try again.',
