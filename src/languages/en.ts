@@ -264,7 +264,7 @@ export default {
         leave: 'Leave',
         decline: 'Decline',
         transferBalance: 'Transfer balance',
-        cantFindAddress: "Can't find your address?",
+        cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',
         message: 'Message ',
         leaveThread: 'Leave thread',
