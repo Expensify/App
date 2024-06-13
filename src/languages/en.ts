@@ -855,7 +855,7 @@ export default {
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}`,
         setAsDefault: 'Set as default',
         yourDefaultContactMethod:
-            'This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.',
+            "This is your current default contact method. Before you can delete it, you'll need to choose another contact method and click “Set as default”.",
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: "Are you sure you want to remove this contact method? This action can't be undone.",
         failedNewContact: 'Failed to add this contact method.',
