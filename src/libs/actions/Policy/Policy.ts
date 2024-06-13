@@ -2648,7 +2648,6 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []),
         ],
         successData: [
             {
@@ -2660,7 +2659,6 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
         ],
         failureData: [
             {
@@ -2675,9 +2673,20 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     },
                 },
             },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []),
         ],
     };
+
+    if (shouldAddDefaultTaxRatesData) {
+        if (taxRatesData.optimisticData) {
+            onyxData?.optimisticData?.push(...taxRatesData.optimisticData);
+        }
+        if (taxRatesData.successData) {
+            onyxData?.successData?.push(...taxRatesData.successData);
+        }
+        if (taxRatesData.failureData) {
+            onyxData?.failureData?.push(...taxRatesData.failureData);
+        }
+    }
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
     if (shouldAddDefaultTaxRatesData) {

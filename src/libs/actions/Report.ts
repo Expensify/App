@@ -2735,8 +2735,10 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
                 pendingChatMembers,
             },
         },
-        ...newPersonalDetailsOnyxData.optimisticData,
     ];
+    if (newPersonalDetailsOnyxData.optimisticData) {
+        optimisticData.push(...newPersonalDetailsOnyxData.optimisticData);
+    }
 
     const successPendingChatMembers = report?.pendingChatMembers
         ? report?.pendingChatMembers?.filter(
@@ -2751,8 +2753,10 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
                 pendingChatMembers: successPendingChatMembers,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
     ];
+    if (newPersonalDetailsOnyxData.finallyData) {
+        successData.push(...newPersonalDetailsOnyxData.finallyData);
+    }
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
