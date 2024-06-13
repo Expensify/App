@@ -244,14 +244,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         onPress={centerMap}
                         accessibilityLabel={translate('common.center')}
                     >
-                        <View style={styles.primaryMediumIcon}>
-                            <Icon
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                                src={Expensicons.Crosshair}
-                                fill={theme.icon}
-                            />
-                        </View>
+                        {({hovered}) => (
+                            <View style={[styles.primaryMediumIcon, hovered && {backgroundColor: theme.buttonHoveredBG}]}>
+                                <Icon
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
+                                    src={Expensicons.Crosshair}
+                                    fill={hovered ? theme.textSupporting : theme.icon}
+                                />
+                            </View>
+                        )}
                     </PressableWithFeedback>
                 </View>
             </View>
