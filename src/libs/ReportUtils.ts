@@ -1831,37 +1831,32 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     return shouldUseShortForm ? shortName : longName;
 }
 
-function getParticipantAccountIDs(reportID: string, includeOnlyActiveMembers = false) {
-    const report = getReport(reportID);
-    if (!report || !report.participants) {
-        return [];
-    }
-    const accountIDStrings = Object.keys(report.participants).filter((accountID) => {
-        if (!includeOnlyActiveMembers) {
-            return true;
-        }
-        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    });
-    return accountIDStrings.map((accountID) => Number(accountID));
-}
+function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false): number[] {
+    let participantsEntries = Object.entries(report?.participants ?? {});
 
-function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false): number[] {
     // For 1:1 chat, we don't want to include the current user as a participant in order to not mark 1:1 chats as having multiple participants
     // For system chat, we want to display Expensify as the only participant
     const shouldExcludeCurrentUser = isOneOnOneChat(report) || isSystemChat(report);
 
-    let accountIDs = shouldExcludeHidden
-        ? Object.entries(report?.participants ?? {})
-              .filter(([, participant]) => participant && !participant.hidden)
-              .map(([accountID]) => Number(accountID))
-        : Object.keys(report?.participants ?? {}).map(Number);
+    if (shouldExcludeCurrentUser || shouldExcludeHidden || shouldExcludeDeleted) {
+        participantsEntries = participantsEntries.filter(([accountID, participant]) => {
+            if (shouldExcludeCurrentUser && Number(accountID) === currentUserAccountID) {
+                return false;
+            }
 
-    if (shouldExcludeCurrentUser) {
-        accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
+            if (shouldExcludeHidden && participant.hidden) {
+                return false;
+            }
+
+            if (shouldExcludeDeleted && report?.pendingChatMembers?.findLast((member) => member.accountID === accountID)?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                return false;
+            }
+
+            return true;
+        });
     }
 
-    return accountIDs;
+    return participantsEntries.map(([accountID]) => Number(accountID));
 }
 
 function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
@@ -1876,18 +1871,14 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, reportID = ''): string | undefined {
-    // If we have a reportID always try to get the name from the report.
-    if (reportID) {
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        const reportName = allReports?.[reportKey]?.reportName;
-        if (reportName) {
-            return reportName;
-        }
+function getGroupChatName(participantAccountIDs?: number[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
+    // If we have a report always try to get the name from the report.
+    if (report?.reportName) {
+        return report.reportName;
     }
 
     // Get participantAccountIDs from participants object
-    let participants = participantAccountIDs ?? getParticipantAccountIDs(reportID);
+    let participants = participantAccountIDs ?? Object.keys(report?.participants ?? {}).map(Number);
     if (shouldApplyLimit) {
         participants = participants.slice(0, 5);
     }
@@ -2060,7 +2051,7 @@ function getIcons(
             source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
             id: -1,
             type: CONST.ICON_TYPE_AVATAR,
-            name: getGroupChatName(undefined, true, report.reportID ?? ''),
+            name: getGroupChatName(undefined, true, report),
         };
         return [groupChatIcon];
     }
@@ -3345,7 +3336,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(undefined, true, report?.reportID) ?? '';
+        return getGroupChatName(undefined, true, report) ?? '';
     }
 
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -7031,7 +7022,6 @@ export {
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
     getParsedComment,
-    getParticipantAccountIDs,
     getParticipantsAccountIDsForDisplay,
     getParticipants,
     getPendingChatMembers,
