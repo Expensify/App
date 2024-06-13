@@ -37,7 +37,7 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, itemViewHeight, itemViewStyle]);
 
     return (
         <View
