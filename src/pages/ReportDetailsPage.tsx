@@ -84,8 +84,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((linkedPolicy) => linkedPolicy && linkedPolicy.id === report?.policyID), [policies, report?.policyID]);
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -235,6 +234,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report,
         isMoneyRequestReport,
         isInvoiceReport,
+        isTaskReport,
         isChatRoom,
         policy,
         activeChatMembers.length,
@@ -315,7 +315,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
-    const roomTitle = isPolicyExpenseChat || isGroupChat ? reportName : report?.reportName ?? reportName;
+    // const roomTitle = isPolicyExpenseChat || isGroupChat ? reportName : report?.reportName ?? reportName;
+    // const roomTitle = reportName;
 
     let roomDescription;
     if (isInvoiceRoom || isPolicyExpenseChat) {
@@ -385,13 +386,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon={!shouldDisableRename}
                                     interactive={!shouldDisableRename}
-                                    title={roomTitle}
+                                    title={reportName}
                                     titleStyle={styles.newKansasLarge}
                                     shouldCheckActionAllowedOnPress={false}
                                     description={!shouldDisableRename ? roomDescription : ''}
                                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
-                                    shouldCenter={shouldDisableRename}
                                 />
                             </View>
                         </OfflineWithFeedback>
