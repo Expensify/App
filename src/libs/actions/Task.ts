@@ -86,6 +86,18 @@ Onyx.connect({
 });
 
 /**
+ * Get the report given a reportID
+ */
+function getReport(reportID: string | undefined): OnyxEntry<OnyxTypes.Report> {
+    if (!allReports) {
+        return undefined;
+    }
+
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return report;
+}
+
+/**
  * Clears out the task info from the store
  */
 function clearOutTaskInfo(skipConfirmation = false) {
@@ -1008,7 +1020,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+    if (!ReportUtils.canWriteInReport(getReport(taskReport?.reportID))) {
         return false;
     }
 
@@ -1016,7 +1028,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 function clearTaskErrors(reportID: string) {
-    const report = ReportUtils.getReport(reportID);
+    const report = getReport(reportID);
 
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {

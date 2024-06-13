@@ -149,6 +149,7 @@ function ReportScreen({
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: ''});
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
+    const [parentReportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.parentReportID ? reportOnyx?.parentReportID : 0}`);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
@@ -248,6 +249,29 @@ function ReportScreen({
             reportOnyx?.avatarUrl,
             permissions,
             reportOnyx?.invoiceReceiver,
+        ],
+    );
+
+    const parentReport = useMemo(
+        (): OnyxTypes.Report => ({
+            reportID: parentReportOnyx?.reportID ?? '',
+            type: parentReportOnyx?.type,
+            errorFields: parentReportOnyx?.errorFields,
+            parentReportID: parentReportOnyx?.parentReportID,
+            parentReportActionID: parentReportOnyx?.parentReportActionID,
+            pendingFields: parentReportOnyx?.pendingFields,
+            isDeletedParentAction: parentReportOnyx?.isDeletedParentAction,
+            pendingAction: parentReportOnyx?.pendingAction,
+        }),
+        [
+            parentReportOnyx?.reportID,
+            parentReportOnyx?.type,
+            parentReportOnyx?.errorFields,
+            parentReportOnyx?.parentReportID,
+            parentReportOnyx?.parentReportActionID,
+            parentReportOnyx?.pendingFields,
+            parentReportOnyx?.isDeletedParentAction,
+            parentReportOnyx?.pendingAction,
         ],
     );
 
@@ -530,7 +554,6 @@ function ReportScreen({
             }
             if (prevReport.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                const parentReport = ReportUtils.getReport(prevReport.parentReportID);
                 if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
                     return;
                 }
@@ -566,6 +589,7 @@ function ReportScreen({
         prevReport,
         reportIDFromRoute,
         isFocused,
+        parentReport,
     ]);
 
     useEffect(() => {

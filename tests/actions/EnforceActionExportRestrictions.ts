@@ -1,6 +1,8 @@
 import * as IOU from '@libs/actions/IOU';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 
 // There are some methods that are OK to use inside an action file, but should not be exported. These are typically methods that look up and return Onyx data.
@@ -27,6 +29,11 @@ describe('ReportUtils', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getAllReportActions).toBeUndefined();
     });
+
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getReport).toBeUndefined();
+    });
 });
 
 describe('Policy', () => {
@@ -41,11 +48,35 @@ describe('IOU', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(IOU.getPolicy).toBeUndefined();
     });
+
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(IOU.getReport).toBeUndefined();
+    });
 });
 
 describe('Task', () => {
     it('does not export getParentReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Task.getParentReport).toBeUndefined();
+    });
+
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Task.getReport).toBeUndefined();
+    });
+});
+
+describe('Report', () => {
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Report.getReport).toBeUndefined();
+    });
+});
+
+describe('OptionsListUtils', () => {
+    it('does not export getReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(OptionsListUtils.getReport).toBeUndefined();
     });
 });
