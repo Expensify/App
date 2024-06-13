@@ -197,7 +197,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    borderRadius: variables.componentBorderRadiusLarge,
+                    borderRadius: 12,
                     borderWidth: 1,
                     borderColor: theme.border,
                     justifyContent: 'center',
