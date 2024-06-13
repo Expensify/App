@@ -954,7 +954,6 @@ function ReportActionItem({
     }
 
     const hasErrors = !isEmptyObject(action.errors);
-    console.log('action');
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
