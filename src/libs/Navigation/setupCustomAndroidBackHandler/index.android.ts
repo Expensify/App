@@ -26,7 +26,7 @@ function setupCustomAndroidBackHandler() {
         const isLastScreenOnStack = bottomTabRoutes.length === 1 && rootState.routes.length === 1;
 
         if (NativeModules.HybridAppModule && isLastScreenOnStack) {
-            NativeModules.HybridAppModule.exitApp()
+            NativeModules.HybridAppModule.exitApp();
         }
 
         // Handle back press on the search page.
