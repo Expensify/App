@@ -2,8 +2,6 @@ import React, {forwardRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useStyleUtils from '@hooks/useStyleUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import AmountSelectorModal from './AmountSelectorModal';
