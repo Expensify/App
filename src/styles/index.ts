@@ -363,7 +363,9 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
-
+        lineHeightLarge: {
+            lineHeight: variables.lineHeightLarge,
+        },
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -405,7 +407,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
         },
-
+        textBold: {
+            color: theme.text,
+            fontWeight: FontUtils.fontWeight.bold,
+            lineHeight: variables.lineHeightSmall,
+        },
         textMicroSupporting: {
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -445,7 +451,9 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             lineHeight: variables.lineHeightHero,
         },
-
+        fontSizeNormal: {
+            fontSize: variables.fontSizeNormal,
+        },
         textNewKansasNormal: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeNormal,
