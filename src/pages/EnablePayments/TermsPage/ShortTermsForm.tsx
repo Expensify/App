@@ -22,9 +22,9 @@ function ShortTermsForm(props: ShortTermsFormProps) {
             <Text style={[styles.mb5, styles.textSupporting]}>
                 {translate('termsStep.shortTermsForm.expensifyPaymentsAccount', {
                     walletProgram:
-                        props.userWallet?.walletProgramID === CONST.WALLET.MTL_WALLET_PROGRAM_ID
-                            ? CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS
-                            : CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK,
+                        props.userWallet && props.userWallet?.walletProgramID === CONST.WALLET.BANCORP_WALLET_PROGRAM_ID
+                            ? CONST.WALLET.PROGRAM_ISSUERS.BANCORP_BANK
+                            : CONST.WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS,
                 })}
             </Text>
 

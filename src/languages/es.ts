@@ -1642,6 +1642,8 @@ export default {
         facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
+        letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
+        butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
         cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
@@ -1685,8 +1687,8 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
-        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
-        checkPlease: 'Por favor, revisa.',
+        reviewTheFees: 'Por favor, revisa las siguientes tarifas.',
+        checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
@@ -3775,9 +3777,8 @@ export default {
             annual: 'Suscripción anual',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
-            headsUpTitle: 'Atención: ',
-            headsUpBody:
-                'Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            headsUp:
+                'Atención: Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
             zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
         },
         subscriptionSize: {
