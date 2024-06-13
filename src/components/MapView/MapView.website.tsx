@@ -6,7 +6,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {MapRef} from 'react-map-gl';
+import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -208,7 +208,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
 
-        const initialViewState = useMemo(() => {
+        const initialViewState: Partial<ViewState> = useMemo(() => {
             if (!interactive) {
                 if (!waypoints) {
                     return undefined;
