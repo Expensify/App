@@ -44,9 +44,6 @@ type TripRoomPreviewProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Whether a message is a whisper */
-    isWhisper?: boolean;
-
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 };
@@ -91,17 +88,14 @@ function ReservationView({reservation}: ReservationViewProps) {
             titleComponent={titleComponent}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
-            shouldShowRightIcon={false}
+            secondaryIconFill={theme.icon}
             wrapperStyle={[styles.taskDescriptionMenuItem, styles.p0]}
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
             interactive={false}
-            shouldStackHorizontally={false}
-            hoverAndPressStyle={false}
             iconHeight={variables.iconSizeSmall}
             iconWidth={variables.iconSizeSmall}
             iconStyles={[styles.tripReservationIconContainer(true), styles.mr3]}
-            secondaryIconFill={theme.icon}
             isSmallAvatarSubscriptMenu
         />
     );
@@ -109,7 +103,7 @@ function ReservationView({reservation}: ReservationViewProps) {
 
 const renderItem = ({item}: {item: Reservation}) => <ReservationView reservation={item} />;
 
-function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, isWhisper = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
+function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -157,7 +151,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered || isWhisper ? styles.reportPreviewBoxHoverBorder : undefined]}>
+                    <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap5, isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         <View style={styles.expenseAndReportPreviewTextContainer}>
                             <View style={styles.reportPreviewAmountSubtitleContainer}>
                                 <View style={styles.flexRow}>
