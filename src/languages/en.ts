@@ -403,7 +403,7 @@ export default {
     validateCodeModal: {
         successfulSignInTitle: "Abracadabra,\nyou're signed in!",
         successfulSignInDescription: 'Head back to your original tab to continue.',
-        title: 'Here's your magic code',
+        title: "Here's your magic code",
         description: 'Please enter the code from the device\nwhere it was originally requested',
         or: ', or',
         signInHere: 'just sign in here',
