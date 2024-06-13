@@ -1,21 +1,21 @@
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type { EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled } from '@libs/API/parameters';
-import { READ_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Report } from '@src/types/onyx';
-import type { OnyxValueWithOfflineFeedback } from '@src/types/onyx/OnyxCommon';
-import type { Attributes, Rate } from '@src/types/onyx/Policy';
-import type { OnyxData } from '@src/types/onyx/Request';
-import type { NullishDeep, OnyxCollection, OnyxEntry } from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import { navigateWhenEnableFeature } from './Policy';
+import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {Attributes, Rate} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
+import {navigateWhenEnableFeature} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -500,33 +500,33 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             value: null,
         });
     } else if (!enabled) {
-            const policyTag = PolicyUtils.getTagLists(policyTagList)[0];
-            onyxData.optimisticData?.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                    value: {
-                        [policyTag.name]: {
-                            tags: Object.fromEntries(
-                                Object.keys(policyTag.tags).map((tagName) => [
-                                        tagName,
-                                        {
-                                            enabled: false,
-                                        },
-                                    ]),
-                            ),
-                        },
+        const policyTag = PolicyUtils.getTagLists(policyTagList)[0];
+        onyxData.optimisticData?.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: Object.fromEntries(
+                            Object.keys(policyTag.tags).map((tagName) => [
+                                tagName,
+                                {
+                                    enabled: false,
+                                },
+                            ]),
+                        ),
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    value: {
-                        requiresTag: false,
-                    },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag: false,
                 },
-            );
-        }
+            },
+        );
+    }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
 
@@ -640,8 +640,16 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
 }
 
 export {
-    buildOptimisticPolicyRecentlyUsedTags, clearPolicyTagErrors, createPolicyTag, deletePolicyTags, enablePolicyTags, openPolicyTagsPage, renamePolicyTag, renamePolicyTaglist, setPolicyRequiresTag, setWorkspaceTagEnabled
+    buildOptimisticPolicyRecentlyUsedTags,
+    clearPolicyTagErrors,
+    createPolicyTag,
+    deletePolicyTags,
+    enablePolicyTags,
+    openPolicyTagsPage,
+    renamePolicyTag,
+    renamePolicyTaglist,
+    setPolicyRequiresTag,
+    setWorkspaceTagEnabled,
 };
 
-    export type { NewCustomUnit };
-
+export type {NewCustomUnit};
