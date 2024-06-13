@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
@@ -33,6 +33,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import ConfirmModal from '@src/components/ConfirmModal';
+import type {Route} from '@src/ROUTES';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,6 +90,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
+    const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
     const isPolicy = isPolicyAdmin || isPolicyEmployee;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -123,7 +125,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
-    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(parentReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
+    let moneyRequestReport = null;
+    if (isMoneyRequestReport || isInvoiceReport) {
+        moneyRequestReport = report;
+    } else if (isSingleTransactionView) {
+        moneyRequestReport = parentReport;
+    }
+
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -414,18 +423,24 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const navigateBackToAfterDelete = useRef<Route>();
+
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
             const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-                IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
-                return;
+                if(isMoneyRequestReport || isInvoiceReport) {
+                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                } else if (isSingleTransactionView) {
+                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                }
+            } else {
+                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
             }
-            IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
         }
 
         setIsDeleteModalVisible(false);
-    }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
+    }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, parentReportAction, report?.reportID]);
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -502,6 +517,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
+                    onModalHide={() => {
+                        if (!navigateBackToAfterDelete.current) {
+                            return;
+                        }
+                        Navigation.goBack(navigateBackToAfterDelete.current);
+                    }}
                     prompt={translate('iou.deleteConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
