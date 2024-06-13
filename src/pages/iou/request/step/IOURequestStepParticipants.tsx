@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -43,6 +44,7 @@ function IOURequestStepParticipants({
     const participants = transaction?.participants;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? participants[0]?.reportID ?? reportID : reportID);
@@ -139,6 +141,15 @@ function IOURequestStepParticipants({
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
     }, [iouRequestType, iouType, transactionID, reportID, action]);
+
+    useEffect(() => {
+        const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+        const isShareAction = action === CONST.IOU.ACTION.SHARE;
+        if (isFocused && (isCategorizing || isShareAction)) {
+            IOU.setMoneyRequestParticipants(transactionID, []);
+            numberOfParticipants.current = 0;
+        }
+    }, [isFocused, action, transactionID]);
 
     return (
         <StepScreenWrapper

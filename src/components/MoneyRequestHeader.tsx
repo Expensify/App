@@ -22,6 +22,7 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -53,7 +54,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? -1}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
+    const [holdUseExplained, holdUseExplainedResult] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED);
+    const isLoadingHoldUseExplained = isLoadingOnyxValue(holdUseExplainedResult);
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -175,8 +177,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     }
 
     useEffect(() => {
-        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplanation);
-    }, [isOnHold, shownHoldUseExplanation]);
+        if (isLoadingHoldUseExplained) {
+            return;
+        }
+        setShouldShowHoldMenu(isOnHold && !holdUseExplained);
+    }, [isOnHold, holdUseExplained, isLoadingHoldUseExplained]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
