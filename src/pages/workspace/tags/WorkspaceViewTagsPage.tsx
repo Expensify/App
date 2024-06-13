@@ -27,6 +27,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,10 +66,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags).find((policyTag) => policyTag.name === currentTagListName), [currentTagListName, policyTags]);
     const tagList = useMemo<TagListItem[]>(
         () =>
-            Object.values(policyTagList?.tags ?? {})
+            Object.values(currentPolicyTag?.tags ?? {})
                 .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
                 .map((tag) => ({
                     value: tag.name,
@@ -81,7 +81,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [policyTagList, selectedTags, translate],
+        [currentPolicyTag, selectedTags, translate],
     );
 
     const tagListKeyedByName = useMemo(
@@ -234,6 +234,18 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <View style={[styles.pv4, styles.ph5]}>
+                    <ToggleSettingOptionRow
+                        title={translate('common.required')}
+                        switchAccessibilityLabel={translate('common.required')}
+                        isActive={!!currentPolicyTag?.required}
+                        onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
+                        pendingAction={currentPolicyTag.pendingFields?.required}
+                        errors={currentPolicyTag?.errorFields?.required ?? undefined}
+                        onCloseError={() => Tag.clearPolicyTagListError(policyID, route.params.orderWeight, 'required')}
+                        disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
+                    />
+                </View>
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
                     pendingAction={currentPolicyTag.pendingAction}
@@ -264,7 +276,9 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => Tag.clearPolicyTagErrors(policyID, item.value)}
+                        onDismissError={(item) => {
+                            Tag.clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
+                        }}
                     />
                 )}
             </ScreenWrapper>
