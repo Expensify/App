@@ -4,7 +4,9 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Array<keyof MarkdownStyle> = []): MarkdownStyle {
+const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
+
+function useMarkdownStyle(inputContainsOnlyEmojis?: boolean, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
 
     // this map is used to reset the styles that are not needed - passing undefined value can break the native side
