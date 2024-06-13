@@ -144,7 +144,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
-                        Report.setGroupDraft({avatarUri: image?.uri ?? '', avatarFileName: image?.name ?? '', avatarFileType: image?.type});
+                        Report.setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                     }}
                     onImageRemoved={() => {
                         setAvatarFile(undefined);
