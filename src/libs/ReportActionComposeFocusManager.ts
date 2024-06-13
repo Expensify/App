@@ -32,7 +32,7 @@ function onComposerFocus(callback: FocusCallback | null, isMainComposer = false)
  */
 function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report route, */
-    if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? ''))) {
+    if (!Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(Navigation.getTopmostReportId() ?? '-1'))) {
         return;
     }
 

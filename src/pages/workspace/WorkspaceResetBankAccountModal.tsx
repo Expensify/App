@@ -49,7 +49,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, session, user}: W
             }
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}
-            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '', user)}
+            onConfirm={() => BankAccounts.resetFreePlanBankAccount(bankAccountID, session, achData?.policyID ?? '-1', user)}
             shouldShowCancelButton
             isVisible
         />

@@ -44,7 +44,7 @@ const DEPLOY_PRODUCTION__CREATE_RELEASE__STEP_MOCK = createMockStep(
     '🚀 Create release to trigger production deploy 🚀',
     'Creating release to trigger production deploy',
     'DEPLOY_PRODUCTION',
-    ['tag_name', 'body'],
+    [],
     ['GITHUB_TOKEN'],
 );
 const DEPLOY_PRODUCTION_STEP_MOCKS = [

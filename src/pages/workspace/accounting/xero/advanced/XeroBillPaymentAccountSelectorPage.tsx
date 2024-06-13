@@ -21,7 +21,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const {reimbursementAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);

@@ -7,7 +7,9 @@ import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
+import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
@@ -140,6 +142,8 @@ function MoneyRequestAmountInput(
     });
 
     const forwardDeletePressedRef = useRef(false);
+    // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNewAmount
+    const willSelectionBeUpdatedManually = useRef(false);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -162,6 +166,7 @@ function MoneyRequestAmountInput(
 
             // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
 
+            willSelectionBeUpdatedManually.current = true;
             let hasSelectionBeenSet = false;
             setCurrentAmount((prevAmount) => {
                 const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(finalAmount);
@@ -169,6 +174,7 @@ function MoneyRequestAmountInput(
                 if (!hasSelectionBeenSet) {
                     hasSelectionBeenSet = true;
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
+                    willSelectionBeUpdatedManually.current = false;
                 }
                 onAmountChange?.(strippedAmount);
                 return strippedAmount;
@@ -196,7 +202,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
+        if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
         const frontendAmount = onFormatAmount(amount, currency);
@@ -294,6 +300,10 @@ function MoneyRequestAmountInput(
             selectedCurrencyCode={currency}
             selection={selection}
             onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                if (shouldIgnoreSelectionWhenUpdatedManually && willSelectionBeUpdatedManually.current) {
+                    willSelectionBeUpdatedManually.current = false;
+                    return;
+                }
                 if (!shouldUpdateSelection) {
                     return;
                 }

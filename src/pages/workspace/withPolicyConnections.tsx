@@ -25,7 +25,7 @@ type WithPolicyConnectionsProps = WithPolicyProps & {
 function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(WrappedComponent: ComponentType<TProps>, shouldBlockView = true) {
     function WithPolicyConnections(props: TProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '0'}`, {
+        const [hasConnectionsDataBeenFetched] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id ?? '-1'}`, {
             initWithStoredValues: false,
         });
         const isConnectionDataFetchNeeded = !isOffline && props.policy && props.policy.areConnectionsEnabled && !props.policy.connections && !hasConnectionsDataBeenFetched;

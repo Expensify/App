@@ -21,7 +21,6 @@ function TableListItem<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
@@ -53,7 +52,6 @@ function TableListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}

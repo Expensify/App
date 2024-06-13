@@ -55,7 +55,7 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
         onNext();
     }, [plaidData, reimbursementAccountDraft, onNext]);
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
 
     useEffect(() => {
         const plaidBankAccounts = plaidData?.bankAccounts ?? [];
@@ -88,7 +88,6 @@ function Plaid({reimbursementAccount, reimbursementAccountDraft, onNext, plaidDa
                 allowDebit
                 bankAccountID={bankAccountID}
                 selectedPlaidAccountID={selectedPlaidAccountID}
-                isDisplayedInNewVBBA
                 inputID={BANK_INFO_STEP_KEYS.SELECTED_PLAID_ACCOUNT_ID}
                 defaultValue={selectedPlaidAccountID}
             />

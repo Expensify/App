@@ -8,13 +8,13 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, Report} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from './Policy';
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -279,7 +279,6 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.newName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.newName,
-                        unencodedName: decodeURIComponent(policyCategory.newName),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         pendingFields: {
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -298,7 +297,6 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.newName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.newName,
-                        unencodedName: decodeURIComponent(policyCategory.newName),
                         errors: null,
                         pendingAction: null,
                         pendingFields: {
@@ -317,7 +315,6 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.oldName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.oldName,
-                        unencodedName: decodeURIComponent(policyCategory.oldName),
                         errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
                     },
@@ -597,4 +594,5 @@ export {
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,
     deleteWorkspaceCategories,
+    buildOptimisticPolicyCategories,
 };

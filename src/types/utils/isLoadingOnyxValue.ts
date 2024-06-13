@@ -1,6 +1,6 @@
-import type {OnyxKey, UseOnyxResult} from 'react-native-onyx';
+import type {ResultMetadata} from 'react-native-onyx';
 
-function isLoadingOnyxValue(...results: Array<UseOnyxResult<OnyxKey, unknown>[1]>): boolean {
+function isLoadingOnyxValue(...results: ResultMetadata[]): boolean {
     return results.some((result) => result.status === 'loading');
 }
 

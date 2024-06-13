@@ -21,7 +21,7 @@ import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
     const isSwitchOn = !!xeroConfig?.importTrackingCategories;
 

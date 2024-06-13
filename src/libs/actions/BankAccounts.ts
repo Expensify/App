@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {OnfidoDataWithApplicantID} from '@components/Onfido/types';
@@ -70,7 +69,7 @@ function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
-function setPlaidEvent(eventName: OnyxEntry<string>) {
+function setPlaidEvent(eventName: string | null) {
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, eventName);
 }
 
@@ -87,10 +86,9 @@ function openPersonalBankAccountSetupView(exitReportID?: string) {
 }
 
 /**
- * TODO: remove the previous function and rename this function to openPersonalBankAccountSetupView after migrating to the new flow
- * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * Open the personal bank account setup flow using Plaid, with an optional exitReportID to redirect to once the flow is finished.
  */
-function openPersonalBankAccountSetupViewRefactor(exitReportID?: string) {
+function openPersonalBankAccountSetupWithPlaid(exitReportID?: string) {
     clearPlaid().then(() => {
         if (exitReportID) {
             Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
@@ -230,6 +228,13 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                     isLoading: false,
                     errors: null,
                     shouldShowSuccess: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.USER_WALLET,
+                value: {
+                    currentStep: CONST.WALLET.STEP.ADDITIONAL_DETAILS,
                 },
             },
         ],
@@ -466,7 +471,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
-        policyID: policyID ?? '',
+        policyID: policyID ?? '-1',
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
@@ -562,7 +567,7 @@ export {
     validateBankAccount,
     verifyIdentityForBankAccount,
     setReimbursementAccountLoading,
-    openPersonalBankAccountSetupViewRefactor,
+    openPersonalBankAccountSetupWithPlaid,
     updateAddPersonalBankAccountDraft,
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,

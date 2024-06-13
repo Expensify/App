@@ -35,7 +35,7 @@ type CommitData = {
     };
 };
 
-let run;
+let run: () => Promise<void>;
 
 const mockGetInput = jest.fn();
 const mockGetPullRequest = jest.fn();

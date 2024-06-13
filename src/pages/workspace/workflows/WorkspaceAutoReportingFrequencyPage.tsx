@@ -53,7 +53,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     const [isMonthlyFrequency, setIsMonthlyFrequency] = useState(policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
 
     const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
-        Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '', item.keyForList as AutoReportingFrequencyKey);
+        Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '-1', item.keyForList as AutoReportingFrequencyKey);
 
         if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
             setIsMonthlyFrequency(true);
@@ -82,7 +82,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
         <OfflineWithFeedback
             pendingAction={policy?.pendingFields?.autoReportingOffset}
             errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
-            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
+            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
             errorRowStyles={[styles.ml7]}
         >
             <MenuItem
@@ -130,7 +130,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingFields?.autoReportingFrequency}
                         errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
-                        onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                        onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
                         style={styles.flex1}
                         contentContainerStyle={styles.flex1}
                     >

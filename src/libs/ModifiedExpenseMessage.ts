@@ -3,12 +3,12 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagList, ReportAction} from '@src/types/onyx';
+import type {ModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
-import type {ExpenseOriginalMessage} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
@@ -109,8 +109,8 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction?.originalMessage as ExpenseOriginalMessage | undefined;
-    const policyID = getReportPolicyID(reportID) ?? '';
+    const reportActionOriginalMessage = reportAction?.originalMessage as ModifiedExpense | undefined;
+    const policyID = getReportPolicyID(reportID) ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];

@@ -24,12 +24,13 @@ function WorkspaceCardPage({route}: WorkspaceCardPageProps) {
             shouldUseScrollView
             headerText={translate('workspace.common.card')}
             route={route}
+            shouldSkipVBBACall={false}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_CARD}
             shouldShowOfflineIndicatorInWideScreen
         >
             {(hasVBA?: boolean, policyID?: string, isUsingECard?: boolean) => (
                 <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID ?? ''} />}
+                    {!hasVBA && <WorkspaceCardNoVBAView policyID={policyID ?? '-1'} />}
 
                     {hasVBA && !isUsingECard && <WorkspaceCardVBANoECardView />}
 

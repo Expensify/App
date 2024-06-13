@@ -166,7 +166,7 @@ function IOURequestStepDistance({
             if (transactionWasSaved.current) {
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '', action === CONST.IOU.ACTION.CREATE);
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', action === CONST.IOU.ACTION.CREATE);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -226,7 +226,7 @@ function IOURequestStepDistance({
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             if (shouldSkipConfirmation) {
@@ -383,8 +383,8 @@ function IOURequestStepDistance({
                 return;
             }
             IOU.updateMoneyRequestDistance({
-                transactionID: transaction?.transactionID ?? '',
-                transactionThreadReportID: report?.reportID ?? '',
+                transactionID: transaction?.transactionID ?? '-1',
+                transactionThreadReportID: report?.reportID ?? '-1',
                 waypoints,
                 ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                 policy,
@@ -481,19 +481,19 @@ IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
     transactionBackup: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '-1'}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

@@ -48,7 +48,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '');
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1');
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);

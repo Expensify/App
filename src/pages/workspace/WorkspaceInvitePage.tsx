@@ -241,7 +241,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '';
+            const accountID = option.accountID ?? '-1';
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }

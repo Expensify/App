@@ -86,6 +86,9 @@ type SectionProps = Partial<ChildrenProps> & {
 
     /** The height of the icon. */
     iconHeight?: number;
+
+    /** Banner to display at the top of the section */
+    banner?: ReactNode;
 };
 
 function isIllustrationLottieAnimation(illustration: DotLottieAnimation | IconAsset | undefined): illustration is DotLottieAnimation {
@@ -119,6 +122,7 @@ function Section({
     iconWidth,
     iconHeight,
     renderSubtitle,
+    banner = null,
 }: SectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -133,6 +137,7 @@ function Section({
 
     return (
         <View style={[styles.pageWrapper, styles.cardSectionContainer, containerStyles, (isCentralPane || !!illustration) && styles.p0]}>
+            {banner}
             {cardLayout === CARD_LAYOUT.ICON_ON_TOP && (
                 <IconSection
                     width={iconWidth}

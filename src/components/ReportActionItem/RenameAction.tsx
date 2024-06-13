@@ -16,9 +16,9 @@ function RenameAction({currentUserPersonalDetails, action}: RenameActionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const currentUserAccountID = currentUserPersonalDetails.accountID ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID ?? '-1';
     const userDisplayName = action.person?.[0]?.text;
-    const actorAccountID = action.actorAccountID ?? '';
+    const actorAccountID = action.actorAccountID ?? '-1';
     const displayName = actorAccountID === currentUserAccountID ? `${translate('common.you')}` : `${userDisplayName}`;
     const originalMessage = action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ? action.originalMessage : null;
     const oldName = originalMessage?.oldName ?? '';

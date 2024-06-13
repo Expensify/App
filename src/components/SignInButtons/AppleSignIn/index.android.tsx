@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {AppleSignInProps} from '.';
 
 /**
  * Apple Sign In Configuration for Android.
@@ -33,7 +34,7 @@ function appleSignInRequest(): Promise<string | undefined> {
 /**
  * Apple Sign In button for Android.
  */
-function AppleSignIn() {
+function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
@@ -46,7 +47,10 @@ function AppleSignIn() {
     };
     return (
         <IconButton
-            onPress={handleSignIn}
+            onPress={() => {
+                onPress();
+                handleSignIn();
+            }}
             provider={CONST.SIGN_IN_METHOD.APPLE}
         />
     );

@@ -23,6 +23,7 @@
     - [Type imports/exports](#type-importsexports)
     - [Refs](#refs)
     - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
+    - [Default value for inexistent IDs](#default-value-for-inexistent-IDs)
 - [Naming Conventions](#naming-conventions)
     - [Type names](#type-names)
     - [Prop callbacks](#prop-callbacks)
@@ -470,6 +471,24 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 ### Other Expensify Resources on TypeScript
 
 - [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
+
+### Default value for inexistent IDs
+
+ Use `'-1'` or `-1` when there is a possibility that the ID property of an Onyx value could be `null` or `undefined`.
+
+``` ts
+// BAD
+const foo = report?.reportID ?? '';
+const bar = report?.reportID ?? '0';
+
+report ? report.reportID : '0';
+report ? report.reportID : '';
+
+// GOOD
+const foo = report?.reportID ?? '-1';
+
+report ? report.reportID : '-1';
+```
 
 ## Naming Conventions
 

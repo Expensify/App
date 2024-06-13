@@ -74,7 +74,7 @@ function CompanyOwnersListUBO({
     const {isOffline} = useNetwork();
 
     const isLoading = reimbursementAccount?.isLoading ?? false;
-    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, null, reimbursementAccount);
+    const requestorData = getSubstepValues(REQUESTOR_PERSONAL_INFO_KEYS, undefined, reimbursementAccount);
     const error = ErrorUtils.getLatestErrorMessage(reimbursementAccount);
 
     const extraBeneficialOwners =

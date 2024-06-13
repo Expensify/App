@@ -21,13 +21,12 @@ function BasePopoverReactionList(props: BasePopoverReactionListPropsWithLocalWit
         preferredLocale,
     });
     // Get the reaction information
-    const {emojiCodes, reactionCount, hasUserReacted, users} = getReactionInformation();
-
+    const {emojiCodes, reactionCount, hasUserReacted, users, isReady} = getReactionInformation();
     useImperativeHandle(ref, () => ({hideReactionList, showReactionList}));
 
     return (
         <PopoverWithMeasuredContent
-            isVisible={isPopoverVisible}
+            isVisible={isPopoverVisible && isReady}
             onClose={hideReactionList}
             anchorPosition={popoverAnchorPosition}
             animationIn="fadeIn"

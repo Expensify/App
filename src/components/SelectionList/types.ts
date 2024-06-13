@@ -398,6 +398,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
 
+    /** This may improve scroll performance for large lists */
+    removeClippedSubviews?: boolean;
+
     /**
      * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.

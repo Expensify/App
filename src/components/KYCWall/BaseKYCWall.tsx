@@ -166,7 +166,7 @@ function KYCWall({
 
             transferBalanceButtonRef.current = targetElement;
 
-            const isExpenseReport = ReportUtils.isExpenseReport(iouReport ?? null);
+            const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
             const paymentCardList = fundList ?? {};
 
             // Check to see if user has a valid payment method on file and display the add payment popover if they don't

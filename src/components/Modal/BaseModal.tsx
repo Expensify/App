@@ -2,6 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -214,7 +215,7 @@ function BaseModal(
                 // a conflict between RN core and Reanimated shadow tree operations
                 // position absolute is needed to prevent the view from interfering with flex layout
                 collapsable={false}
-                style={[styles.pAbsolute]}
+                style={[styles.pAbsolute, {zIndex: 1}]}
             >
                 <ReactNativeModal
                     // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
@@ -251,14 +252,18 @@ function BaseModal(
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
-                    <ModalContent onDismiss={handleDismissModal}>
-                        <View
-                            style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
-                            ref={ref}
-                        >
-                            <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                    <FocusTrapForModal active={isVisible}>
+                        <View>
+                            <ModalContent onDismiss={handleDismissModal}>
+                                <View
+                                    style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                                    ref={ref}
+                                >
+                                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                                </View>
+                            </ModalContent>
                         </View>
-                    </ModalContent>
+                    </FocusTrapForModal>
                 </ReactNativeModal>
             </View>
         </ModalContext.Provider>

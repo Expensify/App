@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Rate} from '@src/types/onyx/Policy';
+import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageOnyxProps = {
     /** Policy details */
@@ -51,7 +51,8 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxRateExternalID = rate.attributes?.taxRateExternalID;
 
     const isDistanceTrackTaxEnabled = !!customUnit?.attributes?.taxEnabled;
-    const taxRate = taxRateExternalID ? `${policy?.taxRates?.taxes[taxRateExternalID].name} (${policy?.taxRates?.taxes[taxRateExternalID].value})` : '';
+    const taxRate =
+        taxRateExternalID && policy?.taxRates?.taxes[taxRateExternalID] ? `${policy?.taxRates?.taxes[taxRateExternalID]?.name} (${policy?.taxRates?.taxes[taxRateExternalID]?.value})` : '';
     // Rates can be disabled or deleted as long as in the remaining rates there is always at least one enabled rate and there are no pending delete action
     const canDisableOrDeleteRate = Object.values(customUnit?.rates ?? {}).some(
         (distanceRate: Rate) => distanceRate?.enabled && rateID !== distanceRate?.customUnitRateID && distanceRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -90,7 +91,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? CurrencyUtils.convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
-    const clearErrorFields = (fieldName: keyof Rate) => {
+    const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
         DistanceRate.clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
@@ -138,10 +139,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'taxRateExternalID')}
+                            pendingAction={rate?.pendingFields?.taxRateExternalID}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
                                 <MenuItemWithTopDescription
@@ -155,10 +156,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                     )}
                     {isDistanceTrackTaxEnabled && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(rate, 'attributes')}
-                            pendingAction={rate?.pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(rate, 'taxClaimablePercentage')}
+                            pendingAction={rate?.pendingFields?.taxClaimablePercentage}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

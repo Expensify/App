@@ -58,17 +58,6 @@ export default function createRandomReportAction(index: number): ReportAction {
                 isEdited: randBoolean(),
                 isDeletedParentAction: randBoolean(),
                 whisperedTo: randAggregation(),
-                reactions: [
-                    {
-                        emoji: randWord(),
-                        users: [
-                            {
-                                accountID: index,
-                                skinTone: index,
-                            },
-                        ],
-                    },
-                ],
             },
         ],
         originalMessage: {

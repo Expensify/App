@@ -115,12 +115,12 @@ function ReportActionItemParentAction({
                         onPress={
                             ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))
                                 ? () => {
-                                      const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                                      const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                                       // Pop the thread report screen before navigating to the chat report.
-                                      Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''));
+                                      Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1'));
                                       if (isVisibleAction && !isOffline) {
                                           // Pop the chat report screen before navigating to the linked report action.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID));
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1', ancestor.reportAction.reportActionID));
                                       }
                                   }
                                 : undefined

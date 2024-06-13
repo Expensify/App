@@ -12,6 +12,9 @@ type MoneyRequestHeaderStatusBarProps = {
     /** Banner Description */
     description: string;
 
+    /** Whether we show the border bottom */
+    shouldShowBorderBottom: boolean;
+
     /** Whether we should use the danger theme color */
     danger?: boolean;
 
@@ -19,10 +22,23 @@ type MoneyRequestHeaderStatusBarProps = {
     shouldStyleFlexGrow?: boolean;
 };
 
-function MoneyRequestHeaderStatusBar({title, description, danger = false, shouldStyleFlexGrow = true}: MoneyRequestHeaderStatusBarProps) {
+function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, danger = false, shouldStyleFlexGrow = true}: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
+    const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, shouldStyleFlexGrow && styles.flexGrow1, styles.overflowHidden, styles.headerStatusBarContainer]}>
+        <View
+            style={[
+                styles.dFlex,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                shouldStyleFlexGrow && styles.flexGrow1,
+                styles.overflowHidden,
+                styles.ph5,
+                styles.pb3,
+                borderBottomStyle,
+                styles.headerStatusBarContainer,
+            ]}
+        >
             {typeof title === 'string' ? (
                 <View style={[styles.mr3]}>
                     <Badge

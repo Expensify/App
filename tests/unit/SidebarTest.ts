@@ -55,9 +55,9 @@ describe('Sidebar', () => {
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
                         const reportCollection: ReportCollectionDataSet = {
@@ -108,9 +108,9 @@ describe('Sidebar', () => {
 
             // Given the user is in all betas
             const betas = [CONST.BETAS.DEFAULT_ROOMS];
-            LHNTestUtils.getDefaultRenderedSidebarLinks('0');
             return (
                 waitForBatchedUpdates()
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() => {
                         const reportCollection: ReportCollectionDataSet = {

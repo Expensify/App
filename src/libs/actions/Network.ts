@@ -1,12 +1,24 @@
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function setIsBackendReachable(isBackendReachable: boolean) {
+function setIsBackendReachable(isBackendReachable: boolean, reason: string) {
+    if (isBackendReachable) {
+        Log.info(`[Network] Backend is reachable because: ${reason}`);
+    } else {
+        Log.info(`[Network] Backend is not reachable because: ${reason}`);
+    }
     Onyx.merge(ONYXKEYS.NETWORK, {isBackendReachable});
 }
 
-function setIsOffline(isOffline: boolean) {
+function setIsOffline(isOffline: boolean, reason = '') {
+    if (reason) {
+        let textToLog = '[Network] Client is';
+        textToLog += isOffline ? ' entering offline mode' : ' back online';
+        textToLog += ` because: ${reason}`;
+        Log.info(textToLog);
+    }
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 

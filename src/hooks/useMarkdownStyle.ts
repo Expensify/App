@@ -5,12 +5,27 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(message: string | null = null): MarkdownStyle {
+const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
+
+function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
     const emojiFontSize = containsOnlyEmojis(message ?? '') ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
 
-    const markdownStyle = useMemo(
+    // this map is used to reset the styles that are not needed - passing undefined value can break the native side
+    const nonStylingDefaultValues: Record<string, string | number> = useMemo(
         () => ({
+            color: theme.text,
+            backgroundColor: 'transparent',
+            marginLeft: 0,
+            paddingLeft: 0,
+            borderColor: 'transparent',
+            borderWidth: 0,
+        }),
+        [theme],
+    );
+
+    const markdownStyle = useMemo(() => {
+        const styling = {
             syntax: {
                 color: theme.syntax,
             },
@@ -59,9 +74,21 @@ function useMarkdownStyle(message: string | null = null): MarkdownStyle {
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
-        }),
-        [theme, emojiFontSize],
-    );
+        };
+
+        if (excludeStyles.length) {
+            excludeStyles.forEach((key) => {
+                const style: Record<string, unknown> = styling[key];
+                if (style) {
+                    Object.keys(style).forEach((styleKey) => {
+                        style[styleKey] = nonStylingDefaultValues[styleKey] ?? style[styleKey];
+                    });
+                }
+            });
+        }
+
+        return styling;
+    }, [theme, emojiFontSize, excludeStyles, nonStylingDefaultValues]);
 
     return markdownStyle;
 }

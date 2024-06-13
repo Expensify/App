@@ -32,7 +32,7 @@ export default function () {
                 key: oldKey as OnyxKey,
                 callback: (value) => {
                     Onyx.disconnect(connectionID);
-                    if (value === null) {
+                    if (value === undefined) {
                         resolveWhenDone();
                         return;
                     }

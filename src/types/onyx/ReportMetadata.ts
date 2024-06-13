@@ -1,3 +1,4 @@
+/** Model of report metadata */
 type ReportMetadata = {
     /** Are we loading newer report actions? */
     isLoadingNewerReportActions?: boolean;

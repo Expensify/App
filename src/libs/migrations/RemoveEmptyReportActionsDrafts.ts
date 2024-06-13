@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,7 @@ export default function (): Promise<void> {
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxInputValue<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDrafts]) => {
                     const newReportActionsDraftsForReport: Record<string, ReportActionsDraft> = {};
 

@@ -49,6 +49,7 @@ import CompanyCard from '@assets/images/simple-illustrations/simple-illustration
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
+import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -190,4 +191,5 @@ export {
     ExpensifyApprovedLogoLight,
     SendMoney,
     CheckmarkCircle,
+    CreditCardEyes,
 };

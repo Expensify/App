@@ -40,11 +40,11 @@ function CompleteVerification({reimbursementAccount, reimbursementAccountDraft, 
     const styles = useThemeStyles();
 
     const values = useMemo(() => getSubstepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
 
     const submit = useCallback(() => {
         BankAccounts.acceptACHContractForBankAccount(
-            Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+            Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'),
             {
                 isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
                 certifyTrueInformation: values.certifyTrueInformation,

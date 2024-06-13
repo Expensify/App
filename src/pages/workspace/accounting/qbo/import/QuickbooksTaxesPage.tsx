@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {syncTax, pendingFields, reimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isJournalExportEntity = reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
 

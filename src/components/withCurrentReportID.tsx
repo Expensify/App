@@ -29,7 +29,7 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      */
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
-            const reportID = Navigation.getTopmostReportId(state) ?? '';
+            const reportID = Navigation.getTopmostReportId(state) ?? '-1';
 
             /*
              * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.

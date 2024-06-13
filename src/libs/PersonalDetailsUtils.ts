@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -250,7 +250,7 @@ function getEffectiveDisplayName(personalDetail?: PersonalDetails): string | und
 /**
  * Creates a new displayName for a user based on passed personal details or login.
  */
-function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxEntry<PersonalDetails>): string {
+function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDetails, 'firstName' | 'lastName'> | OnyxInputOrEntry<PersonalDetails>): string {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);

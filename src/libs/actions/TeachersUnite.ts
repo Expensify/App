@@ -26,7 +26,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         sessionEmail = value?.email ?? '';
-        sessionAccountID = value?.accountID ?? 0;
+        sessionAccountID = value?.accountID ?? -1;
     },
 });
 

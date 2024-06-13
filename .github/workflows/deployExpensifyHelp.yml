@@ -29,9 +29,12 @@ jobs:
     env:
       IS_PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
@@ -41,6 +44,9 @@ jobs:
 
       - name: Check for duplicates and cycles in redirects.csv
         run: ./.github/scripts/verifyRedirect.sh
+
+      - name: Enforce that a redirect link has been created
+        run: ./.github/scripts/enforceRedirect.sh
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e

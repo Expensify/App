@@ -54,7 +54,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID ?? '';
+    const policyId = route.params.policyID ?? '-1';
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);

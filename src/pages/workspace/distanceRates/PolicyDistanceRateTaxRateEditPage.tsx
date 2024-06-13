@@ -15,12 +15,14 @@ import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type ListItemType = {
     value: string;
     text: string;
     isSelected: boolean;
     keyForList: string;
+    pendingAction?: PendingAction;
 };
 
 type PolicyDistanceRateTaxRateEditPageProps = WithPolicyOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT>;
@@ -41,11 +43,17 @@ function PolicyDistanceRateTaxRateEditPage({route, policy}: PolicyDistanceRateTa
             text: `${value.name} (${value.value})`,
             isSelected: taxRateExternalID === key,
             keyForList: key,
+            pendingAction: value.pendingAction,
+            isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         }));
         return result;
     }, [policy, taxRateExternalID]);
 
     const onTaxRateChange = (newTaxRate: ListItemType) => {
+        if (taxRateExternalID === newTaxRate.value) {
+            Navigation.goBack();
+            return;
+        }
         DistanceRate.updateDistanceTaxRate(policyID, customUnit, [
             {
                 ...rate,

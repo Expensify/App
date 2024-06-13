@@ -1,5 +1,5 @@
 import {ExpensiMark} from 'expensify-common';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -232,9 +232,9 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
-    const successMembersState: OnyxCollection<PolicyEmployee> = {};
-    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     emailList.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
@@ -530,9 +530,9 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
-    const successMembersState: OnyxCollection<PolicyEmployee> = {};
-    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     logins.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
         successMembersState[email] = {pendingAction: null};

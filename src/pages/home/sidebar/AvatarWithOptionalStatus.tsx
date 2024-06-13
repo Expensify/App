@@ -19,12 +19,14 @@ function AvatarWithOptionalStatus({emojiStatus = '', isSelected = false}: Avatar
         <View style={styles.sidebarStatusAvatarContainer}>
             <ProfileAvatarWithIndicator isSelected={isSelected} />
             <View style={[styles.sidebarStatusAvatar]}>
-                <Text
-                    style={styles.emojiStatusLHN}
-                    numberOfLines={1}
-                >
-                    {emojiStatus}
-                </Text>
+                <View>
+                    <Text
+                        style={styles.emojiStatusLHN}
+                        numberOfLines={1}
+                    >
+                        {emojiStatus}
+                    </Text>
+                </View>
             </View>
         </View>
     );

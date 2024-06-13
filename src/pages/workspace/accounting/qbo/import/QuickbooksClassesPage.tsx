@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 function QuickbooksClassesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {syncClasses, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSwitchOn = !!(syncClasses && syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isReportFieldsSelected = syncClasses === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;

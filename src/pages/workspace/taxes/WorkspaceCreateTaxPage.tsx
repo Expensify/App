@@ -108,7 +108,7 @@ function WorkspaceCreateTaxPage({
                                     // The default currency uses 2 decimal places, so we substract it
                                     extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
                                     // We increase the amount max length to support the extra decimals.
-                                    amountMaxLength={CONST.MAX_TAX_RATE_DECIMAL_PLACES + CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                                    amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                                     extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                                 />
                             </View>

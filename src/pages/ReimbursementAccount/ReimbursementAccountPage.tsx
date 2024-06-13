@@ -211,7 +211,7 @@ function ReimbursementAccountPage({
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const currentStep = achData?.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     const policyName = policy?.name ?? '';
-    const policyIDParam = route.params?.policyID ?? '';
+    const policyIDParam = route.params?.policyID ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();

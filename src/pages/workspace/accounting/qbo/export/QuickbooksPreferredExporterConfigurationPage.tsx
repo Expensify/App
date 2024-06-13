@@ -29,7 +29,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const data: CardListItem[] = useMemo(
         () =>
             exporters?.reduce<CardListItem[]>((options, exporter) => {

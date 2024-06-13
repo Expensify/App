@@ -19,7 +19,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
     const {autoSync, pendingFields, sync} = xeroConfig ?? {};
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
@@ -33,8 +33,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         [bankAccounts],
     );
 
-    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '');
-    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '');
+    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '-1');
+    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '-1');
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 

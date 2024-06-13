@@ -93,17 +93,18 @@ function Banner({
                             )}
                             {content && content}
 
-                            {shouldRenderHTML && text ? (
-                                <RenderHTML html={text} />
-                            ) : (
-                                <Text
-                                    style={[styles.flex1, styles.flexWrap, textStyles]}
-                                    onPress={onPress}
-                                    suppressHighlighting
-                                >
-                                    {text}
-                                </Text>
-                            )}
+                            {text &&
+                                (shouldRenderHTML ? (
+                                    <RenderHTML html={text} />
+                                ) : (
+                                    <Text
+                                        style={[styles.flex1, styles.flexWrap, textStyles]}
+                                        onPress={onPress}
+                                        suppressHighlighting
+                                    >
+                                        {text}
+                                    </Text>
+                                ))}
                         </View>
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>

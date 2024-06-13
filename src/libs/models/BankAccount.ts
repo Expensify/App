@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {AdditionalData} from '@src/types/onyx/BankAccount';
+import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type BankAccountJSON from '@src/types/onyx/BankAccount';
 
 type State = ValueOf<typeof BankAccount.STATE>;
@@ -194,7 +194,7 @@ class BankAccount {
     /**
      * Get the additional data of a bankAccount
      */
-    getAdditionalData(): Partial<AdditionalData> {
+    getAdditionalData(): Partial<BankAccountAdditionalData> {
         return this.json.accountData?.additionalData ?? {};
     }
 

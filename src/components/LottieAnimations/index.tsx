@@ -3,6 +3,11 @@ import variables from '@styles/variables';
 import type DotLottieAnimation from './types';
 
 const DotLottieAnimations = {
+    Abracadabra: {
+        file: require('@assets/animations/Abracadabra.lottie'),
+        w: 375,
+        h: 400,
+    },
     FastMoney: {
         file: require('@assets/animations/FastMoney.lottie'),
         w: 375,
@@ -45,6 +50,11 @@ const DotLottieAnimations = {
         w: 625,
         h: 400,
         backgroundColor: colors.ice500,
+    },
+    MagicCode: {
+        file: require('@assets/animations/MagicCode.lottie'),
+        w: 200,
+        h: 164,
     },
     Magician: {
         file: require('@assets/animations/Magician.lottie'),

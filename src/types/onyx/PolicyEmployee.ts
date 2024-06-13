@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of policy employee */
 type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
     role?: string;
@@ -20,6 +21,7 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
+/** Record of policy employees, indexed by their email */
 type PolicyEmployeeList = Record<string, PolicyEmployee>;
 
 export default PolicyEmployee;

@@ -2,7 +2,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {useCallback, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry, WithOnyxInstanceState} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, WithOnyxState} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
@@ -32,7 +32,7 @@ type OnyxProps = {
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
     /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+    parentReportAction: NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null;
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
@@ -109,7 +109,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
             },
             parentReport: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report ? report.parentReportID : '-1'}`,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${route.params.reportID}`,
@@ -129,7 +129,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             },
             parentReportAction: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props: WithOnyxInstanceState<OnyxProps>): OnyxEntry<OnyxTypes.ReportAction> => {
+                selector: (parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, props?: WithOnyxState<OnyxProps>): NonNullable<OnyxEntry<OnyxTypes.ReportAction>> | null => {
                     const parentReportActionID = props?.report?.parentReportActionID;
                     if (!parentReportActionID) {
                         return null;
