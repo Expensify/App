@@ -28,7 +28,7 @@ type SetupMethodOnyxProps = {
 type SetupMethodProps = SetupMethodOnyxProps;
 
 const plaidDesktopMessage = getPlaidDesktopMessage();
-const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR}`;
+const enablePayments = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.SETTINGS_ENABLE_PAYMENTS}`;
 
 function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
     const styles = useThemeStyles();
@@ -46,13 +46,13 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
                 </View>
                 {!!plaidDesktopMessage && (
                     <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                        <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
+                        <TextLink href={enablePayments}>{translate(plaidDesktopMessage)}</TextLink>
                     </View>
                 )}
                 <Button
                     icon={Expensicons.Bank}
                     text={translate('bankAccount.addBankAccount')}
-                    onPress={() => BankAccounts.openPersonalBankAccountSetupViewRefactor()}
+                    onPress={() => BankAccounts.openPersonalBankAccountSetupWithPlaid()}
                     isDisabled={isPlaidDisabled ?? !user?.validated}
                     style={[styles.mt4, styles.mb2]}
                     iconStyles={styles.buttonCTAIcon}

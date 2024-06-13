@@ -106,6 +106,7 @@ function MoneyRequestPreviewContent({
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+    const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
 
     /*
@@ -140,7 +141,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getPreviewHeaderText = (): string => {
-        let message = translate('iou.cash');
+        let message = showCashOrCard;
 
         if (isDistanceRequest) {
             message = translate('common.distance');
@@ -163,11 +164,7 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                message += ` ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
-                if (shouldShowHoldMessage) {
-                    message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
-                }
-                return message;
+                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
@@ -367,7 +364,7 @@ function MoneyRequestPreviewContent({
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             shouldUseHapticsOnLongPress
-            accessibilityLabel={isBillSplit ? translate('iou.split') : translate('iou.cash')}
+            accessibilityLabel={isBillSplit ? translate('iou.split') : showCashOrCard}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
