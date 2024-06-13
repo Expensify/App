@@ -97,12 +97,6 @@ type ReportActionItemOnyxProps = {
     /** The user's wallet account */
     userWallet: OnyxEntry<OnyxTypes.UserWallet>;
 
-    /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Transaction associated with this report, if any */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** The transaction (linked with the report action) route error */
     linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
@@ -178,12 +172,11 @@ function ReportActionItem({
     userWallet,
     shouldHideThreadDividerLine = false,
     shouldShowSubscriptAvatar = false,
-    policy,
-    transaction,
     onPress = undefined,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     linkedTransactionRouteError,
+    parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -777,17 +770,17 @@ function ReportActionItem({
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        const transactionID = (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
+            ? (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
+            : '0';
+
         return (
             <ReportActionItemContentCreated
-                report={report}
-                action={action}
-                parentReportAction={parentReportAction}
                 contextValue={contextValue}
+                parentReportAction={parentReportAction}
+                transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                transaction={transaction}
-                transactionThreadReport={transactionThreadReport}
-                policy={policy}
             />
         );
     }
@@ -931,24 +924,12 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
         initialValue: {} as OnyxTypes.Report,
     },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
-        initialValue: {} as OnyxTypes.Policy,
-    },
     emojiReactions: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         initialValue: {},
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
-    },
-    transaction: {
-        key: ({parentReportActionForTransactionThread}) => {
-            const transactionID = (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
-                ? (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
-                : 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        },
     },
     linkedTransactionRouteError: {
         key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
@@ -988,10 +969,8 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             prevProps.report?.nonReimbursableTotal === nextProps.report?.nonReimbursableTotal &&
             prevProps.linkedReportActionID === nextProps.linkedReportActionID &&
             lodashIsEqual(prevProps.report.fieldList, nextProps.report.fieldList) &&
-            lodashIsEqual(prevProps.policy, nextProps.policy) &&
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
-            lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
             lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
             prevProps.modal?.willAlertModalBecomeVisible === nextProps.modal?.willAlertModalBecomeVisible
