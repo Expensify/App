@@ -45,7 +45,7 @@ type OnyxData = {
 let lastUpdateIDAppliedToClient = -1;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = (value ?? 0) ? (value ?? 0) : -1),
+    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0 ? value ?? 0 : -1),
 });
 
 /**
