@@ -50,6 +50,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    TRIP_ROOM: 'tripRoom',
     GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
@@ -568,12 +569,14 @@ const CONST = {
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
     ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
     WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    BANCORP_WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
+    SAVE_WITH_EXPENSIFY_URL: `${USE_EXPENSIFY_URL}/savings-calculator`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     NEWHELP_URL: 'https://help.expensify.com',
@@ -595,7 +598,6 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
-        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
     },
 
     SIGN_IN_FORM_WIDTH: 300,
@@ -697,6 +699,7 @@ const CONST = {
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
                 TASK_REOPENED: 'TASKREOPENED',
+                TRIPPREVIEW: 'TRIPPREVIEW',
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
@@ -937,7 +940,7 @@ const CONST = {
         TO: 'to',
         CATEGORY: 'category',
         TAG: 'tag',
-        TOTAL: 'total',
+        TOTAL_AMOUNT: 'amount',
         TYPE: 'type',
         ACTION: 'action',
         TAX_AMOUNT: 'taxAmount',
@@ -1426,6 +1429,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
             ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
@@ -1462,6 +1466,7 @@ const CONST = {
             CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
         MTL_WALLET_PROGRAM_ID: '760',
+        BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
             BANCORP_BANK: 'The Bancorp Bank',
@@ -1577,7 +1582,7 @@ const CONST = {
             APPROVE: 'approve',
             TRACK: 'track',
         },
-        AMOUNT_MAX_LENGTH: 10,
+        AMOUNT_MAX_LENGTH: 8,
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
             OPEN: 'OPEN',
@@ -1814,6 +1819,7 @@ const CONST = {
                 XERO_CHECK_CONNECTION: 'xeroCheckConnection',
                 XERO_SYNC_TITLE: 'xeroSyncTitle',
             },
+            SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -1825,7 +1831,7 @@ const CONST = {
         NAME_DISTANCE: 'Distance',
         DISTANCE_UNIT_MILES: 'mi',
         DISTANCE_UNIT_KILOMETERS: 'km',
-        MILEAGE_IRS_RATE: 0.655,
+        MILEAGE_IRS_RATE: 0.67,
         DEFAULT_RATE: 'Default Rate',
         RATE_DECIMALS: 3,
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
@@ -1896,6 +1902,12 @@ const CONST = {
     OPTION_MODE: {
         COMPACT: 'compact',
         DEFAULT: 'default',
+    },
+    SUBSCRIPTION: {
+        TYPE: {
+            ANNUAL: 'yearly2018',
+            PAYPERUSE: 'monthly2018',
+        },
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
@@ -3296,6 +3308,7 @@ const CONST = {
     },
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
+    BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
@@ -3383,6 +3396,11 @@ const CONST = {
          * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
          */
         IMAGE: 'image',
+
+        /**
+         * @deprecated Please stop using the accessibilityRole prop and use the role prop instead.
+         */
+        TEXTBOX: 'textbox',
     },
     /**
      * Acceptable values for the `role` attribute on react native components.
@@ -3445,6 +3463,8 @@ const CONST = {
         TIMER: 'timer',
         /** Use for toolbars containing action buttons or components. */
         TOOLBAR: 'toolbar',
+        /** Use for navigation elements */
+        NAVIGATION: 'navigation',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -3486,6 +3506,9 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
+        SHARED: 'shared',
+        DRAFTS: 'drafts',
+        FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
@@ -3518,10 +3541,12 @@ const CONST = {
     COLON: ':',
     MAPBOX: {
         PADDING: 50,
-        DEFAULT_ZOOM: 10,
+        DEFAULT_ZOOM: 15,
         SINGLE_MARKER_ZOOM: 15,
         DEFAULT_COORDINATE: [-122.4021, 37.7911],
         STYLE_URL: 'mapbox://styles/expensify/cllcoiqds00cs01r80kp34tmq',
+        ANIMATION_DURATION_ON_CENTER_ME: 1000,
+        CENTER_BUTTON_FADE_DURATION: 300,
     },
     ONYX_UPDATE_TYPES: {
         HTTPS: 'https',
@@ -3857,10 +3882,10 @@ const CONST = {
                     type: 'meetGuide',
                     autoCompleted: false,
                     title: 'Meet your setup specialist',
-                    description: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
+                    description: ({adminsRoomLink}: {adminsRoomLink: string}) =>
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
-                        `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
+                        `Chat with the specialist in your [#admins room](${adminsRoomLink}).`,
                 },
                 {
                     type: 'setupCategories',
@@ -4737,6 +4762,13 @@ const CONST = {
 
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
+        ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
+    },
+
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
     },
 
     DOT_SEPARATOR: '•',
@@ -4791,6 +4823,41 @@ const CONST = {
         ASC: 'asc',
         DESC: 'desc',
     },
+
+    SUBSCRIPTION_SIZE_LIMIT: 20000,
+
+    PAYMENT_CARD_CURRENCY: {
+        USD: 'USD',
+        AUD: 'AUD',
+        GBP: 'GBP',
+        NZD: 'NZD',
+    },
+
+    SUBSCRIPTION_PRICE_FACTOR: 2,
+    SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
+        COLLECT_PLAN: 10,
+        CONTROL_PLAN: 18,
+    },
+    FEEDBACK_SURVEY_OPTIONS: {
+        TOO_LIMITED: {
+            ID: 'tooLimited',
+            TRANSLATION_KEY: 'feedbackSurvey.tooLimited',
+        },
+        TOO_EXPENSIVE: {
+            ID: 'tooExpensive',
+            TRANSLATION_KEY: 'feedbackSurvey.tooExpensive',
+        },
+        INADEQUATE_SUPPORT: {
+            ID: 'inadequateSupport',
+            TRANSLATION_KEY: 'feedbackSurvey.inadequateSupport',
+        },
+        BUSINESS_CLOSING: {
+            ID: 'businessClosing',
+            TRANSLATION_KEY: 'feedbackSurvey.businessClosing',
+        },
+    },
+
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -4799,6 +4866,8 @@ type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType};
+type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType};
 
 export default CONST;

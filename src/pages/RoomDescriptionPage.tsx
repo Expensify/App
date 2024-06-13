@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -97,6 +97,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             value={description}
                             onChangeText={handleReportDescriptionChange}
                             autoCapitalize="none"
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>

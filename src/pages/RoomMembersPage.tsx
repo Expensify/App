@@ -169,63 +169,39 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         const participants = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
 
-        participants
-            .flatMap((accountID) => {
-                const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-                return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
-            })
-            ?.forEach((accountID) => {
-                const details = personalDetails[accountID];
+        participants?.forEach((accountID) => {
+            const details = personalDetails[accountID];
 
-                if (!details) {
-                    Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                    return;
-                }
+            if (!details) {
+                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
+                return;
+            }
 
-                // If search value is provided, filter out members that don't match the search value
-                if (searchValue.trim()) {
-                    let memberDetails = '';
-                    if (details.login) {
-                        memberDetails += ` ${details.login.toLowerCase()}`;
-                    }
-                    if (details.firstName) {
-                        memberDetails += ` ${details.firstName.toLowerCase()}`;
-                    }
-                    if (details.lastName) {
-                        memberDetails += ` ${details.lastName.toLowerCase()}`;
-                    }
-                    if (details.displayName) {
-                        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                    }
-                    if (details.phoneNumber) {
-                        memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                    }
+            // If search value is provided, filter out members that don't match the search value
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+                return;
+            }
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
-                    if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                        return;
-                    }
-                }
-                const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-
-                result.push({
-                    keyForList: String(accountID),
-                    accountID,
-                    isSelected: selectedMembers.includes(accountID),
-                    isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                    alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                    icons: [
-                        {
-                            source: details.avatar ?? FallbackAvatar,
-                            name: details.login ?? '',
-                            type: CONST.ICON_TYPE_AVATAR,
-                            id: accountID,
-                        },
-                    ],
-                    pendingAction: pendingChatMember?.pendingAction,
-                    errors: pendingChatMember?.errors,
-                });
+            result.push({
+                keyForList: String(accountID),
+                accountID,
+                isSelected: selectedMembers.includes(accountID),
+                isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
+                icons: [
+                    {
+                        source: details.avatar ?? FallbackAvatar,
+                        name: details.login ?? '',
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
+                    },
+                ],
+                pendingAction: pendingChatMember?.pendingAction,
+                errors: pendingChatMember?.errors,
             });
+        });
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 

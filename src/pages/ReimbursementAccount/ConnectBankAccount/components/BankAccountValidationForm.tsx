@@ -1,6 +1,7 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -26,7 +27,7 @@ type BankAccountValidationFormProps = {
     requiresTwoFactorAuth: boolean;
 
     /** The policy which the user has access to and which the report is tied to */
-    policy: Policy | null;
+    policy: OnyxEntry<Policy>;
 };
 
 type AmountValues = {

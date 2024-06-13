@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +12,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -25,7 +26,7 @@ type AvatarWithDisplayNamePropsWithOnyx = {
     parentReportActions: OnyxEntry<ReportActions>;
 
     /** Personal details of all users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
@@ -129,14 +130,16 @@ function AvatarWithDisplayName({
                         )}
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        <DisplayNames
-                            fullTitle={title}
-                            displayNamesWithTooltips={displayNamesWithTooltips}
-                            tooltipEnabled
-                            numberOfLines={1}
-                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                        />
+                        <CaretWrapper>
+                            <DisplayNames
+                                fullTitle={title}
+                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                tooltipEnabled
+                                numberOfLines={1}
+                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                                shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                            />
+                        </CaretWrapper>
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}

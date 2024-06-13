@@ -1,8 +1,7 @@
-import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -55,7 +54,7 @@ type ReportDetailsPageMenuItem = {
 
 type ReportDetailsPageOnyxProps = {
     /** Personal details of all the users */
-    personalDetails: OnyxCollection<OnyxTypes.PersonalDetails>;
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
@@ -66,10 +65,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const route = useRoute();
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
-    const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
+    const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
@@ -88,15 +86,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
+    const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
             return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
         }
-
+        if (isSystemChat) {
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '').filter((accountID) => accountID !== session?.accountID);
+        }
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
-    }, [report, isGroupChat]);
+    }, [report, session, isGroupChat, isSystemChat]);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -148,7 +149,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
                 (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
-            !ReportUtils.isConciergeChatReport(report)
+            !ReportUtils.isConciergeChatReport(report) &&
+            !isSystemChat
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
@@ -202,14 +204,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null))) {
+        if (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy))) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
                 icon: Expensicons.Exit,
                 isAnonymousAction: true,
                 action: () => {
-                    if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
+                    if (ReportUtils.getParticipantAccountIDs(report.reportID, true).length === 1 && isGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
@@ -222,6 +224,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return items;
     }, [
         isSelfDM,
+        isSystemChat,
         isArchivedRoom,
         isGroupChat,
         isDefaultRoom,
@@ -257,7 +260,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar = useMemo(() => {
+    const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             return (
                 <View style={styles.mb3}>
@@ -307,14 +310,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
-                <HeaderWithBackButton
-                    title={translate('common.details')}
-                    onBackButtonPress={Navigation.goBack}
-                    shouldNavigateToTopMostReport={!(route.params && 'backTo' in route.params)}
-                />
+                <HeaderWithBackButton title={translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
-                        {renderAvatar}
+                        {renderedAvatar}
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames

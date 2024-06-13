@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -134,6 +134,12 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+
+    // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
+    if (policy === undefined) {
+        return null;
+    }
+
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
@@ -144,6 +150,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfi
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
+            shouldSkipVBBACall={false}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
