@@ -66,7 +66,9 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
                     return false;
                 }
 
-                return (!!route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+                return (
+                    (!!route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE
+                );
             });
             const filteredRoutes = searchCentralPaneIndex !== -1 ? [...routes.slice(0, searchCentralPaneIndex), ...routes.slice(searchCentralPaneIndex + 1)] : [...routes];
             return {
