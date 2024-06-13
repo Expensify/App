@@ -410,6 +410,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
