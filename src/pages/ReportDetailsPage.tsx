@@ -305,18 +305,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const reportName =
-        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
-            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
-            : ReportUtils.getReportName(report);
+    const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
 
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
-
-    // const roomTitle = isPolicyExpenseChat || isGroupChat ? reportName : report?.reportName ?? reportName;
-    // const roomTitle = reportName;
 
     let roomDescription;
     if (isInvoiceRoom || isPolicyExpenseChat) {

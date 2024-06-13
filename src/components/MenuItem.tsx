@@ -639,7 +639,7 @@ function MenuItem(
                                                             />
                                                         )}
                                                         <Text
-                                                            style={[furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting]}
+                                                            style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
                                                             numberOfLines={2}
                                                         >
                                                             {furtherDetails}
