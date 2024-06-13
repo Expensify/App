@@ -1,13 +1,11 @@
 /* eslint no-console: ["error", { allow: ["warn", "log"] }] */
-import type {StepIdentifierWithoutOmit} from '@kie/act-js';
+import type {StepIdentifierCustom} from '@kie/act-js';
 import type {PathLike} from 'fs';
 import fs from 'fs';
 import path from 'path';
 import {exit} from 'process';
 import yaml from 'yaml';
 import type {YamlMockJob, YamlWorkflow} from './JobMocker';
-
-type Step = {name: string; with?: string; envs?: string[]; inputs?: string[]};
 
 const workflowsDirectory = path.resolve(__dirname, '..', '..', '.github', 'workflows');
 const workflowTestsDirectory = path.resolve(__dirname, '..');
@@ -94,7 +92,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 
-const mockStepTemplate = (stepMockName: string, step: StepIdentifierWithoutOmit, jobId: string | undefined) => `
+const mockStepTemplate = (stepMockName: string, step: StepIdentifierCustom, jobId: string | undefined) => `
 const ${stepMockName} = utils.createMockStep(
     '${step.name ?? ''}',
     '${step.name ?? ''}',
@@ -201,7 +199,7 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
         workflowJobs[jobId] = {
             steps: [],
         };
-        job.steps.forEach((step: Step) => {
+        job.steps.forEach((step: StepIdentifierCustom) => {
             const workflowStep = {
                 name: step.name,
                 inputs: Object.keys(step.with ?? {}),
@@ -245,7 +243,7 @@ const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>): string => 
 
     Object.entries(jobs).forEach(([jobId, job]) => {
         let stepAssertionsContent = '';
-        job.steps.forEach((step: Step) => {
+        job.steps.forEach((step: StepIdentifierCustom) => {
             stepAssertionsContent += stepAssertionTemplate(step.name, jobId.toUpperCase(), step.name, step.inputs, step.envs);
         });
         const jobAssertionName = `assert${jobId.charAt(0).toUpperCase() + jobId.slice(1)}JobExecuted`;

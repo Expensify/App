@@ -1,7 +1,7 @@
-import type {StepIdentifier as ActStepIdentifier} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 
 declare module '@kie/act-js' {
-    type StepIdentifierWithoutOmit = {
+    type StepIdentifierCustom = {
         id?: string;
         name: string;
         run?: string;
@@ -9,9 +9,7 @@ declare module '@kie/act-js' {
         with?: string;
         envs?: string[];
         inputs?: string[];
-    };
+    } & Omit<StepIdentifier, 'name' | 'id' | 'run' | 'mockWith'>;
 
-    type StepIdentifier = StepIdentifierWithoutOmit & Omit<ActStepIdentifier, 'name' | 'id' | 'run' | 'mockWith'>;
-
-    export type {StepIdentifier, StepIdentifierWithoutOmit};
+    export type {StepIdentifier, StepIdentifierCustom};
 }
