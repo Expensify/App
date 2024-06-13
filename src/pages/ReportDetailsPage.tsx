@@ -122,7 +122,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy ?? null);
 
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
@@ -381,10 +380,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
 
-        if (canJoin) {
-            result.push(PromotedActions.join(report));
-        }
-
         if (canHoldOrUnholdRequest) {
             const isRequestIOU = parentReport?.type === 'iou';
             const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
@@ -406,7 +401,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [canHoldOrUnholdRequest, canJoin, changeMoneyRequestStatus, isActionOwner, isApprover, isDuplicate, isOnHold, isPolicyAdmin, isScanning, parentReport?.type, report, transaction]);
+    }, [canHoldOrUnholdRequest, changeMoneyRequestStatus, isActionOwner, isApprover, isDuplicate, isOnHold, isPolicyAdmin, isScanning, parentReport?.type, report, transaction]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
