@@ -55,12 +55,14 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
     const prevPersonalDetails = usePrevious(personalDetails);
 
     /**
-     * This effect is used to add a new report option or remove a report option from the list of options when a new report is added to/removed from the collection.
+     * This effect is used to update the options list when reports change.
      */
     useEffect(() => {
+        // there is no need to update the options if the options are not initialized
         if (!areOptionsInitialized.current || !reports) {
             return;
         }
+        // Since reports updates can happen in bulk, and some reports depend on other reports, we need to recreate the whole list from scratch.
         const newReports = OptionsListUtils.createOptionList(personalDetails, reports).reports;
 
         setOptions((prevOptions) => {
@@ -71,6 +73,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
 
             return newOptions;
         });
+        // This effect is used to update the options list when reports change so we ignore all dependencies except reports
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports]);
 
