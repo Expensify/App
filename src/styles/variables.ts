@@ -111,6 +111,7 @@ export default {
     lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     lineHeightComment: 24,
+    lineHeightDisplayName: 25,
     lineHeightMarkdownEnabledInput: 18,
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,

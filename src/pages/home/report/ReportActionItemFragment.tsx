@@ -176,7 +176,7 @@ function ReportActionItemFragment({
                             numberOfLines={isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender, isSingleLine ? styles.pre : styles.preWrap]}
                         >
-                            {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithinText}>{text}</Text> : text))}
+                            {processedTextArray.map(({text, isEmoji}) => (isEmoji ? <Text style={styles.emojisWithinDisplayName}>{text}</Text> : text))}
                         </Text>
                     ) : (
                         <Text

@@ -1685,6 +1685,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightComment,
         },
 
+        emojisWithinDisplayName: {
+            fontSize: variables.fontSizeEmojisWithinText,
+            lineHeight: variables.lineHeightDisplayName,
+        },
+
         emojisOnlyComposer: {
             paddingTop: variables.emojiOnlyComposerPaddingTop,
             paddingBottom: variables.emojiOnlyComposerPaddingBottom,
