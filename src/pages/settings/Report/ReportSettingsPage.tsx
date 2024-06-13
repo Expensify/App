@@ -26,7 +26,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);

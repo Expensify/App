@@ -125,7 +125,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
-    let moneyRequestReport = null;
+    let moneyRequestReport;
     if (isMoneyRequestReport || isInvoiceReport) {
         moneyRequestReport = report;
     } else if (isSingleTransactionView) {
@@ -160,9 +160,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
-    const shouldShowLeaveButton = isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy ?? null));
+    const shouldShowLeaveButton = isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy));
 
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID) ?? null, [policies, report?.policyID]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID), [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const chatRoomAdminSubtitleText = translate('reportDetailsPage.inWorkspace', {policyName: report.policyName});
