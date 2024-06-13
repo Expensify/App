@@ -175,6 +175,9 @@ const ONYXKEYS = {
     /** The end date of the workspace owner’s free trial period. */
     NVP_LAST_DAY_FREE_TRIAL: 'nvp_private_lastDayFreeTrial',
 
+    /** ID associated with the payment card added by the user. */
+    NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -707,6 +710,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
+    [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
