@@ -164,7 +164,7 @@ function ReportActionsView({
     const parentReportActionForTransactionThread = useMemo(
         () =>
             isEmptyObject(transactionThreadReportActions)
-                ? null
+                ? undefined
                 : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
@@ -557,6 +557,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
+    if (!lodashIsEqual(oldProps.transactionThreadReport, newProps.transactionThreadReport)) {
+        return false;
+    }
+
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
