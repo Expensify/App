@@ -9,32 +9,6 @@ import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportAc
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
-type LHNOptionsListOnyxProps = {
-    /** The policy which the user has access to and which the report could be tied to */
-    policy: OnyxCollection<Policy>;
-
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
-
-    /** Array of report actions for this report */
-    reportActions: OnyxCollection<ReportActions>;
-
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: OnyxEntry<Locale>;
-
-    /** List of users' personal details */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** The transaction from the parent report action */
-    transactions: OnyxCollection<Transaction>;
-
-    /** List of draft comments */
-    draftComments: OnyxCollection<string>;
-
-    /** The list of transaction violations */
-    transactionViolations: OnyxCollection<TransactionViolation[]>;
-};
-
 type CustomLHNOptionsListProps = {
     /** Wrapper style for the section list */
     style?: StyleProp<ViewStyle>;
@@ -58,7 +32,7 @@ type CustomLHNOptionsListProps = {
     onFirstItemRendered: () => void;
 };
 
-type LHNOptionsListProps = CustomLHNOptionsListProps & LHNOptionsListOnyxProps;
+type LHNOptionsListProps = CustomLHNOptionsListProps;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
@@ -140,4 +114,4 @@ type OptionRowLHNProps = {
 
 type RenderItemProps = {item: string};
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {memo, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +26,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
 
     const pressableRef = useRef<View>(null);
 
-    const {source, name, type, id} = useMemo(() => {
+    const mainAvatar = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
@@ -56,7 +56,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
             >
                 {({hovered}) => (
                     <SubscriptAvatar
-                        mainAvatar={{source, name, type, id}}
+                        mainAvatar={mainAvatar}
                         subscriptIcon={{
                             source: Expensicons.DownArrow,
                             width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE,
@@ -75,4 +75,4 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
 
 WorkspaceSwitcherButton.displayName = 'WorkspaceSwitcherButton';
 
-export default WorkspaceSwitcherButton;
+export default memo(WorkspaceSwitcherButton);

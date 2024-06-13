@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
     Login,
+    OnyxInputOrEntry,
     PersonalDetails,
     PersonalDetailsList,
     Policy,
@@ -289,7 +290,7 @@ Onyx.connect({
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself
-            const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActions[0]], true);
+            const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
                 sortedReportActions = ReportActionUtils.getCombinedReportActions(reportActionsArray, transactionThreadReportActionsArray, reportID);
@@ -361,7 +362,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
  * Returns the personal details for an array of accountIDs
  * @returns keys of the object are emails, values are PersonalDetails objects.
  */
-function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetailsList {
+function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, personalDetails: OnyxInputOrEntry<PersonalDetailsList>): PersonalDetailsList {
     const personalDetailsForAccountIDs: PersonalDetailsList = {};
     if (!personalDetails) {
         return personalDetailsForAccountIDs;
@@ -371,7 +372,7 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
         if (!cleanAccountID) {
             return;
         }
-        let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID];
+        let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID] ?? undefined;
         if (!personalDetail) {
             personalDetail = {} as PersonalDetails;
         }
@@ -478,7 +479,7 @@ function uniqFast(items: string[]): string[] {
  * Array.prototype.push.apply is faster than using the spread operator.
  */
 function getSearchText(
-    report: OnyxEntry<Report>,
+    report: OnyxInputOrEntry<Report>,
     reportName: string,
     personalDetailList: Array<Partial<PersonalDetails>>,
     isChatRoomOrPolicyExpenseChat: boolean,
@@ -528,7 +529,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         return Object.assign(prevReportActionErrors, action.errors);
     }, {});
     const parentReportAction: OnyxEntry<ReportAction> =
-        !report?.parentReportID || !report?.parentReportActionID ? null : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''] ?? null;
+        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''];
 
     if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
@@ -598,6 +599,26 @@ function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine =
     return showChatPreviewLine && option.lastMessageText
         ? option.lastMessageText
         : LocalePhoneNumber.formatPhoneNumber(option.participantsList && option.participantsList.length > 0 ? option.participantsList[0].login ?? '' : '');
+}
+
+function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {
+    let memberDetails = '';
+    if (personalDetail.login) {
+        memberDetails += ` ${personalDetail.login}`;
+    }
+    if (personalDetail.firstName) {
+        memberDetails += ` ${personalDetail.firstName}`;
+    }
+    if (personalDetail.lastName) {
+        memberDetails += ` ${personalDetail.lastName}`;
+    }
+    if (personalDetail.displayName) {
+        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail)}`;
+    }
+    if (personalDetail.phoneNumber) {
+        memberDetails += ` ${personalDetail.phoneNumber}`;
+    }
+    return isSearchStringMatch(searchValue.trim(), memberDetails.toLowerCase());
 }
 
 /**
@@ -678,8 +699,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
  */
 function createOption(
     accountIDs: number[],
-    personalDetails: OnyxEntry<PersonalDetailsList>,
-    report: OnyxEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    report: OnyxInputOrEntry<Report>,
     reportActions: ReportActions,
     config?: PreviewConfig,
 ): ReportUtils.OptionData {
@@ -828,7 +849,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
     const option = createOption(
         visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
-        !isEmptyObject(report) ? report : null,
+        !isEmptyObject(report) ? report : undefined,
         {},
         {
             showChatPreviewLine: false,
@@ -1932,7 +1953,8 @@ function getOptions(
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
-            const shouldShowInvoiceRoom = includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies);
+            const shouldShowInvoiceRoom =
+                includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.isArchivedRoom;
 
             /**
                 Exclude the report option if it doesn't meet any of the following conditions:
@@ -2469,6 +2491,7 @@ export {
     getPersonalDetailsForAccountIDs,
     getIOUConfirmationOptionsFromPayeePersonalDetail,
     getSearchText,
+    isSearchStringMatchUserDetails,
     getAllReportErrors,
     getPolicyExpenseReportOption,
     getParticipantsOption,

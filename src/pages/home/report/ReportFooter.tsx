@@ -201,7 +201,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose

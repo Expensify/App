@@ -79,7 +79,7 @@ Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     initWithStoredValues: false,
     callback: (value) => {
-        if (value === null) {
+        if (value === undefined) {
             return;
         }
 
