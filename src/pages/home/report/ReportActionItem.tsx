@@ -111,7 +111,7 @@ type ReportActionItemOnyxProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction (linked with the report action) route error */
-    linkedTransactionRouteError: OnyxEntry<Errors>;
+    linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
 
 type ReportActionItemProps = {
@@ -945,7 +945,7 @@ function ReportActionItem({
 
     const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
-    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
+    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];

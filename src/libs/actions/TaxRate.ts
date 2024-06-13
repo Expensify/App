@@ -200,6 +200,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                             acc[taxID] = {
                                 isDisabled: !isEnabled,
                                 pendingFields: {isDisabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {isDisabled: null},
                             };
                             return acc;
@@ -215,7 +216,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                 value: {
                     taxRates: {
                         taxes: taxesIDsToUpdate.reduce<TaxRateEnabledMap>((acc, taxID) => {
-                            acc[taxID] = {pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}};
+                            acc[taxID] = {pendingFields: {isDisabled: null}, errorFields: {isDisabled: null}, pendingAction: null};
                             return acc;
                         }, {}),
                     },
@@ -232,6 +233,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                             acc[taxID] = {
                                 isDisabled: !!originalTaxes[taxID].isDisabled,
                                 pendingFields: {isDisabled: null},
+                                pendingAction: null,
                                 errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             };
                             return acc;
@@ -347,6 +349,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                             [taxID]: {
                                 value: stringTaxValue,
                                 pendingFields: {value: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {value: null},
                             },
                         },
@@ -361,7 +364,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                 value: {
                     taxRates: {
                         taxes: {
-                            [taxID]: {pendingFields: {value: null}, errorFields: {value: null}},
+                            [taxID]: {pendingFields: {value: null}, pendingAction: null, errorFields: {value: null}},
                         },
                     },
                 },
@@ -377,6 +380,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                             [taxID]: {
                                 value: originalTaxRate.value,
                                 pendingFields: {value: null},
+                                pendingAction: null,
                                 errorFields: {value: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
@@ -409,6 +413,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                             [taxID]: {
                                 name: newName,
                                 pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 errorFields: {name: null},
                             },
                         },
@@ -423,7 +428,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                 value: {
                     taxRates: {
                         taxes: {
-                            [taxID]: {pendingFields: {name: null}, errorFields: {name: null}},
+                            [taxID]: {pendingFields: {name: null}, pendingAction: null, errorFields: {name: null}},
                         },
                     },
                 },
@@ -439,6 +444,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                             [taxID]: {
                                 name: originalTaxRate.name,
                                 pendingFields: {name: null},
+                                pendingAction: null,
                                 errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.taxes.error.updateFailureMessage')},
                             },
                         },

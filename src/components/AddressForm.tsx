@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -151,8 +150,6 @@ function AddressForm({
                     label={translate('common.addressLine', {lineNumber: 1})}
                     onValueChange={(data: unknown, key: unknown) => {
                         onAddressChanged(data, key);
-                        // This enforces the country selector to use the country from address instead of the country from URL
-                        Navigation.setParams({country: undefined});
                     }}
                     defaultValue={street1}
                     renamedInputKeys={{

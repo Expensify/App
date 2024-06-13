@@ -192,6 +192,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={!!isSearchingForReports}
+                shouldDelayFocus={false}
             />
         </ScreenWrapper>
     );
