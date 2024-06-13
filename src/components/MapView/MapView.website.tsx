@@ -228,7 +228,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     zoom: initialState.zoom,
                 };
             }
-        }, [waypoints, directionCoordinates, interactive]);
+        }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
 
         return !isOffline && !!accessToken && !!initialViewState ? (
             <View

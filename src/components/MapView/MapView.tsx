@@ -170,26 +170,35 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
 
         const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
+
+        const initialBounds = useMemo(() => {
+            if (!waypoints) {
+                return undefined;
+            }
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                directionCoordinates,
+            );
+            return {ne: northEast, sw: southWest};
+        }, [waypoints, directionCoordinates]);
+
         const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
-            if (!interactive) {
-                if (!waypoints) {
+            if (interactive) {
+                if (!centerCoordinate) {
                     return undefined;
                 }
-                const {northEast, southWest} = utils.getBounds(
-                    waypoints.map((waypoint) => waypoint.coordinate),
-                    directionCoordinates,
-                );
                 return {
                     zoomLevel: initialState?.zoom,
-                    bounds: {ne: northEast, sw: southWest},
-                };
-            } else {
-                return {
                     centerCoordinate,
-                    zoomLevel: initialState?.zoom,
                 };
             }
-        }, [waypoints, directionCoordinates, interactive]);
+            if (!initialBounds) {
+                return undefined;
+            }
+            return {
+                bounds: initialBounds,
+            };
+        }, [interactive, centerCoordinate, initialBounds, initialState?.zoom]);
 
         return !isOffline && !!accessToken && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
@@ -210,7 +219,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         defaultSettings={defaultSettings}
                         // Include centerCoordinate here as well to address the issue of incorrect coordinates
                         // displayed after the first render when the app's storage is cleared.
-                        centerCoordinate={centerCoordinate}
+                        centerCoordinate={interactive ? centerCoordinate : undefined}
+                        bounds={interactive ? undefined : initialBounds}
                     />
                     {interactive && (
                         <Mapbox.ShapeSource
