@@ -82,18 +82,28 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             return;
         }
         const missingReportIds = Object.keys(reports).filter((key) => prevReports && !(key in prevReports));
+        console.log(">>>> [ChatFinderPage] prevReports", prevReports);
 
         setOptions((prevOptions) => {
+            console.log(">>>> [ChatFinderPage] setOptions called", prevOptions);
             const newOptions = {
                 ...prevOptions,
                 reports: prevOptions.reports.filter((report) => reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] !== null),
             };
+
+            console.log(">>>> [ChatFinderPage] newOptions", newOptions, missingReportIds);
             missingReportIds.forEach((missingReportId) => {
                 const report = missingReportId ? reports[missingReportId] : null;
                 if (!missingReportId || !report) {
                     return;
                 }
+                console.log(">>>> [ChatFinderPage] missingReportID", missingReportId)
+                if (prevOptions.reports.find(reportOption => `${ONYXKEYS.COLLECTION.REPORT}${reportOption.keyForList}` === missingReportId)) {
+                    console.log(">>>> [ChatFinderPage] FOUND DUPLICATE", report);
+                    return;
+                }
                 const reportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                console.log(">>>> [ChatFinderPage] adding missing reportOption", reportOption);
                 newOptions.reports.push(reportOption);
             });
             return newOptions;
@@ -142,9 +152,13 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         const newPersonalDetailsOptions = OptionsListUtils.createOptionList(personalDetails).personalDetails;
 
         setOptions((prevOptions) => {
+            console.log(">>>> [ChatFinderPage] setOptions called ", prevOptions);
             const newOptions = {...prevOptions};
             newOptions.personalDetails = newPersonalDetailsOptions;
-            newReportOptions.forEach((newReportOption) => (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption));
+            newReportOptions.forEach((newReportOption) => {
+                console.log(">>>> [ChatFinderPage] newReportOption", newReportOption);
+                (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption)
+            });
             return newOptions;
         });
 
@@ -154,6 +168,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
 
     const loadOptions = useCallback(() => {
         const optionLists = OptionsListUtils.createOptionList(personalDetails, reports);
+        console.log(">>>> [ChatFinderPage] loadOptions called with", optionLists);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
@@ -190,6 +205,8 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
         initializeOptions();
     }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
+
+    console.log(">>>> [ChatFinderPage] useOptionsList returning", options);
 
     return {
         initializeOptions,

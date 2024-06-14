@@ -96,6 +96,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
         const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, !!optionList.userToInvite, '');
+
+        console.log(">>>> [ChatFinderPage] GOT SEARCH OPTIONS", {...optionList, headerMessage: header});
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
@@ -111,6 +113,12 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
 
         const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {betas, preferChatroomsOverThreads: true});
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
+        console.log(">>>> [ChatFinderPage] GOT FILTERED OPTIONS", {
+            recentReports: newOptions.recentReports,
+            personalDetails: newOptions.personalDetails,
+            userToInvite: newOptions.userToInvite,
+            headerMessage: header,
+        });
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,

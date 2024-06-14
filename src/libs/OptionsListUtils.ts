@@ -1549,6 +1549,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
     const reportMapForAccountIDs: Record<number, Report> = {};
     const allReportOptions: Array<SearchOption<Report>> = [];
 
+    console.log(">>>> [ChatFinderPage] createOptionList with", reports, personalDetails);
+
     if (reports) {
         Object.values(reports).forEach((report) => {
             if (!report) {
@@ -1584,6 +1586,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
         item: personalDetail,
         ...createOption([personalDetail?.accountID ?? -1], personalDetails, reportMapForAccountIDs[personalDetail?.accountID ?? -1], {}, {showPersonalDetails: true}),
     }));
+
+    console.log(">>>> [ChatFinderPage] createOptionList returning", allReportOptions);
 
     return {
         reports: allReportOptions,
@@ -1753,6 +1757,7 @@ function getOptions(
         isSearchingForReports = false,
     }: GetOptionsConfig,
 ): Options {
+    console.log(">>>> [ChatFinderPage] getOptions with", options)
     if (includeCategories) {
         const categoryOptions = getCategoryListSections(categories, recentlyUsedCategories, selectedOptions as Category[], searchInputValue, maxRecentReportsToShow);
 
@@ -2082,6 +2087,7 @@ function getOptions(
  * Build the options for the Search view
  */
 function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] = []): Options {
+    console.log(">>>> [ChatFinderPage] getSearchOptions with", options);
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     const optionList = getOptions(options, {
