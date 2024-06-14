@@ -2177,7 +2177,24 @@ export default {
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
             notConfigured: 'Not configured',
-            exportDate: 'Date',
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
             exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',
             exportReimbursableExpensesAs: 'Export reimbursable expenses as',
             exportNonReimbursableExpensesAs: 'Export non-reimbursable expenses as',

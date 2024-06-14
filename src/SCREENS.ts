@@ -265,6 +265,7 @@ const SCREENS = {
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
             SAGE_INTACCT_EXPORT: 'Policy_Accounting_Sage_Intacct_Export',
             SAGE_INTACCT_PREFERRED_EXPORTER: 'Policy_Accounting_Sage_Intacct_Preferred_Exporter',
+            SAGE_INTACCT_EXPORT_DATE: 'Policy_Accounting_Sage_Intacct_Export_Date',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',

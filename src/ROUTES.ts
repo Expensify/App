@@ -913,6 +913,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/sage-intacct/export/preferred-exporter',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/preferred-exporter` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
+        route: 'settings/workspaces/:policyID/connections/sage-intacct/export/date',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/date` as const,
+    },
 } as const;
 
 /**
