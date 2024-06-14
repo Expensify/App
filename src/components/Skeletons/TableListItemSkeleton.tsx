@@ -37,7 +37,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                         <Rect
                             x={padding + circleRadius * 2 + 4}
                             y={padding + circleRadius - 2}
-                            width={windowWidth * 0.2}
+                            width={40}
                             height={4}
                         />
                         <Circle
@@ -49,7 +49,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                         <Rect
                             x={padding + circleRadius * 2 + 4 + windowWidth * 0.2 + circleRadius * 2 + circleRadius * 2 + 4}
                             y={padding + circleRadius - 2}
-                            width={windowWidth * 0.2}
+                            width={40}
                             height={4}
                         />
                         <Rect
