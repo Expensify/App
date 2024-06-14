@@ -17,7 +17,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import variables from '@styles/variables';
 import * as UserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
