@@ -111,9 +111,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                onImportPagePress: () => {
-                    console.log('dupa');
-                },
+                onImportPagePress: () => {},
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => {},
             };

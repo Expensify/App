@@ -41,8 +41,6 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             ];
         }
 
-        console.log(exporters);
-
         return exporters?.reduce<CardListItem[]>((options, exporter) => {
             if (!exporter.email) {
                 return options;
