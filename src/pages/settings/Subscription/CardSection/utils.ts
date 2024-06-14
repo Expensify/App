@@ -1,9 +1,11 @@
-import {format} from 'date-fns';
-import type {Phrase, PhraseParameters} from '@libs/Localize';
+import { format } from 'date-fns';
+import type { Phrase, PhraseParameters } from '@libs/Localize';
 import SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Fund} from '@src/types/onyx';
+import type { Fund } from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
+
 
 type BillingStatusResult = {
     title?: string;
