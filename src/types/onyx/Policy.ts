@@ -591,6 +591,343 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** */
+type Subsidiary = {
+    /** ID of the subsidiary */
+    internalID: string;
+
+    /** Country where subsidiary is present */
+    country: string;
+
+    /** Whether the subsidiary is an elimination */
+    isElimination: boolean;
+
+    /** Name of the subsidiary */
+    name: string;
+};
+
+/** NetSuite Financial account (bank account, debit card, etc) */
+type NetSuiteAccount = {
+    /** GL code assigned to the financial account */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'GL Code': string;
+
+    /** Name of the account */
+    name: string;
+
+    /** ID assigned to the financial account */
+    id: string;
+
+    /** Type of the financial account */
+    type: string;
+};
+
+/** NetSuite Tax account */
+type NetSuiteTaxAccount = {
+    /** Name of the tax account */
+    name: string;
+
+    /** ID assigned to the tax account */
+    externalID: string;
+
+    /** Country of the tax account */
+    country: string;
+};
+
+/** NetSuite Vendor Model */
+type NetSuiteVendor = {
+    /** ID of the vendor */
+    id: string;
+
+    /** Name of the vendor */
+    name: string;
+
+    /** E-mail of the vendor */
+    email: string;
+};
+
+/** NetSuite Invoice Item Model */
+type InvoiceItem = {
+    /** ID of the invoice item */
+    id: string;
+
+    /** Name of the invoice item */
+    name: string;
+};
+
+/** Data from the NetSuite accounting integration. */
+type NetSuiteConnectionData = {
+    /** Collection of the subsidiaries present in the NetSuite account */
+    subsidiaryList: Subsidiary[];
+
+    /** Collection of receivable accounts */
+    receivableList: NetSuiteAccount[];
+
+    /** Collection of vendors */
+    vendors: NetSuiteVendor[];
+
+    /** Collection of invoice items */
+    items: InvoiceItem[];
+
+    /** Collection of the payable accounts */
+    payableList: NetSuiteAccount[];
+
+    /** Collection of tax accounts */
+    taxAccountsList: NetSuiteTaxAccount[];
+};
+
+/** NetSuite mapping values */
+type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
+
+/** NetSuite invoice item preference values */
+type InvoiceItemPreferenceValues = 'create' | 'select';
+
+/** NetSuite export destination values */
+type ExpensesExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+
+/** NetSuite expense report approval level values */
+type ExpenseReportsApprovalLevelValues = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
+
+/** NetSuite vendor bills approval level values */
+type VendorBillsApprovalLevelValues = 'VENDOR_BILLS_APPROVED_NONE' | 'VENDOR_BILLS_APPROVAL_PENDING' | 'VENDOR_BILLS_APPROVED';
+
+/** NetSuite journal approval level values */
+type JournalsApprovalLevelValues = 'JOURNALS_APPROVED_NONE' | 'JOURNALS_APPROVAL_PENDING' | 'JOURNALS_APPROVED';
+
+/** NetSuite export date values */
+type ExportDateValues = 'SUBMITTED' | 'EXPORTED' | 'LAST_EXPENSE';
+
+/** NetSuite journal posting preference values */
+type JournalPostingPreferenceValues = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNALS_POSTING_INDIVIDUAL_LINE';
+
+/** User configuration for the NetSuite accounting integration. */
+type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Invoice Item Preference */
+    invoiceItemPreference: InvoiceItemPreferenceValues;
+
+    /** ID of the bank account for NetSuite invoice collections */
+    receivableAccount: string;
+
+    /** ID of the bank account for NetSuite tax posting */
+    taxPostingAccount: string;
+
+    /**  */
+    exportToNextOpenPeriod: boolean;
+
+    /** */
+    allowForeignCurrency: boolean;
+
+    /** Where to export reimbursable expenses */
+    reimbursableExpensesExportDestination: ExpensesExportDestinationValues;
+
+    /** */
+    subsidiary: string;
+
+    /** */
+    syncOptions: {
+        /** */
+        mapping: {
+            /** */
+            classes: NetSuiteMappingValues;
+
+            /** */
+            jobs: NetSuiteMappingValues;
+
+            /** */
+            locations: NetSuiteMappingValues;
+
+            /** */
+            customers: NetSuiteMappingValues;
+
+            /** */
+            departments: NetSuiteMappingValues;
+        };
+
+        /** */
+        crossSubsidiaryCustomers: boolean;
+
+        /** */
+        syncApprovalWorkflow: boolean;
+
+        /** */
+        syncCustomLists: boolean;
+
+        /** Tells the expense reports approval level */
+        exportReportsTo: ExpenseReportsApprovalLevelValues;
+
+        /** Tells the vendor bills approval level */
+        exportVendorBillsTo: VendorBillsApprovalLevelValues;
+
+        /** */
+        setFinalApprover: boolean;
+
+        /** */
+        syncReimbursedReports: boolean;
+
+        /** */
+        customSegments: Array<{
+            /** */
+            segmentName: string;
+
+            /** */
+            internalID: string;
+
+            /** */
+            scriptID: string;
+
+            /** */
+            mapping: 'tag' | 'reportField';
+        }>;
+
+        /** */
+        syncPeople: boolean;
+
+        /** */
+        enableNewCategories: boolean;
+
+        /** */
+        hasChosenAutoSyncOption: boolean;
+
+        /** */
+        finalApprover: string;
+
+        /** */
+        syncTax: boolean;
+
+        /** */
+        syncCustomSegments: boolean;
+
+        /** */
+        customLists: Array<{
+            /** */
+            listName: string;
+
+            /** */
+            internalID: string;
+
+            /** */
+            transactionFieldID: string;
+
+            /** */
+            mapping: 'tag' | 'reportField';
+        }>;
+
+        /** */
+        syncCategories: boolean;
+
+        /** */
+        hasChosenSyncReimbursedReportsOption: boolean;
+
+        /** */
+        exportJournalsTo: JournalsApprovalLevelValues;
+    };
+
+    /** */
+    autoCreateEntities: boolean;
+
+    /** */
+    exporter: string;
+
+    /** */
+    exportDate: ExportDateValues;
+
+    /** */
+    nonreimbursableExpensesExportDestination: ExpensesExportDestinationValues;
+
+    /** */
+    reimbursablePayableAccount: string;
+
+    /** */
+    journalPostingPreference: JournalPostingPreferenceValues;
+
+    /** */
+    invoiceItem: string;
+
+    /** */
+    subsidiaryID: string;
+
+    /** */
+    defaultVendor: string;
+
+    /** */
+    provincialTaxPostingAccount: string;
+
+    /** */
+    reimbursementAccountID: string;
+
+    /** */
+    approvalAccount: string;
+
+    /** */
+    payableAcct: string;
+
+    /** */
+    customFormIDOptions: {
+        /** */
+        reimbursable: {
+            /** */
+            expenseReport: null;
+        };
+
+        /** */
+        nonReimbursable: {
+            /** */
+            vendorBill: null;
+        };
+
+        /** */
+        enabled: boolean;
+    };
+
+    /** */
+    collectionAccount: string;
+}>;
+
+/** NetSuite connection model */
+type NetSuiteConnection = {
+    /** Account ID of the NetSuite Integration */
+    accountID: string;
+
+    /** */
+    tokenID: string;
+
+    /** */
+    options: {
+        /** Data imported from NetSuite */
+        data: NetSuiteConnectionData;
+
+        /** Configuration of the connection */
+        config: NetSuiteConnectionConfig;
+    };
+
+    /** */
+    verified: boolean;
+
+    /** */
+    lastSyncDate: string;
+
+    /** */
+    lastErrorSyncDate: string;
+
+    /** */
+    source: string;
+
+    /** */
+    config: {
+        /** NetSuite auto synchronization configs */
+        autoSync: {
+            /** Whether data should be automatically synched between the app and Xero */
+            enabled: boolean;
+
+            /** */
+            jobID: string;
+        };
+    };
+
+    /** */
+    tokenSecret: string;
+};
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -610,6 +947,9 @@ type Connections = {
 
     /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+
+    /** NetSuite integration connection */
+    netsuite: NetSuiteConnection;
 };
 
 /** Names of integration connections */
