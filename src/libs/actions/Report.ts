@@ -2734,8 +2734,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
                 pendingChatMembers,
             },
         },
-        ...newPersonalDetailsOnyxData.optimisticData,
     ];
+    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData);
 
     const successPendingChatMembers = report?.pendingChatMembers
         ? report?.pendingChatMembers?.filter(
@@ -2750,8 +2750,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
                 pendingChatMembers: successPendingChatMembers,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
     ];
+    successData.push(...newPersonalDetailsOnyxData.finallyData);
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3342,8 +3343,8 @@ function completeOnboarding(
         return acc;
     }, []);
 
-    const optimisticData: OnyxUpdate[] = [
-        ...tasksForOptimisticData,
+    const optimisticData: OnyxUpdate[] = [...tasksForOptimisticData];
+    optimisticData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
@@ -3364,18 +3365,18 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: engagementChoice},
         },
-    ];
-    const successData: OnyxUpdate[] = [
-        ...tasksForSuccessData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [introductionCommentAction.reportActionID]: {pendingAction: null},
-                [textCommentAction.reportActionID]: {pendingAction: null},
-            },
+    );
+
+    const successData: OnyxUpdate[] = [...tasksForSuccessData];
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [introductionCommentAction.reportActionID]: {pendingAction: null},
+            [textCommentAction.reportActionID]: {pendingAction: null},
         },
-    ];
+    });
+
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
@@ -3394,8 +3395,8 @@ function completeOnboarding(
         };
     }
 
-    const failureData: OnyxUpdate[] = [
-        ...tasksForFailureData,
+    const failureData: OnyxUpdate[] = [...tasksForFailureData];
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
@@ -3418,7 +3419,7 @@ function completeOnboarding(
             key: ONYXKEYS.NVP_INTRO_SELECTED,
             value: {choice: null},
         },
-    ];
+    );
 
     const guidedSetupData: GuidedSetupData = [
         {type: 'message', ...introductionMessage},
