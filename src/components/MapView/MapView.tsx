@@ -171,7 +171,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
 
-        const initialBounds = useMemo(() => {
+        const waypointsBounds = useMemo(() => {
             if (!waypoints) {
                 return undefined;
             }
@@ -192,13 +192,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     centerCoordinate,
                 };
             }
-            if (!initialBounds) {
+            if (!waypointsBounds) {
                 return undefined;
             }
             return {
-                bounds: initialBounds,
+                bounds: waypointsBounds,
             };
-        }, [interactive, centerCoordinate, initialBounds, initialState?.zoom]);
+        }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+
+        const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
+        const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
 
         return !isOffline && !!accessToken && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
@@ -219,8 +222,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         defaultSettings={defaultSettings}
                         // Include centerCoordinate here as well to address the issue of incorrect coordinates
                         // displayed after the first render when the app's storage is cleared.
-                        centerCoordinate={interactive ? centerCoordinate : undefined}
-                        bounds={interactive ? undefined : initialBounds}
+                        centerCoordinate={initCenterCoordinate}
+                        bounds={initBounds}
                     />
                     {interactive && (
                         <Mapbox.ShapeSource
