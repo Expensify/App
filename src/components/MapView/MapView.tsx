@@ -4,9 +4,9 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserLocation from '@libs/actions/UserLocation';
@@ -239,22 +239,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <PressableWithFeedback
-                        accessibilityRole={CONST.ROLE.BUTTON}
+                    <Button
                         onPress={centerMap}
-                        accessibilityLabel={translate('common.center')}
-                    >
-                        {({hovered}) => (
-                            <View style={[styles.primaryMediumIcon, hovered && {backgroundColor: theme.buttonHoveredBG}]}>
-                                <Icon
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    src={Expensicons.Crosshair}
-                                    fill={hovered ? theme.textSupporting : theme.icon}
-                                />
-                            </View>
-                        )}
-                    </PressableWithFeedback>
+                        iconFill={theme.icon}
+                        medium
+                        icon={Expensicons.Crosshair}
+                    />
                 </View>
             </View>
         ) : (
