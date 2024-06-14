@@ -2174,6 +2174,17 @@ export default {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
         },
+        sageIntacct: {
+            preferredExporter: 'Preferred exporter',
+            notConfigured: 'Not configured',
+            exportDate: 'Date',
+            exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',
+            exportReimbursableExpensesAs: 'Export reimbursable expenses as',
+            exportNonReimbursableExpensesAs: 'Export non-reimbursable expenses as',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -2394,6 +2405,19 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            intacct: 'Sage Intacct',
+            integrationName: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default:
+                        return 'Integration';
+                }
+            },
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',

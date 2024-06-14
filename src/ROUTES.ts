@@ -905,6 +905,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/connections/sage-intacct/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/preferred-exporter` as const,
+    },
 } as const;
 
 /**
