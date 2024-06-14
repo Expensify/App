@@ -26,12 +26,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 import ExportOnyxState from '@libs/ExportOnyxState';
+import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -55,54 +54,13 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
 
-    const getOnyxKeys = (keysObject: Record<string, unknown>) => {
-        const keys: string[] = [];
-
-        Object.keys(keysObject).forEach((key) => {
-            if (typeof keysObject[key] === 'object') {
-                keys.push(...getOnyxKeys(keysObject[key] as Record<string, unknown>));
-                return;
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            keys.push(keysObject[key] as string);
-        });
-
-        return keys;
-    }
-
-    const getOnyxValues = () => {
-        const keys = getOnyxKeys(ONYXKEYS);
-        const promises: Array<Promise<OnyxEntry<unknown>>> = [];
-
-        keys.forEach((key) => {
-            promises.push(new Promise((resolve) => {
-                // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-                const connectionID = Onyx.connect({
-                    key: key as OnyxKey,
-                    callback: (value) => {
-                        if (!value) {
-                            resolve(null);
-                            return;
-                        }
-
-                        resolve({key, value});
-                        Onyx.disconnect(connectionID);
-                    },
-                });
-            }));
-        });
-
-        return Promise.all(promises);
-    };
-
     const exportOnyxState = () => {
         ExportOnyxState.readFromIndexedDB().then((value) => {
             console.log('exported indexedDB state: ', value);
-        });
 
-        getOnyxValues().then((value) => {
-            console.log('exported onyx state: ', value.filter(Boolean));
+            ExportOnyxState.shareAsFile(JSON.stringify(value)).then(() => {
+                console.log('exported indexedDB state as file');
+            });
         });
     };
 

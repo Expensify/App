@@ -26,6 +26,21 @@ const readFromIndexedDB = () => new Promise((resolve) => {
     };
 });
 
+// eslint-disable-next-line @lwc/lwc/no-async-await,@typescript-eslint/require-await
+const shareAsFile = async (value: string) => {
+    const element = document.createElement('a');
+    element.setAttribute('href', `data:text/plain;charset=utf-8,${  encodeURIComponent(value)}`);
+    element.setAttribute('download', 'onyx-state.txt');
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
 export default {
     readFromIndexedDB,
+    shareAsFile,
 }
