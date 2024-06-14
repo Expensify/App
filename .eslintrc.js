@@ -55,6 +55,11 @@ const restrictedImportPaths = [
         name: 'date-fns/locale',
         message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
     },
+    {
+        name: 'expensify-common',
+        importNames: ['Device'],
+        message: "Do not import Device directly, it's known to make VSCode`s IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
