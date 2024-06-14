@@ -30,4 +30,30 @@ describe('SubscriptionUtils', () => {
             expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(5);
         });
     });
+
+    describe('isUserOnFreeTrial', () => {
+        afterEach(() => Onyx.clear());
+
+        it('should return true if the Onyx keys are not set', () => {
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
+        });
+
+        it('should return true if the current date is between the free trial start and end dates', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
+        });
+
+        it('should return false if the current date is after the free trial end date', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+        });
+    });
 });

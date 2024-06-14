@@ -1,8 +1,14 @@
-import {differenceInCalendarDays, parse as parseDate} from 'date-fns';
+import {differenceInCalendarDays, isAfter, isBefore, parse as parseDate} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+let firstDayFreeTrial: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
+    callback: (value) => (firstDayFreeTrial = value),
+});
 
 let lastDayFreeTrial: OnyxEntry<string>;
 Onyx.connect({
@@ -10,6 +16,9 @@ Onyx.connect({
     callback: (value) => (lastDayFreeTrial = value),
 });
 
+/**
+ * Calculates the remaining number of days of the workspace owner's free trial before it ends.
+ */
 function calculateRemainingFreeTrialDays(): number {
     if (!lastDayFreeTrial) {
         return 0;
@@ -19,4 +28,19 @@ function calculateRemainingFreeTrialDays(): number {
     return difference < 0 ? 0 : difference;
 }
 
-export {calculateRemainingFreeTrialDays};
+/**
+ * Whether the workspace's owner is on its free trial period.
+ */
+function isUserOnFreeTrial(): boolean {
+    if (!firstDayFreeTrial || !lastDayFreeTrial) {
+        return true;
+    }
+
+    const currentDate = new Date();
+    const firstDayFreeTrialDate = parseDate(firstDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date());
+    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date());
+
+    return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
+}
+
+export {calculateRemainingFreeTrialDays, isUserOnFreeTrial};
