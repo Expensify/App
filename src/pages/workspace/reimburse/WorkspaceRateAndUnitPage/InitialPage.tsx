@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -149,16 +148,14 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
 
 WorkspaceRateAndUnitPage.displayName = 'WorkspaceRateAndUnitPage';
 
-export default withNetwork()(
-    withPolicy(
-        withOnyx<WorkspaceRateAndUnitPageProps, WorkspaceRateAndUnitOnyxProps>({
-            // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-            reimbursementAccount: {
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-            },
-            workspaceRateAndUnit: {
-                key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
-            },
-        })(WorkspaceRateAndUnitPage),
-    ),
+export default withPolicy(
+    withOnyx<WorkspaceRateAndUnitPageProps, WorkspaceRateAndUnitOnyxProps>({
+        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        workspaceRateAndUnit: {
+            key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
+        },
+    })(WorkspaceRateAndUnitPage),
 );
