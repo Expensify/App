@@ -207,7 +207,7 @@ type MenuItemBaseProps = {
     shouldStackHorizontally?: boolean;
 
     /** Prop to represent the size of the avatar images to be shown */
-    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars?: IconType[];
@@ -280,6 +280,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Handles what to do when the item loose focus */
+    onBlur?: () => void;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
@@ -365,6 +368,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        onBlur,
         avatarID,
     }: MenuItemProps,
     ref: PressableRef,
@@ -462,7 +466,7 @@ function MenuItem(
     };
 
     return (
-        <View>
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
