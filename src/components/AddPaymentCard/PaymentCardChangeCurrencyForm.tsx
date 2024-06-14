@@ -68,10 +68,19 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         setIsCurrencyModalVisible(false);
     }, []);
 
+    const selectCurrencyInARow = useCallback(
+        (selectedCurrency: keyof typeof CONST.CURRENCY) => {
+            setCurrency(selectedCurrency);
+            changeBillingCurrency(selectedCurrency);
+        },
+        [changeBillingCurrency],
+    );
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM}
             validate={validate}
+            isSubmitButtonVisible={!!isSecurityCodeRequired}
             onSubmit={(formData) => changeBillingCurrency(currency, formData)}
             submitButtonText={translate('common.save')}
             scrollContextEnabled
@@ -122,7 +131,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                     containerStyle={[styles.mt5, styles.mhn5]}
                     sections={sections}
                     onSelectRow={(option) => {
-                        setCurrency(option.value);
+                        selectCurrencyInARow(option.value);
                     }}
                     showScrollIndicator
                     shouldStopPropagation
