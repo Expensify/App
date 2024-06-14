@@ -11,7 +11,6 @@ import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';

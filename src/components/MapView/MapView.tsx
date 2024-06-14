@@ -5,7 +5,6 @@ import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, 
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
