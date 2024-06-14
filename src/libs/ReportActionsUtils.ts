@@ -562,15 +562,15 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (isTripPreview(reportAction)) {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
 
-    // @TODO: isTripRoomPreview condition has been added to make the TripRoomPreview component visible.
-    // Remove it when the reportAction.message array is not empty for this type, then !isDeleted will be true.
-    const isTripRoomPreview = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
-
-    return isTripRoomPreview || !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
+    return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
 /**
