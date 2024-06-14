@@ -1,4 +1,4 @@
-import type {CustemStepIdentifier, StepIdentifier, StepIdentifierUsingName} from '@kie/act-js';
+import type {CustemStepIdentifier, StepIdentifier} from '@kie/act-js';
 import type {PathOrFileDescriptor} from 'fs';
 import fs from 'fs';
 import path from 'path';
@@ -51,12 +51,13 @@ class JobMocker {
                     delete job.with;
                 }
                 job.steps = mockJob.steps.map((step) => {
+                    const customStep = step as CustemStepIdentifier;
                     const mockStep: CustemStepIdentifier = {
-                        name: (step as StepIdentifierUsingName).name,
+                        name: customStep.name,
                         run: step.mockWith,
                     };
-                    if ((step as CustemStepIdentifier).id) {
-                        mockStep.id = (step as CustemStepIdentifier).id;
+                    if (customStep.id) {
+                        mockStep.id = customStep.id;
                     }
                     if (jobWith) {
                         mockStep.with = jobWith;

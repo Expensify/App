@@ -218,7 +218,8 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
         let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks: string[] = [];
         job.steps.forEach((step) => {
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${(step as CustemStepIdentifier).name
+            const customStep = step as CustemStepIdentifier;
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${customStep.name
                 .replaceAll(' ', '_')
                 .replaceAll('-', '_')
                 .replaceAll(',', '')
@@ -227,7 +228,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
                 .replaceAll('.js', '')
                 .toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
-            mockStepsContent += mockStepTemplate(stepMockName, step as CustemStepIdentifier, jobId);
+            mockStepsContent += mockStepTemplate(stepMockName, customStep, jobId);
         });
 
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
@@ -245,13 +246,8 @@ const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>): string => 
     Object.entries(jobs).forEach(([jobId, job]) => {
         let stepAssertionsContent = '';
         job.steps.forEach((step: CustemStepIdentifier | StepIdentifier) => {
-            stepAssertionsContent += stepAssertionTemplate(
-                (step as CustemStepIdentifier).name,
-                jobId.toUpperCase(),
-                (step as CustemStepIdentifier).name,
-                (step as CustemStepIdentifier).inputs,
-                (step as CustemStepIdentifier).envs,
-            );
+            const customStep = step as CustemStepIdentifier;
+            stepAssertionsContent += stepAssertionTemplate(customStep.name, jobId.toUpperCase(), customStep.name, customStep.inputs, customStep.envs);
         });
         const jobAssertionName = `assert${jobId.charAt(0).toUpperCase() + jobId.slice(1)}JobExecuted`;
         jobAssertions.push(jobAssertionName);
