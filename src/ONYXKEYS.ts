@@ -169,10 +169,10 @@ const ONYXKEYS = {
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
 
-    /** The start date of the workspace owner’s free trial period. */
+    /** The start date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
     NVP_FIRST_DAY_FREE_TRIAL: 'nvp_private_firstDayFreeTrial',
 
-    /** The end date of the workspace owner’s free trial period. */
+    /** The end date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
     NVP_LAST_DAY_FREE_TRIAL: 'nvp_private_lastDayFreeTrial',
 
     /** ID associated with the payment card added by the user. */
