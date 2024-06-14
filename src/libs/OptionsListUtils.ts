@@ -175,6 +175,7 @@ type GetOptionsConfig = {
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
+    isSearchingForReports?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1749,6 +1750,7 @@ function getOptions(
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
+        isSearchingForReports = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1831,6 +1833,7 @@ function getOptions(
             isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
+            isSearchingForReports
         });
     });
 
@@ -2096,6 +2099,7 @@ function getSearchOptions(options: OptionList, searchValue = '', betas: Beta[] =
         includeMoneyRequests: true,
         includeTasks: true,
         includeSelfDM: true,
+        isSearchingForReports: true,
     });
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markEnd(CONST.TIMING.LOAD_SEARCH_OPTIONS);
