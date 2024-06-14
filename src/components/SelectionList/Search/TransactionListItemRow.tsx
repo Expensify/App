@@ -73,8 +73,8 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
             style={[
                 StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
                 StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
-                styles.overflowHidden,
                 StyleUtils.getBackgroundColorStyle(theme.border),
+                styles.overflowHidden,
             ]}
         >
             <ReceiptImage
