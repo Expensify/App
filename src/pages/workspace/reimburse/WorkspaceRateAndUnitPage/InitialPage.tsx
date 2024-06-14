@@ -21,14 +21,11 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Network, ReimbursementAccount, WorkspaceRateAndUnit} from '@src/types/onyx';
+import type {ReimbursementAccount, WorkspaceRateAndUnit} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceRateAndUnitPageBaseProps = WithPolicyProps & {
-    // eslint-disable-next-line react/no-unused-prop-types
-    network: OnyxEntry<Network>;
-};
+type WorkspaceRateAndUnitPageBaseProps = WithPolicyProps;
 
 type WorkspaceRateAndUnitOnyxProps = {
     workspaceRateAndUnit: OnyxEntry<WorkspaceRateAndUnit>;
