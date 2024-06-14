@@ -85,10 +85,6 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            if (newTaxCode === TransactionUtils.getTaxCode(currentTransaction)) {
-                navigateBack();
-                return;
-            }
             IOU.updateMoneyRequestTaxRate({
                 transactionID: currentTransaction?.transactionID ?? '-1',
                 optimisticReportActionID: report?.reportID ?? '-1',
@@ -113,10 +109,6 @@ function IOURequestStepTaxRatePage({
         navigateBack();
     };
 
-    const dismiss = () => {
-        navigateBack();
-    };
-
     return (
         <StepScreenWrapper
             headerTitle={translate('iou.taxRate')}
@@ -131,7 +123,7 @@ function IOURequestStepTaxRatePage({
                 onSubmit={updateTaxRates}
                 action={action}
                 iouType={iouType}
-                onDismiss={dismiss}
+                onDismiss={navigateBack}
             />
         </StepScreenWrapper>
     );

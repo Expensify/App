@@ -38,7 +38,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
-    const onDismiss = () => {
+    const dismiss = () => {
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
@@ -64,7 +64,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
                                 policyID={policyID}
                                 insets={insets}
                                 onSubmit={submit}
-                                onDismiss={onDismiss}
+                                onDismiss={dismiss}
                             />
                         </View>
                     </>
