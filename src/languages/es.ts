@@ -3772,11 +3772,12 @@ export default {
             subscriptionSize: 'Tamaño de suscripción',
             activeMembers: ({size}) => `${size} miembros activos/mes`,
             subscriptionRenews: 'Renovación de la suscripción',
-            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual',
+            youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual.',
             youAlreadyCommitted: ({size, date}) =>
                 `Ya se ha comprometido a un tamaño de suscripción anual de ${size} miembros activos al mes hasta el ${date}. Puede cambiar a una suscripción de pago por uso en ${date} desactivando la auto-renovación.`,
             error: {
                 size: 'Por favor ingrese un tamaño de suscripción valido.',
+                sameSize: 'Por favor, introduce un número diferente al de tu subscripción actual.',
             },
         },
         paymentCard: {
