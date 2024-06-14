@@ -1,12 +1,13 @@
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, SetPolicyTagsEnabled} from '@libs/API/parameters';
+import type {EnablePolicyTagsParams, OpenPolicyTagsPageParams, RenamePolicyTaglistParams, RenamePolicyTagsParams, SetPolicyTagsEnabled, SetPolicyTagsRequired} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -15,7 +16,6 @@ import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Rep
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -161,6 +161,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                         tags: {
                             [newTagName]: {
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                pendingAction: null,
                             },
                         },
                     },
@@ -329,8 +330,8 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
 }
 
-function clearPolicyTagErrors(policyID: string, tagName: string) {
-    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: number) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[tagListIndex];
     const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
     if (!tag) {
         return;
@@ -359,28 +360,45 @@ function clearPolicyTagErrors(policyID: string, tagName: string) {
     });
 }
 
-function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
-    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [policyTag.name]: {
+            errorFields: {
+                [errorField]: null,
+            },
+        },
+    });
+}
+
+function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}, tagListIndex: number) {
+    const tagList = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+    const tag = tagList.tags?.[policyTag.oldName];
     const oldTagName = policyTag.oldName;
     const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
-    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[oldTagName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [tagList.name]: {
                         tags: {
                             [oldTagName]: null,
                             [newTagName]: {
-                                ...oldTag,
+                                ...tag,
                                 name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 previousTagName: oldTagName,
+                                errors: null,
                             },
                         },
                     },
@@ -392,10 +410,9 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [tagList.name]: {
                         tags: {
                             [newTagName]: {
-                                errors: null,
                                 pendingAction: null,
                                 pendingFields: {
                                     name: null,
@@ -411,11 +428,15 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [tagListName]: {
+                    [tagList.name]: {
                         tags: {
                             [newTagName]: null,
                             [oldTagName]: {
-                                ...oldTag,
+                                ...tag,
+                                pendingAction: null,
+                                pendingFields: {
+                                    name: null,
+                                },
                                 errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
                             },
                         },
@@ -425,10 +446,11 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
         ],
     };
 
-    const parameters = {
+    const parameters: RenamePolicyTagsParams = {
         policyID,
         oldName: oldTagName,
         newName: newTagName,
+        tagListIndex,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
@@ -503,7 +525,7 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
     }
 }
 
-function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
+function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>, tagListIndex: number) {
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
@@ -543,10 +565,11 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
             },
         ],
     };
-    const parameters = {
+    const parameters: RenamePolicyTaglistParams = {
         policyID,
         oldName,
         newName,
+        tagListIndex,
     };
 
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
@@ -604,15 +627,75 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
     API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 
+function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        required: requiresTag,
+                        pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: {required: null},
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        pendingFields: {required: null},
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        required: policyTag.required,
+                        pendingFields: {required: null},
+                        errorFields: {
+                            required: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTagsRequired = {
+        policyID,
+        tagListIndex,
+        requireTagList: requiresTag,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
+}
+
 export {
     openPolicyTagsPage,
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
+    setPolicyTagsRequired,
     renamePolicyTaglist,
     enablePolicyTags,
     createPolicyTag,
     renamePolicyTag,
     clearPolicyTagErrors,
+    clearPolicyTagListError,
     deletePolicyTags,
     setWorkspaceTagEnabled,
 };

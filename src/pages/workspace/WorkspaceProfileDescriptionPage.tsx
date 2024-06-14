@@ -1,4 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -70,7 +70,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? ''}
+            policyID={policy?.id ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper

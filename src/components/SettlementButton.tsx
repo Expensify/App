@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -8,7 +8,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
-import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -144,10 +143,6 @@ function SettlementButton({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    useEffect(() => {
-        PaymentMethods.openWalletPage();
-    }, []);
-
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
@@ -190,7 +185,7 @@ function SettlementButton({
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
-        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
