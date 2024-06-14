@@ -2789,7 +2789,7 @@ export default {
             search: 'Open search dialog',
             newChat: 'New chat screen',
             copy: 'Copy comment',
-            openDebug: 'Open testing preferences',
+            openDebug: 'Open testing preferences dialog',
         },
     },
     guides: {
