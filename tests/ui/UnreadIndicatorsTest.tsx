@@ -1,30 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type * as NativeNavigation from '@react-navigation/native';
+import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
-import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import {AppState, DeviceEventEmitter} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type Animated from 'react-native-reanimated';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
-import * as Pusher from '@libs/Pusher/pusher';
-import PusherConnectionManager from '@libs/PusherConnectionManager';
 import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
 import App from '@src/App';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import appSetup from '@src/setup';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -34,105 +29,18 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(30000);
 
+jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
-// Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
-jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    __esModule: true,
-    default: {
-        ignoreLogs: jest.fn(),
-        ignoreAllLogs: jest.fn(),
-    },
-}));
-
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
-    createAnimatedPropAdapter: jest.fn,
-    useReducedMotion: jest.fn,
-}));
-
-/**
- * We need to keep track of the transitionEnd callback so we can trigger it in our tests
- */
-let transitionEndCB: () => void;
-
-type ListenerMock = {
-    triggerTransitionEnd: () => void;
-    addListener: jest.Mock;
-};
-
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * P.S: This can't be moved to a utils file because Jest wants any external function to stay in the scope.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = (): ListenerMock => {
-    const transitionEndListeners: Array<() => void> = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-};
-
-jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
-    const {triggerTransitionEnd, addListener} = createAddListenerMock();
-    transitionEndCB = triggerTransitionEnd;
-
-    const useNavigation = () =>
-        ({
-            navigate: jest.fn(),
-            ...actualNav.useNavigation,
-            getState: () => ({
-                routes: [],
-            }),
-            addListener,
-        } as typeof NativeNavigation.useNavigation);
-
-    return {
-        ...actualNav,
-        useNavigation,
-        getState: () => ({
-            routes: [],
-        }),
-    } as typeof NativeNavigation;
-});
-
-beforeAll(() => {
-    // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
-    // return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
-    // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
-    // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
-    // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    global.fetch = TestHelper.getGlobalFetchMock();
-
-    Linking.setInitialURL('https://new.expensify.com/');
-    appSetup();
-
-    // Connect to Pusher
-    PusherConnectionManager.init();
-    Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
-        cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-    });
-});
+TestHelper.setupApp();
+// In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it
+// return 200. In other tests, we might mock HttpUtils.xhr() with a more specific mock data response (which means
+// fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
+// behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
+// simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
+TestHelper.setupGlobalFetchMock();
 
 function scrollUpToRevealNewMessagesBadge() {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
@@ -308,7 +216,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -333,7 +241,7 @@ describe('Unread Indicators', () => {
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -453,7 +361,7 @@ describe('Unread Indicators', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -530,7 +438,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => transitionEndCB?.());
+                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);

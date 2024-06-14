@@ -1,10 +1,16 @@
+import type * as NativeNavigation from '@react-navigation/native';
 import {Str} from 'expensify-common';
+import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import * as Pusher from '@libs/Pusher/pusher';
+import PusherConnectionManager from '@libs/PusherConnectionManager';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
@@ -26,7 +32,24 @@ type FormData = {
     entries: () => Array<[string, string | Blob]>;
 };
 
-type Listener = () => void;
+type NativeNavigationMock = typeof NativeNavigation & {
+    triggerTransitionEnd: () => void;
+};
+
+function setupApp() {
+    beforeAll(() => {
+        Linking.setInitialURL('https://new.expensify.com/');
+        appSetup();
+
+        // Connect to Pusher
+        PusherConnectionManager.init();
+        Pusher.init({
+            appKey: CONFIG.PUSHER.APP_KEY,
+            cluster: CONFIG.PUSHER.CLUSTER,
+            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
+        });
+    });
+}
 
 function buildPersonalDetails(login: string, accountID: number, firstName = 'Test'): PersonalDetails {
     return {
@@ -161,7 +184,7 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock() {
+function getGlobalFetchMock(): typeof fetch {
     let queue: QueueItem[] = [];
     let responses = new Map<string, unknown>();
     let isPaused = false;
@@ -220,6 +243,19 @@ function getGlobalFetchMock() {
     return mockFetch as typeof fetch;
 }
 
+function setupGlobalFetchMock(): MockFetch {
+    const mockFetch = getGlobalFetchMock();
+    const originalFetch = global.fetch;
+
+    global.fetch = mockFetch as unknown as typeof global.fetch;
+
+    afterAll(() => {
+        global.fetch = originalFetch;
+    });
+
+    return mockFetch as MockFetch;
+}
+
 function setPersonalDetails(login: string, accountID: number) {
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [accountID]: buildPersonalDetails(login, accountID),
@@ -248,30 +284,15 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
- */
-const createAddListenerMock = () => {
-    const transitionEndListeners: Listener[] = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
+export type {MockFetch, FormData, NativeNavigationMock};
+export {
+    assertFormDataMatchesObject,
+    buildPersonalDetails,
+    buildTestReportComment,
+    getGlobalFetchMock,
+    setupApp,
+    setupGlobalFetchMock,
+    setPersonalDetails,
+    signInWithTestUser,
+    signOutTestUser,
 };
-
-export type {MockFetch, FormData};
-export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};
