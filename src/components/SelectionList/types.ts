@@ -170,7 +170,7 @@ type TransactionListItemType = ListItem &
         shouldShowTax: boolean;
 
         /** Whether we should show the transaction year.
-         * This is true if at least one transaction in the data set was create in a previous year
+         * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
     };
