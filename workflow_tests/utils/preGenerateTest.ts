@@ -1,5 +1,5 @@
 /* eslint no-console: ["error", { allow: ["warn", "log"] }] */
-import type {StepIdentifier} from '@kie/act-js';
+import type {CustemStepIdentifier, StepIdentifier} from '@kie/act-js';
 import type {PathLike} from 'fs';
 import fs from 'fs';
 import path from 'path';
@@ -92,7 +92,7 @@ describe('test workflow ${workflowName}', () => {
 });
 `;
 
-const mockStepTemplate = (stepMockName: string, step: StepIdentifier, jobId: string | undefined) => `
+const mockStepTemplate = (stepMockName: string, step: CustemStepIdentifier, jobId: string | undefined) => `
 const ${stepMockName} = utils.createMockStep(
     '${step.name ?? ''}',
     '${step.name ?? ''}',
@@ -199,11 +199,12 @@ const parseWorkflowFile = (workflow: YamlWorkflow) => {
         workflowJobs[jobId] = {
             steps: [],
         };
-        job.steps.forEach((step: StepIdentifier) => {
+        job.steps.forEach((step) => {
+            const step2 = step as CustemStepIdentifier;
             const workflowStep = {
-                name: step.name,
-                inputs: Object.keys(step.with ?? {}),
-                envs: step.envs ?? [],
+                name: step2.name ?? '',
+                inputs: Object.keys(step2.with ?? {}),
+                envs: step2.envs ?? [],
             };
             workflowJobs[jobId].steps.push(workflowStep);
         });
@@ -217,7 +218,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
         let mockStepsContent = `\n// ${jobId.toLowerCase()}`;
         const stepMocks: string[] = [];
         job.steps.forEach((step) => {
-            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${step.name
+            const stepMockName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__${(step as CustemStepIdentifier).name
                 .replaceAll(' ', '_')
                 .replaceAll('-', '_')
                 .replaceAll(',', '')
@@ -226,7 +227,7 @@ const getMockFileContent = (workflowName: string, jobs: Record<string, YamlMockJ
                 .replaceAll('.js', '')
                 .toUpperCase()}__STEP_MOCK`;
             stepMocks.push(stepMockName);
-            mockStepsContent += mockStepTemplate(stepMockName, step, jobId);
+            mockStepsContent += mockStepTemplate(stepMockName, step as CustemStepIdentifier, jobId);
         });
 
         const jobMocksName = `${workflowName.toUpperCase()}__${jobId.toUpperCase()}__STEP_MOCKS`;
@@ -243,8 +244,14 @@ const getAssertionsFileContent = (jobs: Record<string, YamlMockJob>): string => 
 
     Object.entries(jobs).forEach(([jobId, job]) => {
         let stepAssertionsContent = '';
-        job.steps.forEach((step: StepIdentifier) => {
-            stepAssertionsContent += stepAssertionTemplate(step.name, jobId.toUpperCase(), step.name, step.inputs, step.envs);
+        job.steps.forEach((step: CustemStepIdentifier | StepIdentifier) => {
+            stepAssertionsContent += stepAssertionTemplate(
+                (step as CustemStepIdentifier).name,
+                jobId.toUpperCase(),
+                (step as CustemStepIdentifier).name,
+                (step as CustemStepIdentifier).inputs,
+                (step as CustemStepIdentifier).envs,
+            );
         });
         const jobAssertionName = `assert${jobId.charAt(0).toUpperCase() + jobId.slice(1)}JobExecuted`;
         jobAssertions.push(jobAssertionName);
