@@ -1596,6 +1596,7 @@ function updateNotificationPreference(
     parentReportID?: string,
     parentReportActionID?: string,
     report: OnyxEntry<Report> | EmptyObject = {},
+    isJoiningRoom?: boolean,
 ) {
     if (previousValue === newValue) {
         if (navigate && !isEmptyObject(report) && report.reportID) {
@@ -1630,6 +1631,20 @@ function updateNotificationPreference(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
+        });
+    }
+
+    if (isJoiningRoom) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants: {
+                    [currentUserAccountID]: {
+                        hidden: false,
+                    },
+                },
+            },
         });
     }
 
@@ -2584,7 +2599,16 @@ function joinRoom(report: OnyxEntry<Report>) {
     if (!report) {
         return;
     }
-    updateNotificationPreference(report.reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID);
+    updateNotificationPreference(
+        report.reportID,
+        report.notificationPreference,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        false,
+        report.parentReportID,
+        report.parentReportActionID,
+        report,
+        true,
+    );
 }
 
 function leaveGroupChat(reportID: string) {
@@ -2639,6 +2663,11 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                 isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
                     ? {
                           notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                          participants: {
+                              [currentUserAccountID]: {
+                                  hidden: true,
+                              },
+                          },
                       }
                     : {
                           reportID: null,
