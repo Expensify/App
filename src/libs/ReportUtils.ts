@@ -58,6 +58,7 @@ import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@sr
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
@@ -6946,6 +6947,20 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
     return transactions.some((transaction) => isExpenseReport(allReports?.[transaction.reportID] ?? {}));
 }
 
+/**
+ * Whether the report is a system chat or concierge chat, depending on the user's account ID.
+ */
+function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
+    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1) ? isSystemChat(report) : isConciergeChatReport(report);
+}
+
+/**
+ * Get the report (system or concierge chat) used for the user's onboarding process.
+ */
+function getChatUsedForOnboarding(): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7217,6 +7232,8 @@ export {
     isDraftReport,
     changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
+    isChatUsedForOnboarding,
+    getChatUsedForOnboarding,
 };
 
 export type {
