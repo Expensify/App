@@ -5,7 +5,7 @@ type BillingGraceEndPeriod = {
 
     /** The permission associated with the NVP key. */
     permissions: string;
-    
+
     /** The grace period end date (epoch timestamp) of the workspace's owner where the user is a member of. */
     value: number;
 };

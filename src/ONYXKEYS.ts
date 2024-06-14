@@ -394,7 +394,7 @@ const ONYXKEYS = {
 
         // Shared NVPs
         /** Collection of objects where each objects represents a workspace’s owner which is past due billing AND the user is a member of. */
-        SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_'
+        SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
     },
 
     /** List of Form ids */
