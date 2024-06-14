@@ -1989,11 +1989,11 @@ export default {
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
-            locationsAdditionalDescription: "QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.",
+            locationsAdditionalDescription:
+                'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
             outOfPocketLocationEnabledDescription:
-                "QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.",
-            taxesJournalEntrySwitchNote:
-                "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
+                'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
+            taxesJournalEntrySwitchNote: "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
             export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
@@ -2030,7 +2030,8 @@ export default {
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            exportPreferredExporterNote: 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
@@ -2057,16 +2058,13 @@ export default {
                 inviteEmployees: 'Invite employees',
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
-                createEntitiesDescription:
-                    "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
+                createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
                 reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                accountSelectDescription:
-                    "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
-                invoiceAccountSelectorDescription:
-                    "Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.",
+                accountSelectDescription: "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
+                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -2116,8 +2114,7 @@ export default {
             exportDescription: 'Configure how Expensify data exports to Xero.',
             exportCompanyCard: 'Export company card expenses as',
             purchaseBill: 'Purchase bill',
-            exportDeepDiveCompanyCard:
-                'Each exported expense posts as a bank transaction to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
+            exportDeepDiveCompanyCard: 'Each exported expense posts as a bank transaction to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
@@ -2137,9 +2134,8 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero bill payment account',
                 xeroInvoiceCollectionAccount: 'Xero invoice collections account',
-                invoiceAccountSelectorDescription: "Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.",
-                xeroBillPaymentAccountDescription:
-                    "Choose a bank account for reimbursements and we'll create the payment in Xero.",
+                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.',
+                xeroBillPaymentAccountDescription: "Choose a bank account for reimbursements and we'll create the payment in Xero.",
             },
             exportDate: {
                 label: 'Export date',
@@ -2168,7 +2164,8 @@ export default {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
-            exportPreferredExporterNote: 'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
