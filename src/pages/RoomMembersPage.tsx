@@ -178,27 +178,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             }
 
             // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
-                }
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+                return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
@@ -229,7 +210,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
         },
         [report.reportID],
     );
