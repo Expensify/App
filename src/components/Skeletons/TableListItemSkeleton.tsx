@@ -23,7 +23,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
         return (
             <ItemListSkeletonView
                 itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
-                itemViewStyle={[styles.highlightBG, styles.mv2, styles.br3, styles.mr3, styles.ml3]}
+                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 renderSkeletonItem={() => (
