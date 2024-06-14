@@ -103,7 +103,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             '',
             popoverAnchor.current,
             reportID,
-            '0',
+            '-1',
             reportID,
             undefined,
             () => {},
@@ -120,12 +120,12 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const report = ReportUtils.getReport(optionItem.reportID ?? '');
-    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
+    const report = ReportUtils.getReport(optionItem.reportID ?? '-1');
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
-    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '') : optionItem.text;
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '-1') : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
         <OfflineWithFeedback
@@ -219,7 +219,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
                                                 !!optionItem.isInvoiceReport ||
-                                                ReportUtils.isGroupChat(report)
+                                                ReportUtils.isGroupChat(report) ||
+                                                ReportUtils.isSystemChat(report)
                                             }
                                         />
                                         {isStatusVisible && (

@@ -96,6 +96,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             value={description}
                             onChangeText={handleReportDescriptionChange}
                             autoCapitalize="none"
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>

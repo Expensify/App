@@ -125,7 +125,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setModal(modalArg);
@@ -135,7 +135,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxFocused = onyxSubscribe({
             key: ONYXKEYS.INPUT_FOCUSED,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setOnyxFocused(modalArg);
