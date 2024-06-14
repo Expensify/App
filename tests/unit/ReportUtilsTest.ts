@@ -823,45 +823,45 @@ describe('ReportUtils', () => {
     });
 
     describe('isChatUsedForOnboarding', () => {
-        afterAll(() => Onyx.clear());
+        afterEach(() => Onyx.clear());
 
         it('should return true if the user account ID is odd and report is the system chat', async () => {
             const accountID = 1;
 
-            return Onyx.multiSet({
+            await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [accountID]: {
                         accountID,
                     },
                 },
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
-            }).then(() => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport(),
-                    chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
-                };
-
-                expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
             });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
         });
 
         it('should return true if the user account ID is even and report is the concierge chat', async () => {
             const accountID = 2;
 
-            return Onyx.multiSet({
+            await Onyx.multiSet({
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [accountID]: {
                         accountID,
                     },
                 },
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
-            }).then(() => {
-                const report: Report = {
-                    ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
-                };
-
-                expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
             });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+            };
+
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
         });
     });
 });
