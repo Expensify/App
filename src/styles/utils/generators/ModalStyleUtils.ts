@@ -174,9 +174,9 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 };
                 modalContainerStyle = {
                     width: '100%',
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
-                    paddingTop: 12,
+                    borderTopLeftRadius: variables.componentBorderRadiusLarge,
+                    borderTopRightRadius: variables.componentBorderRadiusLarge,
+                    paddingTop: 16,
                     justifyContent: 'center',
                     overflow: 'hidden',
                 };
