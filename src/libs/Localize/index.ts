@@ -174,8 +174,6 @@ function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variable
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
 }
 
-type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: boolean}] | [];
-
 function getPreferredListFormat(): Intl.ListFormat {
     if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
         init();
@@ -228,4 +226,4 @@ function getDevicePreferredLocale(): Locale {
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
-export type {PhraseParameters, Phrase, MaybePhraseKey};
+export type {PhraseParameters, Phrase};
