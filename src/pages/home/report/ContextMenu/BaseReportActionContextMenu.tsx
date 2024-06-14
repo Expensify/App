@@ -129,10 +129,10 @@ function BaseReportActionContextMenu({
     const threedotRef = useRef<View>(null);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0') {
-            return null;
+        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
+            return;
         }
-        return reportActions[reportActionID] ?? null;
+        return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
@@ -239,7 +239,7 @@ function BaseReportActionContextMenu({
                     {filteredContextMenuActions.map((contextAction, index) => {
                         const closePopup = !isMini;
                         const payload: ContextMenuActionPayload = {
-                            reportAction: reportAction as ReportAction,
+                            reportAction: (reportAction ?? null) as ReportAction,
                             reportID,
                             draftMessage,
                             selection,
@@ -307,7 +307,7 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
     transaction: {
         key: ({reportActions, reportActionID}) => {
             const reportAction = reportActions?.[reportActionID];
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? -1}`;
         },
     },
 })(

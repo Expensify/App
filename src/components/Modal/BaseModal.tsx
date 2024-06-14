@@ -252,18 +252,16 @@ function BaseModal(
                     avoidKeyboard={avoidKeyboard}
                     customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
                 >
-                    <FocusTrapForModal active={isVisible}>
-                        <View>
-                            <ModalContent onDismiss={handleDismissModal}>
-                                <View
-                                    style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
-                                    ref={ref}
-                                >
-                                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                                </View>
-                            </ModalContent>
-                        </View>
-                    </FocusTrapForModal>
+                    <ModalContent onDismiss={handleDismissModal}>
+                        <FocusTrapForModal active={isVisible}>
+                            <View
+                                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                                ref={ref}
+                            >
+                                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                            </View>
+                        </FocusTrapForModal>
+                    </ModalContent>
                 </ReactNativeModal>
             </View>
         </ModalContext.Provider>
