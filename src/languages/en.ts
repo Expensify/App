@@ -1979,32 +1979,32 @@ export default {
             subscription: 'Subscription',
         },
         qbo: {
-            importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
+            importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
             classes: 'Classes',
             locations: 'Locations',
-            customers: 'Customers/Projects',
-            accountsDescription: 'When connected to Quickbooks Online, chart of accounts are always imported to Expensify as categories.',
-            accountsSwitchTitle: 'Below you can choose to have any new account imported as an enabled or disabled category by default.',
-            accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
-            classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
-            customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
-            locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
-            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
-            locationsAdditionalDescription: `QuickBooks Online does not support adding a location to vendor bills or checks. Update your export preference to journal entry if you'd like to import locations as tags.`,
+            customers: 'Customers/projects',
+            accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
+            accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
+            accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
+            classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
+            customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
+            locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
+            taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
+            locationsAdditionalDescription:
+                'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
             outOfPocketLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for locations on vendor bill or check exports. As you have locations enabled on your workspace, this export option is unavailable.',
-            taxesJournalEntrySwitchNote:
-                'Note: QuickBooks Online does not support a field for tax on Journal Entry exports. Change your export preference to Vendor Bill or Check to import taxes.',
+                'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
+            taxesJournalEntrySwitchNote: "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
             export: 'Export',
             exportAs: 'Export as',
-            exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
+            exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             preferredExporter: 'Preferred exporter',
             date: 'Date',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportInvoices: 'Export invoices to',
             exportCompany: 'Export company cards as',
             exportExpensifyCard: 'Export Expensify Card transactions as',
-            deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a "Expensify Card Liability Account" created with',
+            deepDiveExpensifyCard: 'Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
             exportDate: {
                 label: 'Export date',
@@ -2012,62 +2012,60 @@ export default {
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
-                        description: 'The date of the most recent expense on the report',
+                        description: 'Date of the most recent expense on the report.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
-                        description: 'The date the report was exported to QuickBooks Online',
+                        description: 'Date the report was exported to QuickBooks Online.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
-                        description: 'The date the report was submitted for approval',
+                        description: 'Date the report was submitted for approval.',
                     },
                 },
             },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
-            exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
+            exportInvoicesDescription: 'Invoices will export to this account in QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
-            exportCheckDescription: "We'll create a single itemized check for each Expensify report. You can write the check from your bank account of choice (below).",
-            exportJournalEntryDescription: "We'll create a single itemized journal entry for each Expensify report. You can post the offset entry to your account of choice (below).",
+            exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
+            exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
-                "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+                "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
             account: 'Account',
-            accountDescription: 'This is your chosen account to post the journal entry offset for each report.',
+            accountDescription: 'Choose where to post journal entry offsets.',
             accountsPayable: 'Accounts payable',
-            accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
-            bankAccountDescription: 'This is your chosen bank account to write checks from.',
+            bankAccountDescription: 'Choose where to send checks from.',
             optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
-                'Note: QuickBooks Online does not support a field for locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.',
+                "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
-                "Note: QuickBooks Online doesn't support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
-            outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
-            outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+                "QuickBooks Online doesn't support taxes on journal entry exports. As you have taxes enabled on your workspace, this export option is unavailable.",
+            outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
+            outOfPocketLocationEnabledError: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
-                autoSyncDescription: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
+                autoSyncDescription: 'Sync QuickBooks Online and Expensify automatically, every day.',
                 inviteEmployees: 'Invite employees',
-                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite them to this workspace.',
-                createEntities: 'Automatically create entities',
-                createEntitiesDescription:
-                    'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
+                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
+                createEntities: 'Auto-create entities',
+                createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
                 reimbursedReports: 'Sync reimbursed reports',
-                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks account below.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                accountSelectDescription:
-                    "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
-                invoiceAccountSelectorDescription:
-                    'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
+                accountSelectDescription: "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
+                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -2081,66 +2079,64 @@ export default {
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
-                    "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+                    "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
-                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Select the vendor applied to all credit card transactions.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
 
-                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
-                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
-                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again',
+            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
         },
         xero: {
             organization: 'Xero organization',
-            organizationDescription: 'Select the organization in Xero you are importing data from.',
-            importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
-            accountsDescription: 'When connected to Xero, chart of accounts are always imported to Expensify as categories.',
-            accountsSwitchTitle: 'Below you can choose to have any new account imported as an enabled or disabled category by default.',
-            accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
+            organizationDescription: "Choose the Xero organization that you'd like to import data from.",
+            importDescription: 'Choose which coding configurations to import from Xero to Expensify.',
+            accountsDescription: 'Your Xero chart of accounts will import into Expensify as categories.',
+            accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
+            accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
-            trackingCategoriesDescription: 'Choose whether to import tracking categories and see where they are displayed.',
+            trackingCategoriesDescription: 'Choose how to handle Xero tracking categories in Expensify.',
             mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
-            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} to when exporting to Xero.`,
+            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} when exporting to Xero.`,
             customers: 'Re-bill customers',
-            customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
-            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
+            taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
             notImported: 'Not imported',
             trackingCategoriesOptions: {
                 default: 'Xero contact default',
                 tag: 'Tags',
             },
             export: 'Export',
-            exportDescription: 'Configure how data in Expensify gets exported to Xero.',
+            exportDescription: 'Configure how Expensify data exports to Xero.',
             exportCompanyCard: 'Export company card expenses as',
             purchaseBill: 'Purchase bill',
-            exportDeepDiveCompanyCard:
-                'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
+            exportDeepDiveCompanyCard: 'Each exported expense posts as a bank transaction to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
-            xeroBankAccountDescription: 'Select the bank account expenses will be posted to as bank transactions.',
+            xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
             preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
-            exportExpensesDescription: 'Reports will export as a purchase bill, using the date and status you select below.',
+            exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Export invoices as',
             salesInvoice: 'Sales invoice',
             exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
             advancedConfig: {
                 advanced: 'Advanced',
-                autoSync: 'Auto-Sync',
-                autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+                autoSync: 'Auto-sync',
+                autoSyncDescription: 'Sync Xero and Expensify automatically, every day.',
                 purchaseBillStatusTitle: 'Purchase bill status',
                 reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
-                xeroBillPaymentAccount: 'Xero Bill Payment Account',
-                xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
-                invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
-                xeroBillPaymentAccountDescription:
-                    "As you've enabled sync reimbursed reports, you will need to select the bank account your reimbursements are coming out of, and we'll create the payment in Xero.",
+                xeroBillPaymentAccount: 'Xero bill payment account',
+                xeroInvoiceCollectionAccount: 'Xero invoice collections account',
+                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.',
+                xeroBillPaymentAccountDescription: "Choose a bank account for reimbursements and we'll create the payment in Xero.",
             },
             exportDate: {
                 label: 'Export date',
@@ -2148,31 +2144,32 @@ export default {
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
-                        description: 'The date of the most recent expense on the report',
+                        description: 'Date of the most recent expense on the report.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
-                        description: 'The date the report was exported to Xero',
+                        description: 'Date the report was exported to Xero.',
                     },
                     [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
-                        description: 'The date the report was submitted for approval',
+                        description: 'Date the report was submitted for approval.',
                     },
                 },
             },
             invoiceStatus: {
                 label: 'Purchase bill status',
-                description: 'When exported to Xero what state should purchase bills have.',
+                description: 'Choose a status for purchase bills exported to Xero.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
-            exportPreferredExporterNote: 'This can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again',
+            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
         type: {
             free: 'Free',
@@ -2191,7 +2188,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
-            needCategoryForExportToIntegration: 'A category is required on every expense in order to export to',
+            needCategoryForExportToIntegration: 'Require a category on every expense in order to export to',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
@@ -2416,11 +2413,11 @@ export default {
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return "Couldn't connect to QuickBooks Online.";
+                        return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return "Couldn't connect to Xero.";
+                        return "Can't connect to Xero.";
                     default: {
-                        return "Couldn't connect to integration.";
+                        return "Can't connect to integration.";
                     }
                 }
             },
@@ -2473,25 +2470,25 @@ export default {
                         case 'quickbooksOnlineImportProcessing':
                             return 'Processing imported data';
                         case 'quickbooksOnlineSyncBillPayments':
-                            return 'Synchronizing reimbursed reports and bill Payments';
+                            return 'Syncing reimbursed reports and bill payments';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importing tax codes';
                         case 'quickbooksOnlineCheckConnection':
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
-                            return 'Importing your QuickBooks Online data';
+                            return 'Importing QuickBooks Online data';
                         case 'startingImportXero':
-                            return 'Importing your Xero data';
+                            return 'Importing Xero data';
                         case 'startingImportQBO':
-                            return 'Importing your QuickBooks Online data';
+                            return 'Importing QuickBooks Online data';
                         case 'quickbooksOnlineSyncTitle':
-                            return 'Synchronizing QuickBooks Online data';
+                            return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':
                             return 'Loading data';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Updating categories';
                         case 'quickbooksOnlineSyncApplyCustomers':
-                            return 'Updating Customers/Projects';
+                            return 'Updating customers/projects';
                         case 'quickbooksOnlineSyncApplyEmployees':
                             return 'Updating people list';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
@@ -2515,7 +2512,7 @@ export default {
                         case 'xeroCheckConnection':
                             return 'Checking Xero connection';
                         case 'xeroSyncTitle':
-                            return 'Synchronizing Xero data';
+                            return 'Syncing Xero data';
                         case 'xeroSyncStep':
                             return 'Loading data';
                         default: {
@@ -3271,11 +3268,12 @@ export default {
             subscriptionSize: 'Subscription size',
             activeMembers: ({size}) => `${size} active members/month`,
             subscriptionRenews: 'Subscription renews',
-            youCantDowngrade: 'You can’t downgrade during your annual subscription',
+            youCantDowngrade: 'You can’t downgrade during your annual subscription.',
             youAlreadyCommitted: ({size, date}) =>
                 `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
             error: {
                 size: 'Please enter a valid subscription size.',
+                sameSize: 'Please enter a number different than your current subscription size.',
             },
         },
         paymentCard: {
