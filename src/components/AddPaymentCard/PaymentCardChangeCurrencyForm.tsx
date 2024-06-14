@@ -1,10 +1,12 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
@@ -41,6 +43,22 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         return errors;
     };
 
+    const {sections} = useMemo(
+        () => ({
+            sections: [
+                {
+                    data: (Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>).map((currencyItem) => ({
+                        text: currencyItem,
+                        value: currencyItem,
+                        keyForList: currencyItem,
+                        isSelected: currencyItem === currency,
+                    })),
+                },
+            ],
+        }),
+        [currency],
+    );
+
     const showCurrenciesModal = useCallback(() => {
         setIsCurrencyModalVisible(true);
     }, []);
@@ -59,42 +77,36 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
             scrollContextEnabled
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Hoverable>
-                {(isHovered) => (
-                    <TextInput
-                        label={translate('common.currency')}
-                        aria-label={translate('common.currency')}
-                        role={CONST.ROLE.COMBOBOX}
-                        icon={Expensicons.ArrowRight}
-                        onPress={showCurrenciesModal}
-                        value={currency}
-                        containerStyles={[styles.mt5]}
-                        inputStyle={isHovered && styles.cursorPointer}
-                        hideFocusedState
-                        caretHidden
-                    />
-                )}
-            </Hoverable>
-            <Text style={[styles.mt5, styles.mutedTextLabel]}>
+            <Text style={[styles.mt3]}>
                 {`${translate('billingCurrency.note')}`}{' '}
                 <TextLink
-                    style={[styles.mutedTextLabel, styles.link]}
+                    style={[styles.link]}
                     href={CONST.PRICING}
                 >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
                 {`${translate('billingCurrency.notDetails')}`}
             </Text>
-
             {!!isSecurityCodeRequired && (
-                <InputWrapper
-                    InputComponent={TextInput}
-                    inputID={INPUT_IDS.SECURITY_CODE}
-                    label={translate('addDebitCardPage.cvv')}
-                    aria-label={translate('addDebitCardPage.cvv')}
-                    role={CONST.ROLE.PRESENTATION}
-                    maxLength={4}
-                    containerStyles={[styles.mt5]}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
-                />
+                <>
+                    <View style={[styles.mt5, styles.mhn5]}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={currency}
+                            descriptionTextStyle={styles.textNormal}
+                            description={translate('common.currency')}
+                            onPress={showCurrenciesModal}
+                        />
+                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.SECURITY_CODE}
+                        label={translate('addDebitCardPage.cvv')}
+                        aria-label={translate('addDebitCardPage.cvv')}
+                        role={CONST.ROLE.PRESENTATION}
+                        maxLength={4}
+                        containerStyles={[styles.mt5]}
+                        inputMode={CONST.INPUT_MODE.NUMERIC}
+                    />
+                </>
             )}
 
             <PaymentCardCurrencyModal
@@ -104,6 +116,20 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 onCurrencyChange={changeCurrency}
                 onClose={() => setIsCurrencyModalVisible(false)}
             />
+            {!isSecurityCodeRequired && (
+                <SelectionList
+                    initiallyFocusedOptionKey={currency}
+                    containerStyle={[styles.mt5, styles.mhn5]}
+                    sections={sections}
+                    onSelectRow={(option) => {
+                        setCurrency(option.value);
+                    }}
+                    showScrollIndicator
+                    shouldStopPropagation
+                    shouldUseDynamicMaxToRenderPerBatch
+                    ListItem={RadioListItem}
+                />
+            )}
         </FormProvider>
     );
 }

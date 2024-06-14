@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -10,16 +11,28 @@ import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
-import type ONYXKEYS from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+
+    const subscriptionPlan = useSubscriptionPlan();
+    const subscriptionPrice = useSubscriptionPrice();
+    const preferredCurrency = usePreferredCurrency();
+
+    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
+    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
@@ -78,9 +91,11 @@ function AddPaymentCard() {
                                     </Text>
                                 )}
                             />
-                            {/** TODO reusable component will be taken from https://github.com/Expensify/App/pull/42690  */}
                             <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>
-                                From $5/active member with the Expensify Card, $10/active member without the Expensify Card.
+                                {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
+                                    lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+                                    upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+                                })}
                             </Text>
                         </>
                     }

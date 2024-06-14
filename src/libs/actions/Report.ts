@@ -3380,7 +3380,7 @@ function completeOnboarding(
         },
     ];
     if (tasksForSuccessData) {
-        successData.unshift(...tasksForSuccessData)
+        successData.unshift(...tasksForSuccessData);
     }
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',

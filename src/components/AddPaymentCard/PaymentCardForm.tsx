@@ -1,16 +1,15 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
+import CurrencySelector from '@components/CurrencySelector';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
@@ -19,7 +18,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +60,7 @@ const REQUIRED_FIELDS = [
     INPUT_IDS.SECURITY_CODE,
     INPUT_IDS.ADDRESS_ZIP_CODE,
     INPUT_IDS.ADDRESS_STATE,
+    INPUT_IDS.CURRENCY,
 ];
 
 const CARD_TYPES = {
@@ -172,10 +171,6 @@ function PaymentCardForm({
         return errors;
     };
 
-    const openCurrenciesSelectScreen = useCallback(() => {
-        Navigation.navigate(ROUTES.SETTINGS_CHANGE_CURRENCY);
-    }, []);
-
     if (!shouldShowPaymentCardForm) {
         return null;
     }
@@ -267,22 +262,13 @@ function PaymentCardForm({
                     </View>
                 )}
                 {!!showCurrencyField && (
-                    <Hoverable>
-                        {(isHovered) => (
-                            <TextInput
-                                label={translate('common.currency')}
-                                aria-label={translate('common.currency')}
-                                role={CONST.ROLE.COMBOBOX}
-                                icon={Expensicons.ArrowRight}
-                                onPress={openCurrenciesSelectScreen}
-                                value={data?.currency ?? CONST.CURRENCY.USD}
-                                containerStyles={[styles.mt5]}
-                                inputStyle={isHovered && styles.cursorPointer}
-                                hideFocusedState
-                                caretHidden
-                            />
-                        )}
-                    </Hoverable>
+                    <View style={[styles.mt4, styles.mhn5]}>
+                        <InputWrapper
+                            value={data?.currency ?? CONST.CURRENCY.USD}
+                            InputComponent={CurrencySelector}
+                            inputID={INPUT_IDS.CURRENCY}
+                        />
+                    </View>
                 )}
                 {!!showAcceptTerms && (
                     <View style={[styles.mt4, styles.ml1]}>
