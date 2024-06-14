@@ -10,7 +10,6 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserLocation from '@libs/actions/UserLocation';
-import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
@@ -265,11 +264,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default compose(
-    withOnyx<ComponentProps, MapViewOnyxProps>({
-        userLocation: {
-            key: ONYXKEYS.USER_LOCATION,
-        },
-    }),
-    memo,
-)(MapView);
+export default withOnyx<ComponentProps, MapViewOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+})(memo(MapView));
