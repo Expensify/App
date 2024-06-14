@@ -209,7 +209,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
                 icon: Expensicons.Exit,
-                isAnonymousAction: true,
+                isAnonymousAction: false,
                 action: () => {
                     if (ReportUtils.getParticipantAccountIDs(report.reportID, true).length === 1 && isGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
