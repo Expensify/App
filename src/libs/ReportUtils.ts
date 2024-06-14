@@ -5441,6 +5441,16 @@ function shouldReportBeInOptionList({
     if (isSelfDM(report)) {
         return includeSelfDM;
     }
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+
+    // Hide chat threads where the parent message is pending removal
+    if (
+        !isEmptyObject(parentReportAction) &&
+        ReportActionsUtils.isPendingRemove(parentReportAction) &&
+        ReportActionsUtils.isThreadParentMessage(parentReportAction, report?.reportID ?? '')
+    ) {
+        return false;
+    }
 
     return true;
 }
