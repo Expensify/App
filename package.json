@@ -94,7 +94,7 @@
     "@react-navigation/native": "6.1.12",
     "@react-navigation/stack": "6.3.29",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "10.1.23",
+    "@rnmapbox/maps": "10.1.26",
     "@shopify/flash-list": "1.6.3",
     "@storybook/addon-a11y": "^8.1.6",
     "@storybook/addon-essentials": "^8.1.6",

@@ -268,14 +268,14 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - MapboxCommon (23.9.2)
-  - MapboxCoreMaps (10.17.0):
-    - MapboxCommon (~> 23.9)
-  - MapboxMaps (10.17.0):
-    - MapboxCommon (= 23.9.2)
-    - MapboxCoreMaps (= 10.17.0)
+  - MapboxCommon (23.10.1)
+  - MapboxCoreMaps (10.18.0):
+    - MapboxCommon (~> 23.10)
+  - MapboxMaps (10.18.2):
+    - MapboxCommon (= 23.10.1)
+    - MapboxCoreMaps (= 10.18.0)
     - MapboxMobileEvents (= 1.0.10)
-    - Turf (= 2.7.0)
+    - Turf (= 2.8.0)
   - MapboxMobileEvents (1.0.10)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
@@ -2012,16 +2012,16 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.23):
-    - MapboxMaps (~> 10.17.0)
+  - rnmapbox-maps (10.1.26):
+    - MapboxMaps (~> 10.18.2)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.23)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.26)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.23):
+  - rnmapbox-maps/DynamicLibrary (10.1.26):
     - DoubleConversion
     - hermes-engine
-    - MapboxMaps (~> 10.17.0)
+    - MapboxMaps (~> 10.18.2)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -2199,7 +2199,7 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
   - SocketRocket (0.7.0)
-  - Turf (2.7.0)
+  - Turf (2.8.0)
   - VisionCamera (4.0.0-beta.13):
     - DoubleConversion
     - glog
@@ -2632,7 +2632,7 @@ SPEC CHECKSUMS:
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   FullStory: 097347c823c21c655ca25fd8d5e6355a9326ec54
   fullstory_react-native: 6fe433f8aa33a0e45f37378e8e55a5d78786f326
-  glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
+  glog: fdfdfe5479092de0c4bdbebedd9056951f092c4f
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -2644,9 +2644,9 @@ SPEC CHECKSUMS:
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: 042a44995748de42f2e6fcf334fc7545d6d2a840
-  MapboxCommon: 768660d6fca8193529ecf82eb6f5f9ae7a5acdf9
-  MapboxCoreMaps: be412ff97b16aa7820922c818115a9a0d8211caa
-  MapboxMaps: 87ef0003e6db46e45e7a16939f29ae87e38e7ce2
+  MapboxCommon: 0ff437e44988da6856e280d00ffb266564ed0487
+  MapboxCoreMaps: f1bd9405f5b9d3e343f2fe4138775299699a22fb
+  MapboxMaps: e76b14f52c54c40b76ddecd04f40448e6f35a864
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
@@ -2735,7 +2735,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: a4b5ad244538755b47b34410ac75c7c985199e80
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 5165c95556507e5424440a5e7319bd9941194b47
+  rnmapbox-maps: 27886242005155eb235b34d5722ba8c116905008
   RNPermissions: 3b49dcd1645a1f9d57ebff7aa891c28f3de72bce
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 2f33b2f8c79c456ce3858a7cd2e07460eb5f61e0
@@ -2748,7 +2748,7 @@ SPEC CHECKSUMS:
   SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
-  Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
+  Turf: aa2ede4298009639d10db36aba1a7ebaad072a5e
   VisionCamera: ef5d0ba63a24e3295f5a0b83d5b6e932f57abde9
   Yoga: ae3c32c514802d30f687a04a6a35b348506d411f
 
