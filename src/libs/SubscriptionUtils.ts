@@ -108,11 +108,11 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
         const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
 
         if (userBillingGracePeriodEnd && isAfter(new Date(), fromUnixTime(userBillingGracePeriodEnd.value))) {
-            const ownerPolicy = Object.values(allPolicies ?? {}).find(
-                (policy) => policy?.id === policyID && String(policy.ownerAccountID ?? -1) === entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length),
-            );
+            // Extracts the owner account ID from the collection member key.
+            const ownerAccountID = entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length);
 
-            if (ownerPolicy) {
+            const ownerPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+            if (String(ownerPolicy?.ownerAccountID ?? -1) === ownerAccountID) {
                 return true;
             }
         }
