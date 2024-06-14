@@ -154,7 +154,7 @@ function ReportActionItemSingle({
 
     const shouldDisableDetailPage = useMemo(
         () =>
-            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? 0) ||
+            CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? -1) ||
             (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );
@@ -181,8 +181,8 @@ function ReportActionItemSingle({
         }
         return (
             <UserDetailsTooltip
-                accountID={Number(actorAccountID ?? 0)}
-                delegateAccountID={Number(action?.delegateAccountID ?? 0)}
+                accountID={Number(actorAccountID ?? -1)}
+                delegateAccountID={Number(action?.delegateAccountID ?? -1)}
                 icon={icon}
             >
                 <View>
@@ -232,7 +232,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={actorAccountID ?? 0}
+                                    accountID={actorAccountID ?? -1}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
