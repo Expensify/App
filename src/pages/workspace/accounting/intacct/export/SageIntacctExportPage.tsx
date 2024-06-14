@@ -50,7 +50,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 pendingAction: pendingFields?.export.nonReimbursable,
             },
         ],
-        [],
+        [errorFields, exportConfig, pendingFields, policyID, translate],
     );
 
     return (
