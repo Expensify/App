@@ -72,7 +72,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areDistanceRatesEnabled ?? false,
             pendingAction: policy?.pendingFields?.areDistanceRatesEnabled,
             action: (isEnabled: boolean) => {
-                DistanceRate.enablePolicyDistanceRates(policy?.id ?? '', isEnabled);
+                DistanceRate.enablePolicyDistanceRates(policy?.id ?? '-1', isEnabled);
             },
         },
         {
@@ -82,7 +82,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             isActive: policy?.areWorkflowsEnabled ?? false,
             pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
             action: (isEnabled: boolean) => {
-                Policy.enablePolicyWorkflows(policy?.id ?? '', isEnabled);
+                Policy.enablePolicyWorkflows(policy?.id ?? '-1', isEnabled);
             },
         },
     ];
@@ -100,7 +100,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
-                Category.enablePolicyCategories(policy?.id ?? '', isEnabled);
+                Category.enablePolicyCategories(policy?.id ?? '-1', isEnabled);
             },
         },
         {
@@ -115,7 +115,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
-                Tag.enablePolicyTags(policy?.id ?? '', isEnabled);
+                Tag.enablePolicyTags(policy?.id ?? '-1', isEnabled);
             },
         },
         {
@@ -130,7 +130,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
-                Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
+                Policy.enablePolicyTaxes(policy?.id ?? '-1', isEnabled);
             },
         },
     ];
@@ -147,11 +147,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     setIsIntegrateWarningModalOpen(true);
                     return;
                 }
-                Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
+                Policy.enablePolicyConnections(policy?.id ?? '-1', isEnabled);
             },
             disabled: hasAccountingConnection,
             errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
-            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
         },
     ];
 
