@@ -62,11 +62,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
             ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
             : '';
 
-    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '')), [policy?.id]);
-    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '')), [policy?.id]);
+    const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressName = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_NAME.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressDescription = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_DESCRIPTION.getRoute(policy?.id ?? '-1')), [policy?.id]);
+    const onPressShare = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_SHARE.getRoute(policy?.id ?? '-1')), [policy?.id]);
 
     const policyName = policy?.name ?? '';
     const policyDescription =
@@ -145,8 +145,9 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             resizeMode="cover"
                         />
                         <AvatarWithImagePicker
-                            onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
+                            onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? '-1'))}
                             source={policy?.avatarURL ?? ''}
+                            avatarID={policy?.id}
                             size={CONST.AVATAR_SIZE.XLARGE}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
@@ -161,12 +162,12 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
                             isUsingDefaultAvatar={!policy?.avatarURL ?? false}
-                            onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
-                            onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
+                            onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '-1', file as File)}
+                            onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '-1')}
                             editorMaskImage={Expensicons.ImageCropSquareMask}
                             pendingAction={policy?.pendingFields?.avatarURL}
                             errors={policy?.errorFields?.avatarURL}
-                            onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
+                            onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '-1')}
                             previewSource={UserUtils.getFullSizeAvatar(policy?.avatarURL ?? '')}
                             headerTitle={translate('workspace.common.workspaceAvatar')}
                             originalFileName={policy?.originalFileName}
@@ -191,7 +192,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             <OfflineWithFeedback
                                 pendingAction={policy?.pendingFields?.description}
                                 errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
-                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
+                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.DESCRIPTION)}
                             >
                                 <MenuItemWithTopDescription
                                     title={policyDescription}
@@ -209,7 +210,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         <OfflineWithFeedback
                             pendingAction={policy?.pendingFields?.generalSettings}
                             errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
-                            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
+                            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.GENERAL_SETTINGS)}
                             errorRowStyles={[styles.mt2]}
                         >
                             <View>
