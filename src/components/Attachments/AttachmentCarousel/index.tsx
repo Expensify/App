@@ -53,7 +53,14 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
     const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
-    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
+    const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows, onChangeArrowsState} = useCarouselArrows();
+
+    useEffect(() => {
+        if (!canUseTouchScreen || zoomScale !== 1) {
+            return;
+        }
+        setShouldShowArrows(true);
+    }, [canUseTouchScreen, page, setShouldShowArrows, zoomScale]);
 
     const compareImage = useCallback((attachment: Attachment) => attachment.source === source, [source]);
 
@@ -178,12 +185,12 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 <CarouselItem
                     item={item}
                     isFocused={activeSource === item.source}
-                    onPress={canUseTouchScreen ? () => setShouldShowArrows((oldState) => !oldState) : undefined}
+                    onPress={canUseTouchScreen ? () => onChangeArrowsState(zoomScale === 1) : undefined}
                     isModalHovered={shouldShowArrows}
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, setShouldShowArrows, shouldShowArrows, styles.h100],
+        [activeSource, canUseTouchScreen, cellWidth, zoomScale, onChangeArrowsState, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(

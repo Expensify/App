@@ -7,6 +7,7 @@ function useCarouselArrows() {
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
     const [shouldShowArrows, setShouldShowArrowsInternal] = useState(canUseTouchScreen);
     const autoHideArrowTimeout = useRef<NodeJS.Timeout | null>(null);
+    const singleTapRef = useRef<NodeJS.Timeout | null>(null);
 
     /**
      * Cancels the automatic hiding of the arrows.
@@ -45,7 +46,27 @@ function useCarouselArrows() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows};
+    const onChangeArrowsState = useCallback(
+        (enabled: boolean) => {
+            if (!enabled) {
+                return;
+            }
+
+            if (singleTapRef.current) {
+                clearTimeout(singleTapRef.current);
+                singleTapRef.current = null;
+                return;
+            }
+
+            singleTapRef.current = setTimeout(() => {
+                setShouldShowArrows((oldState) => !oldState);
+                singleTapRef.current = null;
+            }, 200);
+        },
+        [setShouldShowArrows],
+    );
+
+    return {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows, onChangeArrowsState};
 }
 
 export default useCarouselArrows;
