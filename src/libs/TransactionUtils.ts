@@ -405,7 +405,7 @@ function getCategory(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the cardID from the transaction.
  */
 function getCardID(transaction: Transaction): number {
-    return transaction?.cardID ?? 0;
+    return transaction?.cardID ?? -1;
 }
 
 /**
@@ -483,7 +483,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const cardID = transaction?.cardID ?? 0;
+    const cardID = transaction?.cardID ?? -1;
     return isCorporateCard(cardID);
 }
 
