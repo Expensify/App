@@ -83,7 +83,7 @@ function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Prom
  * @param postLoginPath When provided, we will redirect the user to this path post login on travelDot. eg: 'trips/:tripID'
  */
 function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) {
-    if (policyID === null) {
+    if (policyID === null || policyID === undefined) {
         return;
     }
 
