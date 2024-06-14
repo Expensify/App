@@ -3271,7 +3271,7 @@ export default {
             subscriptionSize: 'Subscription size',
             activeMembers: ({size}) => `${size} active members/month`,
             subscriptionRenews: 'Subscription renews',
-            youCantDowngrade: 'You can’t downgrade during your annual subscription',
+            youCantDowngrade: 'You can’t downgrade during your annual subscription.',
             youAlreadyCommitted: ({size, date}) =>
                 `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
             error: {

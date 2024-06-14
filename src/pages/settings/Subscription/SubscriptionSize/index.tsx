@@ -23,7 +23,7 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const {translate} = useLocalize();
-    const canChangeSubscriptionSize = !!(route.params?.canChangeSize ?? 0);
+    const canChangeSubscriptionSize = !!(route.params?.canChangeSize ?? 1);
     const startFrom = canChangeSubscriptionSize ? 0 : 1;
 
     const onFinished = () => {

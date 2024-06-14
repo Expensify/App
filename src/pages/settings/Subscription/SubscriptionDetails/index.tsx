@@ -42,7 +42,7 @@ function SubscriptionDetails() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const onOptionSelected = (option: SubscriptionType) => {
-        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {
+        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && !account?.canDowngrade) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
             return;
         }

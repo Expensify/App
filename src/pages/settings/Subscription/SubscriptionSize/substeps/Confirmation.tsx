@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -10,9 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import getNewSubscriptionRenewalDate from '@pages/settings/Subscription/SubscriptionSize/utils';
+import {formatSubscriptionEndDate, getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/utils';
 import * as FormActions from '@userActions/FormActions';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
@@ -28,7 +26,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
 
     const isTryingToIncreaseSubscriptionSize = (subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0) > (privateSubscription?.userCount ?? 0);
     const canChangeSubscriptionSize = (account?.canDowngrade ?? false) || (isTryingToIncreaseSubscriptionSize && isEditing);
-    const newSubscriptionEndDate = privateSubscription?.endDate ? format(new Date(privateSubscription?.endDate), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     const onClosePress = () => {
         FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
@@ -57,7 +55,7 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
                     <Text style={[styles.ph5, styles.textNormalThemeText]}>
                         {translate('subscription.subscriptionSize.youAlreadyCommitted', {
                             size: privateSubscription?.userCount ?? 0,
-                            date: newSubscriptionEndDate,
+                            date: formattedSubscriptionEndDate,
                         })}
                     </Text>
                 </>

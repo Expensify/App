@@ -3,7 +3,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -101,9 +100,6 @@ function updateSubscriptionSize(newSubscriptionSize: number, currentSubscription
                 key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
                 value: {
                     userCount: currentSubscriptionSize,
-                    errorFields: {
-                        userCount: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                    },
                     pendingFields: {
                         userCount: null,
                     },
