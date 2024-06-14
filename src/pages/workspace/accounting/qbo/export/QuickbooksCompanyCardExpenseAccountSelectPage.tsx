@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -12,6 +14,7 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
@@ -23,8 +26,8 @@ type CardListItem = ListItem & {
 function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
-    const {creditCards, vendors, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const policyID = policy?.id ?? '-1';
+    const {creditCards, accountPayable, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     const {nonReimbursableExpensesAccount, nonReimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
 
@@ -38,7 +41,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                accounts = vendors ?? [];
+                accounts = accountPayable ?? [];
                 break;
             default:
                 accounts = [];
@@ -50,7 +53,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             keyForList: card.name,
             isSelected: card.name === nonReimbursableExpensesAccount?.name,
         }));
-    }, [nonReimbursableExpensesAccount, creditCards, bankAccounts, nonReimbursableExpensesExportDestination, vendors]);
+    }, [nonReimbursableExpensesAccount, creditCards, bankAccounts, nonReimbursableExpensesExportDestination, accountPayable]);
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
@@ -60,6 +63,20 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
         [nonReimbursableExpensesAccount, policyID],
+    );
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
     );
 
     return (
@@ -72,7 +89,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                 <HeaderWithBackButton
                     title={
                         nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
-                            ? translate('workspace.qbo.vendor')
+                            ? translate('workspace.qbo.accountsPayable')
                             : translate('workspace.qbo.account')
                     }
                 />
@@ -82,10 +99,12 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                             <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}AccountDescription`)}</Text>
                         ) : null
                     }
-                    sections={[{data}]}
+                    sections={data.length ? [{data}] : []}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportAccount}
+                    shouldDebounceRowSelect
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                    listEmptyContent={listEmptyContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

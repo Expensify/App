@@ -30,11 +30,16 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
+    // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
+    if (!reportName) {
+        return;
+    }
+
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '');
-                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '');
+                const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
+                const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '-1');
                 // Pop the thread report screen before navigating to the chat report.
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
                 if (isVisibleAction && !isOffline) {
@@ -50,13 +55,13 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
                 style={[styles.optionAlternateText]}
                 numberOfLines={1}
             >
-                {Boolean(reportName) && (
+                {!!reportName && (
                     <>
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{reportName}</Text>
                     </>
                 )}
-                {Boolean(workspaceName) && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>}
+                {!!workspaceName && <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>}
             </Text>
         </PressableWithoutFeedback>
     );

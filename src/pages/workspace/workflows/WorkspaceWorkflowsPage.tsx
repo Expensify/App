@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -12,6 +12,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -19,12 +20,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,10 +41,11 @@ type WorkspaceWorkflowsPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 };
-type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
+type WorkspaceWorkflowsPageProps = WithPolicyProps & WorkspaceWorkflowsPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
 function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPageProps) {
     const {translate, preferredLocale} = useLocalize();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -83,8 +85,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     );
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
-        const {accountNumber, addressName, bankName} = policy?.achAccount ?? {};
-        const hasVBA = !!policy?.achAccount;
+        const {accountNumber, addressName, bankName, bankAccountID} = policy?.achAccount ?? {};
+        const shouldShowBankAccount = !!bankAccountID && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+
         let bankDisplayName = bankName ?? addressName;
         if (accountNumber && bankDisplayName !== accountNumber) {
             bankDisplayName += ` ${accountNumber.slice(-5)}`;
@@ -100,6 +103,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           icon: Illustrations.ReceiptEnvelope,
                           title: translate('workflowsPage.delaySubmissionTitle'),
                           subtitle: translate('workflowsPage.delaySubmissionDescription'),
+                          switchAccessibilityLabel: translate('workflowsPage.delaySubmissionDescription'),
                           onToggle: (isEnabled: boolean) => {
                               const frequency =
                                   policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT || !policy?.autoReportingFrequency
@@ -128,7 +132,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                           isActive: (policy?.harvesting?.enabled && policy.autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT && !hasDelayedSubmissionError) ?? false,
                           pendingAction: policy?.pendingFields?.autoReporting,
                           errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
-                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
+                          onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING),
                       },
                   ]
                 : []),
@@ -136,6 +140,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 icon: Illustrations.Approval,
                 title: translate('workflowsPage.addApprovalsTitle'),
                 subtitle: translate('workflowsPage.addApprovalsDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
                     Policy.setWorkspaceApprovalMode(route.params.policyID, policy?.owner ?? '', isEnabled ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL);
                 },
@@ -155,75 +160,81 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 isActive: (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.BASIC && !hasApprovalError) ?? false,
                 pendingAction: policy?.pendingFields?.approvalMode,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.APPROVAL_MODE),
             },
             {
                 icon: Illustrations.WalletAlt,
                 title: translate('workflowsPage.makeOrTrackPaymentsTitle'),
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
+                switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: (isEnabled: boolean) => {
                     let newReimbursementChoice;
                     if (!isEnabled) {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                    } else if (hasVBA && !Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                    } else if (!!policy?.achAccount && !Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
                         newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
                     } else {
-                        newReimbursementChoice = hasVBA ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+                        newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
                     }
 
                     const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                    Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserEmail ?? '');
+                    Policy.setWorkspaceReimbursement(policy?.id ?? '-1', newReimbursementChoice, newReimburserEmail ?? '');
                 },
-                subMenuItems: (
-                    <>
-                        <MenuItem
-                            titleStyle={hasVBA ? styles.textLabelSupportingNormal : styles.textLabelSupportingEmptyValue}
-                            descriptionTextStyle={styles.textNormalThemeText}
-                            title={
-                                hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES
-                                    ? translate('common.bankAccount')
-                                    : translate('workflowsPage.connectBankAccount')
-                            }
-                            description={bankDisplayName}
-                            disabled={isOffline || !isPolicyAdmin}
-                            onPress={() => {
-                                if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
-                                    setIsCurrencyModalOpen(true);
-                                    return;
-                                }
-                                navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
-                            }}
-                            shouldShowRightIcon={!isOffline && isPolicyAdmin}
-                            wrapperStyle={containerStyle}
-                            hoverAndPressStyle={[styles.mr0, styles.br2]}
+                subMenuItems:
+                    !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            color={theme.spinner}
+                            style={styles.mt7}
                         />
-                        {hasVBA && policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && (
-                            <OfflineWithFeedback
-                                pendingAction={policy?.pendingFields?.reimburser}
-                                errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                errorRowStyles={[styles.ml7]}
-                            >
-                                <MenuItem
-                                    titleStyle={styles.textLabelSupportingNormal}
-                                    descriptionTextStyle={styles.textNormalThemeText}
-                                    title={translate('workflowsPayerPage.title')}
-                                    description={displayNameForAuthorizedPayer}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
-                                    shouldShowRightIcon
-                                    wrapperStyle={containerStyle}
-                                    hoverAndPressStyle={[styles.mr0, styles.br2]}
-                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                    </>
-                ),
+                    ) : (
+                        <>
+                            <MenuItem
+                                titleStyle={shouldShowBankAccount ? styles.textLabelSupportingNormal : styles.textLabelSupportingEmptyValue}
+                                descriptionTextStyle={styles.textNormalThemeText}
+                                title={shouldShowBankAccount ? translate('common.bankAccount') : translate('workflowsPage.connectBankAccount')}
+                                description={bankDisplayName}
+                                disabled={isOffline || !isPolicyAdmin}
+                                shouldGreyOutWhenDisabled={!policy?.pendingFields?.reimbursementChoice}
+                                onPress={() => {
+                                    if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+                                        setIsCurrencyModalOpen(true);
+                                        return;
+                                    }
+                                    navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+                                }}
+                                shouldShowRightIcon={!isOffline && isPolicyAdmin}
+                                wrapperStyle={containerStyle}
+                                hoverAndPressStyle={[styles.mr0, styles.br2]}
+                            />
+                            {shouldShowBankAccount && (
+                                <OfflineWithFeedback
+                                    pendingAction={policy?.pendingFields?.reimburser}
+                                    shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
+                                    errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                    onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                    errorRowStyles={[styles.ml7]}
+                                >
+                                    <MenuItem
+                                        titleStyle={styles.textLabelSupportingNormal}
+                                        descriptionTextStyle={styles.textNormalThemeText}
+                                        title={translate('workflowsPayerPage.title')}
+                                        description={displayNameForAuthorizedPayer}
+                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                        shouldShowRightIcon
+                                        wrapperStyle={[...containerStyle, styles.mt0]}
+                                        hoverAndPressStyle={[styles.mr0, styles.br2]}
+                                        brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    />
+                                </OfflineWithFeedback>
+                            )}
+                        </>
+                    ),
                 isEndOptionRow: true,
                 isActive: policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 pendingAction: policy?.pendingFields?.reimbursementChoice,
                 errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
-                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
+                onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_CHOICE),
             },
         ];
     }, [
@@ -239,6 +250,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
         displayNameForAuthorizedPayer,
         isOffline,
         isPolicyAdmin,
+        theme,
     ]);
 
     const renderOptionItem = (item: ToggleSettingOptionRowProps, index: number) => (
@@ -249,7 +261,9 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
             <ToggleSettingOptionRow
                 icon={item.icon}
                 title={item.title}
+                titleStyle={styles.textStrong}
                 subtitle={item.subtitle}
+                switchAccessibilityLabel={item.switchAccessibilityLabel}
                 onToggle={item.onToggle}
                 subMenuItems={item.subMenuItems}
                 isActive={item.isActive}
@@ -261,7 +275,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
     );
 
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isLoading = Boolean(policy?.isLoading && policy?.reimbursementChoice === undefined);
+    const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
         <AccessOrNotFoundWrapper
@@ -275,7 +289,6 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_WORKFLOWS}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
-                shouldSkipVBBACall
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

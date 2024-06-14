@@ -16,7 +16,7 @@ import './fonts.css';
 Onyx.init({
     keys: ONYXKEYS,
     initialKeyStates: {
-        [ONYXKEYS.NETWORK]: {isOffline: false},
+        [ONYXKEYS.NETWORK]: {isOffline: false, isBackendReachable: true},
     },
 });
 

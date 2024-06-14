@@ -138,6 +138,27 @@ PODS:
     - GoogleUtilities/Environment (~> 7.7)
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (6.2.1)
+  - FullStory (1.48.0)
+  - fullstory_react-native (1.4.2):
+    - FullStory (~> 1.14)
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - glog (0.3.5)
   - GoogleAppMeasurement (8.8.0):
     - GoogleAppMeasurement/AdIdSupport (= 8.8.0)
@@ -247,12 +268,12 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - MapboxCommon (23.9.1)
-  - MapboxCoreMaps (10.16.6):
+  - MapboxCommon (23.9.2)
+  - MapboxCoreMaps (10.17.0):
     - MapboxCommon (~> 23.9)
-  - MapboxMaps (10.16.6):
-    - MapboxCommon (= 23.9.1)
-    - MapboxCoreMaps (= 10.16.6)
+  - MapboxMaps (10.17.0):
+    - MapboxCommon (= 23.9.2)
+    - MapboxCoreMaps (= 10.17.0)
     - MapboxMobileEvents (= 1.0.10)
     - Turf (= 2.7.0)
   - MapboxMobileEvents (1.0.10)
@@ -1731,7 +1752,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.6.1):
+  - RNCPicker (2.7.6):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1831,7 +1852,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.69):
+  - RNLiveMarkdown (0.1.83):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1849,9 +1870,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.69)
+    - RNLiveMarkdown/common (= 0.1.83)
     - Yoga
-  - RNLiveMarkdown/common (0.1.69):
+  - RNLiveMarkdown/common (0.1.83):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1872,15 +1893,15 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.12):
-    - MapboxMaps (~> 10.16.4)
+  - rnmapbox-maps (10.1.20):
+    - MapboxMaps (~> 10.17.0)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.12)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.20)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.12):
+  - rnmapbox-maps/DynamicLibrary (10.1.20):
     - hermes-engine
-    - MapboxMaps (~> 10.16.4)
+    - MapboxMaps (~> 10.17.0)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1921,7 +1942,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNReanimated (3.7.2):
+  - RNReanimated (3.8.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2077,6 +2098,8 @@ DEPENDENCIES:
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
+  - "FullStory (from `{:http=>\"https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz\"}`)"
+  - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
@@ -2239,6 +2262,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
+  FullStory:
+    :http: https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz
+  fullstory_react-native:
+    :path: "../node_modules/@fullstory/react-native"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   hermes-engine:
@@ -2429,6 +2456,10 @@ EXTERNAL SOURCES:
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
+CHECKOUT OPTIONS:
+  FullStory:
+    :http: https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz
+
 SPEC CHECKSUMS:
   Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
   AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
@@ -2454,6 +2485,8 @@ SPEC CHECKSUMS:
   FirebasePerformance: 0c01a7a496657d7cea86d40c0b1725259d164c6c
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
+  FullStory: 097347c823c21c655ca25fd8d5e6355a9326ec54
+  fullstory_react-native: 6cba8a2c054374a24a44dc4310407d9435459cae
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
@@ -2469,9 +2502,9 @@ SPEC CHECKSUMS:
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: d0e530160e1a0116ab567343d843033c496d0d97
-  MapboxCommon: 20466d839cc43381c44df09d19f7f794b55b9a93
-  MapboxCoreMaps: c21f433decbb295874f0c2464e492166db813b56
-  MapboxMaps: c3b36646b9038706bbceb5de203bcdd0f411e9d0
+  MapboxCommon: 768660d6fca8193529ecf82eb6f5f9ae7a5acdf9
+  MapboxCoreMaps: be412ff97b16aa7820922c818115a9a0d8211caa
+  MapboxMaps: 87ef0003e6db46e45e7a16939f29ae87e38e7ce2
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
@@ -2545,7 +2578,7 @@ SPEC CHECKSUMS:
   ReactCommon: 840a955d37b7f3358554d819446bffcf624b2522
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: 081418ae3b391b1012c3f41d045e5e39f1beed71
-  RNCPicker: a37026a67de0cf1a33ffe8722783527e3b18ea9f
+  RNCPicker: 106d11a1c159ce937009b2bd52db2bdb1577454f
   RNDeviceInfo: 449272e9faf2afe94a3fe2896d169e92277fffa8
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
@@ -2556,12 +2589,12 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: bfabd5938e5af5afc1e60e4e34286b17f8308184
+  RNLiveMarkdown: 88030b7d9a31f5f6e67743df48ad952d64513b4a
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 211f3cb9d33b3b8737d6d21c16bd49e9d97be2f8
+  rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
-  RNReanimated: 51db0fff543694d931bd3b7cab1a3b36bd86c738
+  RNReanimated: 323436b1a5364dca3b5f8b1a13458455e0de9efe
   RNScreens: 9ec969a95987a6caae170ef09313138abf3331e1
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
@@ -2573,8 +2606,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
-PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
+PODFILE CHECKSUM: 66a5c97ae1059e4da1993a4ad95abe5d819f555b
 
 COCOAPODS: 1.13.0

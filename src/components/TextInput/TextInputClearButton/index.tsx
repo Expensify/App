@@ -1,5 +1,6 @@
-import {forwardRef} from 'react';
+import React, {forwardRef} from 'react';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';

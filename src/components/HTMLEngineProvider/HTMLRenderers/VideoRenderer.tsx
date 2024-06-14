@@ -18,7 +18,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const attrHref = htmlAttribs.href || htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] || '';
     const sourceURL = tryResolveUrlFromApiRoot(attrHref);
     const fileName = FileUtils.getFileName(`${sourceURL}`);
-    const thumbnailUrl = htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE];
+    const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
@@ -29,13 +29,13 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                 <VideoPlayerPreview
                     key={key}
                     videoUrl={sourceURL}
-                    reportID={report?.reportID ?? ''}
+                    reportID={report?.reportID ?? '-1'}
                     fileName={fileName}
                     thumbnailUrl={thumbnailUrl}
                     videoDimensions={{width, height}}
                     videoDuration={duration}
                     onShowModalPress={() => {
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', sourceURL);
+                        const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
                         Navigation.navigate(route);
                     }}
                 />

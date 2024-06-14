@@ -1,12 +1,13 @@
 import Onyx from 'react-native-onyx';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import * as Policy from '@libs/actions/Policy';
+import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -17,9 +18,10 @@ describe('actions/Policy', () => {
         });
     });
 
+    let mockFetch: MockFetch;
     beforeEach(() => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -28,139 +30,127 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresTag = false;
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Policy.setPolicyRequiresTag(fakePolicy.id, true);
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Tag.setPolicyRequiresTag(fakePolicy.id, true);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        // RequiresTag is enabled and pending
-                                        expect(policy?.requiresTag).toBeTruthy();
-                                        expect(policy?.pendingFields?.requiresTag).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                    // RequiresTag is enabled and pending
+                                    expect(policy?.requiresTag).toBeTruthy();
+                                    expect(policy?.pendingFields?.requiresTag).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
-                                        expect(policy?.pendingFields?.requiresTag).toBeFalsy();
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connectionID);
+                                    expect(policy?.pendingFields?.requiresTag).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('disable require tag', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresTag = true;
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Policy.setPolicyRequiresTag(fakePolicy.id, false);
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        // RequiresTag is disabled and pending
-                                        expect(policy?.requiresTag).toBeFalsy();
-                                        expect(policy?.pendingFields?.requiresTag).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                    // RequiresTag is disabled and pending
+                                    expect(policy?.requiresTag).toBeFalsy();
+                                    expect(policy?.pendingFields?.requiresTag).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
-                                        expect(policy?.pendingFields?.requiresTag).toBeFalsy();
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connectionID);
+                                    expect(policy?.pendingFields?.requiresTag).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('reset require tag when api returns an error', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresTag = true;
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.fail();
-                        Policy.setPolicyRequiresTag(fakePolicy.id, false);
-                        return waitForBatchedUpdates();
-                    })
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
-                                        expect(policy?.pendingFields?.requiresTag).toBeFalsy();
-                                        expect(policy?.errors).toBeTruthy();
-                                        expect(policy?.requiresTag).toBeTruthy();
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    mockFetch?.fail?.();
+                    Tag.setPolicyRequiresTag(fakePolicy.id, false);
+                    return waitForBatchedUpdates();
+                })
+
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connectionID);
+                                    expect(policy?.pendingFields?.requiresTag).toBeFalsy();
+                                    expect(policy?.errors).toBeTruthy();
+                                    expect(policy?.requiresTag).toBeTruthy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -173,65 +163,62 @@ describe('actions/Policy', () => {
             const newTagListName = 'New tag list name';
             const fakePolicyTags = createRandomPolicyTags(oldTagListName);
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        Policy.renamePolicyTaglist(
-                            fakePolicy.id,
-                            {
-                                oldName: oldTagListName,
-                                newName: newTagListName,
-                            },
-                            fakePolicyTags,
-                        );
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    Tag.renamePolicyTaglist(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagListName,
+                            newName: newTagListName,
+                        },
+                        fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        // Tag list name is updated and pending
-                                        expect(Object.keys(policyTags?.[oldTagListName] ?? {}).length).toBe(0);
-                                        expect(policyTags?.[newTagListName]?.name).toBe(newTagListName);
-                                        expect(policyTags?.[newTagListName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                                    // Tag list name is updated and pending
+                                    expect(Object.keys(policyTags?.[oldTagListName] ?? {}).length).toBe(0);
+                                    expect(policyTags?.[newTagListName]?.name).toBe(newTagListName);
+                                    expect(policyTags?.[newTagListName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        expect(policyTags?.[newTagListName]?.pendingAction).toBeFalsy();
-                                        expect(Object.keys(policyTags?.[oldTagListName] ?? {}).length).toBe(0);
+                                    expect(policyTags?.[newTagListName]?.pendingAction).toBeFalsy();
+                                    expect(Object.keys(policyTags?.[oldTagListName] ?? {}).length).toBe(0);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('reset the policy tag list name when api returns error', () => {
@@ -242,50 +229,46 @@ describe('actions/Policy', () => {
             const newTagListName = 'New tag list name';
             const fakePolicyTags = createRandomPolicyTags(oldTagListName);
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.fail();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    mockFetch?.fail?.();
 
-                        Policy.renamePolicyTaglist(
-                            fakePolicy.id,
-                            {
-                                oldName: oldTagListName,
-                                newName: newTagListName,
-                            },
-                            fakePolicyTags,
-                        );
-                        return waitForBatchedUpdates();
-                    })
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                    Tag.renamePolicyTaglist(
+                        fakePolicy.id,
+                        {
+                            oldName: oldTagListName,
+                            newName: newTagListName,
+                        },
+                        fakePolicyTags,
+                        Object.values(fakePolicyTags)[0].orderWeight,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        expect(policyTags?.[newTagListName]).toBeFalsy();
-                                        expect(policyTags?.[oldTagListName]).toBeTruthy();
-                                        expect(policyTags?.errors).toBeTruthy();
+                                    expect(policyTags?.[newTagListName]).toBeFalsy();
+                                    expect(policyTags?.[oldTagListName]).toBeTruthy();
+                                    expect(policyTags?.errors).toBeTruthy();
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -298,60 +281,56 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        Policy.createPolicyTag(fakePolicy.id, newTagName);
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    Tag.createPolicyTag(fakePolicy.id, newTagName);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
-                                        expect(newTag?.name).toBe(newTagName);
-                                        expect(newTag?.enabled).toBe(true);
-                                        expect(newTag?.errors).toBeFalsy();
-                                        expect(newTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                                    const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
+                                    expect(newTag?.name).toBe(newTagName);
+                                    expect(newTag?.enabled).toBe(true);
+                                    expect(newTag?.errors).toBeFalsy();
+                                    expect(newTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
-                                        expect(newTag?.errors).toBeFalsy();
-                                        expect(newTag?.pendingAction).toBeFalsy();
+                                    const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
+                                    expect(newTag?.errors).toBeFalsy();
+                                    expect(newTag?.pendingAction).toBeFalsy();
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('reset new policy tag when api returns error', () => {
@@ -362,42 +341,37 @@ describe('actions/Policy', () => {
             const newTagName = 'new tag';
             const fakePolicyTags = createRandomPolicyTags(tagListName);
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.fail();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    mockFetch?.fail?.();
 
-                        Policy.createPolicyTag(fakePolicy.id, newTagName);
-                        return waitForBatchedUpdates();
-                    })
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                    Tag.createPolicyTag(fakePolicy.id, newTagName);
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
-                                        expect(newTag?.errors).toBeTruthy();
+                                    const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
+                                    expect(newTag?.errors).toBeTruthy();
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -416,65 +390,61 @@ describe('actions/Policy', () => {
                 return acc;
             }, {});
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        Object.keys(tagsToUpdate).forEach((key) => {
-                                            const updatedTag = policyTags?.[tagListName]?.tags[key];
-                                            expect(updatedTag?.enabled).toBeFalsy();
-                                            expect(updatedTag?.errors).toBeFalsy();
-                                            expect(updatedTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                                            expect(updatedTag?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                                        });
+                                    Object.keys(tagsToUpdate).forEach((key) => {
+                                        const updatedTag = policyTags?.[tagListName]?.tags[key];
+                                        expect(updatedTag?.enabled).toBeFalsy();
+                                        expect(updatedTag?.errors).toBeFalsy();
+                                        expect(updatedTag?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                        expect(updatedTag?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                    });
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        Object.keys(tagsToUpdate).forEach((key) => {
-                                            const updatedTag = policyTags?.[tagListName]?.tags[key];
-                                            expect(updatedTag?.errors).toBeFalsy();
-                                            expect(updatedTag?.pendingAction).toBeFalsy();
-                                            expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-                                        });
+                                    Object.keys(tagsToUpdate).forEach((key) => {
+                                        const updatedTag = policyTags?.[tagListName]?.tags[key];
+                                        expect(updatedTag?.errors).toBeFalsy();
+                                        expect(updatedTag?.pendingAction).toBeFalsy();
+                                        expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
+                                    });
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('reset policy tag enable when api returns error', () => {
@@ -491,46 +461,41 @@ describe('actions/Policy', () => {
                 return acc;
             }, {});
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.fail();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    mockFetch?.fail?.();
 
-                        Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
-                        return waitForBatchedUpdates();
-                    })
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                    Tag.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate, 0);
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        Object.keys(tagsToUpdate).forEach((key) => {
-                                            const updatedTag = policyTags?.[tagListName]?.tags[key];
-                                            expect(updatedTag?.errors).toBeTruthy();
-                                            expect(updatedTag?.pendingAction).toBeFalsy();
-                                            expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
-                                        });
+                                    Object.keys(tagsToUpdate).forEach((key) => {
+                                        const updatedTag = policyTags?.[tagListName]?.tags[key];
+                                        expect(updatedTag?.errors).toBeTruthy();
+                                        expect(updatedTag?.pendingAction).toBeFalsy();
+                                        expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
+                                    });
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -544,63 +509,63 @@ describe('actions/Policy', () => {
             const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
             const newTagName = 'New tag';
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        Policy.renamePolicyTag(fakePolicy.id, {
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
                             oldName: oldTagName,
                             newName: newTagName,
-                        });
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                        },
+                        0,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        const tags = policyTags?.[tagListName]?.tags;
-                                        expect(tags?.[oldTagName]).toBeFalsy();
-                                        expect(tags?.[newTagName]?.name).toBe(newTagName);
-                                        expect(tags?.[newTagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                                        expect(tags?.[newTagName]?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                    const tags = policyTags?.[tagListName]?.tags;
+                                    expect(tags?.[oldTagName]).toBeFalsy();
+                                    expect(tags?.[newTagName]?.name).toBe(newTagName);
+                                    expect(tags?.[newTagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                                    expect(tags?.[newTagName]?.pendingFields?.name).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        const tags = policyTags?.[tagListName]?.tags;
-                                        expect(tags?.[newTagName]?.pendingAction).toBeFalsy();
-                                        expect(tags?.[newTagName]?.pendingFields?.name).toBeFalsy();
+                                    const tags = policyTags?.[tagListName]?.tags;
+                                    expect(tags?.[newTagName]?.pendingAction).toBeFalsy();
+                                    expect(tags?.[newTagName]?.pendingFields?.name).toBeFalsy();
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('reset policy tag name when api returns error', () => {
@@ -612,46 +577,45 @@ describe('actions/Policy', () => {
             const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
             const newTagName = 'New tag';
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.fail();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    mockFetch?.fail?.();
 
-                        Policy.renamePolicyTag(fakePolicy.id, {
+                    Tag.renamePolicyTag(
+                        fakePolicy.id,
+                        {
                             oldName: oldTagName,
                             newName: newTagName,
-                        });
-                        return waitForBatchedUpdates();
-                    })
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                        },
+                        0,
+                    );
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        const tags = policyTags?.[tagListName]?.tags;
-                                        expect(tags?.[newTagName]).toBeFalsy();
-                                        expect(tags?.[oldTagName]?.errors).toBeTruthy();
+                                    const tags = policyTags?.[tagListName]?.tags;
+                                    expect(tags?.[newTagName]).toBeFalsy();
+                                    expect(tags?.[oldTagName]?.errors).toBeTruthy();
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -664,58 +628,54 @@ describe('actions/Policy', () => {
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        tagsToDelete.forEach((tagName) => {
-                                            expect(policyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                                        });
+                                    tagsToDelete.forEach((tagName) => {
+                                        expect(policyTags?.[tagListName]?.tags[tagName]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+                                    });
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        tagsToDelete.forEach((tagName) => {
-                                            expect(policyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
-                                        });
+                                    tagsToDelete.forEach((tagName) => {
+                                        expect(policyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
+                                    });
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
 
         it('reset the deleted policy tag when api returns error', () => {
@@ -726,44 +686,39 @@ describe('actions/Policy', () => {
             const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
             const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
 
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            mockFetch?.pause?.();
 
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
-                    })
-                    .then(() => {
-                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                        fetch.fail();
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                })
+                .then(() => {
+                    mockFetch?.fail?.();
 
-                        Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
-                        return waitForBatchedUpdates();
-                    })
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policyTags) => {
-                                        Onyx.disconnect(connectionID);
+                    Tag.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                waitForCollectionCallback: false,
+                                callback: (policyTags) => {
+                                    Onyx.disconnect(connectionID);
 
-                                        tagsToDelete.forEach((tagName) => {
-                                            expect(policyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
-                                            expect(policyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
-                                        });
+                                    tagsToDelete.forEach((tagName) => {
+                                        expect(policyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
+                                        expect(policyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
+                                    });
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 });

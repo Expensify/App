@@ -17,7 +17,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = NetworkStore.getAuthToken();
+        finalParameters.authToken = NetworkStore.getAuthToken() ?? null;
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;

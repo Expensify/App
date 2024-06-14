@@ -7,7 +7,6 @@ import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
-let hasDismissedModal: boolean | undefined;
 let isLoadingReportData = true;
 
 type HasCompletedOnboardingFlowProps = {
@@ -58,7 +57,7 @@ function checkOnboardingDataReady() {
  * Check if user dismissed modal and if report data are loaded
  */
 function checkServerDataReady() {
-    if (isLoadingReportData || hasDismissedModal === undefined) {
+    if (isLoadingReportData) {
         return;
     }
 
@@ -73,27 +72,21 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, adminsChatReportID ?? null);
 }
 
+function setOnboardingPolicyID(policyID?: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
     initWithStoredValues: false,
     callback: (value) => {
-        if (value === null) {
+        if (value === undefined) {
             return;
         }
 
         onboarding = value;
 
         checkOnboardingDataReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasDismissedModal = value ?? false;
-
-        checkServerDataReady();
     },
 });
 
@@ -134,4 +127,4 @@ function resetAllChecks() {
     isLoadingReportData = true;
 }
 
-export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID};
+export {onServerDataReady, isOnboardingFlowCompleted, setOnboardingPurposeSelected, resetAllChecks, setOnboardingAdminsChatReportID, setOnboardingPolicyID};

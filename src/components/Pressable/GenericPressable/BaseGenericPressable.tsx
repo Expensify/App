@@ -35,6 +35,7 @@ function GenericPressable(
         onPressIn,
         onPressOut,
         accessible = true,
+        fullDisabled = false,
         ...rest
     }: PressableProps,
     ref: PressableRef,
@@ -85,12 +86,11 @@ function GenericPressable(
             if (shouldUseHapticsOnLongPress) {
                 HapticFeedback.longPress();
             }
-            if (ref && 'current' in ref) {
+            if (ref && 'current' in ref && nextFocusRef) {
                 ref.current?.blur();
+                Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
             onLongPress(event);
-
-            Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
         [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
     );
@@ -106,11 +106,11 @@ function GenericPressable(
             if (shouldUseHapticsOnPress) {
                 HapticFeedback.press();
             }
-            if (ref && 'current' in ref) {
+            if (ref && 'current' in ref && nextFocusRef) {
                 ref.current?.blur();
+                Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
             const onPressResult = onPress(event);
-            Accessibility.moveAccessibilityFocus(nextFocusRef);
             return onPressResult;
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
@@ -136,6 +136,7 @@ function GenericPressable(
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
+            disabled={fullDisabled}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? onKeyDown : undefined}

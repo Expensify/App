@@ -8,6 +8,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -26,7 +27,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -167,7 +167,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        report?.visibleChatMemberAccountIDs?.forEach((accountID) => {
+        const participants = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
+
+        participants?.forEach((accountID) => {
             const details = personalDetails[accountID];
 
             if (!details) {
@@ -176,27 +178,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             }
 
             // If search value is provided, filter out members that don't match the search value
-            if (searchValue.trim()) {
-                let memberDetails = '';
-                if (details.login) {
-                    memberDetails += ` ${details.login.toLowerCase()}`;
-                }
-                if (details.firstName) {
-                    memberDetails += ` ${details.firstName.toLowerCase()}`;
-                }
-                if (details.lastName) {
-                    memberDetails += ` ${details.lastName.toLowerCase()}`;
-                }
-                if (details.displayName) {
-                    memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                }
-                if (details.phoneNumber) {
-                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                }
-
-                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                    return;
-                }
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+                return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
@@ -209,13 +192,14 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: details.avatar ?? FallbackAvatar,
                         name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
-                        id: Number(accountID),
+                        id: accountID,
                     },
                 ],
                 pendingAction: pendingChatMember?.pendingAction,
+                errors: pendingChatMember?.errors,
             });
         });
 
@@ -223,6 +207,13 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         return result;
     };
+
+    const dismissError = useCallback(
+        (item: ListItem) => {
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+        },
+        [report.reportID],
+    );
 
     const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
@@ -286,7 +277,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                         <SelectionList
                             canSelectMultiple
                             sections={[{data, isDisabled: false}]}
-                            textInputLabel={translate('optionsSelector.findMember')}
+                            textInputLabel={translate('selectionList.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}
                             onChangeText={(value) => {
@@ -300,6 +291,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
+                            onDismissError={dismissError}
                         />
                     </View>
                 </View>

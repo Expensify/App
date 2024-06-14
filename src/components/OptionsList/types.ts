@@ -18,6 +18,15 @@ type Section = {
 
     /** Whether this section is disabled or not */
     isDisabled?: boolean;
+
+    /** Whether to show an action button in the section header */
+    shouldShowActionButton?: boolean;
+
+    /** Title of the action button */
+    actionButtonTitle?: string;
+
+    /** Callback of the action button */
+    onActionButtonPress?: () => void;
 };
 
 type SectionWithIndexOffset = Section & {

@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, 
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -23,9 +24,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -37,7 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import NavigationAwareCamera from './NavigationAwareCamera';
+import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
@@ -77,6 +81,10 @@ function IOURequestStepScan({
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
 
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
+
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
@@ -98,7 +106,6 @@ function IOURequestStepScan({
 
         const defaultConstraints = {facingMode: {exact: 'environment'}};
         navigator.mediaDevices
-            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
                 setCameraPermissionState('granted');
@@ -108,7 +115,6 @@ function IOURequestStepScan({
                     let deviceId;
                     for (const track of stream.getTracks()) {
                         const setting = track.getSettings();
-                        // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
                         if (setting.zoom === 1) {
                             deviceId = setting.deviceId;
                             break;
@@ -152,7 +158,6 @@ function IOURequestStepScan({
         }
         navigator.permissions
             .query({
-                // @ts-expect-error camera does exist in PermissionName
                 name: 'camera',
             })
             .then((permissionState) => {
@@ -190,7 +195,7 @@ function IOURequestStepScan({
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
                     )
                 ) {
                     setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
@@ -210,7 +215,7 @@ function IOURequestStepScan({
                 return true;
             })
             .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedImage');
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
                 return false;
             });
     }
@@ -262,7 +267,7 @@ function IOURequestStepScan({
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
@@ -274,43 +279,108 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? 0,
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? 0,
+                        existingSplitChatReportID: reportID ?? -1,
                         billable: false,
                         category: '',
                         tag: '',
                         currency: transaction?.currency ?? 'USD',
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                    IOU.trackExpense(
-                        report,
-                        0,
-                        transaction?.currency ?? 'USD',
-                        transaction?.created ?? '',
-                        '',
-                        currentUserPersonalDetails.login,
-                        currentUserPersonalDetails.accountID,
-                        participants[0],
-                        '',
-                        receipt,
-                    );
-                    return;
-                }
-                IOU.requestMoney(
-                    report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participants[0],
-                    '',
-                    receipt,
+                getCurrentPosition(
+                    (successData) => {
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        }
+                    },
+                    (errorData) => {
+                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        }
+                    },
+                    {
+                        maximumAge: CONST.GPS.MAX_AGE,
+                        timeout: CONST.GPS.TIMEOUT,
+                    },
                 );
                 return;
             }
@@ -328,6 +398,9 @@ function IOURequestStepScan({
             transaction,
             navigateToConfirmationPage,
             navigateToParticipantPage,
+            policy,
+            transactionTaxCode,
+            transactionTaxAmount,
         ],
     );
 
@@ -398,7 +471,6 @@ function IOURequestStepScan({
             return;
         }
         trackRef.current.applyConstraints({
-            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
             advanced: [{torch: false}],
         });
     }, []);
@@ -407,7 +479,6 @@ function IOURequestStepScan({
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
-                    // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
                     advanced: [{torch: true}],
                 })
                 .then(() => {
@@ -585,31 +656,33 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
-            <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
-                {!isDraggingOver && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
-                <ReceiptDropUI
-                    onDrop={(e) => {
-                        const file = e?.dataTransfer?.files[0];
-                        if (file) {
-                            file.uri = URL.createObjectURL(file);
-                            setReceiptAndNavigate(file);
-                        }
-                    }}
-                    receiptImageTopPosition={receiptImageTopPosition}
-                />
-                <ConfirmModal
-                    title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
-                    onConfirm={hideRecieptModal}
-                    onCancel={hideRecieptModal}
-                    isVisible={isAttachmentInvalid}
-                    prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
-                    confirmText={translate('common.close')}
-                    shouldShowCancelButton={false}
-                />
-            </View>
+            {(isDraggingOverWrapper) => (
+                <View style={[styles.flex1, !Browser.isMobile() && styles.uploadReceiptView(isSmallScreenWidth)]}>
+                    {!(isDraggingOver ?? isDraggingOverWrapper) && (Browser.isMobile() ? mobileCameraView() : desktopUploadView())}
+                    <ReceiptDropUI
+                        onDrop={(e) => {
+                            const file = e?.dataTransfer?.files[0];
+                            if (file) {
+                                file.uri = URL.createObjectURL(file);
+                                setReceiptAndNavigate(file);
+                            }
+                        }}
+                        receiptImageTopPosition={receiptImageTopPosition}
+                    />
+                    <ConfirmModal
+                        title={attachmentInvalidReasonTitle ? translate(attachmentInvalidReasonTitle) : ''}
+                        onConfirm={hideRecieptModal}
+                        onCancel={hideRecieptModal}
+                        isVisible={isAttachmentInvalid}
+                        prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
+                        confirmText={translate('common.close')}
+                        shouldShowCancelButton={false}
+                    />
+                </View>
+            )}
         </StepScreenDragAndDropWrapper>
     );
 }
@@ -618,14 +691,14 @@ IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 const IOURequestStepScanWithOnyx = withOnyx<Omit<IOURequestStepScanProps, 'user'>, Omit<IOURequestStepOnyxProps, 'user'>>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

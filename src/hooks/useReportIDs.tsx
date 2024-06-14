@@ -38,7 +38,7 @@ const ReportIDsContext = createContext<ReportIDsContextValue>({
 const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSelector =>
     (report && {
         reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
+        participants: report.participants,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
@@ -154,12 +154,12 @@ function ReportIDsContextProvider({
         // the current report is missing from the list, which should very rarely happen. In this
         // case we re-generate the list a 2nd time with the current report included.
         if (derivedCurrentReportID && !orderedReportIDs.includes(derivedCurrentReportID)) {
-            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? ''};
+            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? '-1'};
         }
 
         return {
             orderedReportIDs,
-            currentReportID: derivedCurrentReportID ?? '',
+            currentReportID: derivedCurrentReportID ?? '-1',
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID]);
 

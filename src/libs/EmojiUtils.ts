@@ -1,5 +1,5 @@
 import {getUnixTime} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,6 +10,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type EmojiTrie from './EmojiTrie';
+import type {SupportedLanguage} from './EmojiTrie';
 
 type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
@@ -312,9 +314,9 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  */
 function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require('./EmojiTrie').default;
+    const emojisTrie: typeof EmojiTrie = require('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang];
+    const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
         return {text, emojis: []};
     }
@@ -390,9 +392,9 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<numb
  */
 function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
-    const emojisTrie = require('./EmojiTrie').default;
+    const emojisTrie: typeof EmojiTrie = require('./EmojiTrie').default;
 
-    const trie = emojisTrie[lang];
+    const trie = emojisTrie[lang as SupportedLanguage];
     if (!trie) {
         return [];
     }
@@ -431,7 +433,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (value: string | number | null): number => {
+const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
     if (value !== null && Number.isInteger(Number(value))) {
         return Number(value);
     }
@@ -517,13 +519,13 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
  */
 function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
     if (skinTone === undefined) {
-        return Boolean(usersReactions[accountID]);
+        return !!usersReactions[accountID];
     }
     const userReaction = usersReactions[accountID];
     if (!userReaction?.skinTones || !Object.values(userReaction?.skinTones ?? {}).length) {
         return false;
     }
-    return Boolean(userReaction.skinTones[skinTone]);
+    return !!userReaction.skinTones[skinTone];
 }
 
 /**
