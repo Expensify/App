@@ -122,7 +122,7 @@ function IOURequestStepAmount({
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '-1');
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -185,7 +185,7 @@ function IOURequestStepAmount({
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -320,7 +320,7 @@ function IOURequestStepAmount({
                 amount={Math.abs(transactionAmount)}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
-                policyID={policy?.id ?? ''}
+                policyID={policy?.id ?? '-1'}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
@@ -337,7 +337,7 @@ IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
@@ -349,7 +349,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },
@@ -357,7 +357,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
 })(IOURequestStepAmount);
 
