@@ -11,30 +11,26 @@ describe('getNextBillingDate', () => {
     });
 
     it('should return the next billing date when initial date is valid', () => {
-        const initialDate = '2024-06-01';
-        const expectedNextBillingDate = 'July 2, 2024';
+        const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(getNextBillingDate(initialDate)).toEqual(expectedNextBillingDate);
+        expect(getNextBillingDate()).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const initialDate = '2024-01-31';
-        const nextBillingDate = getNextBillingDate(initialDate);
-        const expectedNextBillingDate = 'July 1, 2024';
+        const nextBillingDate = getNextBillingDate();
+        const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should handle date when it at the current month', () => {
-        const initialDate = '2024-06-06';
-        const nextBillingDate = getNextBillingDate(initialDate);
-        const expectedNextBillingDate = 'June 7, 2024';
+        const nextBillingDate = getNextBillingDate();
+        const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should return the next billing date when initial date is invalid', () => {
-        const initialDate = 'invalid-date';
-        const expectedNextBillingDate = 'July 6, 2024';
+        const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(getNextBillingDate(initialDate)).toEqual(expectedNextBillingDate);
+        expect(getNextBillingDate()).toEqual(expectedNextBillingDate);
     });
 });
