@@ -951,6 +951,7 @@ export default {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
+            nativeCrash: 'Native crash'
         },
         debugConsole: {
             saveLog: 'Save log',
