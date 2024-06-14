@@ -60,7 +60,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? '-1';
     const {translate} = useLocalize();
     const theme = useTheme();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
@@ -95,7 +95,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(
-        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? 0, session?.email ?? ''),
+        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? -1, session?.email ?? ''),
         [reportID, reportAction, draftTransaction, session?.accountID, session?.email],
     );
 

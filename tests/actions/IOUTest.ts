@@ -708,7 +708,7 @@ describe('actions/IOU', () => {
                                         // There should be one transaction
                                         expect(Object.values(allTransactions ?? {}).length).toBe(1);
                                         const transaction = Object.values(allTransactions ?? {}).find((t) => !isEmptyObject(t));
-                                        transactionID = transaction?.transactionID ?? '';
+                                        transactionID = transaction?.transactionID ?? '-1';
 
                                         expect(transaction?.reportID).toBe(iouReportID);
                                         expect(transaction?.amount).toBe(amount);
@@ -786,7 +786,7 @@ describe('actions/IOU', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                ReportActions.clearAllRelatedReportActionErrors(iouReportID ?? '', iouAction ?? null);
+                                ReportActions.clearAllRelatedReportActionErrors(iouReportID ?? '-1', iouAction ?? null);
                                 resolve();
                             }),
                     )
@@ -867,8 +867,8 @@ describe('actions/IOU', () => {
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
-                                Report.deleteReport(chatReportID ?? '');
-                                Report.deleteReport(transactionThreadReport?.reportID ?? '');
+                                Report.deleteReport(chatReportID ?? '-1');
+                                Report.deleteReport(transactionThreadReport?.reportID ?? '-1');
                                 resolve();
                             }),
                     )
@@ -1036,7 +1036,7 @@ describe('actions/IOU', () => {
                         [carlosCreatedAction.reportActionID]: carlosCreatedAction,
                     },
                 ],
-                (item) => item[carlosCreatedAction.reportActionID].reportID ?? '',
+                (item) => item[carlosCreatedAction.reportActionID].reportID ?? '-1',
             );
 
             const julesActionsCollectionDataSet = toCollectionDataSet(
@@ -1047,7 +1047,7 @@ describe('actions/IOU', () => {
                         [julesExistingIOUAction.reportActionID]: julesExistingIOUAction,
                     },
                 ],
-                (item) => item[julesCreatedAction.reportActionID].reportID ?? '',
+                (item) => item[julesCreatedAction.reportActionID].reportID ?? '-1',
             );
 
             const julesCreatedActionsCollectionDataSet = toCollectionDataSet(
@@ -1057,7 +1057,7 @@ describe('actions/IOU', () => {
                         [julesChatCreatedAction.reportActionID]: julesChatCreatedAction,
                     },
                 ],
-                (item) => item[julesChatCreatedAction.reportActionID].reportID ?? '',
+                (item) => item[julesChatCreatedAction.reportActionID].reportID ?? '-1',
             );
 
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
@@ -1667,7 +1667,7 @@ describe('actions/IOU', () => {
                 )
                 .then(() => {
                     thread = ReportUtils.buildTransactionThread(iouAction, iouReport) ?? null;
-                    Onyx.set(`report_${thread?.reportID ?? ''}`, thread);
+                    Onyx.set(`report_${thread?.reportID ?? '-1'}`, thread);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -2182,7 +2182,7 @@ describe('actions/IOU', () => {
             expect(iouReport?.chatReportID).toBe(chatReport?.reportID);
 
             // Storing IOU Report ID for further reference
-            IOU_REPORT_ID = chatReport?.iouReportID ?? '';
+            IOU_REPORT_ID = chatReport?.iouReportID ?? '-1';
 
             await waitForBatchedUpdates();
 
@@ -2367,7 +2367,7 @@ describe('actions/IOU', () => {
 
             // Then verify that the comment is correctly added
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '';
+            reportActionID = resultAction?.reportActionID ?? '-1';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2658,7 +2658,7 @@ describe('actions/IOU', () => {
 
             // Then comment details should match the expected report action
             const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '';
+            reportActionID = resultAction?.reportActionID ?? '-1';
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
 
@@ -2771,7 +2771,7 @@ describe('actions/IOU', () => {
             });
 
             let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '';
+            reportActionID = resultAction?.reportActionID ?? '-1';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2803,7 +2803,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID ?? '';
+            reportActionID = resultAction?.reportActionID ?? '-1';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2890,7 +2890,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
             expect(iouReport?.total).toBe(30000);
 
-            const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '', iouReport?.reportID ?? '');
+            const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '-1', iouReport?.reportID ?? '-1');
             expect(ioupreview).toBeTruthy();
             expect(ReportActionsUtils.getReportActionText(ioupreview)).toBe('rory@expensifail.com owes $300.00');
 
@@ -3044,7 +3044,7 @@ describe('actions/IOU', () => {
                 navigateToAfterDelete = IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             // Then we expect to navigate to the chat report
-            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? ''));
+            expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(chatReport?.reportID ?? '-1'));
         });
     });
 

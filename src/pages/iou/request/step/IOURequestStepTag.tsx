@@ -97,7 +97,7 @@ function IOURequestStepTag({
             return;
         }
         if (isEditing) {
-            IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '0', updatedTag, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '-1', updatedTag, policy, policyTags, policyCategories);
             Navigation.dismissModal();
             return;
         }
@@ -116,7 +116,7 @@ function IOURequestStepTag({
             <>
                 <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                 <TagPicker
-                    policyID={report?.policyID ?? ''}
+                    policyID={report?.policyID ?? '-1'}
                     tagListName={policyTagListName}
                     tagListIndex={tagListIndex}
                     selectedTag={tag}
@@ -139,13 +139,13 @@ export default withWritableReportOrNotFound(
                 },
             },
             policy: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
             },
             policyCategories: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
             },
             policyTags: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
             },
             reportActions: {
                 key: ({
@@ -154,7 +154,7 @@ export default withWritableReportOrNotFound(
                         params: {action, iouType},
                     },
                 }) => {
-                    let reportID: string | undefined = '0';
+                    let reportID: string | undefined = '-1';
                     if (action === CONST.IOU.ACTION.EDIT) {
                         reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
                     }

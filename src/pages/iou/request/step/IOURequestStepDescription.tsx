@@ -123,16 +123,16 @@ function IOURequestStepDescription({
 
         // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
-            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '0', {comment: newComment});
+            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '-1', {comment: newComment});
             navigateBack();
             return;
         }
         const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
 
-        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '0', newComment, isTransactionDraft);
+        IOU.setMoneyRequestDescription(transaction?.transactionID ?? '-1', newComment, isTransactionDraft);
 
         if (action === CONST.IOU.ACTION.EDIT) {
-            IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '0', reportID, newComment, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestDescription(transaction?.transactionID ?? '-1', reportID, newComment, policy, policyTags, policyCategories);
         }
 
         navigateBack();
@@ -193,18 +193,18 @@ IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProps, IOURequestStepDescriptionOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
+            const transactionID = route?.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
     },
     reportActions: {
         key: ({
@@ -213,9 +213,9 @@ const IOURequestStepDescriptionWithOnyx = withOnyx<IOURequestStepDescriptionProp
                 params: {action, iouType},
             },
         }) => {
-            let reportID = '0';
+            let reportID = '-1';
             if (action === CONST.IOU.ACTION.EDIT) {
-                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '0' : report?.parentReportID ?? '0';
+                reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID ?? '-1' : report?.parentReportID ?? '-1';
             }
             return `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`;
         },
