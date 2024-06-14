@@ -202,20 +202,22 @@ function SettlementButton({
         }
 
         if (isInvoiceReport) {
-            buttonOptions.push({
-                text: translate('iou.settlePersonal', {formattedAmount}),
-                icon: Expensicons.User,
-                value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                backButtonText: translate('iou.individual'),
-                subMenuItems: [
-                    {
-                        text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Expensicons.Cash,
-                        value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
-                    },
-                ],
-            });
+            if (ReportUtils.isIndividualInvoiceRoom(chatReport)) {
+                buttonOptions.push({
+                    text: translate('iou.settlePersonal', {formattedAmount}),
+                    icon: Expensicons.User,
+                    value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    backButtonText: translate('iou.individual'),
+                    subMenuItems: [
+                        {
+                            text: translate('iou.payElsewhere', {formattedAmount: ''}),
+                            icon: Expensicons.Cash,
+                            value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                            onSelected: () => onPress(CONST.IOU.PAYMENT_TYPE.ELSEWHERE),
+                        },
+                    ],
+                });
+            }
 
             if (PolicyUtils.isPolicyAdmin(primaryPolicy)) {
                 buttonOptions.push({
@@ -246,7 +248,7 @@ function SettlementButton({
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
+    }, [currency, formattedAmount, iouReport, chatReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
