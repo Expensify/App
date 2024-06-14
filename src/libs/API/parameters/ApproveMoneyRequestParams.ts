@@ -3,6 +3,7 @@ type ApproveMoneyRequestParams = {
     approvedReportActionID: string;
     full?: boolean;
     optimisticHoldReportID?: string;
+    optimisticHoldActionID?: string;
 };
 
 export default ApproveMoneyRequestParams;

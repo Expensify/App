@@ -8,6 +8,7 @@ type PayMoneyRequestParams = {
     full: boolean;
     amount?: number;
     optimisticHoldReportID?: string;
+    optimisticHoldActionID?: string;
 };
 
 export default PayMoneyRequestParams;
