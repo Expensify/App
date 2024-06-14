@@ -814,7 +814,7 @@ function MoneyRequestConfirmationList({
                 receiptPath={receiptPath}
                 reportActionID={reportActionID}
                 reportID={reportID}
-                selectedParticipants={selectedParticipants}
+                selectedParticipants={selectedParticipantsProp}
                 shouldDisplayFieldError={shouldDisplayFieldError}
                 shouldDisplayReceipt={shouldDisplayReceipt}
                 shouldShowCategories={shouldShowCategories}
@@ -859,7 +859,7 @@ function MoneyRequestConfirmationList({
             receiptPath,
             reportActionID,
             reportID,
-            selectedParticipants,
+            selectedParticipantsProp,
             shouldDisplayFieldError,
             shouldDisplayReceipt,
             shouldShowCategories,
