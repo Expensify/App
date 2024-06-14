@@ -1,5 +1,6 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
@@ -18,7 +19,7 @@ import replacePathInNestedState from './replacePathInNestedState';
 
 const RHP_SCREENS_OPENED_FROM_LHN = [SCREENS.SETTINGS.SHARE_CODE, SCREENS.SETTINGS.PROFILE.STATUS] as const;
 
-type RHPScreenOpenedFromLHN = (typeof RHP_SCREENS_OPENED_FROM_LHN)[number];
+type RHPScreenOpenedFromLHN = TupleToUnion<typeof RHP_SCREENS_OPENED_FROM_LHN>;
 
 type Metainfo = {
     // Sometimes modal screens don't have information about what should be visible under the overlay.
@@ -303,7 +304,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             if (!isNarrowLayout) {
-                routes.push({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? ''}});
+                routes.push({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? '-1'}});
             }
             routes.push(reportAttachments);
 

@@ -1,4 +1,5 @@
 import {useCallback} from 'react';
+import type {TupleToUnion} from 'type-fest';
 import type {FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import * as FormActions from '@userActions/FormActions';
 import type {OnyxFormKey, OnyxFormValuesMapping, OnyxValues} from '@src/ONYXKEYS';
@@ -26,7 +27,7 @@ export default function useStepFormSubmit<T extends keyof OnyxFormValuesMapping>
                 const stepValues = fieldIds.reduce((acc, key) => {
                     acc[key] = values[key];
                     return acc;
-                }, {} as Record<(typeof fieldIds)[number], OnyxValues[T][Exclude<keyof OnyxValues[T], keyof BaseForm>]>);
+                }, {} as Record<TupleToUnion<typeof fieldIds>, OnyxValues[T][Exclude<keyof OnyxValues[T], keyof BaseForm>]>);
 
                 FormActions.setDraftValues(formId, stepValues);
             }
