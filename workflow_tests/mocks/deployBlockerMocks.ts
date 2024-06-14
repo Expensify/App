@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {StepIdentifier} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import {createMockStep} from '../utils/utils';
 
 // updateChecklist

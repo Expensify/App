@@ -1,11 +1,12 @@
 /* eslint no-console: ["error", { allow: ["warn", "log"] }] */
-import type {CustemStepIdentifier, StepIdentifier} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import type {PathLike} from 'fs';
 import fs from 'fs';
 import path from 'path';
 import {exit} from 'process';
 import yaml from 'yaml';
 import type {YamlMockJob, YamlWorkflow} from './JobMocker';
+import type CustemStepIdentifier from './types';
 
 const workflowsDirectory = path.resolve(__dirname, '..', '..', '.github', 'workflows');
 const workflowTestsDirectory = path.resolve(__dirname, '..');

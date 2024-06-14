@@ -1,8 +1,9 @@
-import type {CustemStepIdentifier, StepIdentifier} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import type {PathOrFileDescriptor} from 'fs';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
+import type CustemStepIdentifier from './types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 type YamlMockJob = Omit<MockJob, 'runsOn'> & {'runs-on'?: string};

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {StepIdentifier} from '@kie/act-js';
+import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 import {createMockStep} from '../utils/utils';
 
 const DEPLOY_STAGING__CHECKOUT__STEP_MOCK = createMockStep('Checkout staging branch', 'Checking out staging branch', 'DEPLOY_STAGING', ['ref', 'token']);
