@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -20,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {parseHtmlToText} from '@libs/OnyxAwareParser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -28,8 +28,6 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
-
-const parser = new ExpensiMark();
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -240,7 +238,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {parser.htmlToText(optionItem.alternateText)}
+                                            {parseHtmlToText(optionItem.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>
