@@ -42,7 +42,8 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true}: Addre
         setCurrentCountry(address.country);
         setCity(address.city);
         setZipcode(address.zip);
-    }, [address]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [address?.state, address?.country, address?.city, address?.zip]);
 
     const handleAddressChange = useCallback((value: unknown, key: unknown) => {
         const addressPart = value as string;
