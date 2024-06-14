@@ -148,18 +148,18 @@ export default withWritableReportOrNotFound(
         withOnyx<IOURequestStepMerchantProps, IOURequestStepMerchantOnyxProps>({
             splitDraftTransaction: {
                 key: ({route}) => {
-                    const transactionID = route.params.transactionID ?? 0;
+                    const transactionID = route.params.transactionID ?? -1;
                     return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
                 },
             },
             policy: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
             },
             policyCategories: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
             },
             policyTags: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
             },
         })(IOURequestStepMerchant),
     ),
