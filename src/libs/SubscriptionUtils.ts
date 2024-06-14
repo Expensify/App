@@ -1,8 +1,9 @@
-import {differenceInCalendarDays, isAfter, isBefore, parse as parseDate} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import {differenceInCalendarDays, fromUnixTime, isAfter, isBefore, parse as parseDate} from 'date-fns';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod, Policy} from '@src/types/onyx';
 
 let firstDayFreeTrial: OnyxEntry<string>;
 Onyx.connect({
@@ -20,6 +21,32 @@ let userBillingFundID: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_BILLING_FUND_ID,
     callback: (value) => (userBillingFundID = value),
+});
+
+let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+    callback: (value) => (userBillingGraceEndPeriodCollection = value),
+    waitForCollectionCallback: true,
+});
+
+let ownerBillingGraceEndPeriod: OnyxEntry<number>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+    callback: (value) => (ownerBillingGraceEndPeriod = value),
+});
+
+let amountOwed: OnyxEntry<number>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED,
+    callback: (value) => (amountOwed = value),
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (value) => (allPolicies = value),
+    waitForCollectionCallback: true,
 });
 
 /**
@@ -70,4 +97,34 @@ function doesUserHavePaymentCardAdded(): boolean {
     return userBillingFundID !== undefined;
 }
 
-export {calculateRemainingFreeTrialDays, isUserOnFreeTrial, hasUserFreeTrialEnded, doesUserHavePaymentCardAdded};
+/**
+ * Whether the user's billable actions should be restricted.
+ */
+function shouldRestrictUserBillableActions(policyID: string): boolean {
+    // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
+    // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
+    // past due and is past its grace period end.
+    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriodCollection ?? {})) {
+        const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
+
+        if (userBillingGracePeriodEnd && isAfter(new Date(), fromUnixTime(userBillingGracePeriodEnd.value))) {
+            const ownerPolicy = Object.values(allPolicies ?? {}).find(
+                (policy) => policy?.id === policyID && String(policy.ownerAccountID ?? -1) === entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length),
+            );
+
+            if (ownerPolicy) {
+                return true;
+            }
+        }
+    }
+
+    // If it reached here it means that the user is actually the workspace's owner.
+    // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
+    if (ownerBillingGraceEndPeriod && amountOwed !== undefined && isAfter(new Date(), fromUnixTime(ownerBillingGraceEndPeriod))) {
+        return true;
+    }
+
+    return false;
+}
+
+export {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldRestrictUserBillableActions};

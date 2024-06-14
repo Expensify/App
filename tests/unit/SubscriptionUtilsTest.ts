@@ -1,8 +1,16 @@
-import {addDays, format as formatDate, subDays} from 'date-fns';
+import {addDays, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+
+const billingGraceEndPeriod: BillingGraceEndPeriod = {
+    name: 'owner@email.com',
+    permissions: 'read',
+    value: 0,
+};
 
 Onyx.init({keys: ONYXKEYS});
 
@@ -101,6 +109,97 @@ describe('SubscriptionUtils', () => {
         it('should return true if the Onyx key is set', async () => {
             await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
             expect(SubscriptionUtils.doesUserHavePaymentCardAdded()).toBeTruthy();
+        });
+    });
+
+    describe('shouldRestrictUserBillableActions', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: null,
+                [ONYXKEYS.COLLECTION.POLICY]: null,
+            });
+        });
+
+        it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions('1')).toBeFalsy();
+        });
+
+        it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', async () => {
+            const policyID = '1001';
+            const ownerAccountID = 2001;
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                    ...billingGraceEndPeriod,
+                    value: getUnixTime(subDays(new Date(), 3)), // past due
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: 2002, // owner not in the shared NVP collection
+                },
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+        });
+
+        it("should return false if the user is a workspace's non-owner that is not past due billing", async () => {
+            const policyID = '1001';
+            const ownerAccountID = 2001;
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                    ...billingGraceEndPeriod,
+                    value: getUnixTime(addDays(new Date(), 3)), // not past due
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID, // owner in the shared NVP collection
+                },
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+        });
+
+        it("should return true if the user is a workspace's non-owner that is past due billing", async () => {
+            const policyID = '1001';
+            const ownerAccountID = 2001;
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                    ...billingGraceEndPeriod,
+                    value: getUnixTime(subDays(new Date(), 3)), // past due
+                },
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID, // owner in the shared NVP collection
+                },
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+        });
+
+        it('should return false if the user is a workspace owner but is not past due billing', async () => {
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(addDays(new Date(), 3)), // not past due
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+        });
+
+        it('should return true if the user is a workspace owner but is past due billing', async () => {
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 8010, // owing some amount
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
         });
     });
 });
