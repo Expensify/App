@@ -355,7 +355,7 @@ export default {
         errorWhileSelectingCorruptedAttachment: 'Ha ocurrido un error al seleccionar un archivo adjunto corrupto. Por favor, inténtalo con otro archivo.',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
-        chooseDocument: 'Elegir documento',
+        chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
@@ -683,7 +683,6 @@ export default {
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -1642,6 +1641,8 @@ export default {
         facialScan: 'Política y lanzamiento de la exploración facial de Onfido',
         tryAgain: 'Intentar otra vez',
         verifyIdentity: 'Verificar identidad',
+        letsVerifyIdentity: '¡Vamos a verificar tu identidad!',
+        butFirst: 'Pero primero, lo aburrido. Lee la jerga legal en el siguiente paso y haz clic en "Aceptar" cuando estés listo.',
         genericError: 'Hubo un error al procesar este paso. Inténtalo de nuevo.',
         cameraPermissionsNotGranted: 'Permiso para acceder a la cámara',
         cameraRequestMessage: 'Necesitamos acceso a tu cámara para completar la verificación de tu cuenta de banco. Por favor habilita los permisos en Configuración > Nuevo Expensify.',
@@ -1685,8 +1686,8 @@ export default {
         noOverdraftOrCredit: 'Sin función de sobregiro/crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
         standard: 'Estándar',
-        takeALookAtSomeFees: 'Echa un vistazo a algunas tarifas.',
-        checkPlease: 'Por favor, revisa.',
+        reviewTheFees: 'Por favor, revisa las siguientes tarifas.',
+        checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
             expensifyPaymentsAccount: ({walletProgram}: WalletProgramParams) => `La billetera Expensify es emitida por ${walletProgram}.`,
@@ -2015,7 +2016,7 @@ export default {
             locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             taxesJournalEntrySwitchNote:
-                'Nota: QuickBooks Online no admite un campo para impuestos al exportar entradas en el libro diario. Cambia tu preferencia de exportación a Factura de Proveedor o Cheque para importar impuestos.',
+                'Nota: QuickBooks Online no admite un campo para impuestos al exportar entradas en el asiento contable. Cambia tu preferencia de exportación a Factura de Proveedor o Cheque para importar impuestos.',
             locationsAdditionalDescription:
                 'QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Actualice su preferencia de exportación a asiento contable si desea importar ubicaciones como etiquetas.',
             export: 'Exportar',
@@ -2052,7 +2053,7 @@ export default {
             exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
             exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
             account: 'Cuenta',
-            accountDescription: 'Esta es la cuenta elegida para contabilizar la compensación de la entrada de diario de cada informe.',
+            accountDescription: 'Esta es la cuenta elegida para contabilizar la compensación del asiento contable de cada informe.',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
@@ -2069,12 +2070,12 @@ export default {
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
             exportCheckDescription: 'Crearemos un único cheque desglosado para cada informe de Expensify. Puedes emitir el cheque desde la cuenta bancaria que elijas (más abajo).',
             exportJournalEntryDescription:
-                'Crearemos una única entrada de diario desglosada para cada informe de Expensify. Puedes enviar la compensación de la entrada de diario a la cuenta que elijas (más abajo).',
+                'Crearemos un único asiento contable desglosado para cada informe de Expensify. Puedes enviar la compensación de la entrada de diario a la cuenta que elijas (más abajo).',
             exportVendorBillDescription:
                 'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de tu elección (a continuación).',
             outOfPocketTaxEnabledDescription:
-                'Nota: QuickBooks Online no admite un campo para impuestos en las exportaciones de Anotación en el diario. Debido a que tienes habilitado el seguimiento de impuestos en tu área de trabajo, esta opción de exportación no está disponible.',
-            outOfPocketTaxEnabledError: 'La Anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona una opción de exportación diferente.',
+                'Nota: QuickBooks Online no admite un campo para impuestos al exportar asientos contables. Debido a que tienes habilitado el seguimiento de impuestos en tu área de trabajo, esta opción de exportación no está disponible.',
+            outOfPocketTaxEnabledError: 'El asiento contable no está disponible cuando los impuestos están activados. Por favor, selecciona una opción de exportación diferente.',
             outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Seleccione otra opción de exportación.',
             outOfPocketLocationEnabledDescription:
                 'Nota: QuickBooks Online no permite añadir una ubicación a las facturas de proveedores o a los cheques. Al importar ubicaciones como etiquetas, esta opción de exportación no está disponible.',
@@ -2123,7 +2124,7 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
-                    'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
+                    'El asiento contable no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión',
@@ -2289,7 +2290,7 @@ export default {
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
-                disconnectText: 'Desconecta tu conexión contable del espacio de trabajo si deseas desactivar la Contabilidad.',
+                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
         },
@@ -2538,7 +2539,7 @@ export default {
             VBANoECardCopy:
                 'Añade tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
-            benefit1: 'Hasta un 2% de devolución en tus gastos',
+            benefit1: 'Devolución de dinero en cada compra en Estados Unidos',
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
@@ -3733,8 +3734,8 @@ export default {
             title: 'Tu plan',
             collect: {
                 title: 'Recolectar',
-                priceAnnual: 'Desde $5/miembro activo con la Tarjeta Expensify, $10/miembro activo sin la Tarjeta Expensify.',
-                pricePayPerUse: 'Desde $10/miembro activo con la Tarjeta Expensify, $20/miembro activo sin la Tarjeta Expensify.',
+                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
                 benefit2: 'Tarjetas Expensify con Límites Inteligentes',
                 benefit3: 'Pago de facturas y facturación',
@@ -3745,8 +3746,8 @@ export default {
             },
             control: {
                 title: 'Control',
-                priceAnnual: 'Desde $9/miembro activo con la Tarjeta Expensify, $18/miembro activo sin la Tarjeta Expensify.',
-                pricePayPerUse: 'Desde $18/miembro activo con la Tarjeta Expensify, $36/miembro activo sin la Tarjeta Expensify.',
+                priceAnnual: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
+                pricePayPerUse: ({lower, upper}) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 benefit1: 'Todo en Recolectar, más:',
                 benefit2: 'Integraciones con NetSuite y Sage Intacct',
                 benefit3: 'Sincronización de Certinia y Workday',
@@ -3763,9 +3764,8 @@ export default {
             annual: 'Suscripción anual',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
-            headsUpTitle: 'Atención: ',
-            headsUpBody:
-                'Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
+            headsUp:
+                'Atención: Si no estableces ahora el tamaño de tu suscripción, lo haremos automáticamente con el número de suscriptores activos del primer mes. A partir de ese momento, estarás suscrito para pagar al menos por ese número de afiliados durante los 12 meses siguientes. Puedes aumentar el tamaño de tu suscripción en cualquier momento, pero no puedes reducirlo hasta que finalice tu suscripción.',
             zeroCommitment: 'Compromiso cero con la tarifa de suscripción anual reducida',
         },
         subscriptionSize: {
@@ -3774,7 +3774,7 @@ export default {
             eachMonth:
                 'Cada mes, tu suscripción cubre hasta el número de miembros activos establecido anteriormente. Cada vez que aumentes el tamaño de tu suscripción, iniciarás una nueva suscripción de 12 meses con ese nuevo tamaño.',
             note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
-            confirmDetails: 'Confirma los datos de tu nueva suscripción anual',
+            confirmDetails: 'Confirma los datos de tu nueva suscripción anual:',
             subscriptionSize: 'Tamaño de suscripción',
             activeMembers: ({size}) => `${size} miembros activos/mes`,
             subscriptionRenews: 'Renovación de la suscripción',

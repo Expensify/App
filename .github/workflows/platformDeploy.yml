@@ -134,7 +134,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-13-large
+    runs-on: macos-14-large
     steps:
       - name: Checkout
         uses: actions/checkout@v4
