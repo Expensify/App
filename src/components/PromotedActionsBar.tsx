@@ -78,10 +78,6 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
         return null;
     }
 
-    if (promotedActions.length === 0) {
-        return null;
-    }
-
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
             {promotedActions.map(({key, onSelected, ...props}) => (
