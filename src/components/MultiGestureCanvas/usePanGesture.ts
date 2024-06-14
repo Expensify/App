@@ -206,10 +206,6 @@ const usePanGesture = ({
             panVelocityX.value = evt.velocityX;
             panVelocityY.value = evt.velocityY;
 
-            if (!isSwipingDownToClose.value) {
-                panTranslateX.value += evt.changeX;
-            }
-
             if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {
                 panTranslateY.value += evt.changeY;
             }
