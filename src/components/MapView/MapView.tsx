@@ -1,34 +1,27 @@
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
-import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserLocation from '@libs/actions/UserLocation';
-import compose from '@libs/compose';
-import getCurrentPosition from '@libs/getCurrentPosition';
-import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
-import ONYXKEYS from '@src/ONYXKEYS';
 import Direction from './Direction';
-import type {MapViewHandle} from './MapViewTypes';
+import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import type {ComponentProps, MapViewOnyxProps} from './types';
+import useCurrentPosition from './useCurrentPosition';
 import utils from './utils';
 
-const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+const MapView = forwardRef<MapViewHandle, MapViewProps>(
+    ({accessToken, style, mapPadding, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -36,68 +29,18 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const theme = useTheme();
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
-        const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
-        const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
-        const shouldInitializeCurrentPosition = useRef(true);
 
-        // Determines if map can be panned to user's detected
-        // location without bothering the user. It will return
-        // false if user has already started dragging the map or
-        // if there are one or more waypoints present.
-        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
-
-        const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
-            (error) => {
-                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
-                    return;
-                }
-                UserLocation.clearUserLocation();
-                setCurrentPosition(initialLocation);
-            },
-            [initialLocation],
+        const flyTo = useCallback(
+            (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
+                cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
+            [],
         );
 
-        useFocusEffect(
-            useCallback(() => {
-                if (isOffline) {
-                    return;
-                }
-
-                if (!shouldInitializeCurrentPosition.current) {
-                    return;
-                }
-
-                shouldInitializeCurrentPosition.current = false;
-
-                if (!shouldPanMapToCurrentPosition()) {
-                    setCurrentPositionToInitialState();
-                    return;
-                }
-
-                getCurrentPosition((params) => {
-                    const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
-                    UserLocation.setUserLocation(currentCoords);
-                }, setCurrentPositionToInitialState);
-            }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
-        );
-
-        useEffect(() => {
-            if (!currentPosition || !cameraRef.current) {
-                return;
-            }
-
-            if (!shouldPanMapToCurrentPosition()) {
-                return;
-            }
-
-            cameraRef.current.setCamera({
-                zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-                animationDuration: 1500,
-                centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
-            });
-        }, [currentPosition, shouldPanMapToCurrentPosition]);
+        const {currentPosition, setHasUserInteractedWithMap} = useCurrentPosition({
+            initialPosition: initialState?.location,
+            waypoints,
+            flyTo,
+        });
 
         useImperativeHandle(
             ref,
@@ -176,7 +119,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     style={{flex: 1}}
                     styleURL={styleURL}
                     onMapIdle={setMapIdle}
-                    onTouchStart={() => setUserInteractedWithMap(true)}
+                    onTouchStart={() => setHasUserInteractedWithMap(true)}
                     pitchEnabled={pitchEnabled}
                     attributionPosition={{...styles.r2, ...styles.b2}}
                     scaleBarEnabled={false}
@@ -265,11 +208,4 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default compose(
-    withOnyx<ComponentProps, MapViewOnyxProps>({
-        userLocation: {
-            key: ONYXKEYS.USER_LOCATION,
-        },
-    }),
-    memo,
-)(MapView);
+export default memo(MapView);
