@@ -305,21 +305,21 @@ type QBOConnectionData = {
 };
 
 /** Sync entity names */
-type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
+type IntegrationEntityMap = ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
 
 /**
  * Non reimbursable account types exported from QuickBooks Online
  *
  * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
-type QBONonReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE];
+type QBONonReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE>;
 
 /**
  * Reimbursable account types exported from QuickBooks Online
  *
  * TODO: QBO remaining comments will be handled here (https://github.com/Expensify/App/issues/43033)
  */
-type QBOReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE];
+type QBOReimbursableExportAccountType = ValueOf<typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE>;
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
