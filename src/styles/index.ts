@@ -4471,10 +4471,6 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
         },
 
-        magicCodeAnimation: {
-            width: variables.modalTopIconWidth,
-        },
-
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),

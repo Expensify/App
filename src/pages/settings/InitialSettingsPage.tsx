@@ -360,7 +360,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     const currentUserDetails = currentUserPersonalDetails;
     const avatarURL = currentUserDetails?.avatar ?? '';
-    const accountID = currentUserDetails?.accountID ?? '';
+    const accountID = currentUserDetails?.accountID ?? '-1';
     const usernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
     let processedTextArray: TextWithEmoji[] = [];
     if (usernameContainEmojis) {
