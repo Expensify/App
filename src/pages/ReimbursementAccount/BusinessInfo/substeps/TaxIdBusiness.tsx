@@ -39,8 +39,8 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACC
 function TaxIdBusiness({reimbursementAccount, onNext, isEditing}: TaxIdBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '';
-    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? 0;
+    const defaultCompanyTaxId = reimbursementAccount?.achData?.companyTaxID ?? '-1';
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? -1;
     const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxId && reimbursementAccount?.achData?.state !== 'SETUP');
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
