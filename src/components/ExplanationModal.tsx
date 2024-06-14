@@ -11,6 +11,9 @@ function ExplanationModal() {
     const {translate} = useLocalize();
 
     const onConfirm = useCallback(() => {
+        Welcome.completeHybridAppOnboarding();
+
+        // We need to check if standard NewDot onboarding is completed.
         Welcome.isOnboardingFlowCompleted({
             onNotCompleted: () => {
                 setTimeout(() => {
@@ -18,7 +21,6 @@ function ExplanationModal() {
                         Navigation.navigate(ROUTES.ONBOARDING_ROOT);
                     });
                 }, variables.welcomeVideoDelay);
-                Welcome.setHasSeenNewUserModal();
             },
         });
     }, []);

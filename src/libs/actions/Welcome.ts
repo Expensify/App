@@ -1,6 +1,9 @@
 import {NativeModules} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import type {CompleteHybridAppOnboardingParams} from '@libs/API/parameters';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
@@ -9,7 +12,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
 let isLoadingReportData = true;
-let hasSeenNewUserModal: boolean | null | undefined;
+let hasSeenNewUserModal: boolean | null | undefined; // TO DO: Change this key once full specification of tryNewDot is known
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -119,8 +122,13 @@ function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
 }
 
-function setHasSeenNewUserModal() {
-    Onyx.set(ONYXKEYS.NVP_SEEN_NEW_USER_MODAL, true);
+function completeHybridAppOnboarding() {
+    // TO DO: Add optimistic and failure data
+    const parameters: CompleteHybridAppOnboardingParams = {
+        keyToSet: true,
+    };
+
+    API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, parameters);
 }
 
 Onyx.connect({
@@ -190,5 +198,5 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     isFirstTimeHybridAppUser,
-    setHasSeenNewUserModal,
+    completeHybridAppOnboarding,
 };
