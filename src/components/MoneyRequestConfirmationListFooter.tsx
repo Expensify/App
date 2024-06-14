@@ -1,0 +1,568 @@
+import {format} from 'date-fns';
+import {Str} from 'expensify-common';
+import React, {memo, useMemo, useReducer, useState} from 'react';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReceiptUtils from '@libs/ReceiptUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
+import type {IOUAction, IOUType} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
+import ConfirmedRoute from './ConfirmedRoute';
+import ConfirmModal from './ConfirmModal';
+import MenuItem from './MenuItem';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import PDFThumbnail from './PDFThumbnail';
+import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
+import ReceiptEmptyState from './ReceiptEmptyState';
+import ReceiptImage from './ReceiptImage';
+import ShowMoreButton from './ShowMoreButton';
+import Switch from './Switch';
+import Text from './Text';
+
+type MoneyRequestConfirmationListFooterProps = {
+    action: IOUAction;
+    canUseP2PDistanceRequests: boolean | undefined;
+    currency: string;
+    didConfirm: boolean;
+    distance: number;
+    formattedAmount: string;
+    formError: string;
+    hasRoute: boolean;
+    iouCategory: string;
+    iouComment: string | undefined;
+    iouCreated: string | undefined;
+    iouCurrencyCode: string | undefined;
+    iouIsBillable: boolean;
+    iouMerchant: string | undefined;
+    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+    isCategoryRequired: boolean;
+    isDistanceRequest: boolean;
+    isEditingSplitBill: boolean | undefined;
+    isMerchantEmpty: boolean;
+    isMerchantRequired: boolean | undefined;
+    isMovingTransactionFromTrackExpense: boolean;
+    isPolicyExpenseChat: boolean;
+    isReadOnly: boolean;
+    isTypeInvoice: boolean;
+    onToggleBillable?: (isOn: boolean) => void;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagList>>;
+    rate: number | undefined;
+    receiptFilename: string;
+    receiptPath: string;
+    reportActionID: string | undefined;
+    reportID: string;
+    selectedParticipants: Participant[];
+    shouldDisplayFieldError: boolean;
+    shouldDisplayReceipt: boolean;
+    shouldShowCategories: boolean;
+    shouldShowMerchant: boolean;
+    shouldShowSmartScanFields: boolean;
+    shouldShowTax: boolean;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    transactionID: string;
+    unit: Unit | undefined;
+};
+
+function MoneyRequestConfirmationListFooter({
+    action,
+    canUseP2PDistanceRequests,
+    currency,
+    didConfirm,
+    distance,
+    formattedAmount,
+    formError,
+    hasRoute,
+    iouCategory,
+    iouComment,
+    iouCreated,
+    iouCurrencyCode,
+    iouIsBillable,
+    iouMerchant,
+    iouType,
+    isCategoryRequired,
+    isDistanceRequest,
+    isEditingSplitBill,
+    isMerchantEmpty,
+    isMerchantRequired,
+    isMovingTransactionFromTrackExpense,
+    isPolicyExpenseChat,
+    isReadOnly,
+    isTypeInvoice,
+    onToggleBillable,
+    policy,
+    policyTagLists,
+    rate,
+    receiptFilename,
+    receiptPath,
+    reportActionID,
+    reportID,
+    selectedParticipants,
+    shouldDisplayFieldError,
+    shouldDisplayReceipt,
+    shouldShowCategories,
+    shouldShowMerchant,
+    shouldShowSmartScanFields,
+    shouldShowTax,
+    transaction,
+    transactionID,
+    unit,
+}: MoneyRequestConfirmationListFooterProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {canUseViolations} = usePermissions(iouType);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    // A flag and a toggler for showing the rest of the form fields
+    const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
+
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [invalidAttachmentPrompt, setInvalidAttachmentPrompt] = useState(translate('attachmentPicker.protectedPDFNotSupported'));
+
+    // A flag for showing the tags field
+    // TODO: remove the !isTypeInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
+    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists) && !isTypeInvoice, [isPolicyExpenseChat, isTypeInvoice, policyTagLists]);
+
+    const senderWorkspace = useMemo(() => {
+        const senderWorkspaceParticipant = selectedParticipants.find((participant) => participant.isSender);
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
+    }, [allPolicies, selectedParticipants]);
+
+    const canUpdateSenderWorkspace = useMemo(() => {
+        const isInvoiceRoomParticipant = selectedParticipants.some((participant) => participant.isInvoiceRoom);
+
+        return PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
+    }, [allPolicies, selectedParticipants, transaction?.isFromGlobalCreate]);
+
+    const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
+    const taxRates = policy?.taxRates ?? null;
+    // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
+    const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
+    // A flag for showing the billable field
+    const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
+    // Do not hide fields in case of paying someone
+    const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
+    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+    const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+    const shouldShowReceiptEmptyState = PolicyUtils.isPaidGroupPolicy(policy) && !isDistanceRequest && iouType === CONST.IOU.TYPE.SUBMIT;
+    const {
+        image: receiptImage,
+        thumbnail: receiptThumbnail,
+        isThumbnail,
+        fileExtension,
+        isLocalFile,
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
+    const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+
+    // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
+    // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
+    const classifiedFields = [
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('iou.amount')}
+                    shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
+                    title={formattedAmount}
+                    description={translate('iou.amount')}
+                    interactive={!isReadOnly}
+                    onPress={() => {
+                        if (isDistanceRequest) {
+                            return;
+                        }
+
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={[styles.moneyRequestMenuItem, styles.mt2]}
+                    titleStyle={styles.moneyRequestConfirmationAmount}
+                    disabled={didConfirm}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                />
+            ),
+            shouldShow: shouldShowSmartScanFields,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.description')}
+                    shouldShowRightIcon={!isReadOnly}
+                    shouldParseTitle
+                    title={iouComment}
+                    description={translate('common.description')}
+                    onPress={() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
+                        );
+                    }}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    numberOfLinesTitle={2}
+                />
+            ),
+            shouldShow: true,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.distance')}
+                    shouldShowRightIcon={!isReadOnly && !isMovingTransactionFromTrackExpense}
+                    title={isMerchantEmpty ? '' : iouMerchant}
+                    description={translate('common.distance')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    // todo: handle edit for transaction while moving from track expense
+                    interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
+                />
+            ),
+            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.distance')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
+                    description={translate('common.distance')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.rate')}
+                    shouldShowRightIcon={!!rate && !isReadOnly && isPolicyExpenseChat}
+                    title={DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline)}
+                    description={translate('common.rate')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={!!rate && !isReadOnly && isPolicyExpenseChat}
+                />
+            ),
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.merchant')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={isMerchantEmpty ? '' : iouMerchant}
+                    description={translate('common.merchant')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
+                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                    numberOfLinesTitle={2}
+                />
+            ),
+            shouldShow: shouldShowMerchant,
+            isSupplementary: !isMerchantRequired,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.date')}
+                    shouldShowRightIcon={!isReadOnly}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title={iouCreated || format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}
+                    description={translate('common.date')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
+                    }}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                />
+            ),
+            shouldShow: shouldShowDate,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.category')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={iouCategory}
+                    description={translate('common.category')}
+                    numberOfLinesTitle={2}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID))
+                    }
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                    rightLabel={isCategoryRequired && canUseViolations ? translate('common.required') : ''}
+                />
+            ),
+            shouldShow: shouldShowCategories,
+            isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
+        },
+        ...policyTagLists.map(({name, required}, index) => {
+            const isTagRequired = required ?? false;
+            return {
+                item: (
+                    <MenuItemWithTopDescription
+                        key={name}
+                        shouldShowRightIcon={!isReadOnly}
+                        title={TransactionUtils.getTagForDisplay(transaction, index)}
+                        description={name}
+                        numberOfLinesTitle={2}
+                        onPress={() =>
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID),
+                            )
+                        }
+                        style={[styles.moneyRequestMenuItem]}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
+                    />
+                ),
+                shouldShow: shouldShowTags,
+                isSupplementary: !isTagRequired,
+            };
+        }),
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`${taxRates?.name}${taxRateTitle}`}
+                    shouldShowRightIcon={canModifyTaxFields}
+                    title={taxRateTitle}
+                    description={taxRates?.name}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={canModifyTaxFields}
+                />
+            ),
+            shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={`${taxRates?.name}${formattedTaxAmount}`}
+                    shouldShowRightIcon={canModifyTaxFields}
+                    title={formattedTaxAmount}
+                    description={translate('iou.taxAmount')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={canModifyTaxFields}
+                />
+            ),
+            shouldShow: shouldShowTax,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
+                    <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
+                    <Switch
+                        accessibilityLabel={translate('common.billable')}
+                        isOn={iouIsBillable}
+                        onToggle={(isOn) => onToggleBillable?.(isOn)}
+                    />
+                </View>
+            ),
+            shouldShow: shouldShowBillable,
+            isSupplementary: true,
+        },
+    ];
+
+    const primaryFields = classifiedFields.filter((classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary).map((primaryField) => primaryField.item);
+
+    const supplementaryFields = classifiedFields
+        .filter((classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary)
+        .map((supplementaryField) => supplementaryField.item);
+
+    // TODO: Split this into a separate component
+    const receiptThumbnailContent = useMemo(
+        () => (
+            <View style={styles.moneyRequestImage}>
+                {isLocalFile && Str.isPDF(receiptFilename) ? (
+                    <PressableWithoutFocus
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        disabled={!shouldDisplayReceipt}
+                        disabledStyle={styles.cursorDefault}
+                    >
+                        <PDFThumbnail
+                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                            previewSourceURL={resolvedReceiptImage as string}
+                            // We don't support scanning password protected PDF receipt
+                            enabled={!isAttachmentInvalid}
+                            onPassword={() => {
+                                setIsAttachmentInvalid(true);
+                                setInvalidAttachmentPrompt(translate('attachmentPicker.protectedPDFNotSupported'));
+                            }}
+                            onLoadError={() => {
+                                setInvalidAttachmentPrompt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                setIsAttachmentInvalid(true);
+                            }}
+                        />
+                    </PressableWithoutFocus>
+                ) : (
+                    <PressableWithoutFocus
+                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(reportID ?? '', transactionID ?? ''))}
+                        disabled={!shouldDisplayReceipt || isThumbnail}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                        disabledStyle={styles.cursorDefault}
+                    >
+                        <ReceiptImage
+                            isThumbnail={isThumbnail}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            source={resolvedThumbnail || resolvedReceiptImage || ''}
+                            // AuthToken is required when retrieving the image from the server
+                            // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                            // So if we have a thumbnail, it means we're retrieving the image from the server
+                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                            fileExtension={fileExtension}
+                            shouldUseThumbnailImage
+                            shouldUseInitialObjectPosition={isDistanceRequest}
+                        />
+                    </PressableWithoutFocus>
+                )}
+            </View>
+        ),
+        [
+            styles.moneyRequestImage,
+            styles.cursorDefault,
+            isLocalFile,
+            receiptFilename,
+            translate,
+            shouldDisplayReceipt,
+            resolvedReceiptImage,
+            isAttachmentInvalid,
+            isThumbnail,
+            resolvedThumbnail,
+            receiptThumbnail,
+            fileExtension,
+            isDistanceRequest,
+            reportID,
+            transactionID,
+        ],
+    );
+
+    const navigateBack = () => {
+        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+    };
+
+    return (
+        <>
+            {isTypeInvoice && (
+                <MenuItem
+                    key={translate('workspace.invoices.sendFrom')}
+                    avatarID={senderWorkspace?.id}
+                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+                    title={senderWorkspace?.name}
+                    icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                    description={translate('workspace.common.workspace')}
+                    label={translate('workspace.invoices.sendFrom')}
+                    isLabelHoverable={false}
+                    interactive={!isReadOnly && canUpdateSenderWorkspace}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={styles.moneyRequestMenuItem}
+                    labelStyle={styles.mt2}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm}
+                />
+            )}
+            {isDistanceRequest && (
+                <View style={styles.confirmationListMapItem}>
+                    <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
+                </View>
+            )}
+            {!isDistanceRequest &&
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (receiptImage || receiptThumbnail
+                    ? receiptThumbnailContent
+                    : shouldShowReceiptEmptyState && (
+                          <ReceiptEmptyState
+                              onPress={() =>
+                                  Navigation.navigate(
+                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                                  )
+                              }
+                          />
+                      ))}
+            {primaryFields}
+            {!shouldShowAllFields && (
+                <ShowMoreButton
+                    containerStyle={[styles.mt1, styles.mb2]}
+                    onPress={toggleShouldExpandFields}
+                />
+            )}
+            <View style={[styles.mb5]}>{shouldShowAllFields && supplementaryFields}</View>
+            <ConfirmModal
+                title={translate('attachmentPicker.attachmentError')}
+                onConfirm={navigateBack}
+                onCancel={navigateBack}
+                isVisible={isAttachmentInvalid}
+                prompt={invalidAttachmentPrompt}
+                confirmText={translate('common.close')}
+                shouldShowCancelButton={false}
+            />
+        </>
+    );
+}
+
+export default memo(MoneyRequestConfirmationListFooter);
