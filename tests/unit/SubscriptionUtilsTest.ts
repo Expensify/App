@@ -85,4 +85,22 @@ describe('SubscriptionUtils', () => {
             expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeTruthy();
         });
     });
+
+    describe('doesUserHavePaymentCardAdded', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: null,
+            });
+        });
+
+        it('should return false if the Onyx key is not set', () => {
+            expect(SubscriptionUtils.doesUserHavePaymentCardAdded()).toBeFalsy();
+        });
+
+        it('should return true if the Onyx key is set', async () => {
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 8010);
+            expect(SubscriptionUtils.doesUserHavePaymentCardAdded()).toBeTruthy();
+        });
+    });
 });

@@ -16,6 +16,12 @@ Onyx.connect({
     callback: (value) => (lastDayFreeTrial = value),
 });
 
+let userBillingFundID: OnyxEntry<number>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_BILLING_FUND_ID,
+    callback: (value) => (userBillingFundID = value),
+});
+
 /**
  * Calculates the remaining number of days of the workspace owner's free trial before it ends.
  */
@@ -57,4 +63,11 @@ function hasUserFreeTrialEnded(): boolean {
     return isAfter(currentDate, lastDayFreeTrialDate);
 }
 
-export {calculateRemainingFreeTrialDays, isUserOnFreeTrial, hasUserFreeTrialEnded};
+/**
+ * Whether the user has a payment card added to its account.
+ */
+function doesUserHavePaymentCardAdded(): boolean {
+    return userBillingFundID !== undefined;
+}
+
+export {calculateRemainingFreeTrialDays, isUserOnFreeTrial, hasUserFreeTrialEnded, doesUserHavePaymentCardAdded};
