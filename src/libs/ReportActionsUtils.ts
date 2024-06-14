@@ -317,7 +317,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
         return reportActions;
     }
 
-    // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
@@ -326,9 +326,9 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
         if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     });
 
     return getSortedReportActions(filteredReportActions, true);

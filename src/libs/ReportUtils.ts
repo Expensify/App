@@ -6586,7 +6586,11 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
 
-        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)) {
+        if (
+            !parentReportAction ||
+            (ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isSentMoneyReportAction(parentReportAction)) ||
+            ReportActionsUtils.isReportPreviewAction(parentReportAction)
+        ) {
             break;
         }
 
@@ -6632,7 +6636,9 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 
         if (
             !parentReportAction ||
-            (!includeTransactionThread && (ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)))
+            (!includeTransactionThread &&
+                ((ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isSentMoneyReportAction(parentReportAction)) ||
+                    ReportActionsUtils.isReportPreviewAction(parentReportAction)))
         ) {
             break;
         }

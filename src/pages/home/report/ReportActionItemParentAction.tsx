@@ -63,6 +63,7 @@ function ReportActionItemParentAction({
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
+
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
     const {isOffline} = useNetwork();
 
