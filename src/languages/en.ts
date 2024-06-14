@@ -3138,11 +3138,11 @@ export default {
                 case 'distance':
                     return 'Amount differs from calculated distance';
                 case 'card':
+                    return 'Amount greater than card transaction';
+                default:
                     if (displayPercentVariance) {
                         return `Amount ${displayPercentVariance}% greater than scanned receipt`;
                     }
-                    return 'Amount greater than card transaction';
-                default:
                     return 'Amount greater than scanned receipt';
             }
         },

@@ -24,7 +24,7 @@ function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: {
         <View style={[styles.ph5, styles.mbn1]}>
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('common.receipt')}</Text>
-                {auditText && (
+                {!!auditText && (
                     <>
                         <Text style={[styles.textLabelSupporting]}>{` • ${auditText}`}</Text>
                         <Icon

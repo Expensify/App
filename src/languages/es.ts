@@ -3642,11 +3642,11 @@ export default {
                 case 'distance':
                     return 'Importe difiere del calculado basado en distancia';
                 case 'card':
+                    return 'Importe mayor al de la transacción de la tarjeta';
+                default:
                     if (displayPercentVariance) {
                         return `Importe ${displayPercentVariance}% mayor al del recibo escaneado`;
                     }
-                    return 'Importe mayor al de la transacción de la tarjeta';
-                default:
                     return 'Importe mayor al del recibo escaneado';
             }
         },
