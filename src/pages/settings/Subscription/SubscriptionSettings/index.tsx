@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
