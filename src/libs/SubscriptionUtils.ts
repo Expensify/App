@@ -43,4 +43,18 @@ function isUserOnFreeTrial(): boolean {
     return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
 }
 
-export {calculateRemainingFreeTrialDays, isUserOnFreeTrial};
+/**
+ * Whether the workspace owner's free trial period has ended.
+ */
+function hasUserFreeTrialEnded(): boolean {
+    if (!lastDayFreeTrial) {
+        return false;
+    }
+
+    const currentDate = new Date();
+    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date());
+
+    return isAfter(currentDate, lastDayFreeTrialDate);
+}
+
+export {calculateRemainingFreeTrialDays, isUserOnFreeTrial, hasUserFreeTrialEnded};

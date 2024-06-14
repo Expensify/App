@@ -8,31 +8,36 @@ Onyx.init({keys: ONYXKEYS});
 
 describe('SubscriptionUtils', () => {
     describe('calculateRemainingFreeTrialDays', () => {
-        afterEach(() => Onyx.clear());
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
+            });
+        });
 
         it('should return 0 if the Onyx key is not set', () => {
             expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(0);
         });
 
         it('should return 0 if the current date is after the free trial end date', async () => {
-            const date = formatDate(subDays(new Date(), 8), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-
-            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, date);
-
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 8), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
             expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(0);
         });
 
         it('should return the remaining days if the current date is before the free trial end date', async () => {
-            const date = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-
-            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, date);
-
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
             expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(5);
         });
     });
 
     describe('isUserOnFreeTrial', () => {
-        afterEach(() => Onyx.clear());
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
+            });
+        });
 
         it('should return true if the Onyx keys are not set', () => {
             expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
@@ -54,6 +59,30 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+        });
+    });
+
+    describe('hasUserFreeTrialEnded', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
+            });
+        });
+
+        it('should return false if the Onyx key is not set', () => {
+            expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeFalsy();
+        });
+
+        it('should return false if the current date is before the free trial end date', async () => {
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
+            expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeFalsy();
+        });
+
+        it('should return true if the current date is after the free trial end date', async () => {
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
+            expect(SubscriptionUtils.hasUserFreeTrialEnded()).toBeTruthy();
         });
     });
 });
