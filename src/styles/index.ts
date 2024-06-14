@@ -377,6 +377,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
+        themeTextColor: {
+            color: theme.text,
+        },
+
         mutedTextLabel: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
@@ -407,11 +411,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightSmall,
         },
-        textBold: {
-            color: theme.text,
-            fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightSmall,
-        },
+
         textMicroSupporting: {
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
