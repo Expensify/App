@@ -79,7 +79,7 @@ Onyx.connect({
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
             NetInfo.fetch().then((state) => {
-                const isInternetReachable = !!state.isInternetReachable;
+                const isInternetReachable = (state.isInternetReachable ?? false) === false;
                 setOfflineStatus(isInternetReachable, 'NetInfo checked if the internet is reachable');
                 Log.info(
                     `[NetworkStatus] The force-offline mode was turned off. Getting the device network status from NetInfo. Network state: ${JSON.stringify(
@@ -88,6 +88,17 @@ Onyx.connect({
                 );
             });
         }
+    },
+});
+
+let accountID = 0;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        if (!session?.accountID) {
+            return;
+        }
+        accountID = session.accountID;
     },
 });
 
@@ -107,7 +118,7 @@ function subscribeToBackendAndInternetReachability(): () => void {
             return;
         }
         // Using the API url ensures reachability is tested over internet
-        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`, {
+        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`, {
             method: 'GET',
             cache: 'no-cache',
         })
