@@ -13,10 +13,11 @@ type BillingBannerProps = {
     subtitle?: string;
     isError?: boolean;
     shouldShowRedDotIndicator?: boolean;
+    shouldShowGreenDotIndicator?: boolean;
     isTrialActive?: boolean;
 };
 
-function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator, isTrialActive}: BillingBannerProps) {
+function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator, shouldShowGreenDotIndicator, isTrialActive}: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -39,6 +40,12 @@ function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator, isT
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={theme.danger}
+                />
+            )}
+            {!isError && shouldShowGreenDotIndicator && (
+                <Icon
+                    src={Expensicons.DotIndicator}
+                    fill={theme.success}
                 />
             )}
         </View>

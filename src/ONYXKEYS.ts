@@ -157,6 +157,21 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
+    /** Store the amount of owed money */
+    NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
+
+    /** Store the stripe id status */
+    NVP_PRIVATE_STRIPE_CUSTOMER_ID: 'nvp_private_stripeCustomerID',
+
+    /** Store the billing dispute status */
+    NVP_PRIVATE_BILLING_DISPUTE_PENDING: 'nvp_private_billingDisputePending',
+
+    /** Store the billing status */
+    NVP_PRIVATE_BILLING_STATUS: 'nvp_private_billingStatus',
+
+    /** Store the grace period status */
+    NVP_PRIVATE_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
+
     /** Store preferred skintone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 
@@ -652,6 +667,21 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
+    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
+    [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: {
+        paymentMethodID: string;
+        intentsID: string;
+        currency: string;
+        status: 'authentication_required' | 'intent_required' | 'succeeded';
+    };
+    [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: number;
+    [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: {
+        action: string;
+        periodMonth: string;
+        periodYear: string;
+        declineReason: 'insufficient_funds' | 'expired_card';
+    };
+    [ONYXKEYS.NVP_PRIVATE_BILLING_GRACE_PERIOD_END]: string;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
