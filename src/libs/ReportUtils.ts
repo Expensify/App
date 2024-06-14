@@ -5177,11 +5177,16 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     if (isEmptyReport(report)) {
         return false;
     }
+    // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
+    const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
+    const lastReadTime = report.lastReadTime ?? '';
+    const lastMentionedTime = report.lastMentionedTime ?? '';
 
-    const lastVisibleActionCreated = new Date(report.lastVisibleActionCreated ?? '').getTime();
-    const lastReadTime = new Date(report.lastReadTime ?? '').getTime();
-    const lastMentionedTime = new Date(report.lastMentionedTime ?? '').getTime();
+    if (isTaskReport(report)) {
+        return new Date(lastReadTime) < new Date(lastVisibleActionCreated) || new Date(lastReadTime) < new Date(lastMentionedTime);
+    }
 
+    // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
     return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
 }
 
