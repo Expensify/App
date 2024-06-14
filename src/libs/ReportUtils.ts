@@ -2901,7 +2901,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
     }
     if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
-        return Localize.translateLocal('iou.threadPaySomeoneReportName', {formattedAmount, comment});
+        return getIOUReportActionDisplayMessage(reportAction as ReportAction, transaction);
     }
     return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
