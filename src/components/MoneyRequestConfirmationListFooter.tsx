@@ -39,47 +39,130 @@ import Switch from './Switch';
 import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
+    /** The action to perform */
     action: IOUAction;
+
+    /** Flag indicating if P2P distance requests can be used */
     canUseP2PDistanceRequests: boolean | undefined;
+
+    /** The currency of the transaction */
     currency: string;
+
+    /** Flag indicating if the confirmation is done */
     didConfirm: boolean;
+
+    /** The distance of the transaction */
     distance: number;
+
+    /** The formatted amount of the transaction */
     formattedAmount: string;
+
+    /** The error message for the form */
     formError: string;
+
+    /** Flag indicating if there is a route */
     hasRoute: boolean;
+
+    /** The category of the IOU */
     iouCategory: string;
+
+    /** The comment of the IOU */
     iouComment: string | undefined;
+
+    /** The creation date of the IOU */
     iouCreated: string | undefined;
+
+    /** The currency code of the IOU */
     iouCurrencyCode: string | undefined;
+
+    /** Flag indicating if the IOU is billable */
     iouIsBillable: boolean;
+
+    /** The merchant of the IOU */
     iouMerchant: string | undefined;
+
+    /** The type of the IOU */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+
+    /** Flag indicating if the category is required */
     isCategoryRequired: boolean;
+
+    /** Flag indicating if it is a distance request */
     isDistanceRequest: boolean;
+
+    /** Flag indicating if it is editing a split bill */
     isEditingSplitBill: boolean | undefined;
+
+    /** Flag indicating if the merchant is empty */
     isMerchantEmpty: boolean;
+
+    /** Flag indicating if the merchant is required */
     isMerchantRequired: boolean | undefined;
+
+    /** Flag indicating if the transaction is moved from track expense */
     isMovingTransactionFromTrackExpense: boolean;
+
+    /** Flag indicating if it is a policy expense chat */
     isPolicyExpenseChat: boolean;
+
+    /** Flag indicating if it is read-only */
     isReadOnly: boolean;
+
+    /** Flag indicating if it is an invoice type */
     isTypeInvoice: boolean;
+
+    /** Function to toggle billable */
     onToggleBillable?: (isOn: boolean) => void;
+
+    /** The policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The policy tag lists */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagList>>;
+
+    /** The rate of the transaction */
     rate: number | undefined;
+
+    /** The filename of the receipt */
     receiptFilename: string;
+
+    /** The path of the receipt */
     receiptPath: string;
+
+    /** The report action ID */
     reportActionID: string | undefined;
+
+    /** The report ID */
     reportID: string;
+
+    /** The selected participants */
     selectedParticipants: Participant[];
+
+    /** Flag indicating if the field error should be displayed */
     shouldDisplayFieldError: boolean;
+
+    /** Flag indicating if the receipt should be displayed */
     shouldDisplayReceipt: boolean;
+
+    /** Flag indicating if the categories should be shown */
     shouldShowCategories: boolean;
+
+    /** Flag indicating if the merchant should be shown */
     shouldShowMerchant: boolean;
+
+    /** Flag indicating if the smart scan fields should be shown */
     shouldShowSmartScanFields: boolean;
+
+    /** Flag indicating if the tax should be shown */
     shouldShowTax: boolean;
+
+    /** The transaction */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** The transaction ID */
     transactionID: string;
+
+    /** The unit */
     unit: Unit | undefined;
 };
 
