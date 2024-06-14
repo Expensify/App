@@ -163,7 +163,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
-                        setPolicyIDToDelete(item.policyID ?? '');
+                        setPolicyIDToDelete(item.policyID ?? '-1');
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
                     },
@@ -174,7 +174,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 threeDotsMenuItems.push({
                     icon: Expensicons.ChatBubbles,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '')),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
                 });
             }
 

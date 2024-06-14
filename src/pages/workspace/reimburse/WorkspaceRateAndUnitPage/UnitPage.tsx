@@ -33,13 +33,13 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
             return;
         }
-        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '');
+        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '-1');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const updateUnit = (unit: UnitItemType) => {
         Policy.setUnitForReimburseView(unit.value);
-        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
+        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '-1'));
     };
 
     const defaultValue = useMemo(() => {
@@ -52,7 +52,7 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             headerText={translate('workspace.reimburse.trackDistanceUnit')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-            backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '')}
+            backButtonRoute={ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? '-1')}
             shouldShowLoading={false}
             shouldShowBackButton
         >
