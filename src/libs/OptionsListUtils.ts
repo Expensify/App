@@ -558,7 +558,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         return Object.assign(prevReportActionErrors, action.errors);
     }, {});
     const parentReportAction: OnyxEntry<ReportAction> =
-        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '']?.[report.parentReportActionID ?? ''];
+        !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
 
     if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
         const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
@@ -567,7 +567,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if ((ReportUtils.isIOUReport(report) || ReportUtils.isExpenseReport(report)) && report?.ownerAccountID === currentUserAccountID) {
-        if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '') && !ReportUtils.isSettled(report?.reportID)) {
+        if (ReportUtils.shouldShowRBRForMissingSmartscanFields(report?.reportID ?? '-1') && !ReportUtils.isSettled(report?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxError('report.genericSmartscanFailureMessage');
         }
     } else if (ReportUtils.hasSmartscanError(Object.values(reportActions ?? {}))) {
@@ -654,10 +654,10 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = visibleReportActionItems[report?.reportID ?? ''] ?? null;
+    const lastReportAction = visibleReportActionItems[report?.reportID ?? '-1'] ?? null;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
+    const lastOriginalReportAction = lastReportActions[report?.reportID ?? '-1'] ?? null;
     let lastMessageTextFromReport = '';
 
     if (ReportUtils.isArchivedRoom(report)) {
@@ -682,7 +682,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '']?.find(
+        const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '-1']?.find(
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
@@ -704,9 +704,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = ReportUtils.getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
     } else if (ReportActionUtils.isDeletedParentAction(lastReportAction) && ReportUtils.isChatReport(report)) {
         lastMessageTextFromReport = ReportUtils.getDeletedParentActionMessageForChatReport(lastReportAction);
-    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '')) {
+    } else if (ReportActionUtils.isPendingRemove(lastReportAction) && ReportActionUtils.isThreadParentMessage(lastReportAction, report?.reportID ?? '-1')) {
         lastMessageTextFromReport = Localize.translateLocal('parentReportAction.hiddenMessage');
-    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
+    } else if (ReportUtils.isReportMessageAttachment({text: report?.lastMessageText ?? '-1', html: report?.lastMessageHtml, translationKey: report?.lastMessageTranslationKey, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastMessageTextFromReport = `[${Localize.translateLocal((report?.lastMessageTranslationKey || 'common.attachment') as TranslationPaths)}]`;
     } else if (ReportActionUtils.isModifiedExpenseAction(lastReportAction)) {
@@ -815,7 +815,7 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isGroupChat(report);
         subtitle = ReportUtils.getChatRoomSubtitle(report);
 
-        const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? 0] ?? null;
+        const lastActorDetails = personalDetailMap[report.lastActorAccountID ?? -1] ?? null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
@@ -846,7 +846,7 @@ function createOption(
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
     result.iouReportAmount = ReportUtils.getMoneyRequestSpendBreakdown(result).totalDisplaySpend;
 
-    if (!hasMultipleParticipants) {
+    if (!hasMultipleParticipants && (!report || (report && !ReportUtils.isGroupChat(report) && !ReportUtils.isChatRoom(report)))) {
         result.login = personalDetail?.login;
         result.accountID = Number(personalDetail?.accountID);
         result.phoneNumber = personalDetail?.phoneNumber;
@@ -1837,7 +1837,7 @@ function getOptions(
 
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
-    const topmostReportId = Navigation.getTopmostReportId() ?? '';
+    const topmostReportId = Navigation.getTopmostReportId() ?? '-1';
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
@@ -2011,7 +2011,7 @@ function getOptions(
 
             if (searchValue) {
                 // Determine if the search is happening within a chat room and starts with the report ID
-                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID ?? '', searchValue);
+                const isReportIdSearch = isChatRoom && Str.startsWith(reportOption.reportID ?? '-1', searchValue);
 
                 // Check if the search string matches the search text or participant names considering the type of the room
                 const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
@@ -2265,14 +2265,14 @@ function formatMemberForList(member: ReportUtils.OptionData): MemberForList {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         alternateText: member.alternateText || member.login || '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        keyForList: member.keyForList || String(accountID ?? 0) || '',
+        keyForList: member.keyForList || String(accountID ?? -1) || '',
         isSelected: member.isSelected ?? false,
         isDisabled: member.isDisabled ?? false,
         accountID,
         login: member.login ?? '',
         icons: member.icons,
         pendingAction: member.pendingAction,
-        reportID: member.reportID ?? '',
+        reportID: member.reportID ?? '-1',
     };
 }
 
