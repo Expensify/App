@@ -1,4 +1,4 @@
-import {formatDistanceToNow} from 'date-fns';
+import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -117,11 +117,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    const isSyncInProgress =
+        !!connectionSyncProgress?.stageInProgress &&
+        connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
@@ -222,7 +227,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               if (!(tenants.length > 1)) {
                                   return;
                               }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                           },
                           pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
                           brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,

@@ -52,7 +52,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>(null);
+    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>();
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
@@ -79,7 +79,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (task?.shareDestination) {
-            setParentReport(reports?.[`report_${task.shareDestination}`] ?? null);
+            setParentReport(reports?.[`report_${task.shareDestination}`]);
             const displayDetails = TaskActions.getShareDestination(task.shareDestination, reports, personalDetails);
             setShareDestination(displayDetails);
         }
@@ -115,7 +115,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
 
         playSound(SOUNDS.DONE);
         TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '',
+            parentReport?.reportID ?? '-1',
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',
@@ -199,7 +199,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                     </View>
                     <View style={styles.flexShrink0}>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={Boolean(errorMessage)}
+                            isAlertVisible={!!errorMessage}
                             message={errorMessage}
                             onSubmit={onSubmit}
                             enabledWhenOffline

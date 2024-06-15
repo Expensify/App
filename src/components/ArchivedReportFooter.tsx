@@ -32,15 +32,15 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     const originalMessage = reportClosedAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? reportClosedAction.originalMessage : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? 0];
+    const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? -1];
     let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails);
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[newAccountID ?? 0]);
-        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? 0]);
+        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[newAccountID ?? -1]);
+        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? -1]);
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -64,7 +64,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     return (
         <Banner
-            containerStyles={[styles.archivedReportFooter]}
+            containerStyles={[styles.chatFooterBanner]}
             text={text}
             shouldRenderHTML={shouldRenderHTML}
             shouldShowIcon
