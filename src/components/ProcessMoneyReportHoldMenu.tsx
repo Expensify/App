@@ -75,9 +75,8 @@ function ProcessMoneyReportHoldMenu({
     const promptText = useMemo(() => {
         if (nonHeldAmount) {
             return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
-        } else {
-            return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {transactionCount});
         }
+        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {transactionCount});
     }, [nonHeldAmount, transactionCount, translate, isApprove]);
 
     return (
