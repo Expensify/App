@@ -176,7 +176,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     width: '100%',
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
-                    paddingTop: 16,
+                    paddingTop: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                 };
