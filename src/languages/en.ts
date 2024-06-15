@@ -767,10 +767,12 @@ export default {
         reviewDuplicates: 'Review duplicates',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) => `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
+        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
+            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay all out-of-pocket spend.",
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) => `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to pay anyway?`,
+        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
+            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to pay anyway?`,
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This expense is on',
