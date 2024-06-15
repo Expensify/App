@@ -1,4 +1,4 @@
-import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, RouteProp, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
@@ -61,23 +61,23 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
         // On narrow layout, if we are on /search route we want to hide the search central pane route.
         if (isSmallScreenWidth) {
-            const searchCentralPaneIndex = routes.findIndex((route) => {
-                if (route.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-                    return false;
+            let lastSearchCentralPane: RouteProp<ParamListBase> | undefined;
+            const filteredRoutes = routes.filter((route) => {
+                const isSearchCentralPane =
+                    route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
+                    ((!!route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE);
+                if (isSearchCentralPane) {
+                    lastSearchCentralPane = route;
                 }
-
-                return (
-                    (!!route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE
-                );
+                return !isSearchCentralPane;
             });
-            const filteredRoutes = searchCentralPaneIndex !== -1 ? [...routes.slice(0, searchCentralPaneIndex), ...routes.slice(searchCentralPaneIndex + 1)] : [...routes];
             return {
                 stateToRender: {
                     ...state,
                     index: filteredRoutes.length - 1,
                     routes: filteredRoutes,
                 },
-                searchRoute: routes[searchCentralPaneIndex],
+                searchRoute: lastSearchCentralPane,
             };
         }
 
