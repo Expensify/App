@@ -1,8 +1,7 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -254,21 +253,6 @@ function SettlementButton({
         IOU.savePreferredPaymentMethod(id, value);
     };
 
-    const [selectedPaymentType, setSelectedPaymentType] = useState<PaymentMethodType>(paymentButtonOptions[0].value);
-    const triggerKYCFlowRef = useRef<(event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType | undefined) => void>(() => {});
-
-    useKeyboardShortcut(
-        CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
-        (e) => {
-            selectPaymentType(e, selectedPaymentType, triggerKYCFlowRef.current);
-        },
-        {
-            captureOnInputs: true,
-            shouldBubble: false,
-            isActive: useKeyboardShortcuts,
-        },
-    );
-
     return (
         <KYCWall
             onSuccessfulKYC={onPress}
@@ -282,32 +266,29 @@ function SettlementButton({
             anchorAlignment={kycWallAnchorAlignment}
             shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
         >
-            {(triggerKYCFlow, buttonRef) => {
-                triggerKYCFlowRef.current = triggerKYCFlow;
-                return (
-                    <ButtonWithDropdownMenu<PaymentType>
-                        success
-                        buttonRef={buttonRef}
-                        shouldAlwaysShowDropdownMenu={isInvoiceReport}
-                        customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
-                        menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
-                        isSplitButton={!isInvoiceReport}
-                        isDisabled={isDisabled}
-                        isLoading={isLoading}
-                        onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
-                        pressOnEnter={pressOnEnter}
-                        options={paymentButtonOptions}
-                        onOptionSelected={(option) => {
-                            setSelectedPaymentType(option.value);
-                            savePreferredPaymentMethod(policyID, option.value);
-                        }}
-                        style={style}
-                        buttonSize={buttonSize}
-                        anchorAlignment={paymentMethodDropdownAnchorAlignment}
-                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    />
-                );
-            }}
+            {(triggerKYCFlow, buttonRef) => (
+                <ButtonWithDropdownMenu<PaymentType>
+                    success
+                    buttonRef={buttonRef}
+                    shouldAlwaysShowDropdownMenu={isInvoiceReport}
+                    customText={isInvoiceReport ? translate('iou.settlePayment', {formattedAmount}) : undefined}
+                    menuHeaderText={isInvoiceReport ? translate('workspace.invoices.paymentMethods.chooseInvoiceMethod') : undefined}
+                    isSplitButton={!isInvoiceReport}
+                    isDisabled={isDisabled}
+                    isLoading={isLoading}
+                    onPress={(event, iouPaymentType) => selectPaymentType(event, iouPaymentType, triggerKYCFlow)}
+                    pressOnEnter={pressOnEnter}
+                    options={paymentButtonOptions}
+                    onOptionSelected={(option) => {
+                        savePreferredPaymentMethod(policyID, option.value);
+                    }}
+                    style={style}
+                    buttonSize={buttonSize}
+                    anchorAlignment={paymentMethodDropdownAnchorAlignment}
+                    enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                    useKeyboardShortcuts={useKeyboardShortcuts}
+                />
+            )}
         </KYCWall>
     );
 }
