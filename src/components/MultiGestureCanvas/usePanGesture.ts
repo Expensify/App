@@ -3,6 +3,7 @@ import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useDerivedValue, useSharedValue, useWorkletCallback, withDecay, withSpring} from 'react-native-reanimated';
+import * as Browser from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -205,6 +206,10 @@ const usePanGesture = ({
 
             panVelocityX.value = evt.velocityX;
             panVelocityY.value = evt.velocityY;
+
+            if (!isSwipingDownToClose.value && !Browser.isMobile()) {
+                panTranslateX.value += evt.changeX;
+            }
 
             if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {
                 panTranslateY.value += evt.changeY;
