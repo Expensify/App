@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
-import {TranslationPaths} from '@src/languages/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -41,6 +40,9 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Type of action handled */
     requestType?: ActionHandledType;
+
+    /** Number of transaction of a money request */
+    transactionCount: number;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -53,6 +55,7 @@ function ProcessMoneyReportHoldMenu({
     paymentType,
     chatReport,
     moneyRequestReport,
+    transactionCount,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -70,15 +73,15 @@ function ProcessMoneyReportHoldMenu({
     };
 
     const promptText = useMemo(() => {
-        let promptTranslation: TranslationPaths;
         if (nonHeldAmount) {
-            promptTranslation = isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount';
+            return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
         } else {
-            promptTranslation = isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount';
+            return translate(
+                isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount',
+                {transactionCount}
+            );
         }
-
-        return translate(promptTranslation);
-    }, [nonHeldAmount]);
+    }, [nonHeldAmount, transactionCount, translate, isApprove]);
 
     return (
         <DecisionModal
