@@ -6,7 +6,9 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
@@ -61,16 +63,12 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
         // On narrow layout, if we are on /search route we want to hide the search central pane route.
         if (isSmallScreenWidth) {
-            let lastSearchCentralPane: RouteProp<ParamListBase> | undefined;
-            const filteredRoutes = routes.filter((route) => {
-                const isSearchCentralPane =
-                    route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
-                    ((!!route.params && 'screen' in route.params && route.params.screen === SCREENS.SEARCH.CENTRAL_PANE) || route.state?.routes.at(-1)?.name === SCREENS.SEARCH.CENTRAL_PANE);
-                if (isSearchCentralPane) {
-                    lastSearchCentralPane = route;
-                }
-                return !isSearchCentralPane;
-            });
+            const isSearchCentralPane = (route: RouteProp<ParamListBase>) =>
+                getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+
+            const lastRoute = routes[routes.length - 1];
+            const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
+            const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
             return {
                 stateToRender: {
                     ...state,
