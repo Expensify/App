@@ -63,8 +63,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
         // On narrow layout, if we are on /search route we want to hide the search central pane route.
         if (isSmallScreenWidth) {
-            const isSearchCentralPane = (route: RouteProp<ParamListBase>) =>
-                getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+            const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
             const lastRoute = routes[routes.length - 1];
             const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
