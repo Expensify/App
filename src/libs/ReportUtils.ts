@@ -5182,10 +5182,6 @@ function isUnread(report: OnyxEntry<Report>): boolean {
     const lastReadTime = report.lastReadTime ?? '';
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
-    if (isTaskReport(report)) {
-        return new Date(lastReadTime) < new Date(lastVisibleActionCreated) || new Date(lastReadTime) < new Date(lastMentionedTime);
-    }
-
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
     return lastReadTime < lastVisibleActionCreated || lastReadTime < lastMentionedTime;
 }

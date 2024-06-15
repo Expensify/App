@@ -643,6 +643,13 @@ function ReportScreen({
         });
     }, [isInaccessibleWhisper]);
 
+    useEffect(() => {
+        if (!!report.lastReadTime || !ReportUtils.isTaskReport(report)) {
+            return;
+        }
+        Report.readNewestAction(report.reportID);
+    }, [report]);
+
     if ((!isInaccessibleWhisper && isLinkedReportActionDeleted) ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
         return (
             <BlockingView
