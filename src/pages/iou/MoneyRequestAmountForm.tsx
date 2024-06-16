@@ -149,8 +149,8 @@ function MoneyRequestAmountForm(
         });
     }, [isFocused, wasFocused]);
 
-    const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount, currency) : '';
+    const initializeAmount = useCallback((newAmount: number, newCurrency: string) => {
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount, newCurrency) : '';
         moneyRequestAmountInput.current?.changeAmount(frontendAmount);
         moneyRequestAmountInput.current?.changeSelection({
             start: frontendAmount.length,
@@ -162,7 +162,7 @@ function MoneyRequestAmountForm(
         if (!currency || typeof amount !== 'number') {
             return;
         }
-        initializeAmount(amount);
+        initializeAmount(amount, currency);
         // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTab]);
