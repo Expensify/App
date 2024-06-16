@@ -122,9 +122,25 @@ const esEmojis: EmojisList = {
         name: 'cara_con_mano_sobre_boca',
         keywords: ['ostras', 'uy', 'vaya', 'cara con mano sobre la boca'],
     },
+    '🫣': {
+        name: 'cara_espiando',
+        keywords: ['cara', 'espiar', 'ojo', 'curioso', 'tímido'],
+    },
+    '🫢': {
+        name: 'cara_con_ojos_abiertos_y_mano_sobre_boca',
+        keywords: ['cara', 'ojos abiertos', 'mano sobre boca', 'sorprendido', 'choque'],
+    },
+    '🫡': {
+        name: 'cara_saludando',
+        keywords: ['cara', 'saludo', 'respeto', 'militar', 'honor'],
+    },
     '🤫': {
         name: 'calla',
         keywords: ['callado', 'silencio', 'cara pidiendo silencio'],
+    },
+    '🫠': {
+        name: 'cara_derritiéndose',
+        keywords: ['calor', 'cara', 'derritiéndose', 'derretido', 'derretirse', 'desaparecer', 'fundirse', 'líquido'],
     },
     '🤔': {
         name: 'cara_pensativa',
@@ -138,9 +154,17 @@ const esEmojis: EmojisList = {
         name: 'cara_con_ceja_levantada',
         keywords: ['desconfiado', 'escéptico', 'cara con ceja alzada'],
     },
+    '🫥': {
+        name: 'cara_invisible',
+        keywords: ['cara', 'invisible', 'oculto', 'línea discontinua', 'desaparecer'],
+    },
     '😐': {
         name: 'cara_neutra',
         keywords: ['cara', 'inexpresivo', 'neutral'],
+    },
+    '🫤': {
+        name: 'cara_con_boca_diagonal',
+        keywords: ['cara', 'boca diagonal', 'meh', 'neutral', 'incierto'],
     },
     '😑': {
         name: 'inexpresivo',
@@ -321,6 +345,10 @@ const esEmojis: EmojisList = {
     '😰': {
         name: 'sudor_frío',
         keywords: ['ansiedad', 'cara', 'frío', 'sudor', 'cara con ansiedad y sudor'],
+    },
+    '🥹': {
+        name: 'cara_con_lágrimas',
+        keywords: ['cara', 'lágrimas', 'emocional', 'contener', 'llorando'],
     },
     '😥': {
         name: 'decepcionado_aliviado',

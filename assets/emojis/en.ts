@@ -92,8 +92,20 @@ const enEmojis: EmojisList = {
     '🤭': {
         keywords: ['quiet', 'whoops'],
     },
+    '🫡': {
+        keywords: ['face', 'salute', 'respect', 'military', 'honor'],
+    },
+    '🫣': {
+        keywords: ['face', 'peek', 'eye', 'curious', 'shy'],
+    },
+    '🫢': {
+        keywords: ['face', 'open eyes', 'hand over mouth', 'surprised', 'shock'],
+    },
     '🤫': {
         keywords: ['silence', 'quiet'],
+    },
+    '🫠': {
+        keywords: ['face', 'disappear', 'dissolve', 'liquid', 'melt', 'melting face'],
     },
     '🤔': {
         keywords: ['face'],
@@ -104,8 +116,14 @@ const enEmojis: EmojisList = {
     '🤨': {
         keywords: ['suspicious'],
     },
+    '🫥': {
+        keywords: ['face', 'invisible', 'hidden', 'dotted line', 'disappear'],
+    },
     '😐': {
         keywords: ['meh', 'deadpan', 'face', 'neutral'],
+    },
+    '🫤': {
+        keywords: ['face', 'diagonal mouth', 'meh', 'neutral', 'uncertain'],
     },
     '😑': {
         keywords: ['face', 'inexpressive', 'unexpressive'],
@@ -241,6 +259,9 @@ const enEmojis: EmojisList = {
     },
     '😰': {
         keywords: ['nervous', 'blue', 'cold', 'face', 'mouth', 'open', 'rushed', 'sweat'],
+    },
+    '🥹': {
+        keywords: ['face', 'tears', 'emotional', 'holding back', 'crying'],
     },
     '😥': {
         keywords: ['phew', 'sweat', 'nervous', 'disappointed', 'face', 'relieved', 'whew'],

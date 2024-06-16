@@ -163,8 +163,24 @@ const emojis: PickerEmojis = [
         code: '🤭',
     },
     {
+        name: 'face_with_open_eyes_and_hand_over_mouth',
+        code: '🫢',
+    },
+    {
+        name: 'saluting_face',
+        code: '🫡',
+    },
+    {
         name: 'shushing_face',
         code: '🤫',
+    },
+    {
+        name: 'face_with_peeking_eye',
+        code: '🫣',
+    },
+    {
+        name: 'melting_face',
+        code: '🫠',
     },
     {
         name: 'thinking',
@@ -175,12 +191,20 @@ const emojis: PickerEmojis = [
         code: '🤐',
     },
     {
+        name: 'dotted_line_face',
+        code: '🫥',
+    },
+    {
         name: 'raised_eyebrow',
         code: '🤨',
     },
     {
         name: 'neutral_face',
         code: '😐',
+    },
+    {
+        name: 'face_with_diagonal_mouth',
+        code: '🫤',
     },
     {
         name: 'expressionless',
@@ -361,6 +385,10 @@ const emojis: PickerEmojis = [
     {
         name: 'cold_sweat',
         code: '😰',
+    },
+    {
+        name: 'face_holding_back_tears',
+        code: '🥹',
     },
     {
         name: 'disappointed_relieved',
