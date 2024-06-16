@@ -163,7 +163,10 @@ function IOURequestStartPage({
                                     {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
                                 </OnyxTabNavigator>
                             ) : (
-                                <IOURequestStepAmount route={route} />
+                                <IOURequestStepAmount
+                                    route={route}
+                                    shouldKeepUserInput
+                                />
                             )}
                         </View>
                     </DragAndDropProvider>
