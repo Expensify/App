@@ -1916,7 +1916,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Turf
     - Yoga
-  - RNPermissions (3.9.3):
+  - RNPermissions (3.10.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2592,7 +2592,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 88030b7d9a31f5f6e67743df48ad952d64513b4a
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
-  RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
+  RNPermissions: d2392b754e67bc14491f5b12588bef2864e783f3
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 323436b1a5364dca3b5f8b1a13458455e0de9efe
   RNScreens: 9ec969a95987a6caae170ef09313138abf3331e1
