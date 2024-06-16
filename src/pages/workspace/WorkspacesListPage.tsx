@@ -40,8 +40,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, ReimbursementAccount, Report, Session as SessionType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import WorkspacesListRow from './WorkspacesListRow';
 
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -82,7 +80,7 @@ type WorkspaceListPageOnyxProps = {
     session: OnyxEntry<SessionType>;
 };
 
-type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
+type WorkspaceListPageProps = WorkspaceListPageOnyxProps;
 
 const workspaceFeatures: FeatureListItem[] = [
     {
@@ -440,20 +438,18 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
 
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(WorkspacesListPage),
-);
+export default withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(WorkspacesListPage);
