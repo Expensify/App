@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type TryNewDot from '@src/types/onyx';
+import type TryNewDot from '@src/types/onyx/TryNewDot';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
