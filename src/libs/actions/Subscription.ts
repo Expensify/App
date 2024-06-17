@@ -6,6 +6,7 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
@@ -61,4 +62,61 @@ function updateSubscriptionType(type: SubscriptionType) {
     });
 }
 
-export {openSubscriptionPage, updateSubscriptionType};
+function updateSubscriptionSize(newSubscriptionSize: number, currentSubscriptionSize: number) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
+                value: {
+                    userCount: newSubscriptionSize,
+                    errorFields: {
+                        userCount: null,
+                    },
+                    pendingFields: {
+                        userCount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
+                value: {
+                    userCount: newSubscriptionSize,
+                    errorFields: {
+                        userCount: null,
+                    },
+                    pendingFields: {
+                        userCount: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
+                value: {
+                    userCount: currentSubscriptionSize,
+                    pendingFields: {
+                        userCount: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE, {userCount: newSubscriptionSize}, onyxData);
+}
+
+function clearUpdateSubscriptionSizeError() {
+    Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {
+        errorFields: {
+            userCount: null,
+        },
+    });
+}
+
+export {openSubscriptionPage, updateSubscriptionType, updateSubscriptionSize, clearUpdateSubscriptionSizeError};

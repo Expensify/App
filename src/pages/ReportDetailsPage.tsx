@@ -161,7 +161,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
-    const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)));
+    const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
 
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID), [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
@@ -205,7 +205,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
+                    if (isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin)) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
@@ -286,6 +286,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
+        isPolicyAdmin,
         session,
         leaveChat,
     ]);
