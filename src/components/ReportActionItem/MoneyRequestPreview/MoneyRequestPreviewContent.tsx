@@ -225,7 +225,7 @@ function MoneyRequestPreviewContent({
     };
 
     const getDisplayDeleteAmountText = (): string => {
-        const iouOriginalMessage: OnyxEntry<IOUMessage> = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : null;
+        const iouOriginalMessage: OnyxEntry<IOUMessage> = action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? action.originalMessage : undefined;
         return CurrencyUtils.convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency);
     };
 

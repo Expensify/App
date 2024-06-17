@@ -407,7 +407,7 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
-        return null;
+        return undefined;
     }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }

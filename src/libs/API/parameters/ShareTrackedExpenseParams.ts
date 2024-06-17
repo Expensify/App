@@ -16,7 +16,7 @@ type ShareTrackedExpenseParams = {
     reportPreviewReportActionID: string;
     category?: string;
     tag?: string;
-    receipt: Receipt | null;
+    receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
     billable?: boolean;

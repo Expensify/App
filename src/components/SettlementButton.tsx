@@ -120,9 +120,9 @@ function SettlementButton({
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
-    // The "iouReport" and "nvpLastPaymentMethod" objects needs to be stable to prevent the "useMemo"
-    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_ARRAY and CONST.EMPTY_OBJECT
-    iouReport = null,
+    iouReport,
+    // The "nvpLastPaymentMethod" object needs to be stable to prevent the "useMemo"
+    // hook from being recreated unnecessarily, hence the use of CONST.EMPTY_OBJECT
     nvpLastPaymentMethod = CONST.EMPTY_OBJECT,
     isDisabled = false,
     isLoading = false,

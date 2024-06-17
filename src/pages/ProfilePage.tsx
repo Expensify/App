@@ -102,11 +102,11 @@ function ProfilePage({route}: ProfilePageProps) {
     const details = useMemo((): OnyxEntry<PersonalDetails> => {
         // Check if we have the personal details already in Onyx
         if (personalDetails?.[accountID]) {
-            return personalDetails?.[accountID];
+            return personalDetails?.[accountID] ?? undefined;
         }
         // Check if we have the login param
         if (!loginParams) {
-            return isValidAccountID ? null : {accountID: 0};
+            return isValidAccountID ? undefined : {accountID: 0};
         }
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());

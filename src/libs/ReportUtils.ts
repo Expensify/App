@@ -611,18 +611,18 @@ function isDraftReport(reportID: string | undefined): boolean {
  */
 function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
     if (!report?.parentReportID) {
-        return null;
+        return undefined;
     }
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? null;
+    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
 }
 
 /**
  * Returns the root parentReport if the given report is nested.
  * Uses recursion to iterate any depth of nested reports.
  */
-function getRootParentReport(report: OnyxEntry<Report> | undefined): OnyxEntry<Report> {
+function getRootParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
     if (!report) {
-        return null;
+        return undefined;
     }
 
     // Returns the current report as the root report, because it does not have a parentReportID
@@ -641,7 +641,7 @@ function getRootParentReport(report: OnyxEntry<Report> | undefined): OnyxEntry<R
  */
 function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
-        return null;
+        return undefined;
     }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
@@ -657,7 +657,7 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
 /**
  * Get the policy name from a given report
  */
-function getPolicyName(report: OnyxInputOrEntry<Report> | undefined, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
+function getPolicyName(report: OnyxInputOrEntry<Report>, returnEmptyIfNotFound = false, policy?: OnyxInputOrEntry<Policy>): string {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
     if (isEmptyObject(report)) {
         return noPolicyFound;
@@ -1172,7 +1172,7 @@ function findLastAccessedReport(
 
     let sortedReports = sortReportsByLastRead(reportsValues, reportMetadata);
 
-    let adminReport: OnyxEntry<Report> | undefined;
+    let adminReport: OnyxEntry<Report>;
     if (openOnAdminRoom) {
         adminReport = sortedReports.find((report) => {
             const chatType = getChatType(report);
@@ -2284,7 +2284,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
  */
-function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction: OnyxEntry<ReportAction> = null) {
+function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | OptionData, parentReportAction?: OnyxEntry<ReportAction>) {
     if (!optionOrReport) {
         return false;
     }
@@ -2828,7 +2828,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
         transactionID = (reportAction?.originalMessage as IOUMessage)?.IOUTransactionID ?? '-1';
     }
 
-    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
 /**
@@ -4084,7 +4084,7 @@ function buildOptimisticIOUReportAction(
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
     created = DateUtils.getDBTime(),
-    linkedExpenseReportAction: OnyxEntry<ReportAction> = null,
+    linkedExpenseReportAction?: OnyxEntry<ReportAction>,
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -6404,7 +6404,7 @@ function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     );
 }
 
-function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string): OnyxEntry<Report> | undefined {
+function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string): OnyxEntry<Report> {
     const room = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === type && !isThread(report));
     return room;
 }
@@ -6412,7 +6412,7 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 /**
  *  We only want policy members who are members of the report to be able to modify the report description, but not in thread chat.
  */
-function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | undefined): boolean {
+function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return (
         !isMoneyRequestReport(report) &&
         !isArchivedRoom(report) &&

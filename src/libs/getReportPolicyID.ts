@@ -15,7 +15,7 @@ Onyx.connect({
  */
 function getReport(reportID: string | undefined): OnyxEntry<Report> {
     if (!allReports) {
-        return null;
+        return undefined;
     }
 
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];

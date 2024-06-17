@@ -140,10 +140,10 @@ function ReportFooter({
             const mention = match[1] ? match[1].trim() : undefined;
             const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
 
-            let assignee: OnyxEntry<OnyxTypes.PersonalDetails> = null;
+            let assignee: OnyxEntry<OnyxTypes.PersonalDetails>;
             let assigneeChatReport;
             if (mentionWithDomain) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? null;
+                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? undefined;
                 if (!Object.keys(assignee ?? {}).length) {
                     const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
                     const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);

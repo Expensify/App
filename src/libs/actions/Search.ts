@@ -48,7 +48,7 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
  */
 function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    Report.openReport(reportID, '', [currentUserEmail], null, moneyRequestReportActionID);
+    Report.openReport(reportID, '', [currentUserEmail], undefined, moneyRequestReportActionID);
 
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {

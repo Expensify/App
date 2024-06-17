@@ -107,7 +107,7 @@ function buildOptimisticTransaction(
     source = '',
     originalTransactionID = '',
     merchant = '',
-    receipt: OnyxEntry<Receipt> = null,
+    receipt?: OnyxEntry<Receipt>,
     filename = '',
     existingTransactionID: string | null = null,
     category = '',

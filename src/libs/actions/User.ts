@@ -68,7 +68,7 @@ Onyx.connect({
             return;
         }
 
-        myPersonalDetails = value[currentUserAccountID] ?? {};
+        myPersonalDetails = value[currentUserAccountID] ?? undefined;
     },
 });
 

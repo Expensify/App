@@ -219,9 +219,9 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  */
 function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<ReportAction> {
     if (!report?.parentReportID || !report.parentReportActionID) {
-        return null;
+        return undefined;
     }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? null;
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
 /**

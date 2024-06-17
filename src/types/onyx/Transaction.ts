@@ -361,7 +361,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         participants?: Participant[];
 
         /** The receipt object associated with the transaction */
-        receipt?: Receipt | null;
+        receipt?: Receipt;
 
         /** The iouReportID associated with the transaction */
         reportID: string;
