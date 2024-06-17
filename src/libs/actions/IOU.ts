@@ -306,9 +306,24 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * @param iouRequestType one of manual/scan/distance
  * @param skipConfirmation if true, skip confirmation step
  */
-function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(
+    reportID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isFromGlobalCreate: boolean,
+    iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    reportIDFromConfirmationStep?: string,
+) {
     // Generate a brand new transactionID
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+
+    if (reportIDFromConfirmationStep) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+            reportID: reportIDFromConfirmationStep,
+            reportIDFromConfirmationStep: null,
+        });
+        return;
+    }
+
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
@@ -339,6 +354,12 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         splitPayerAccountIDs: [currentUserPersonalDetails.accountID],
+    });
+}
+
+function setReportIDInConfirmationStep(transactionID: string, reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        reportIDFromConfirmationStep: reportID,
     });
 }
 
@@ -7002,5 +7023,6 @@ export {
     updateMoneyRequestTaxRate,
     sendInvoice,
     getIOURequestPolicyID,
+    setReportIDInConfirmationStep,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};

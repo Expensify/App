@@ -430,6 +430,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
+
+        /** The reportID value set in the IOU confirmation page
+         *  This reportID value indicates that the transaction data is suitable for this report ID, so if the reportID in route params changes to this value,
+         *  we only need to set the transaction.reportID to this value instead of resetting the whole transaction
+         */
+        reportIDFromConfirmationStep?: string;
     },
     keyof Comment
 >;
