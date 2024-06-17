@@ -612,7 +612,7 @@ type Connections = {
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 
     /** Sage Intacct integration connection */
-    intacct: Connection<XeroConnectionData, XeroConnectionConfig>; // zmien na normalne dane do saga
+    intacct: Connection<XeroConnectionData, XeroConnectionConfig>; // for now I'm using XeroConfig as a placeholder, I'll add IntacctConnection and IntacctConnectionConfig in this task https://github.com/Expensify/App/issues/43533
 };
 
 /** Names of integration connections */

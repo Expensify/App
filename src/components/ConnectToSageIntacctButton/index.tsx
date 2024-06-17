@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicyConnectedToSageIntacct} from '@libs/PolicyUtils';
+import {getPoliciesConnectedToSageIntacct} from '@libs/PolicyUtils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +34,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const hasPoliciesConnectedToSageIntacct = !!getPolicyConnectedToSageIntacct(policies);
+    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct(policies);
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});

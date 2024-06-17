@@ -461,7 +461,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function getPolicyConnectedToSageIntacct(policies: OnyxCollection<Policy>): Policy[] {
+function getPoliciesConnectedToSageIntacct(policies: OnyxCollection<Policy>): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && !!policy?.connections?.intacct);
 }
 
@@ -550,7 +550,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
-    getPolicyConnectedToSageIntacct,
+    getPoliciesConnectedToSageIntacct,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,
