@@ -22,7 +22,6 @@ function updateSubscriptionType(type: SubscriptionType) {
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 type,
-                // pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 pendingFields: {
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -37,7 +36,6 @@ function updateSubscriptionType(type: SubscriptionType) {
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 type,
-                // pendingAction: null,
                 pendingFields: {
                     type: null,
                 },
@@ -52,7 +50,6 @@ function updateSubscriptionType(type: SubscriptionType) {
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 type: type === CONST.SUBSCRIPTION.TYPE.ANNUAL ? CONST.SUBSCRIPTION.TYPE.PAYPERUSE : CONST.SUBSCRIPTION.TYPE.ANNUAL,
-                // pendingAction: null,
                 pendingFields: {
                     type: null,
                 },
@@ -78,7 +75,6 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 autoRenew,
-                // pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 pendingFields: {
                     autoRenew: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -92,7 +88,6 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                // pendingAction: null,
                 pendingFields: {
                     autoRenew: null,
                 },
@@ -107,7 +102,6 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 autoRenew: !autoRenew,
-                // pendingAction: null,
                 pendingFields: {
                     autoRenew: null,
                 },
@@ -135,7 +129,6 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 addNewUsersAutomatically,
-                // pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 pendingFields: {
                     addNewUsersAutomatically: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -149,7 +142,6 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                // pendingAction: null,
                 pendingFields: {
                     addNewUsersAutomatically: null,
                 },
@@ -164,7 +156,6 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
                 addNewUsersAutomatically: !addNewUsersAutomatically,
-                // pendingAction: null,
                 pendingFields: {
                     addNewUsersAutomatically: null,
                 },

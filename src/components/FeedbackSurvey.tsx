@@ -94,6 +94,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
                     onSubmit={handleSubmit}
                     message="common.error.pleaseCompleteForm"
                     buttonText={translate('common.submit')}
+                    enabledWhenOffline
                 />
             </FixedFooter>
         </View>
