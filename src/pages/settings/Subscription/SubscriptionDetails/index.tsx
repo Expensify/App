@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OptionsPickerItem} from '@components/OptionsPicker';
 import OptionsPicker from '@components/OptionsPicker';
 import Section from '@components/Section';
@@ -12,13 +12,15 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import * as Subscription from '@userActions/Subscription';
+import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
-type SubscriptionVariant = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
-
-const options: Array<OptionsPickerItem<SubscriptionVariant>> = [
+const options: Array<OptionsPickerItem<SubscriptionType>> = [
     {
         key: CONST.SUBSCRIPTION.TYPE.ANNUAL,
         title: 'subscription.details.annual',
@@ -39,39 +41,42 @@ function SubscriptionDetails() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const [selectedOption, setSelectedOption] = useState(privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL);
+    const onOptionSelected = (option: SubscriptionType) => {
+        if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && option === CONST.SUBSCRIPTION.TYPE.PAYPERUSE && !account?.canDowngrade) {
+            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(0));
+            return;
+        }
 
-    const onOptionSelected = (option: SubscriptionVariant) => {
-        setSelectedOption(option);
+        Subscription.updateSubscriptionType(option);
+    };
+
+    const onSubscriptionSizePress = () => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SIZE.getRoute(1));
     };
 
     // This section is only shown when the subscription is annual
-    // An onPress action is going to be assigned to these buttons in phase 2
-    let subscriptionSizeSection: React.JSX.Element | null = null;
-
-    if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL) {
-        subscriptionSizeSection = privateSubscription?.userCount ? (
-            <MenuItemWithTopDescription
-                description={translate('subscription.details.subscriptionSize')}
-                title={`${privateSubscription?.userCount}`}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                style={styles.mt5}
-            />
-        ) : (
+    const subscriptionSizeSection: React.JSX.Element | null =
+        privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL ? (
             <>
-                <MenuItemWithTopDescription
-                    description={translate('subscription.details.subscriptionSize')}
-                    shouldShowRightIcon
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    style={styles.mt5}
-                />
-                <Text style={styles.mt2}>
-                    <Text style={styles.h4}>{translate('subscription.details.headsUpTitle')}</Text>
-                    <Text style={styles.textLabelSupporting}>{translate('subscription.details.headsUpBody')}</Text>
-                </Text>
+                <OfflineWithFeedback
+                    pendingAction={privateSubscription?.pendingFields?.userCount}
+                    errors={privateSubscription?.errorFields?.userCount}
+                    onClose={() => {
+                        Subscription.clearUpdateSubscriptionSizeError();
+                    }}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('subscription.details.subscriptionSize')}
+                        shouldShowRightIcon
+                        onPress={onSubscriptionSizePress}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={`${privateSubscription?.userCount ?? ''}`}
+                    />
+                </OfflineWithFeedback>
+                {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
             </>
-        );
-    }
+        ) : null;
 
     return (
         <Section
@@ -89,15 +94,15 @@ function SubscriptionDetails() {
                     <Text style={[styles.textLabelSupporting, styles.mt2]}>{translate('subscription.details.zeroCommitment')}</Text>
                 </View>
             ) : (
-                <>
+                <OfflineWithFeedback pendingAction={privateSubscription?.pendingAction}>
                     <OptionsPicker
                         options={options}
-                        selectedOption={selectedOption}
+                        selectedOption={privateSubscription?.type ?? CONST.SUBSCRIPTION.TYPE.ANNUAL}
                         onOptionSelected={onOptionSelected}
                         style={styles.mt5}
                     />
                     {subscriptionSizeSection}
-                </>
+                </OfflineWithFeedback>
             )}
         </Section>
     );
