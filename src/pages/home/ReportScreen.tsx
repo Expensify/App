@@ -154,16 +154,12 @@ function ReportScreen({
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const wasLoadingApp = usePrevious(isLoadingApp);
+    const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
-
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
-    const wasLoadingApp = usePrevious(isLoadingApp);
-    const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
-    const isLoadingReport = reportMetadata?.isLoadingInitialReportActions;
-    const wasLoadingReport = usePrevious(isLoadingReport);
-    const finishedLoadingReport = wasLoadingReport && !isLoadingReport;
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -441,9 +437,12 @@ function ReportScreen({
         /**
          * Since OpenReport is a write, the response from OpenReport will get dropped while the app is
          * still loading. This usually happens when signing in and deeplinking to a report. Instead,
-         * we'll fetch the report after the app finishes loading in an effect below
+         * we'll fetch the report after the app finishes loading. 
+         * 
+         * This needs to be a strict equality check since isLoadingApp is initially undefined until the
+         * value is loaded from Onyx
          */
-        if (isLoadingApp) {
+        if (isLoadingApp !== false) {
             return;
         }
 
@@ -572,11 +571,6 @@ function ReportScreen({
             return;
         }
 
-        // If we just finished loading the report, we don't need to load it again
-        if (finishedLoadingReport) {
-            return;
-        }
-
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
     }, [
@@ -593,7 +587,6 @@ function ReportScreen({
         prevReport,
         reportIDFromRoute,
         isFocused,
-        finishedLoadingReport,
     ]);
 
     useEffect(() => {
@@ -650,7 +643,10 @@ function ReportScreen({
         }
 
         fetchReportIfNeeded();
-    }, [finishedLoadingApp, fetchReportIfNeeded]);
+    
+        // This should only run once when the app is done loading
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finishedLoadingApp]);
 
     const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
