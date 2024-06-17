@@ -846,7 +846,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         linkMetadata: [],
     };
     const optimisticReportActions = {
-        [parentReportAction?.reportActionID ?? '']: optimisticReportAction,
+        [parentReportAction?.reportActionID ?? '-1']: optimisticReportAction,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -912,7 +912,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                [parentReportAction?.reportActionID ?? '']: {
+                [parentReportAction?.reportActionID ?? '-1']: {
                     pendingAction: null,
                 },
             },
@@ -939,7 +939,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
             value: {
-                [parentReportAction?.reportActionID ?? '']: {
+                [parentReportAction?.reportActionID ?? '-1']: {
                     pendingAction: null,
                 },
             },

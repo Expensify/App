@@ -1178,7 +1178,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  */
 function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID ?? '')));
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID ?? '-1')));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
