@@ -6964,6 +6964,11 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
     return transactions.some((transaction) => isExpenseReport(allReports?.[transaction.reportID] ?? {}));
 }
 
+function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find((report) => report?.isPolicyExpenseChat && report.policyID === policyID);
+}
+
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7236,6 +7241,7 @@ export {
     isDraftReport,
     changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
+    findPolicyExpenseChatByPolicyID,
 };
 
 export type {

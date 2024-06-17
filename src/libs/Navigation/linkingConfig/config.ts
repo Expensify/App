@@ -740,6 +740,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
+                    screens: {
+                        [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
+                    },
+                },
             },
         },
 

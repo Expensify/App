@@ -94,6 +94,7 @@ import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
+import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg'
 
 export {
     Abracadabra,
@@ -192,4 +193,5 @@ export {
     SendMoney,
     CheckmarkCircle,
     CreditCardEyes,
+    LockClosedOrange,
 };
