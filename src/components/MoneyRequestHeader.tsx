@@ -178,7 +178,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     useEffect(() => {
         if (isLoadingHoldUseExplained) {
             return;
-        }        
+        }
         setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
