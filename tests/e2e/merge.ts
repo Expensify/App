@@ -18,6 +18,7 @@ if (args.includes('--outputPath')) {
     outputPath = args[args.indexOf('--outputPath') + 1];
 }
 
+// TODO: how to pass here?
 async function run() {
     await compare(mainPath, deltaPath, outputPath, 'all');
 
