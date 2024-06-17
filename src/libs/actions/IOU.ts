@@ -6844,7 +6844,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
                 comment: {
                     hold: null,
                 },
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.genericHoldExpenseFailureMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericHoldExpenseFailureMessage'),
             },
         },
     ];
@@ -6906,7 +6906,7 @@ function unholdRequest(transactionID: string, reportID: string) {
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 pendingAction: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.genericUnholdExpenseFailureMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericUnholdExpenseFailureMessage'),
             },
         },
     ];
