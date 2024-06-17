@@ -71,7 +71,7 @@ type ReportFooterProps = {
 function ReportFooter({
     lastReportAction,
     pendingAction,
-    report = {reportID: '0'},
+    report = {reportID: '-1'},
     reportMetadata,
     reportNameValuePairs,
     policy,
@@ -202,7 +202,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose

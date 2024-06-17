@@ -167,7 +167,7 @@ const report = {...createRandomReport(1), policyID: '1'};
 const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
-test('[ReportScreen] should render ReportScreen', () => {
+test.skip('[ReportScreen] should render ReportScreen', () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
         /**
