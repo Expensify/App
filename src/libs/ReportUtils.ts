@@ -4607,7 +4607,6 @@ function buildOptimisticGroupChatReport(
     reportName: string,
     avatarUri: string,
     optimisticReportID?: string,
-    notificationPreference?: NotificationPreference,
 ) {
     return buildOptimisticChatReport(
         participantAccountIDs,
@@ -4619,7 +4618,7 @@ function buildOptimisticGroupChatReport(
         undefined,
         undefined,
         undefined,
-        notificationPreference,
+        undefined,
         undefined,
         undefined,
         undefined,
