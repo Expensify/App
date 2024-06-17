@@ -3,11 +3,6 @@ title: Edit or cancel travel arrangements
 description: Modify travel arrangements booked with Expensify Travel
 ---
 <div id="expensify-classic" markdown="1">
-
-</div>
-
-<div id="new-expensify" markdown="1">
-  
 It's easy to change/cancel a flight booked with Expensify Travel. 
 
 To modify or cancel a travel arrangement,
@@ -57,6 +52,18 @@ To modify or cancel a travel arrangement,
 
 
 Note: We recommend self-servicing your trip modifications as it is the quickest and easiest way to manage your flights, however, you can also click **Get Support** on your emailed travel itinerary or call the number listed there for real-time help with the booking. It is important to note that any modifications, exchanges, or voidings made to a trip via human support will incur a $25 booking change fee.
+</div>
 
+<div id="new-expensify" markdown="1">
+  
+You can review your travel arrangements any time by opening the Trip chat in your inbox. For example, if you booked a flight to San Francisco, a “Trip to San Francisco” chat will be automatically added to your chat inbox.  
 
+To edit or cancel a travel arrangement,
+1. Click your profile image or icon in the bottom left menu. 
+2. Scroll down and click **Workspaces** in the left menu. 
+3. Select the workspace the travel is booked under.
+4. Tap into the booking to see more details. 
+5. Click **Trip Support**.
+
+Note: We recommend self-servicing your trip modifications as it is the quickest and easiest way to manage your flights, however, you can also click **Get Support** on your emailed travel itinerary or call the number listed there for real-time help with the booking. It is important to note that any modifications, exchanges, or voidings made to a trip via human support will incur a $25 booking change fee.
 </div>
