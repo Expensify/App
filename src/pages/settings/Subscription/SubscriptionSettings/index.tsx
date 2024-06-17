@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -11,6 +10,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -26,7 +26,7 @@ function SubscriptionSettings() {
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
 
-    const autoRenewalDate = privateSubscription?.endDate ? format(new Date(`${privateSubscription?.endDate}T00:00:00`), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     const handleAutoRenewToggle = () => {
         if (!privateSubscription?.autoRenew) {

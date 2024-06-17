@@ -29,6 +29,9 @@ type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** An error message */
     errors?: OnyxCommon.Errors;
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 export default PrivateSubscription;
