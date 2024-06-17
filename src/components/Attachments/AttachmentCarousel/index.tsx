@@ -59,7 +59,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         let targetAttachments: Attachment[] = [];
         if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
-            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {report, accountID});
+            targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.NOTE, {privateNotes: report?.privateNotes, accountID});
         } else {
             targetAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined});
         }

@@ -269,18 +269,6 @@ Onyx.connect({
     callback: (val) => (quickAction = val),
 });
 
-/**
- * Get the report given a reportID
- */
-function getReport(reportID: string | undefined): OnyxEntry<Report> {
-    if (!currentReportData || !reportID) {
-        return undefined;
-    }
-
-    const report = currentReportData?.[reportID];
-    return report;
-}
-
 function clearGroupChat() {
     Onyx.set(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, null);
 }
@@ -490,7 +478,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         lastReadTime: currentTime,
     };
 
-    const report = getReport(reportID);
+    const report = currentReportData?.[reportID];
 
     if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
@@ -2601,7 +2589,7 @@ function joinRoom(report: OnyxEntry<Report>) {
 }
 
 function leaveGroupChat(reportID: string) {
-    const report = getReport(reportID);
+    const report = currentReportData?.[reportID];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
         return;

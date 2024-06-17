@@ -64,7 +64,6 @@ import * as store from './actions/ReimbursementAccount/store';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
-import originalGetReportPolicyID from './getReportPolicyID';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
@@ -1228,7 +1227,8 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(report: OnyxInputOrEntry<Report> | EmptyObject, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs> | EmptyObject): boolean {
+function isArchivedRoom(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs> | EmptyObject): boolean {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     if (reportNameValuePairs) {
         return reportNameValuePairs.isArchived;
     }
@@ -5537,7 +5537,8 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
+function chatIncludesChronos(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string): boolean {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
 }
@@ -5681,13 +5682,6 @@ function getReportIDFromLink(url: string | null): string {
         return '';
     }
     return reportID;
-}
-
-/**
- * Get the report policyID given a reportID
- */
-function getReportPolicyID(reportID?: string): string | undefined {
-    return originalGetReportPolicyID(reportID);
 }
 
 /**
@@ -6038,7 +6032,8 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Error
 /**
  * Return true if the expense report is marked for deletion.
  */
-function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
+    const report = typeof reportOrID === 'string' ? getReport(reportOrID) : reportOrID;
     if (!isMoneyRequestReport(report)) {
         return false;
     }
@@ -7078,7 +7073,6 @@ export {
     getReportNotificationPreference,
     getReportOfflinePendingActionAndErrors,
     getReportParticipantsTitle,
-    getReportPolicyID,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getRoom,

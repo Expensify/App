@@ -6,7 +6,8 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Note} from '@src/types/onyx/Report';
 
 /**
  * Constructs the initial component state from report actions
@@ -14,13 +15,12 @@ import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 function extractAttachments(
     type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
     {
-        report,
+        privateNotes,
         accountID,
         parentReportAction,
         reportActions,
-    }: {report?: OnyxEntry<Report>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
 ) {
-    const privateNotes = report?.privateNotes;
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
 
