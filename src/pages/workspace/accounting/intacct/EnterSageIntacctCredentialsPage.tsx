@@ -38,15 +38,15 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
         if (!values.companyID) {
-            ErrorUtils.addErrorMessage(errors, 'companyID', 'personalDetails.error.hasInvalidCharacter'); // dodać nazwy
+            ErrorUtils.addErrorMessage(errors, 'companyID', 'common.error.fieldRequired');
         }
 
         if (!values.userID) {
-            ErrorUtils.addErrorMessage(errors, 'userID', 'personalDetails.error.hasInvalidCharacter'); // dodać nazwy
+            ErrorUtils.addErrorMessage(errors, 'userID', 'common.error.fieldRequired');
         }
 
         if (!values.password) {
-            ErrorUtils.addErrorMessage(errors, 'password', 'personalDetails.error.hasInvalidCharacter'); // dodać nazwy
+            ErrorUtils.addErrorMessage(errors, 'password', 'common.error.fieldRequired');
         }
         return errors;
     }, []);
