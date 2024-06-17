@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {nonReimbursableBillDefaultVendor, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} =
         policy?.connections?.quickbooksOnline?.config ?? {};
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -70,7 +70,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 errors={errorFields?.autoCreateVendor ?? undefined}
                                 title={translate('workspace.qbo.defaultVendor')}
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
-                                isActive={Boolean(autoCreateVendor)}
+                                isActive={!!autoCreateVendor}
                                 onToggle={(isOn) =>
                                     Connections.updateManyPolicyConnectionConfigs(
                                         policyID,

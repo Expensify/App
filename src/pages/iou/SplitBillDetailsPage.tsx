@@ -5,10 +5,13 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -16,6 +19,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,8 +59,9 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? '-1';
     const {translate} = useLocalize();
+    const theme = useTheme();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
     const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
 
@@ -89,7 +94,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(
-        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? 0, session?.email ?? ''),
+        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? -1, session?.email ?? ''),
         [reportID, reportAction, draftTransaction, session?.accountID, session?.email],
     );
 
@@ -100,8 +105,15 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning && (
                         <MoneyRequestHeaderStatusBar
-                            title={translate('iou.receiptStatusTitle')}
-                            description={translate('iou.receiptStatusText')}
+                            title={
+                                <Icon
+                                    src={Expensicons.ReceiptScan}
+                                    height={variables.iconSizeSmall}
+                                    width={variables.iconSizeSmall}
+                                    fill={theme.icon}
+                                />
+                            }
+                            description={translate('iou.receiptScanInProgressDescription')}
                             shouldShowBorderBottom
                             shouldStyleFlexGrow={false}
                         />
@@ -114,6 +126,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCurrencyCode={splitCurrency}
                             iouComment={splitComment}
                             iouCreated={splitCreated}
+                            shouldDisplayReceipt
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
                             iouIsBillable={splitBillable}

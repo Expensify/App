@@ -1,4 +1,5 @@
 import mapValues from 'lodash/mapValues';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
@@ -61,7 +62,7 @@ type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData | null): Localize.MaybePhraseKey {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Localize.MaybePhraseKey {
     const errors = onyxData?.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -72,8 +73,8 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: T
     return getErrorMessageWithTranslationData(errors[key]);
 }
 
-function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: TOnyxData): Errors {
-    const errors = onyxData.errors ?? {};
+function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Errors {
+    const errors = onyxData?.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
         return {};
@@ -88,8 +89,8 @@ type OnyxDataWithErrorFields = {
     errorFields?: ErrorFields;
 };
 
-function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
-    const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
+function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>, fieldName: string): Errors {
+    const errorsForField = onyxData?.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
         return {};
@@ -99,8 +100,8 @@ function getLatestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData
     return {[key]: getErrorMessageWithTranslationData(errorsForField[key])};
 }
 
-function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData, fieldName: string): Errors {
-    const errorsForField = onyxData.errorFields?.[fieldName] ?? {};
+function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>, fieldName: string): Errors {
+    const errorsForField = onyxData?.errorFields?.[fieldName] ?? {};
 
     if (Object.keys(errorsForField).length === 0) {
         return {};
@@ -113,8 +114,8 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
 /**
  * Method used to get the latest error field for any field
  */
-function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData): Errors {
-    const errorFields = onyxData.errorFields ?? {};
+function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: OnyxEntry<TOnyxData>): Errors {
+    const errorFields = onyxData?.errorFields ?? {};
 
     if (Object.keys(errorFields).length === 0) {
         return {};
@@ -122,7 +123,7 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
 
     const fieldNames = Object.keys(errorFields);
     const latestErrorFields = fieldNames.map((fieldName) => getLatestErrorField(onyxData, fieldName));
-    return latestErrorFields.reduce((acc, error) => ({...acc, ...error}), {});
+    return latestErrorFields.reduce((acc, error) => Object.assign(acc, error), {});
 }
 
 /**
@@ -189,9 +190,9 @@ export {
     getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
     getLatestErrorField,
+    getLatestErrorFieldForAnyField,
     getLatestErrorMessage,
     getLatestErrorMessageField,
-    getLatestErrorFieldForAnyField,
     getMicroSecondOnyxError,
     getMicroSecondOnyxErrorObject,
     isReceiptError,

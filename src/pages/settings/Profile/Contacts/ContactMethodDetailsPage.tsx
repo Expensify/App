@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,7 +23,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +35,7 @@ import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
 
 const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'ownerAccountID' | 'owner'> => ({
-    id: policy?.id ?? '',
+    id: policy?.id ?? '-1',
     ownerAccountID: policy?.ownerAccountID,
     owner: policy?.owner ?? '',
 });
@@ -156,13 +155,6 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
             return;
         }
 
-        // If the selected contactMethod is the current session['login'] and the account is unvalidated,
-        // the current authToken is invalid after the successful magic code verification.
-        // So we need to sign out the user and redirect to the sign in page.
-        if (isDefaultContactMethod) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
         // Navigate to methods page on successful magic code verification
         // validatedDate property is responsible to decide the status of the magic code verification
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
@@ -186,7 +178,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }
 
     // Replacing spaces with "hard spaces" to prevent breaking the number
-    const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
+    const formattedContactMethod = Str.isSMSLogin(contactMethod) ? formatPhoneNumber(contactMethod) : contactMethod;
     const hasMagicCodeBeenSent = !!loginData.validateCodeSent;
     const isFailedAddContactMethod = !!loginData.errorFields?.addedLogin;
     const isFailedRemovedContactMethod = !!loginData.errorFields?.deletedLogin;

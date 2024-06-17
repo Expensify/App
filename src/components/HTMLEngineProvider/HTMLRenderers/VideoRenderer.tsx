@@ -29,13 +29,13 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                 <VideoPlayerPreview
                     key={key}
                     videoUrl={sourceURL}
-                    reportID={report?.reportID ?? ''}
+                    reportID={report?.reportID ?? '-1'}
                     fileName={fileName}
                     thumbnailUrl={thumbnailUrl}
                     videoDimensions={{width, height}}
                     videoDuration={duration}
                     onShowModalPress={() => {
-                        const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', sourceURL);
+                        const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID ?? '-1', CONST.ATTACHMENT_TYPE.REPORT, sourceURL);
                         Navigation.navigate(route);
                     }}
                 />
