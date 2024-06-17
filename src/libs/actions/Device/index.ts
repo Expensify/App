@@ -20,8 +20,8 @@ function getDeviceID(): Promise<string | null> {
             key: ONYXKEYS.DEVICE_ID,
             callback: (id) => {
                 Onyx.disconnect(connectionID);
-                deviceID = id;
-                return resolve(id);
+                deviceID = id ?? null;
+                return resolve(id ?? null);
             },
         });
     });

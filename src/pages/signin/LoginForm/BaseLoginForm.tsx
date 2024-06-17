@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -11,6 +11,7 @@ import AppleSignIn from '@components/SignInButtons/AppleSignIn';
 import GoogleSignIn from '@components/SignInButtons/GoogleSignIn';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
@@ -19,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
@@ -34,6 +36,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CloseAccountForm} from '@src/types/form';
 import type {Account, Credentials} from '@src/types/onyx';
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+import viewRef from '@src/types/utils/viewRef';
 import type LoginFormProps from './types';
 import type {InputHandle} from './types';
 
@@ -197,7 +201,7 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
             if (!input.current) {
                 return false;
             }
-            return input.current.isFocused() as boolean;
+            return !!isTextInputFocused(input);
         },
         clearDataAndFocus(clearLogin = true) {
             if (!input.current) {
@@ -214,6 +218,19 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
     const shouldShowServerError = !!serverErrorText && !formError;
     const isSigningWithAppleOrGoogle = useRef(false);
     const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
+
+    const submitContainerRef = useRef<View | HTMLDivElement>(null);
+    const handleFocus = useCallback(() => {
+        if (!Browser.isMobileWebKit()) {
+            return;
+        }
+        // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
+        // This occurs even when there is enough space to display both the input field and the submit button in the current view.
+        // so this change to correct the scroll position when the input field gains focus.
+        InteractionManager.runAfterInteractions(() => {
+            htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+        });
+    }, []);
 
     return (
         <>
@@ -246,10 +263,12 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                                 validate(login);
                             }, 500)
                     }
+                    onFocus={handleFocus}
                     onChangeText={onTextInput}
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
+                    autoFocus
                     inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formError}
                     hasError={shouldShowServerError}
@@ -269,7 +288,10 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                 // We need to unmount the submit button when the component is not visible so that the Enter button
                 // key handler gets unsubscribed
                 isVisible && (
-                    <View style={[shouldShowServerError ? {} : styles.mt5]}>
+                    <View
+                        style={[shouldShowServerError ? {} : styles.mt5]}
+                        ref={viewRef(submitContainerRef)}
+                    >
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
