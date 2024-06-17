@@ -1852,7 +1852,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.83):
+  - RNLiveMarkdown (0.1.84):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1870,9 +1870,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.83)
+    - RNLiveMarkdown/common (= 0.1.84)
     - Yoga
-  - RNLiveMarkdown/common (0.1.83):
+  - RNLiveMarkdown/common (0.1.84):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2589,7 +2589,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 88030b7d9a31f5f6e67743df48ad952d64513b4a
+  RNLiveMarkdown: bf516c02a4549a059829a3fbb8f51c2e0a3110e7
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
@@ -2606,7 +2606,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
+  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: 66a5c97ae1059e4da1993a4ad95abe5d819f555b
 
