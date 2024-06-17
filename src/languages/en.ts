@@ -3170,7 +3170,7 @@ export default {
             manual: 'marked this receipt as cash.',
         },
         duplicatedTransaction: {
-            manual: 'unheld this request',
+            manual: 'resolved the duplicate',
         },
     },
     videoPlayer: {

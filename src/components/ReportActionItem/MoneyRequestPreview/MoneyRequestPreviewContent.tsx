@@ -65,6 +65,7 @@ function MoneyRequestPreviewContent({
     isHovered = false,
     isWhisper = false,
     transactionViolations,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -161,6 +162,9 @@ function MoneyRequestPreviewContent({
     };
 
     const showContextMenu = (event: GestureResponderEvent) => {
+        if (!shouldDisplayContextMenu) {
+            return;
+        }
         showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 

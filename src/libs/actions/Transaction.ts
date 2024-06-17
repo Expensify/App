@@ -8,7 +8,9 @@ import * as API from '@libs/API';
 import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -287,22 +289,28 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
  * Dismisses the duplicate transaction violation for the provided transactionIDs
  * and updates the transaction to include the dismissed violation in the comment.
  */
-function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails, transactionThreadReportID: string) {
+function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
+    const transactionsReportActions = currentTransactions.map((transaction) => {
+        const report = ReportUtils.getReport(transaction?.reportID ?? '');
+        const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
+        const action = Object.values(reportActions ?? {})?.find(
+            (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === transaction?.transactionID,
+        );
+        return action;
+    });
     const optimisticReportAction = buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const optimisticReportActions: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {
-                [optimisticReportAction.reportActionID]: optimisticReportAction as ReportAction,
-            },
+    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        value: {
+            [optimisticReportAction.reportActionID]: optimisticReportAction as ReportAction,
         },
-    ];
+    }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
@@ -344,15 +352,13 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     }));
 
-    const failureReportActions: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-            value: {
-                [optimisticReportAction.reportActionID]: null,
-            },
+    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        value: {
+            [optimisticReportAction.reportActionID]: null,
         },
-    ];
+    }));
 
     failureData.push(...failureDataTransactionViolations);
     failureData.push(...failureDataTransaction);

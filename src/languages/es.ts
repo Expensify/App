@@ -3674,7 +3674,7 @@ export default {
             manual: 'marcó el recibo como pagado en efectivo.',
         },
         duplicatedTransaction: {
-            manual: 'no ha aceptado esta solicitud',
+            manual: 'resuelto el duplicado',
         },
     },
     videoPlayer: {
