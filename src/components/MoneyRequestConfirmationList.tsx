@@ -259,10 +259,7 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
-    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const prevDistance = usePrevious(distance);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
@@ -305,6 +302,18 @@ function MoneyRequestConfirmationList({
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
+
+    const distance = useMemo(() => {
+        const value = TransactionUtils.getDistance(transaction);
+        if (isMovingTransactionFromTrackExpense && unit) {
+            return DistanceRequestUtils.convertToDistanceInMeters(value, unit);
+        }
+        return value;
+    }, [isMovingTransactionFromTrackExpense, unit, transaction]);
+    const prevDistance = usePrevious(distance);
+
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
+
     const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
     const formattedAmount = isDistanceRequestWithPendingRoute
