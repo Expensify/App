@@ -10,11 +10,11 @@ const defaultPlugins = [
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
-[
+    [
         '@fullstory/babel-plugin-annotate-react',
         {
-            "react-native-web": true,
-            "native": true,
+            'react-native-web': true,
+            native: true,
         },
     ],
 
