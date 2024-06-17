@@ -1,5 +1,5 @@
 import buildArrayCache from './cache/arrayCacheBuilder';
-import type {Cache, ClientOptions} from './types';
+import type {ClientOptions, MemoizedFn, MemoizeFnPredicate} from './types';
 import {mergeOptions} from './utils';
 
 /**
@@ -9,7 +9,7 @@ import {mergeOptions} from './utils';
  * @returns Memoized function with a cache API attached to it.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function memoize<Fn extends (...args: any[]) => any>(fn: Fn, opts?: ClientOptions): Fn & {cache: Cache<Parameters<Fn>, ReturnType<Fn>>} {
+function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
     const options = mergeOptions(opts);
 
     const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);

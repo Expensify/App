@@ -30,4 +30,9 @@ type Options = {
 
 type ClientOptions = Partial<Omit<Options, keyof InternalOptions>>;
 
-export type {Cache, CacheOpts, Options, ClientOptions};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MemoizeFnPredicate = (...args: any[]) => any;
+
+type MemoizedFn<Fn extends MemoizeFnPredicate> = Fn & {cache: Cache<Parameters<Fn>, ReturnType<Fn>>};
+
+export type {Cache, CacheOpts, Options, ClientOptions, MemoizedFn, KeyComparator, MemoizeFnPredicate};
