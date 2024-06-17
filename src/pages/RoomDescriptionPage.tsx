@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -13,6 +12,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
@@ -32,8 +32,7 @@ type RoomDescriptionPageProps = {
 
 function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
     const styles = useThemeStyles();
-    const parser = new ExpensiMark();
-    const [description, setDescription] = useState(() => parser.htmlToMarkdown(report?.description ?? ''));
+    const [description, setDescription] = useState(() => parseHtmlToMarkdown(report?.description ?? ''));
     const reportDescriptionInputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {translate} = useLocalize();

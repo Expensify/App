@@ -103,7 +103,10 @@ const ROUTES = {
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SUBSCRIPTION: 'settings/subscription',
-    SETTINGS_SUBSCRIPTION_SIZE: 'settings/subscription/subscription-size',
+    SETTINGS_SUBSCRIPTION_SIZE: {
+        route: 'settings/subscription/subscription-size',
+        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize}` as const,
+    },
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
