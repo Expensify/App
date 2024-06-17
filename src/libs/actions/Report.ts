@@ -2735,8 +2735,8 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
                 pendingChatMembers,
             },
         },
-        ...newPersonalDetailsOnyxData.optimisticData,
     ];
+    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData);
 
     const successPendingChatMembers = report?.pendingChatMembers
         ? report?.pendingChatMembers?.filter(
@@ -2751,8 +2751,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
                 pendingChatMembers: successPendingChatMembers,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
     ];
+    successData.push(...newPersonalDetailsOnyxData.finallyData);
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3368,15 +3369,16 @@ function completeOnboarding(
     ];
     const successData: OnyxUpdate[] = [
         ...tasksForSuccessData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-            value: {
-                [introductionCommentAction.reportActionID]: {pendingAction: null},
-                [textCommentAction.reportActionID]: {pendingAction: null},
-            },
-        },
     ];
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+        value: {
+            [introductionCommentAction.reportActionID]: {pendingAction: null},
+            [textCommentAction.reportActionID]: {pendingAction: null},
+        },
+    });
+
     let failureReport: Partial<Report> = {
         lastMessageTranslationKey: '',
         lastMessageText: '',
