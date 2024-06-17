@@ -80,6 +80,9 @@ type Account = {
 
     /** Indicates whether the user is a client of an approved accountant */
     isApprovedAccountantClient?: boolean;
+
+    /** Indicates whether the user can downgrade current subscription plan */
+    canDowngrade?: boolean;
 };
 
 export default Account;
