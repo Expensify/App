@@ -2195,8 +2195,15 @@ export default {
                     },
                 },
             },
+            reimbursableExpenses: {
+                label: 'Export reimbursable expenses as',
+                description: 'Reimbursable expenses will export as expense reports to Sage Intacct. Bills will export as vendor bills.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Expense reports',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
+                },
+            },
             exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',
-            exportReimbursableExpensesAs: 'Export reimbursable expenses as',
             exportNonReimbursableExpensesAs: 'Export non-reimbursable expenses as',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',

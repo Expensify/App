@@ -917,6 +917,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/sage-intacct/export/date',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/date` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES: {
+        route: 'settings/workspaces/:policyID/connections/sage-intacct/export/reimbursable',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/reimbursable` as const,
+    },
 } as const;
 
 /**

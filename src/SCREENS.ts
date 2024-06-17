@@ -266,6 +266,7 @@ const SCREENS = {
             SAGE_INTACCT_EXPORT: 'Policy_Accounting_Sage_Intacct_Export',
             SAGE_INTACCT_PREFERRED_EXPORTER: 'Policy_Accounting_Sage_Intacct_Preferred_Exporter',
             SAGE_INTACCT_EXPORT_DATE: 'Policy_Accounting_Sage_Intacct_Export_Date',
+            SAGE_INTACCT_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Reimbursable_Expenses',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',

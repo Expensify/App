@@ -16,26 +16,25 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
-    value: ValueOf<typeof CONST.XERO_EXPORT_DATE>;
+    value: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
 };
 
-function SageIntacctDatePage({policy}: WithPolicyProps) {
+function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const {exportDate} = policy?.connections?.intacct?.config?.export ?? {};
-    const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_EXPORT_DATE).map((dateType) => ({
-        value: dateType,
-        text: translate(`workspace.sageIntacct.exportDate.values.${dateType}.label`),
-        alternateText: translate(`workspace.sageIntacct.exportDate.values.${dateType}.description`),
-        keyForList: dateType,
-        isSelected: exportDate === dateType,
+    const {reimbursable} = policy?.connections?.intacct?.config?.export ?? {};
+    const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({
+        value: expenseType,
+        text: translate(`workspace.sageIntacct.reimbursableExpenses.values.${expenseType}`),
+        keyForList: expenseType,
+        isSelected: reimbursable === expenseType,
     }));
 
     const headerContent = useMemo(
         () => (
             <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.exportDate.description')}</Text>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.reimbursableExpenses.description')}</Text>
             </View>
         ),
         [translate, styles.pb5, styles.ph5],
@@ -43,18 +42,19 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== exportDate) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {exportDate: row.value});
+            if (row.value !== reimbursable) {
+                // TODO: change CONST.XERO_CONFIG.EXPORT to CONST.SAGE_INTACCT.EXPORT
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {reimbursable: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
-        [exportDate, policyID],
+        [reimbursable, policyID],
     );
 
     return (
         <SelectionScreen
-            displayName={SageIntacctDatePage.displayName}
-            title="workspace.sageIntacct.exportDate.label"
+            displayName={SageIntacctReimbursableExpensesPage.displayName}
+            title="workspace.sageIntacct.reimbursableExpenses.label"
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
@@ -69,6 +69,6 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctDatePage.displayName = 'PolicySageIntacctDatePage';
+SageIntacctReimbursableExpensesPage.displayName = 'PolicySageIntacctReimbursableExpensesPage';
 
-export default withPolicyConnections(SageIntacctDatePage);
+export default withPolicyConnections(SageIntacctReimbursableExpensesPage);
