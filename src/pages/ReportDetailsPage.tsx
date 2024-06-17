@@ -95,9 +95,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
     const isPolicy = isPolicyAdmin || isPolicyEmployee;
 
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
-    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isSystemChat = useMemo(() => ReportUtils.isSystemChat(report), [report]);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
@@ -162,9 +163,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
     const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
-
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((pol) => pol && pol.id === report?.policyID), [policies, report?.policyID]);
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const chatRoomAdminSubtitleText = translate('reportDetailsPage.inWorkspace', {policyName: report.policyName});
 
