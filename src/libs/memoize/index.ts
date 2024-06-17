@@ -18,7 +18,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
         const cached = cache.get(key);
 
         if (cached) {
-            return cached;
+            return cached.value;
         }
 
         const result = fn(...key);

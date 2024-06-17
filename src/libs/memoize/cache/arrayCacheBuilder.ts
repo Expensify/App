@@ -21,16 +21,13 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
     }
 
     return {
-        has(key) {
-            return getKeyIndex(key) !== -1;
-        },
         get(key) {
             const index = getKeyIndex(key);
 
             if (index !== -1) {
                 const [entry] = cache.splice(index, 1);
                 cache.push(entry);
-                return entry[1];
+                return {value: entry[1]};
             }
         },
         set(key, value) {

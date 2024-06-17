@@ -1,8 +1,7 @@
 type KeyComparator = <K>(key1: K[], key2: K[]) => boolean;
 
 type Cache<K, V> = {
-    has: (key: K) => boolean;
-    get: (key: K) => V | undefined;
+    get: (key: K) => {value: V} | undefined;
     set: (key: K, value: V) => void;
     delete: (key: K) => void;
     clear: () => void;
