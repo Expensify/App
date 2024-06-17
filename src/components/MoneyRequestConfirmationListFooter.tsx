@@ -242,13 +242,19 @@ function MoneyRequestConfirmationListFooter({
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
+    // Determines whether the tax fields can be modified.
+    // The tax fields can only be modified if the component is not in read-only mode
+    // and it is not a distance request.
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
     // Do not hide fields in case of paying someone
     const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
+    // Calculate the formatted tax amount based on the transaction's tax amount and the IOU currency code
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
+    // Get the tax rate title based on the policy and transaction
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
+    // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
     const shouldShowReceiptEmptyState = PolicyUtils.isPaidGroupPolicy(policy) && !isDistanceRequest && iouType === CONST.IOU.TYPE.SUBMIT;
