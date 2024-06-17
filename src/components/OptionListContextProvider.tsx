@@ -99,7 +99,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             }
 
             Object.values(reports ?? {})
-                .filter((report) => Boolean(Object.keys(report?.participants ?? {}).includes(accountID)) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
+                .filter((report) => !!Object.keys(report?.participants ?? {}).includes(accountID) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accountID)))
                 .forEach((report) => {
                     if (!report) {
                         return;
