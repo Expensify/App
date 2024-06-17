@@ -512,7 +512,6 @@ function MoneyRequestConfirmationListFooter({
         .filter((classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary)
         .map((supplementaryField) => supplementaryField.item);
 
-    // TODO: Split this into a separate component
     const receiptThumbnailContent = useMemo(
         () => (
             <View style={styles.moneyRequestImage}>
