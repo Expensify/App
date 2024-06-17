@@ -354,7 +354,7 @@ describe('ReportUtils', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
-        it("returns false if the user is not on free trial", async () => {
+        it('returns false if the user is not on free trial', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null, // not on free trial
                 [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
