@@ -49,7 +49,7 @@ function PressableWithFeedback(
 
     return (
         <OpacityView
-            shouldDim={Boolean(!rest.disabled && (isPressed || isHovered))}
+            shouldDim={!!(!rest.disabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? pressDimmingValue : hoverDimmingValue}
             style={wrapperStyle}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}

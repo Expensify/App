@@ -4,15 +4,20 @@ import {View} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import * as Localize from '@libs/Localize';
+import * as ReportActions from '@userActions/Report';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
+import * as Expensicons from './Icon/Expensicons';
 
 type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type PromotedActionsType = Record<'pin' | 'share', (report: OnyxReport) => PromotedAction>;
+type PromotedActionsType = Record<'pin' | 'share', (report: OnyxReport) => PromotedAction> & {
+    message: (params: {accountID?: number; login?: string}) => PromotedAction;
+};
 
 const PromotedActions = {
     pin: (report) => ({
@@ -22,6 +27,21 @@ const PromotedActions = {
     share: (report) => ({
         key: 'share',
         ...HeaderUtils.getShareMenuItem(report),
+    }),
+    message: ({accountID, login}) => ({
+        key: 'message',
+        icon: Expensicons.CommentBubbles,
+        text: Localize.translateLocal('common.message'),
+        onSelected: () => {
+            // The accountID might be optimistic, so we should use the login if we have it
+            if (login) {
+                ReportActions.navigateToAndOpenReport([login]);
+                return;
+            }
+            if (accountID) {
+                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
+            }
+        },
     }),
 } satisfies PromotedActionsType;
 
@@ -36,6 +56,10 @@ type PromotedActionsBarProps = {
 function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
+    if (promotedActions.length === 0) {
+        return null;
+    }
 
     if (promotedActions.length === 0) {
         return null;

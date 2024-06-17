@@ -210,18 +210,15 @@ function ReportActionsList({
         [sortedReportActions, isOffline],
     );
 
-    // whisper action doesn't affect lastVisibleActionCreated, so we should not take it into account while checking if there is the newest report action
-    const newestVisibleReportAction = useMemo(() => sortedVisibleReportActions.find((item) => !ReportActionsUtils.isWhisperAction(item)) ?? null, [sortedVisibleReportActions]);
-
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = newestVisibleReportAction?.created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions[0]?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const linkedReportActionID = route.params?.reportActionID ?? '';
+    const linkedReportActionID = route.params?.reportActionID ?? '-1';
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before

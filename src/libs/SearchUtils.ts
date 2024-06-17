@@ -5,10 +5,11 @@ import type {ReportListItemType, TransactionListItemType} from '@components/Sele
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchAccountDetails, SearchDataTypes, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
-import type {RootStackParamList, State} from './Navigation/types';
+import type {CentralPaneNavigatorParamList, RootStackParamList, State} from './Navigation/types';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -21,7 +22,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH_TABLE_COLUMNS.DATE]: 'date' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TAG]: 'tag' as const,
     [CONST.SEARCH_TABLE_COLUMNS.MERCHANT]: 'formattedMerchant' as const,
-    [CONST.SEARCH_TABLE_COLUMNS.TOTAL]: 'formattedTotal' as const,
+    [CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT]: 'formattedTotal' as const,
     [CONST.SEARCH_TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH_TABLE_COLUMNS.TYPE]: 'type' as const,
     [CONST.SEARCH_TABLE_COLUMNS.ACTION]: 'action' as const,
@@ -29,6 +30,32 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH_TABLE_COLUMNS.RECEIPT]: null,
 };
+
+/**
+ * @private
+ */
+function getTransactionItemCommonFormattedProperties(
+    transactionItem: SearchTransaction,
+    from: SearchPersonalDetails,
+    to: SearchAccountDetails,
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date'> {
+    const isExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+
+    const formattedFrom = from?.displayName ?? from?.login ?? '';
+    const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
+    const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
+    const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
+    const merchant = TransactionUtils.getMerchant(transactionItem);
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+
+    return {
+        formattedFrom,
+        formattedTo,
+        date,
+        formattedTotal,
+        formattedMerchant,
+    };
+}
 
 function isSearchDataType(type: string): type is SearchDataTypes {
     const searchDataTypes: string[] = Object.values(CONST.SEARCH_DATA_TYPES);
@@ -50,15 +77,45 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
-function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: ValueOf<typeof CONST.SEARCH_TABLE_COLUMNS>) {
-    return Object.values(data).some((item) => !!item[columnName]);
+const currentYear = new Date().getFullYear();
+
+function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+    return 'transactions' in item;
+}
+
+function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
+    if (Array.isArray(data)) {
+        return data.some((item: TransactionListItemType | ReportListItemType) => {
+            if (isReportListItemType(item)) {
+                // If the item is a ReportListItemType, iterate over its transactions and check them
+                return item.transactions.some((transaction) => {
+                    const transactionYear = new Date(TransactionUtils.getCreated(transaction)).getFullYear();
+                    return transactionYear !== currentYear;
+                });
+            }
+
+            const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
+            return createdYear !== currentYear;
+        });
+    }
+
+    for (const [key, transactionItem] of Object.entries(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            const item = transactionItem as SearchTransaction;
+            const date = TransactionUtils.getCreated(item);
+
+            if (DateUtils.doesDateBelongToAPastYear(date)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
+
+    const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
@@ -69,12 +126,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
                 : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
 
-            const formattedFrom = from.displayName ?? from.login ?? '';
-            const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
-            const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
-            const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-            const merchant = TransactionUtils.getMerchant(transactionItem);
-            const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
             return {
                 ...transactionItem,
@@ -82,23 +134,23 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 to,
                 formattedFrom,
                 formattedTo,
-                date,
                 formattedTotal,
                 formattedMerchant,
+                date,
                 shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
+                shouldShowCategory: true,
+                shouldShowTag: true,
+                shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
+                shouldShowYear: doesDataContainAPastYearTransaction,
             };
         });
 }
 
 function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
-    const shouldShowTax = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT);
+
+    const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
     const reportIDToTransactions: Record<string, ReportListItemType> = {};
     for (const key in data) {
@@ -119,12 +171,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 ? (data[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] as SearchAccountDetails)
                 : (data.personalDetailsList?.[transactionItem.managerID] as SearchAccountDetails);
 
-            const formattedFrom = from.displayName ?? from.login ?? '';
-            const formattedTo = to?.name ?? to?.displayName ?? to?.login ?? '';
-            const formattedTotal = TransactionUtils.getAmount(transactionItem, isExpenseReport);
-            const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
-            const merchant = TransactionUtils.getMerchant(transactionItem);
-            const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
             const transaction = {
                 ...transactionItem,
@@ -133,13 +180,14 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 formattedFrom,
                 formattedTo,
                 formattedTotal,
-                date,
                 formattedMerchant,
+                date,
                 shouldShowMerchant,
-                shouldShowCategory,
-                shouldShowTag,
-                shouldShowTax,
+                shouldShowCategory: true,
+                shouldShowTag: true,
+                shouldShowTax: true,
                 keyForList: transactionItem.transactionID,
+                shouldShowYear: doesDataContainAPastYearTransaction,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
@@ -221,8 +269,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params;
+    return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowColumn, getShouldShowMerchant, getSearchType, getSearchParams};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
 export type {SearchColumnType, SortOrder};

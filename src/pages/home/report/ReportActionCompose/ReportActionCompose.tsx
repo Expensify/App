@@ -347,7 +347,7 @@ function ReportActionCompose({
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID ?? '')) {
+            if (!EmojiPickerActions.isActive(report?.reportID ?? '-1')) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
@@ -447,7 +447,7 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        policyID={report?.policyID ?? ''}
+                                        policyID={report?.policyID ?? '-1'}
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}

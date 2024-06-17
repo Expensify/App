@@ -13,6 +13,7 @@ import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type BaseModalProps from '@components/Modal/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
@@ -58,6 +59,7 @@ function IOURequestStepWaypoint({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -130,6 +132,7 @@ function IOURequestStepWaypoint({
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
+        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
     };
@@ -172,7 +175,10 @@ function IOURequestStepWaypoint({
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
-                            onSelected: () => setIsDeleteStopModalOpen(true),
+                            onSelected: () => {
+                                setRestoreFocusType(undefined);
+                                setIsDeleteStopModalOpen(true);
+                            },
                         },
                     ]}
                 />
@@ -185,7 +191,9 @@ function IOURequestStepWaypoint({
                     prompt={translate('distance.deleteWaypointConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
+                    shouldEnableNewFocusManagement
                     danger
+                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
