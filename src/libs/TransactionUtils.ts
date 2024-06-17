@@ -14,6 +14,7 @@ import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 import Permissions from "@libs/Permissions";
+import {Beta} from "@src/types/onyx";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -49,6 +50,12 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
         currentUserAccountID = val?.accountID ?? -1;
     },
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -641,7 +648,7 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
 function isDuplicate(transactionID: string, checkDismissed = false): boolean {
-    if (Permissions.canUseDupeDetection(allBetas ?? [])) {
+    if (!Permissions.canUseDupeDetection(allBetas ?? [])) {
         return false;
     }
 
@@ -698,6 +705,10 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    if (!Permissions.canUseDupeDetection(allBetas ?? [])) {
+        return false;
+    }
+
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING);
 }
 
