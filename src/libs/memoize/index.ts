@@ -14,15 +14,14 @@ function memoize<Fn extends (...args: any[]) => any>(fn: Fn, opts?: ClientOption
 
     const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);
 
-    const memoized = function memoized(...args: Parameters<Fn>): ReturnType<Fn> {
-        const key = args;
+    const memoized = function memoized(...key: Parameters<Fn>): ReturnType<Fn> {
         const cached = cache.get(key);
 
         if (cached) {
             return cached;
         }
 
-        const result = fn(...args);
+        const result = fn(...key);
 
         cache.set(key, result);
 
