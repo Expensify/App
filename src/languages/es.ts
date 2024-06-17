@@ -2831,7 +2831,7 @@ export default {
             search: 'Abrir diálogo de búsqueda',
             newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
-            openDebug: 'Open testing preferences',
+            openDebug: 'Abrir el diálogo de preferencias de pruebas',
         },
     },
     guides: {
