@@ -160,7 +160,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                     [policyTag.name]: {
                         tags: {
                             [newTagName]: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                                 pendingAction: null,
                             },
                         },
@@ -243,7 +243,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                 acc[key] = {
                                     ...policyTag.tags[key],
                                     ...tagsToUpdate[key],
-                                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                                     pendingFields: {
                                         enabled: null,
                                     },
@@ -312,7 +312,7 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
                     [policyTag.name]: {
                         tags: {
                             ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
-                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.deleteFailureMessage')};
+                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.deleteFailureMessage')};
                                 return acc;
                             }, {}),
                         },
@@ -437,7 +437,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 pendingFields: {
                                     name: null,
                                 },
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                             },
                         },
                     },
@@ -557,7 +557,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 value: {
                     errors: {
                         [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                        [newName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                     },
                     [newName]: null,
                     [oldName]: oldPolicyTags,
@@ -610,7 +610,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     requiresTag: !requiresTag,
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                     pendingFields: {
                         requiresTag: null,
                     },
@@ -668,7 +668,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                         required: policyTag.required,
                         pendingFields: {required: null},
                         errorFields: {
-                            required: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            required: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                         },
                     },
                 },

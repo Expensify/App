@@ -366,7 +366,7 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
                 },
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
                 pendingFields: {autoReporting: null},
-                errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
+                errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
             },
         },
     ];
@@ -407,7 +407,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
             value: {
                 autoReportingFrequency: policy.autoReportingFrequency ?? null,
                 pendingFields: {autoReportingFrequency: null},
-                errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
+                errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
         },
     ];
@@ -448,7 +448,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
             value: {
                 autoReportingOffset: policy.autoReportingOffset ?? null,
                 pendingFields: {autoReportingOffset: null},
-                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
             },
         },
     ];
@@ -494,7 +494,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
                 approver: policy.approver ?? null,
                 approvalMode: policy.approvalMode ?? null,
                 pendingFields: {approvalMode: null},
-                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxError('workflowsApprovalPage.genericErrorMessage')},
+                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsApprovalPage.genericErrorMessage')},
             },
         },
     ];
@@ -552,7 +552,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
-                errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
+                errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburser: null},
             },
         },
@@ -612,7 +612,7 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
                 isLoadingWorkspaceReimbursement: false,
                 reimbursementChoice: policy.reimbursementChoice ?? null,
                 achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
-                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
         },
@@ -666,7 +666,7 @@ function leaveWorkspace(policyID: string) {
                 pendingAction: policy?.pendingAction,
                 employeeList: {
                     [sessionEmail]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove'),
                     },
                 },
             },
@@ -862,6 +862,9 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 },
                 isOptimisticReport: false,
                 pendingChatMembers: null,
+                participants: {
+                    [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
+                },
             },
         });
         workspaceMembersChats.onyxSuccessData.push({
@@ -966,7 +969,7 @@ function deleteWorkspaceAvatar(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    avatarURL: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
+                    avatarURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('avatarWithImagePicker.deleteWorkspaceError'),
                 },
             },
         },
@@ -1025,7 +1028,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {currency: null},
-                errorFields: {currency: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {currency: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -1086,7 +1089,7 @@ function updateGeneralSettings(policyID: string, name: string, currencyValue?: s
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                    generalSettings: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                 },
                 ...(customUnitID && {
                     customUnits: {
@@ -1151,7 +1154,7 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    description: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                    description: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
                 },
             },
         },
@@ -1300,7 +1303,7 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
                         rates: {
                             [newCustomUnit.rates.customUnitRateID]: {
                                 ...currentCustomUnit.rates,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.reimburse.updateCustomUnitError'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reimburse.updateCustomUnitError'),
                             },
                         },
                     },
@@ -2824,7 +2827,7 @@ function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
                     taxRates: {
                         name: originalCustomTaxName,
                         pendingFields: {name: null},
-                        errorFields: {name: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {name: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     },
                 },
             },
@@ -2876,7 +2879,7 @@ function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
                     taxRates: {
                         defaultExternalID: originalDefaultExternalID,
                         pendingFields: {defaultExternalID: null},
-                        errorFields: {defaultExternalID: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {defaultExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     },
                 },
             },
@@ -2928,7 +2931,7 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
                     taxRates: {
                         foreignTaxDefault: originalDefaultForeignCurrencyID,
                         pendingFields: {foreignTaxDefault: null},
-                        errorFields: {foreignTaxDefault: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {foreignTaxDefault: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                     },
                 },
             },
