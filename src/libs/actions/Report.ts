@@ -1450,6 +1450,7 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
+ * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
     const parser = new ExpensiMark();
