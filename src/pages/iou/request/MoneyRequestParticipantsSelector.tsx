@@ -114,7 +114,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             false,
-            isCategorizeOrShareAction ? 0 : undefined,
+            0,
             undefined,
             undefined,
             undefined,
