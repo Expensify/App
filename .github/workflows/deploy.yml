@@ -65,6 +65,6 @@ jobs:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 
       - name: 🚀 Create release to trigger production deploy 🚀
-        run: gh release create ${{ env.PRODUCTION_VERSION }} --notes ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
+        run: gh release create ${{ env.PRODUCTION_VERSION }} --notes --generate-notes
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
