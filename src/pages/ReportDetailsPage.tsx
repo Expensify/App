@@ -92,13 +92,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
 
-    const requestParentReportAction = useMemo(() => {
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-    }, [reportActions, transactionThreadReport?.parentReportActionID]);
-
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
@@ -149,6 +142,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+
+    const requestParentReportAction = useMemo(() => {
+        if (isSingleTransactionView && parentReportAction) {
+            return parentReportAction;
+        }
+        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
+            return null;
+        }
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+    }, [isSingleTransactionView, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
