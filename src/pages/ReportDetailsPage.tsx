@@ -73,6 +73,32 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? ''}`);
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? ''}`, {
+        canEvict: false,
+        selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
+    });
+
+    const reportActions = useMemo(() => {
+        if (!sortedAllReportActions.length) {
+            return [];
+        }
+        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions);
+    }, [sortedAllReportActions]);
+
+    const transactionThreadReportID = useMemo(
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
+        [report.reportID, reportActions, isOffline],
+    );
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+
+    const requestParentReportAction = useMemo(() => {
+        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
+            return null;
+        }
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+    }, [reportActions, transactionThreadReport?.parentReportActionID]);
+
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
@@ -534,7 +560,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
-                            title={translate('reportActionContextMenu.deleteAction', {action: parentReportAction})}
+                            title={translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
                     )}
