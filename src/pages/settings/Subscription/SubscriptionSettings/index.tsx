@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import React, {useState} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -10,6 +9,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +28,7 @@ function SubscriptionSettings() {
     const [autoRenew, setAutoRenew] = useState(true);
     const [autoIncrease, setAutoIncrease] = useState(false);
 
-    const autoRenewalDate = privateSubscription?.endDate ? format(new Date(`${privateSubscription?.endDate}T00:00:00`), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) : '';
+    const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate);
 
     // TODO all actions will be implemented in next phase
     const handleAutoRenewToggle = () => {

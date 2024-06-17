@@ -55,6 +55,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
 
     const isFocusedScreen = useIsFocused();
 
@@ -182,12 +184,14 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 return;
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
+            const isDisabled = (isPolicyExpenseChat && isAdmin) || accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             result.push({
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                isDisabled,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
@@ -210,7 +214,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
     const dismissError = useCallback(
         (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
         },
         [report.reportID],
     );
