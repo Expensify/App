@@ -373,6 +373,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 categoryName: (categoryName: string) => decodeURIComponent(categoryName),
                             },
                         },
+                        [SCREENS.WORKSPACE.UPGRADE]: {
+                            path: ROUTES.WORKSPACE_UPGRADE.route,
+                            parse: {
+                                featureName: (featureName: string) => decodeURIComponent(featureName),
+                            },
+                        },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
