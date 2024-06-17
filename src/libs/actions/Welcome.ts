@@ -6,12 +6,13 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import type TryNewDot from '@src/types/onyx';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
 let isLoadingReportData = true;
-let hasSeenNewUserModal: boolean | null | undefined; // TO DO: Change this key once full specification of tryNewDot is known
+let tryNewDotData: TryNewDot | undefined;
 
 type HasCompletedOnboardingFlowProps = {
     onCompleted?: () => void;
@@ -33,9 +34,9 @@ let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
-let resolveNewUserModalStatus: (value?: Promise<void>) => void | undefined;
+let resolveTryNewDotStatus: (value?: Promise<void>) => void | undefined;
 const hasSeenNewUserModalStatusPromise = new Promise<void>((resolve) => {
-    resolveNewUserModalStatus = resolve;
+    resolveTryNewDotStatus = resolve;
 });
 
 function onServerDataReady(): Promise<void> {
@@ -62,7 +63,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  */
 function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRunsOrNotInHybridApp}: HasOpenedForTheFirstTimeFromHybridAppProps) {
     hasSeenNewUserModalStatusPromise.then(() => {
-        if (NativeModules.HybridAppModule && !hasSeenNewUserModal) {
+        if (NativeModules.HybridAppModule && !tryNewDotData?.classicRedirect?.completedHybridAppOnboarding) {
             onFirstTimeInHybridApp?.();
             return;
         }
@@ -99,14 +100,14 @@ function checkServerDataReady() {
 }
 
 /**
- * Check if user saw explanation modal and dismissed it
+ * Check if user completed HybridApp onboarding
  */
-function checkNewUserModalDataReady() {
-    if (hasSeenNewUserModal === undefined) {
+function checkTryNewDotDataReady() {
+    if (tryNewDotData === undefined) {
         return;
     }
 
-    resolveNewUserModalStatus?.();
+    resolveTryNewDotStatus?.();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
@@ -186,10 +187,10 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_SEEN_NEW_USER_MODAL,
+    key: ONYXKEYS.NVP_TRYNEWDOT,
     callback: (value) => {
-        hasSeenNewUserModal = value;
-        checkNewUserModalDataReady();
+        tryNewDotData = value;
+        checkTryNewDotDataReady();
     },
 });
 
