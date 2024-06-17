@@ -2423,6 +2423,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         // If the item is a chat room, then we just include all the search terms as the keys.
         // Since we don't send back participants with chat rooms in SearchForReports, this ensures they don't get filtered out during this check.
         // Note that the back-end already handles including rooms that have participants matching the search term.
+        // This effectively means that only the back-end logic is used for filtering chat rooms.
         if (item.isChatRoom) {
             keys.push(...searchTerms);
         }
