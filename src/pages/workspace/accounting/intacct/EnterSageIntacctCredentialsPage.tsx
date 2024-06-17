@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -26,8 +27,9 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const policyID = route.params.policyID; // this will be used for connecting to Sage Intacct
 
+    const [sageIntacctCredentialsDraft] = useOnyx(ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const updateDisplayName = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
+    const confirmCredentials = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
         // here we call ConnectToSageIntacct API command
         Navigation.goBack();
     }, []);
@@ -62,7 +64,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM}
                 validate={validate}
-                onSubmit={updateDisplayName}
+                onSubmit={confirmCredentials}
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline
                 shouldValidateOnBlur
@@ -77,7 +79,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
                         label={translate('common.companyID')}
                         aria-label={translate('common.companyID')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue=""
+                        defaultValue={sageIntacctCredentialsDraft?.[INPUT_IDS.COMPANY_ID]}
                         spellCheck={false}
                     />
                 </View>
@@ -89,7 +91,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
                         label={translate('common.userID')}
                         aria-label={translate('common.userID')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue=""
+                        defaultValue={sageIntacctCredentialsDraft?.[INPUT_IDS.USER_ID]}
                         spellCheck={false}
                     />
                 </View>
@@ -101,7 +103,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
                         label={translate('common.password')}
                         aria-label={translate('common.password')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue=""
+                        defaultValue={sageIntacctCredentialsDraft?.[INPUT_IDS.PASSWORD]}
                         spellCheck={false}
                     />
                 </View>

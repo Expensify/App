@@ -487,6 +487,7 @@ const ONYXKEYS = {
         SUBSCRIPTION_SIZE_FORM: 'subscriptionSizeForm',
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
         SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
+        SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
     },
 } as const;
 
