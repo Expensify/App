@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -69,7 +70,14 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
+        <View
+            style={[
+                StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
+                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
+                StyleUtils.getBackgroundColorStyle(theme.border),
+                styles.overflowHidden,
+            ]}
+        >
             <ReceiptImage
                 source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
                 isEReceipt={transactionItem.hasEReceipt}
@@ -87,7 +95,9 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
 
 function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
-    const date = TransactionUtils.getCreated(transactionItem, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+
+    const created = TransactionUtils.getCreated(transactionItem);
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
 
     return (
         <TextWithTooltip
@@ -283,7 +293,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}
