@@ -110,7 +110,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const ListItem = SearchUtils.getListItem(type);
 
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
@@ -129,6 +129,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             customListHeader={
                 <SearchTableHeader
                     data={searchResults?.data}
+                    metadata={searchResults?.search}
                     onSortPress={onSortPress}
                     sortOrder={sortOrder}
                     isSortingAllowed={isSortingAllowed}

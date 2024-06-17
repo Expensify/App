@@ -112,7 +112,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     return false;
 }
 
-function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -138,16 +138,16 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory: true,
-                shouldShowTag: true,
-                shouldShowTax: true,
+                shouldShowCategory: metadata.columnsToShow.shouldShowCategoryColumn,
+                shouldShowTag: metadata.columnsToShow.shouldShowTagColumn,
+                shouldShowTax: metadata.columnsToShow.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
         });
 }
 
-function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
+function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -183,9 +183,9 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory: true,
-                shouldShowTag: true,
-                shouldShowTax: true,
+                shouldShowCategory: metadata.columnsToShow.shouldShowCategoryColumn,
+                shouldShowTag: metadata.columnsToShow.shouldShowTagColumn,
+                shouldShowTax: metadata.columnsToShow.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
@@ -218,8 +218,8 @@ function getListItem<K extends keyof SearchTypeToItemMap>(type: K): SearchTypeTo
     return searchTypeToItemMap[type].listItem;
 }
 
-function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.SearchResults['data'], type: K): ReturnType<SearchTypeToItemMap[K]['getSections']> {
-    return searchTypeToItemMap[type].getSections(data) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
+function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], type: K): ReturnType<SearchTypeToItemMap[K]['getSections']> {
+    return searchTypeToItemMap[type].getSections(data, metadata) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 
 function getSortedSections<K extends keyof SearchTypeToItemMap>(
