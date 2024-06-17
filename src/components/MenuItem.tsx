@@ -564,6 +564,7 @@ function MenuItem(
                                                             avatarID={avatarID}
                                                             fallbackIcon={fallbackIcon}
                                                             size={avatarSize}
+                                                            type={CONST.ICON_TYPE_AVATAR}
                                                         />
                                                     )}
                                                 </View>
