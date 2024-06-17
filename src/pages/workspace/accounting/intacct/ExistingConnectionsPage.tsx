@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPolicyConnectedToSageIntacct} from '@libs/PolicyUtils';
+import {getPoliciesConnectedToSageIntacct} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +22,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const policiesConnectedToSageIntacct = getPolicyConnectedToSageIntacct(policies);
+    const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct(policies);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const policyID = route.params.policyID; // we'll need this when connecting to policy
 
