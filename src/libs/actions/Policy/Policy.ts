@@ -1412,10 +1412,8 @@ function buildOptimisticCustomUnits(): OptimisticCustomUnits {
                     rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
                     enabled: true,
                     currency,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             },
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         },
     };
 
