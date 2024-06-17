@@ -62,7 +62,7 @@ function SubscriptionSettings() {
             titleStyles={styles.textStrong}
             isCentralPane
         >
-            <OfflineWithFeedback pendingAction={privateSubscription?.pendingAction}>
+            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew ?? privateSubscription?.pendingFields?.addNewUsersAutomatically}>
                 <View style={styles.mt5}>
                     <ToggleSettingOptionRow
                         title={translate('subscription.subscriptionSettings.autoRenew')}
