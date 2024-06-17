@@ -2420,6 +2420,13 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             });
         }
 
+        // If the item is a chat room, then we just include all the search terms as the keys.
+        // Since we don't send back participants with chat rooms in SearchForReports, this ensures they don't get filtered out during this check.
+        // Note that the back-end already handles including rooms that have participants matching the search term.
+        if (item.isChatRoom) {
+            keys.concat(searchTerms);
+        }
+
         return keys;
     };
     const matchResults = searchTerms.reduceRight((items, term) => {
