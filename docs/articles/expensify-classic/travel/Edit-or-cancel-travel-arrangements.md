@@ -7,7 +7,7 @@ It's easy to change/cancel a flight booked with Expensify Travel.
 
 To modify or cancel a travel arrangement,
 <br>
-1. Navigate to Expensify Travel on an internet browser by clicking **Travel** and then **Book or Manage Travel**</br>
+1. Navigate to Expensify Travel on an internet browser by clicking **Travel** and then **Book or Manage Travel**
    ![image](https://github.com/Expensify/App/assets/3697042/c2d0959e-3428-489b-80ee-bfc3477fe96e)
 
 <br>
