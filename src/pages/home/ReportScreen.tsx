@@ -437,8 +437,8 @@ function ReportScreen({
         /**
          * Since OpenReport is a write, the response from OpenReport will get dropped while the app is
          * still loading. This usually happens when signing in and deeplinking to a report. Instead,
-         * we'll fetch the report after the app finishes loading. 
-         * 
+         * we'll fetch the report after the app finishes loading.
+         *
          * This needs to be a strict equality check since isLoadingApp is initially undefined until the
          * value is loaded from Onyx
          */
@@ -643,7 +643,7 @@ function ReportScreen({
         }
 
         fetchReportIfNeeded();
-    
+
         // This should only run once when the app is done loading
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [finishedLoadingApp]);
