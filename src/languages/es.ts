@@ -331,6 +331,8 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        companyID: 'Empresa ID',
+        userID: 'Usuario ID',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -2211,6 +2213,16 @@ export default {
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
         },
+        intacct: {
+            sageIntacctSetup: 'Sage Intacct configuración',
+            prerequisitesTitle: 'Antes de conectar...',
+            downloadExpensifyPackage: 'Descargar el paquete Expensify para Sage Intacct',
+            followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
+            enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
+            createNewConnection: 'Crear una nueva conexión',
+            reuseExitingConnection: 'Reutilizar la conexión existente',
+            existingConnections: 'Conexiones existentes',
+        },
         type: {
             free: 'Gratis',
             control: 'Control',
@@ -2399,6 +2411,19 @@ export default {
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            intacct: 'Sage Intacct',
+            integrationName: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default:
+                        return 'Integration';
+                }
+            },
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
@@ -2407,17 +2432,7 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: (currentIntegration?: ConnectionName): string => {
-                switch (currentIntegration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Desconectar QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Desconectar Xero';
-                    default: {
-                        return 'Desconectar integración';
-                    }
-                }
-            },
+            disconnectTitle: (integration?: string): string => `Desconectar ${integration}`,
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -2442,25 +2457,8 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
             },
-            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
-                switch (integrationToConnect) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return '¿Estás seguro de que quieres desconectar Xero para configurar QuickBooks Online?';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return '¿Estás seguro de que quieres desconectar QuickBooks Online para configurar Xero?';
-                    default: {
-                        switch (currentIntegration) {
-                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                                return '¿Estás seguro de que quieres desconectar QuickBooks Online?';
-                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                                return '¿Estás seguro de que quieres desconectar Xero?';
-                            default: {
-                                return '¿Estás seguro de que quieres desconectar integración?';
-                            }
-                        }
-                    }
-                }
-            },
+            disconnectPrompt: (integrationToConnect?: string, currentIntegration?: string): string =>
+                `¿Estás seguro de que quieres desconectar ${currentIntegration} para configurar ${integrationToConnect}?`,
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
