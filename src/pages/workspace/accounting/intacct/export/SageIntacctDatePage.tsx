@@ -23,13 +23,13 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const {date} = policy?.connections?.intacct?.config?.export ?? {};
+    const {exportDate} = policy?.connections?.intacct?.config?.export ?? {};
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.sageIntacct.exportDate.values.${dateType}.label`),
         alternateText: translate(`workspace.sageIntacct.exportDate.values.${dateType}.description`),
         keyForList: dateType,
-        isSelected: date === dateType,
+        isSelected: exportDate === dateType,
     }));
 
     const headerContent = useMemo(
@@ -43,12 +43,12 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== date) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {date: row.value});
+            if (row.value !== exportDate) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {exportDate: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID));
         },
-        [date, policyID],
+        [exportDate, policyID],
     );
 
     return (

@@ -31,7 +31,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
             {
                 description: translate('workspace.sageIntacct.exportDate.label'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID)),
-                title: exportConfig.date ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.date}.label`) : translate(`workspace.sageIntacct.notConfigured`),
+                title: exportConfig.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : translate(`workspace.sageIntacct.notConfigured`),
                 hasError: !!errorFields?.exportDate,
                 pendingAction: pendingFields?.export,
             },
