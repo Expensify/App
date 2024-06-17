@@ -49,8 +49,8 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${contextValue.report.policyID ?? 0}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${contextValue.report.policyID ?? '-1'}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID ?? '-1'}`);
 
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
 
@@ -58,7 +58,7 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
         () =>
             shouldHideThreadDividerLine ? (
                 <UnreadActionIndicator
-                    reportActionID={contextValue.report.reportID ?? ''}
+                    reportActionID={contextValue.report.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 />
             ) : (
