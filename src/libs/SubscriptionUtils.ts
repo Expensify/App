@@ -57,7 +57,8 @@ function calculateRemainingFreeTrialDays(): number {
         return 0;
     }
 
-    const difference = differenceInCalendarDays(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date()), new Date());
+    const currentDate = new Date();
+    const difference = differenceInCalendarDays(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate), currentDate);
     return difference < 0 ? 0 : difference;
 }
 
@@ -70,8 +71,8 @@ function isUserOnFreeTrial(): boolean {
     }
 
     const currentDate = new Date();
-    const firstDayFreeTrialDate = parseDate(firstDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date());
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date());
+    const firstDayFreeTrialDate = parseDate(firstDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
+    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
 
     return isAfter(currentDate, firstDayFreeTrialDate) && isBefore(currentDate, lastDayFreeTrialDate);
 }
@@ -85,7 +86,7 @@ function hasUserFreeTrialEnded(): boolean {
     }
 
     const currentDate = new Date();
-    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, new Date());
+    const lastDayFreeTrialDate = parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate);
 
     return isAfter(currentDate, lastDayFreeTrialDate);
 }
@@ -101,13 +102,15 @@ function doesUserHavePaymentCardAdded(): boolean {
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(policyID: string): boolean {
+    const currentDate = new Date();
+
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
     // past due and is past its grace period end.
     for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriodCollection ?? {})) {
         const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
 
-        if (userBillingGracePeriodEnd && isAfter(new Date(), fromUnixTime(userBillingGracePeriodEnd.value))) {
+        if (userBillingGracePeriodEnd && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {
             // Extracts the owner account ID from the collection member key.
             const ownerAccountID = entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length);
 
@@ -120,7 +123,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
-    if (ownerBillingGraceEndPeriod && amountOwed !== undefined && isAfter(new Date(), fromUnixTime(ownerBillingGraceEndPeriod))) {
+    if (ownerBillingGraceEndPeriod && amountOwed !== undefined && isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))) {
         return true;
     }
 
