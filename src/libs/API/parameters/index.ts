@@ -229,4 +229,5 @@ export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscription
 export type {default as SignUpUserParams} from './SignUpUserParams';
 export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscriptionAutoRenewParams';
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
+export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';

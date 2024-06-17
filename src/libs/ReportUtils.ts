@@ -6779,6 +6779,10 @@ function getTripTransactions(tripRoomReportID: string | undefined): Transaction[
     return tripTransactionReportIDs.flatMap((reportID) => TransactionUtils.getAllReportTransactions(reportID));
 }
 
+function getTripIDFromTransactionParentReport(transactionParentReport: OnyxEntry<Report> | undefined | null): string | undefined {
+    return getReport(transactionParentReport?.parentReportID)?.tripData?.tripID;
+}
+
 /**
  * Checks if report contains actions with errors
  */
@@ -7224,6 +7228,7 @@ export {
     updateReportPreview,
     temporary_getMoneyRequestOptions,
     getTripTransactions,
+    getTripIDFromTransactionParentReport,
     buildOptimisticInvoiceReport,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,

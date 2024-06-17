@@ -1,8 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
@@ -34,6 +35,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
+import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -99,6 +101,8 @@ function MoneyRequestView({
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'] ?? null;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
@@ -169,6 +173,8 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -544,6 +550,15 @@ function MoneyRequestView({
                             }
                         />
                     </OfflineWithFeedback>
+                )}
+                {shouldShowViewTripDetails && (
+                    <MenuItem
+                        title={translate('travel.viewTripDetails')}
+                        icon={Expensicons.Suitcase}
+                        iconRight={Expensicons.NewWindow}
+                        shouldShowRightIcon
+                        onPress={() => Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))}
+                    />
                 )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
