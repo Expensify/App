@@ -142,7 +142,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const successfulDate = connectedIntegration ? policy?.connections?.[connectedIntegration]?.lastSync?.successfulDate : undefined;
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
@@ -242,7 +242,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               if (!(tenants.length > 1)) {
                                   return;
                               }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                           },
                           pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
                           brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
