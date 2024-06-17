@@ -168,6 +168,11 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+
+        /** Whether we should show the transaction year.
+         * This is true if at least one transaction in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &
@@ -397,6 +402,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /** This may improve scroll performance for large lists */
+    removeClippedSubviews?: boolean;
 
     /**
      * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.

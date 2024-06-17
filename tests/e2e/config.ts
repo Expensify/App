@@ -73,15 +73,14 @@ export default {
         [TEST_NAMES.OpenChatFinderPage]: {
             name: TEST_NAMES.OpenChatFinderPage,
         },
-        // TODO: Fix text and enable again
-        // [TEST_NAMES.ReportTyping]: {
-        //     name: TEST_NAMES.ReportTyping,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        // },
+        [TEST_NAMES.ReportTyping]: {
+            name: TEST_NAMES.ReportTyping,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+        },
         [TEST_NAMES.ChatOpening]: {
             name: TEST_NAMES.ChatOpening,
             // #announce Chat with many messages

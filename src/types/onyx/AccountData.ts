@@ -1,15 +1,7 @@
-import type {BankName} from './Bank';
+import type {BankAccountAdditionalData} from './BankAccount';
 import type * as OnyxCommon from './OnyxCommon';
 
-type AdditionalData = {
-    isP2PDebitCard?: boolean;
-    beneficialOwners?: string[];
-    currency?: string;
-    bankName?: BankName;
-    fieldsType?: string;
-    country?: string;
-};
-
+/** Model of bank account data */
 type AccountData = {
     /** The masked bank account number */
     accountNumber?: string;
@@ -38,13 +30,14 @@ type AccountData = {
     /** All user emails that have access to this bank account */
     sharees?: string[];
 
+    /** Institution that processes the account payments */
     processor?: string;
 
     /** The bankAccountID in the bankAccounts db */
     bankAccountID?: number;
 
     /** All data related to the bank account */
-    additionalData?: AdditionalData;
+    additionalData?: BankAccountAdditionalData;
 
     /** The bank account type */
     type?: string;
@@ -52,6 +45,7 @@ type AccountData = {
     /** Any error message to show */
     errors?: OnyxCommon.Errors;
 
+    /** The debit card ID */
     fundID?: number;
 };
 

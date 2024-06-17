@@ -68,7 +68,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourAddress')}</Text>
-                <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
+                <Text style={[styles.textSupporting]}>{translate('personalInfoStep.noPOBoxesPlease')}</Text>
                 <AddressFormFields
                     inputKeys={INPUT_KEYS}
                     streetTranslationKey="common.streetAddress"

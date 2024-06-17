@@ -13,7 +13,6 @@ function TransactionListItem<TItem extends ListItem>({
     canSelectMultiple,
     onSelectRow,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
@@ -42,7 +41,6 @@ function TransactionListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
@@ -50,16 +48,13 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {(hovered?: boolean) => (
-                <TransactionListItemRow
-                    item={transactionItem}
-                    showTooltip={showTooltip}
-                    onButtonPress={() => {
-                        onSelectRow(item);
-                    }}
-                    isHovered={hovered}
-                />
-            )}
+            <TransactionListItemRow
+                item={transactionItem}
+                showTooltip={showTooltip}
+                onButtonPress={() => {
+                    onSelectRow(item);
+                }}
+            />
         </BaseListItem>
     );
 }

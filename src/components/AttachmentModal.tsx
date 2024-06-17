@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -282,9 +282,9 @@ function AttachmentModal({
      * Detach the receipt and close the modal.
      */
     const deleteAndCloseModal = useCallback(() => {
-        IOU.detachReceipt(transaction?.transactionID ?? '');
+        IOU.detachReceipt(transaction?.transactionID ?? '-1');
         setIsDeleteReceiptConfirmModalVisible(false);
-        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? ''));
+        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID ?? '-1'));
     }, [transaction, report]);
 
     const isValidFile = useCallback((fileObject: FileObject) => {
@@ -427,8 +427,8 @@ function AttachmentModal({
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
                             iouType,
-                            transaction?.transactionID ?? '',
-                            report?.reportID ?? '',
+                            transaction?.transactionID ?? '-1',
+                            report?.reportID ?? '-1',
                             Navigation.getActiveRouteWithoutParams(),
                         ),
                     );
@@ -616,11 +616,10 @@ AttachmentModal.displayName = 'AttachmentModal';
 export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     transaction: {
         key: ({report}) => {
-            const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-            const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
+            const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+            const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '-1' : '-1';
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
-        initWithStoredValues: false,
     },
 })(memo(AttachmentModal));
 
