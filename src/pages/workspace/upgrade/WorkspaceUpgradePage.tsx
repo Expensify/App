@@ -36,7 +36,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicator
             testID="workspaceUpgradePage"
         >
             <HeaderWithBackButton
