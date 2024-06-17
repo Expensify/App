@@ -256,6 +256,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         iconFill={theme.icon}
                         medium
                         icon={Expensicons.Crosshair}
+                        accessibilityLabel={translate('common.center')}
                     />
                 </View>
             </View>
