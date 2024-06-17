@@ -2424,7 +2424,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         // Since we don't send back participants with chat rooms in SearchForReports, this ensures they don't get filtered out during this check.
         // Note that the back-end already handles including rooms that have participants matching the search term.
         if (item.isChatRoom) {
-            keys.concat(searchTerms);
+            keys.push(...searchTerms);
         }
 
         return keys;
