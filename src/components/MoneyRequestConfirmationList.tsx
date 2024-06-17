@@ -35,6 +35,7 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -133,7 +134,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     selectedParticipants: Participant[];
 
     /** Payee of the expense with login */
-    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails> | null;
 
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
@@ -184,7 +185,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 type MoneyRequestConfirmationListItem = Participant | ReportUtils.OptionData;
 
 function MoneyRequestConfirmationList({
-    transaction = null,
+    transaction,
     onSendMoney,
     onConfirm,
     iouType = CONST.IOU.TYPE.SUBMIT,
@@ -240,8 +241,8 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
-    const transactionID = transaction?.transactionID ?? '';
-    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+    const transactionID = transaction?.transactionID ?? '-1';
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '-1';
 
     useEffect(() => {
         if (customUnitRateID || !canUseP2PDistanceRequests) {
@@ -320,7 +321,7 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
-    const [formError, debouncedFormError, setFormError] = useDebouncedState('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
@@ -348,12 +349,12 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -510,7 +511,7 @@ function MoneyRequestConfirmationList({
             rightElement: (
                 <MoneyRequestAmountInput
                     autoGrow={false}
-                    amount={transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount}
+                    amount={transaction?.splitShares?.[participantOption.accountID ?? -1]?.amount}
                     currency={iouCurrencyCode}
                     prefixCharacter={currencySymbol}
                     disableKeyboard={false}
@@ -523,7 +524,7 @@ function MoneyRequestConfirmationList({
                     containerStyle={[styles.textInputContainer, amountWidth]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
-                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value))}
+                    onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
                 />
             ),
@@ -709,7 +710,7 @@ function MoneyRequestConfirmationList({
             if (selectedParticipants.length === 0) {
                 return;
             }
-            if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null)))) {
+            if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction)))) {
                 setFormError('iou.error.invalidMerchant');
                 return;
             }
@@ -718,20 +719,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (formError) {
-                return;
-            }
-
-            if (iouType === CONST.IOU.TYPE.PAY) {
-                if (!paymentMethod) {
-                    return;
-                }
-
-                setDidConfirm(true);
-
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
-            } else {
+            if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
@@ -739,33 +727,49 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null)) {
+                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction)) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
+                    return;
+                }
+
+                if (formError) {
                     return;
                 }
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
+            } else {
+                if (!paymentMethod) {
+                    return;
+                }
+                if (formError) {
+                    return;
+                }
+
+                setDidConfirm(true);
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney?.(paymentMethod);
             }
         },
         [
             selectedParticipants,
+            isEditingSplitBill,
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
+            iouCategory.length,
+            formError,
             iouType,
+            setFormError,
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            iouCategory,
             isDistanceRequestWithPendingRoute,
             iouAmount,
-            isEditingSplitBill,
-            formError,
-            setFormError,
             onConfirm,
         ],
     );
@@ -817,7 +821,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={!shouldShowReadOnlySplits ? debouncedFormError : formError}
+                        message={!shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
                     />
                 )}
 
@@ -834,10 +838,11 @@ function MoneyRequestConfirmationList({
         policyID,
         splitOrRequestOptions,
         formError,
-        debouncedFormError,
-        shouldShowReadOnlySplits,
         styles.ph1,
         styles.mb2,
+        shouldShowReadOnlySplits,
+        debouncedFormError,
+        translate,
     ]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
@@ -861,8 +866,8 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
                 />
             ),
             shouldShow: shouldShowSmartScanFields,
@@ -1096,7 +1101,7 @@ function MoneyRequestConfirmationList({
         isThumbnail,
         fileExtension,
         isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
 
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
@@ -1186,7 +1191,9 @@ function MoneyRequestConfirmationList({
                         isLabelHoverable={false}
                         interactive={!isReadOnly && canUpdateSenderWorkspace}
                         onPress={() => {
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '-1', reportID, Navigation.getActiveRouteWithoutParams()),
+                            );
                         }}
                         style={styles.moneyRequestMenuItem}
                         labelStyle={styles.mt2}

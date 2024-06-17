@@ -1,4 +1,5 @@
 /* eslint-disable @lwc/lwc/no-async-await */
+import {DeviceEventEmitter} from 'react-native';
 import type {NetworkCacheEntry, NetworkCacheMap} from '@libs/E2E/types';
 
 const LOG_TAG = `[E2E][NetworkInterceptor]`;
@@ -93,6 +94,33 @@ function hashFetchArgs(args: Parameters<typeof fetch>) {
     return `${url}${JSON.stringify(headers)}`;
 }
 
+let activeRequestsCount = 0;
+
+const ACTIVE_REQUESTS_QUEUE_IS_EMPTY_EVENT = 'activeRequestsQueueIsEmpty';
+
+/**
+ * Assures that ongoing network requests are empty. **Highly desirable** to call this function before closing the app.
+ * Otherwise if some requests are persisted - they will be executed on the next app start. And it can lead to a situation
+ * where we can have `N * M` requests (where `N` is the number of app run per test and `M` is the number of test suites)
+ * and such big amount of requests can lead to a situation, where first app run (in test suite to cache network requests)
+ * may be blocked by spinners and lead to unbelievable big time execution, which eventually will be bigger than timeout and
+ * will lead to a test failure.
+ */
+function waitForActiveRequestsToBeEmpty(): Promise<void> {
+    console.debug('Waiting for requests queue to be empty...', activeRequestsCount);
+
+    if (activeRequestsCount === 0) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        const subscription = DeviceEventEmitter.addListener(ACTIVE_REQUESTS_QUEUE_IS_EMPTY_EVENT, () => {
+            subscription.remove();
+            resolve();
+        });
+    });
+}
+
 /**
  * Install a network interceptor by overwriting the global fetch function:
  * - Overwrites fetch globally with a custom implementation
@@ -145,6 +173,8 @@ export default function installNetworkInterceptor(
             console.debug('!!! Missed cache hit for url:', url);
         }
 
+        activeRequestsCount++;
+
         return originalFetch(...args)
             .then(async (res) => {
                 if (networkCache != null) {
@@ -166,6 +196,16 @@ export default function installNetworkInterceptor(
             .then((res) => {
                 console.debug(LOG_TAG, 'Network cache updated!');
                 return res;
+            })
+            .finally(() => {
+                console.debug('Active requests count:', activeRequestsCount);
+
+                activeRequestsCount--;
+
+                if (activeRequestsCount === 0) {
+                    DeviceEventEmitter.emit(ACTIVE_REQUESTS_QUEUE_IS_EMPTY_EVENT);
+                }
             });
     };
 }
+export {waitForActiveRequestsToBeEmpty};

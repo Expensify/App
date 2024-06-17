@@ -523,6 +523,16 @@ const CONST = {
             shortcutKey: 'Tab',
             modifiers: [],
         },
+        DEBUG: {
+            descriptionKey: 'openDebug',
+            shortcutKey: 'D',
+            modifiers: ['CTRL'],
+            trigger: {
+                DEFAULT: {input: 'd', modifierFlags: keyModifierControl},
+                [PLATFORM_OS_MACOS]: {input: 'd', modifierFlags: keyModifierCommand},
+                [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
+            },
+        },
     },
     KEYBOARD_SHORTCUTS_TYPES: {
         NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
@@ -569,6 +579,7 @@ const CONST = {
     LICENSES_URL: `${USE_EXPENSIFY_URL}/licenses`,
     ACH_TERMS_URL: `${USE_EXPENSIFY_URL}/achterms`,
     WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/walletagreement`,
+    BANCORP_WALLET_AGREEMENT_URL: `${USE_EXPENSIFY_URL}/bancorp-bank-wallet-terms-of-service`,
     HELP_LINK_URL: `${USE_EXPENSIFY_URL}/usa-patriot-act`,
     ELECTRONIC_DISCLOSURES_URL: `${USE_EXPENSIFY_URL}/esignagreement`,
     GITHUB_RELEASE_URL: 'https://api.github.com/repos/expensify/app/releases/latest',
@@ -597,7 +608,6 @@ const CONST = {
         ADMIN_POLICIES_URL: 'admin_policies',
         ADMIN_DOMAINS_URL: 'admin_domains',
         INBOX: 'inbox',
-        DISMMISSED_REASON: '?dismissedReason=missingFeatures',
     },
 
     SIGN_IN_FORM_WIDTH: 300,
@@ -1429,6 +1439,7 @@ const CONST = {
         },
         STEP: {
             // In the order they appear in the Wallet flow
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
             ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
             ADDITIONAL_DETAILS_KBA: 'AdditionalDetailsKBAStep',
             ONFIDO: 'OnfidoStep',
@@ -1465,6 +1476,7 @@ const CONST = {
             CONCIERGE: 'CONCIERGE_NAVIGATE',
         },
         MTL_WALLET_PROGRAM_ID: '760',
+        BANCORP_WALLET_PROGRAM_ID: '660',
         PROGRAM_ISSUERS: {
             EXPENSIFY_PAYMENTS: 'Expensify Payments LLC',
             BANCORP_BANK: 'The Bancorp Bank',
@@ -3307,6 +3319,11 @@ const CONST = {
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
+    TRAVEL_DOT_URL: 'https://travel.expensify.com',
+    STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
+    TRIP_ID_PATH: (tripID: string) => `trips/${tripID}`,
+    SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
+    STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
@@ -3461,6 +3478,8 @@ const CONST = {
         TIMER: 'timer',
         /** Use for toolbars containing action buttons or components. */
         TOOLBAR: 'toolbar',
+        /** Use for navigation elements */
+        NAVIGATION: 'navigation',
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
@@ -4852,6 +4871,8 @@ const CONST = {
             TRANSLATION_KEY: 'feedbackSurvey.businessClosing',
         },
     },
+
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -4860,6 +4881,8 @@ type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType};
+type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
+
+export type {Country, IOUAction, IOUType, RateAndUnit, OnboardingPurposeType, IOURequestType, SubscriptionType};
 
 export default CONST;

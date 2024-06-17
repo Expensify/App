@@ -7,9 +7,16 @@
 import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
+import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
+import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
+    exitApp: () => void;
+};
+
+type RNTextInputResetModule = {
+    resetKeyboardInput: (nodeHandle: number | null) => void;
 };
 
 declare module 'react-native' {
@@ -367,6 +374,9 @@ declare module 'react-native' {
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
         HybridAppModule: HybridAppModule;
+        StartupTimer: StartupTimer;
+        RNTextInputReset: RNTextInputResetModule;
+        EnvironmentChecker: EnvironmentCheckerModule;
     }
 
     namespace Animated {
