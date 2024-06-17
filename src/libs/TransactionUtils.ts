@@ -405,7 +405,7 @@ function getCategory(transaction: OnyxInputOrEntry<Transaction>): string {
  * Return the cardID from the transaction.
  */
 function getCardID(transaction: Transaction): number {
-    return transaction?.cardID ?? 0;
+    return transaction?.cardID ?? -1;
 }
 
 /**
@@ -459,13 +459,16 @@ function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number
     return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
+function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
+}
+
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const created = getCreated(transaction);
     return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
@@ -483,7 +486,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const cardID = transaction?.cardID ?? 0;
+    const cardID = transaction?.cardID ?? -1;
     return isCorporateCard(cardID);
 }
 
@@ -813,6 +816,7 @@ export {
     getMerchant,
     getMCCGroup,
     getCreated,
+    getFormattedCreated,
     getCategory,
     getBillable,
     getTag,

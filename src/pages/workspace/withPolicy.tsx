@@ -44,7 +44,7 @@ type PolicyRoute = RouteProp<
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '';
+    return route?.params?.policyID ?? '-1';
 }
 
 type WithPolicyOnyxProps = {
