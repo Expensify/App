@@ -1,4 +1,3 @@
-import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -7,7 +6,7 @@ import SCREENS from '@src/SCREENS';
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: getSplashBackgroundColor(),
+    splashBG: colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
@@ -83,6 +82,7 @@ const darkTheme = {
     ourMentionBG: colors.green600,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
+    trialBannerBackgroundColor: colors.green700,
     skeletonLHNIn: colors.productDark400,
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
