@@ -354,6 +354,20 @@ describe('ReportUtils', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
 
+        it("returns false if the user is not on free trial", async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null, // not on free trial
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
         it("returns false if the user free trial hasn't ended yet", async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial not ended
