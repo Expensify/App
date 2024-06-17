@@ -218,7 +218,11 @@ function getListItem<K extends keyof SearchTypeToItemMap>(type: K): SearchTypeTo
     return searchTypeToItemMap[type].listItem;
 }
 
-function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], type: K): ReturnType<SearchTypeToItemMap[K]['getSections']> {
+function getSections<K extends keyof SearchTypeToItemMap>(
+    data: OnyxTypes.SearchResults['data'],
+    metadata: OnyxTypes.SearchResults['search'],
+    type: K,
+): ReturnType<SearchTypeToItemMap[K]['getSections']> {
     return searchTypeToItemMap[type].getSections(data, metadata) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 

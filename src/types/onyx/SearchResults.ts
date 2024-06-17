@@ -46,7 +46,7 @@ type ColumnsToShow = {
 
     /** Whether the tax column should be shown */
     shouldShowTaxColumn: boolean;
-}
+};
 
 /** Model of search result state */
 type SearchResultsInfo = {
