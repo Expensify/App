@@ -186,11 +186,9 @@ function subscribeToNetworkStatus(): () => void {
             setOfflineStatus(!isInternetReachable, 'Initial debounced network status check');
             setNetWorkStatus(isInternetReachable);
         });
-    }, 1000); // 1 second delay
+    }, 1000);
 
-    // Perform initial status check
-    debouncedInitialStatusCheck();
-    
+    debouncedInitialStatusCheck();    
 
     return () => {
         unsubscribeFromBackendReachability?.();
