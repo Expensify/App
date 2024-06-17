@@ -150,7 +150,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
-    const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
+    const isActionOwner =
+        typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
     let moneyRequestReport;
@@ -160,7 +161,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         moneyRequestReport = parentReport;
     }
 
-    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
+    const canDeleteRequest =
+        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -507,7 +509,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         setIsDeleteModalVisible(false);
     }, [iouTransactionID, isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, parentReportAction, report?.reportID]);
-
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
