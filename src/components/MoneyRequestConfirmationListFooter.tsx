@@ -506,11 +506,16 @@ function MoneyRequestConfirmationListFooter({
         },
     ];
 
-    const primaryFields = classifiedFields.filter((classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary).map((primaryField) => primaryField.item);
+    const primaryFields: JSX.Element[] = [];
+    const supplementaryFields: JSX.Element[] = [];
 
-    const supplementaryFields = classifiedFields
-        .filter((classifiedField) => classifiedField.shouldShow && classifiedField.isSupplementary)
-        .map((supplementaryField) => supplementaryField.item);
+    classifiedFields.forEach((field) => {
+        if (field.shouldShow && !field.isSupplementary) {
+            primaryFields.push(field.item);
+        } else if (field.shouldShow && field.isSupplementary) {
+            supplementaryFields.push(field.item);
+        }
+    });
 
     const receiptThumbnailContent = useMemo(
         () => (
