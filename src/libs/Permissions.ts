@@ -27,7 +27,6 @@ function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
 }
 
-
 function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | undefined): boolean {
     // Allow using P2P distance request for TrackExpense outside of the beta, because that project doesn't want to be limited by the more cautious P2P distance beta
     return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK;

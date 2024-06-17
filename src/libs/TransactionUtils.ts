@@ -12,7 +12,7 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
-import Permissions from "./Permissions";
+import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
