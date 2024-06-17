@@ -1,16 +1,15 @@
 import React from 'react';
-import BaseTestToolMenu from './BaseTestToolMenu';
 import testCrash from '@libs/testCrash';
 import Button from "@components/Button";
 import TestToolRow from "@components/TestToolRow";
 import useLocalize from "@hooks/useLocalize";
+import BaseTestToolMenu from './BaseTestToolMenu';
 
-function TestToolMenu(props) {
+function TestToolMenu() {
     const {translate} = useLocalize();
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <BaseTestToolMenu {...props}>
+        <BaseTestToolMenu>
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.nativeCrash')}>
                 <Button
                     small
