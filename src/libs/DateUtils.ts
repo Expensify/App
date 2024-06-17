@@ -43,7 +43,7 @@ import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 import Log from './Log';
 
-type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -704,15 +704,6 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
- * Return the date with full format if the created date is the current date.
- * Otherwise return the created date.
- */
-function enrichMoneyRequestTimestamp(created: string): string {
-    const now = new Date();
-    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
-    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
-}
-/**
  * Returns the last business day of given date month
  *
  * param {Date} inputDate
@@ -798,6 +789,11 @@ function getFormattedTransportDate(date: Date): string {
     return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
 }
 
+function doesDateBelongToAPastYear(date: string): boolean {
+    const transactionYear = new Date(date).getFullYear();
+    return transactionYear !== new Date().getFullYear();
+}
+
 const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
@@ -836,11 +832,11 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
-    enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
     getFormattedDateRange,
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
+    doesDateBelongToAPastYear,
 };
 
 export default DateUtils;
