@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import AccountUtils from './AccountUtils';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -62,6 +63,16 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
 }
 
 /**
+ * A mini report object that contains only the necessary information to sort reports.
+ * This is used to avoid copying the entire report object and only the necessary information.
+ */
+type MiniReport = {
+    reportID?: string;
+    displayName: string;
+    lastVisibleActionCreated?: string;
+};
+
+/**
  * @returns An array of reportIDs sorted in the proper order
  */
 function getOrderedReportIDs(
@@ -80,49 +91,46 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
-    let reportsToDisplay: Array<ChatReportSelector & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
-
-    allReportsDictValues.forEach((report) => {
+    let reportsToDisplay = allReportsDictValues.filter((report) => {
         if (!report) {
-            return;
+            return false;
         }
 
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
+        const parentReportActions = allReportActions?.[parentReportActionsKey];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
+        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
+        const doesReportHaveViolations = !!(
+            betas?.includes(CONST.BETAS.VIOLATIONS) &&
+            !!parentReportAction &&
+            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
+        );
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
-
-        if (hasErrorsOtherThanFailedReceipt) {
-            reportsToDisplay.push({
-                ...report,
-                hasErrorsOtherThanFailedReceipt: true,
-            });
-            return;
-        }
-
         const isSystemChat = ReportUtils.isSystemChat(report);
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
-
         if (isHidden && !shouldOverrideHidden) {
-            return;
+            return false;
         }
 
-        if (
-            ReportUtils.shouldReportBeInOptionList({
-                report,
-                currentReportId: currentReportId ?? '',
-                isInFocusMode,
-                betas,
-                policies: policies as OnyxCollection<Policy>,
-                excludeEmptyChats: true,
-                doesReportHaveViolations,
-                includeSelfDM: true,
-            })
-        ) {
-            reportsToDisplay.push(report);
+        const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+
+        if (currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS)) {
+            return true;
         }
+
+        return ReportUtils.shouldReportBeInOptionList({
+            report,
+            currentReportId: currentReportId ?? '-1',
+            isInFocusMode,
+            betas,
+            policies: policies as OnyxCollection<Policy>,
+            excludeEmptyChats: true,
+            doesReportHaveViolations,
+            includeSelfDM: true,
+        });
     });
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -134,11 +142,10 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    const pinnedAndGBRReports: Array<OnyxEntry<Report>> = [];
-    const draftReports: Array<OnyxEntry<Report>> = [];
-    const nonArchivedReports: Array<OnyxEntry<Report>> = [];
-    const archivedReports: Array<OnyxEntry<Report>> = [];
-    const errorReports: Array<OnyxEntry<Report>> = [];
+    const pinnedAndGBRReports: MiniReport[] = [];
+    const draftReports: MiniReport[] = [];
+    const nonArchivedReports: MiniReport[] = [];
+    const archivedReports: MiniReport[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
@@ -147,33 +154,28 @@ function getOrderedReportIDs(
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
-        let report = reportToDisplay;
-        if (report) {
-            report = {
-                ...report,
-                displayName: ReportUtils.getReportName(report),
-            };
-        }
+        const report = reportToDisplay as OnyxEntry<Report>;
+        const miniReport: MiniReport = {
+            reportID: report?.reportID,
+            displayName: ReportUtils.getReportName(report),
+            lastVisibleActionCreated: report?.lastVisibleActionCreated,
+        };
 
         const isPinned = report?.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
-            pinnedAndGBRReports.push(report);
-        } else if (hasValidDraftComment(report?.reportID ?? '')) {
-            draftReports.push(report);
+            pinnedAndGBRReports.push(miniReport);
+        } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
+            draftReports.push(miniReport);
         } else if (ReportUtils.isArchivedRoom(report)) {
-            archivedReports.push(report);
-        } else if (report?.hasErrorsOtherThanFailedReceipt) {
-            errorReports.push(report);
+            archivedReports.push(miniReport);
         } else {
-            nonArchivedReports.push(report);
+            nonArchivedReports.push(miniReport);
         }
     });
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-    errorReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
-
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
 
     if (isInDefaultMode) {
@@ -194,7 +196,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
     return LHNReports;
 }
 
@@ -295,7 +297,7 @@ function getOptionData({
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
-    result.parentReportID = report.parentReportID ?? '';
+    result.parentReportID = report.parentReportID ?? '-1';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
