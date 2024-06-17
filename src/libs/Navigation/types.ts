@@ -249,6 +249,10 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+        canChangeSize: 0 | 1;
+    };
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;

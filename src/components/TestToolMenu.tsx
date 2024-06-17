@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ApiUtils from '@libs/ApiUtils';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Network from '@userActions/Network';
@@ -119,11 +118,10 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default compose(
+export default withNetwork()(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
-    }),
-    withNetwork(),
-)(TestToolMenu);
+    })(TestToolMenu),
+);
