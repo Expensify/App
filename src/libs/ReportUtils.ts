@@ -5370,7 +5370,6 @@ function shouldReportBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report) &&
             !isInvoiceRoom(report) &&
-
             // We omit sending back participants for default rooms when searching for reports since they aren't needed to display the results and can get very large.
             // So we allow showing default rooms with no participants when searching for reports.
             // In any other circumstances we should never have default rooms with no participants in Onyx.
