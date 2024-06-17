@@ -64,8 +64,8 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                             y={48}
                             width={36}
                             height={40}
-                            rx={6}
-                            ry={6}
+                            rx={4}
+                            ry={4}
                         />
                         <Rect
                             x={64}
