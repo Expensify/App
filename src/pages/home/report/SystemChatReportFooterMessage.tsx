@@ -48,7 +48,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
                 return (
                     <>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}
@@ -70,7 +70,14 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
             containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
             icon={Expensicons.Lightbulb}
-            content={<Text suppressHighlighting>{content}</Text>}
+            content={
+                <Text
+                    suppressHighlighting
+                    style={styles.flex1}
+                >
+                    {content}
+                </Text>
+            }
         />
     );
 }

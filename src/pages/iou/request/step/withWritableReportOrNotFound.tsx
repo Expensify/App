@@ -92,13 +92,13 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
         },
         isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,
         },
         reportDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }

@@ -183,7 +183,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
         // If the current focused route is the same as the target focused route, we don't want to navigate.
-        if (currentFocusedRoute?.name === targetFocusedRoute?.name) {
+        if (
+            currentFocusedRoute?.name === targetFocusedRoute?.name &&
+            shallowCompare(currentFocusedRoute?.params as Record<string, string | undefined>, targetFocusedRoute?.params as Record<string, string | undefined>)
+        ) {
             return;
         }
 

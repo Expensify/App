@@ -95,6 +95,17 @@ Onyx.connect({
     },
 });
 
+let accountID = 0;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        if (!session?.accountID) {
+            return;
+        }
+        accountID = session.accountID;
+    },
+});
+
 /**
  * Set interval to periodically (re)check backend status.
  * Because backend unreachability might imply lost internet connection, we need to check internet reachability.
@@ -111,7 +122,7 @@ function subscribeToBackendAndInternetReachability(): () => void {
             return;
         }
         // Using the API url ensures reachability is tested over internet
-        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`, {
+        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`, {
             method: 'GET',
             cache: 'no-cache',
         })
