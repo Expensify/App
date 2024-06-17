@@ -10,8 +10,6 @@ type TableListItemSkeletonProps = {
     fixedNumItems?: number;
 };
 
-const circleRadius = 8;
-const padding = 12;
 const barHeight = '10';
 const shortBarWidth = '40';
 const longBarWidth = '120';
@@ -29,69 +27,69 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                 renderSkeletonItem={() => (
                     <>
                         <Circle
-                            cx={padding + circleRadius}
-                            cy={padding + circleRadius}
-                            r={circleRadius}
+                            cx={24}
+                            cy={26}
+                            r={8}
                         />
 
                         <Rect
-                            x={padding + circleRadius * 2 + 4}
-                            y={padding + circleRadius - 2}
+                            x={36}
+                            y={24}
                             width={40}
                             height={4}
                         />
                         <Circle
-                            cx={padding + circleRadius * 2 + 4 + windowWidth * 0.2 + circleRadius * 2 + circleRadius}
-                            cy={padding + circleRadius}
-                            r={circleRadius}
+                            cx={96}
+                            cy={26}
+                            r={8}
                         />
 
                         <Rect
-                            x={padding + circleRadius * 2 + 4 + windowWidth * 0.2 + circleRadius * 2 + circleRadius * 2 + 4}
-                            y={padding + circleRadius - 2}
+                            x={108}
+                            y={24}
                             width={40}
                             height={4}
                         />
                         <Rect
-                            x={windowWidth - padding * 3 - windowWidth * 0.2}
-                            y={padding + circleRadius - 12}
-                            width={windowWidth * 0.2}
-                            height={24}
-                            rx={12}
-                            ry={12}
+                            x={windowWidth - 120}
+                            y={12}
+                            width={80}
+                            height={28}
+                            rx={14}
+                            ry={14}
                         />
 
                         <Rect
-                            x={padding}
-                            y={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT - padding - 36}
+                            x={16}
+                            y={48}
                             width={36}
-                            height={36}
+                            height={40}
                             rx={6}
                             ry={6}
                         />
                         <Rect
-                            x={padding + 36 + circleRadius}
-                            y={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT - padding - 36 + 18 - circleRadius - 2}
-                            width={windowWidth * 0.4}
-                            height={circleRadius}
+                            x={64}
+                            y={57}
+                            width={124}
+                            height={8}
                         />
                         <Rect
-                            x={padding + 36 + circleRadius}
-                            y={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT - padding - 36 + 18 + 2}
-                            width={windowWidth * 0.2}
-                            height={circleRadius}
+                            x={64}
+                            y={71}
+                            width={60}
+                            height={8}
                         />
                         <Rect
-                            x={windowWidth - padding * 3 - windowWidth * 0.3}
-                            y={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT - padding - 36 + 18 - circleRadius - 2}
-                            width={windowWidth * 0.3}
-                            height={circleRadius}
+                            x={windowWidth - 120}
+                            y={57}
+                            width={80}
+                            height={8}
                         />
                         <Rect
-                            x={windowWidth - padding * 3 - windowWidth * 0.2}
-                            y={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT - padding - 36 + 18 + 2}
-                            width={windowWidth * 0.2}
-                            height={circleRadius}
+                            x={windowWidth - 100}
+                            y={71}
+                            width={60}
+                            height={8}
                         />
                     </>
                 )}
