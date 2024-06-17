@@ -122,6 +122,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isSortingAllowed = sortableSearchTabs.includes(query);
 
+    const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
+
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
             customListHeader={
@@ -131,6 +133,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     sortOrder={sortOrder}
                     isSortingAllowed={isSortingAllowed}
                     sortBy={sortBy}
+                    shouldShowYear={shouldShowYear}
                 />
             }
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,

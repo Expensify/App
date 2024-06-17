@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import playSound, {SOUNDS} from '@libs/Sound';
 import variables from '@styles/variables';
 import * as TaskActions from '@userActions/Task';
@@ -48,7 +49,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
-        setTaskDescription(parser.htmlToMarkdown(parser.replace(task?.description ?? '')));
+        setTaskDescription(parseHtmlToMarkdown(parser.replace(task?.description ?? '')));
     }, [task]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
@@ -133,7 +134,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
+                        defaultValue={parseHtmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                         isMarkdownEnabled

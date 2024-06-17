@@ -1,7 +1,8 @@
 import {Str} from 'expensify-common';
+import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -9,18 +10,20 @@ import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
@@ -45,6 +48,14 @@ const defaultSuggestionsValues: SuggestionValues = {
     prefixType: '',
 };
 
+type SuggestionPersonalDetailsList = Record<
+    string,
+    | (PersonalDetails & {
+          weight: number;
+      })
+    | null
+>;
+
 function SuggestionMention(
     {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
@@ -57,6 +68,36 @@ function SuggestionMention(
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
+
+    const currentReportID = useCurrentReportID();
+    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
+    // Smaller weight means higher order in suggestion list
+    const getPersonalDetailsWeight = useCallback(
+        (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {
+            if (ReportUtils.isReportParticipant(detail.accountID, currentReport)) {
+                return 0;
+            }
+            if (policyEmployeeAccountIDs.includes(detail.accountID)) {
+                return 1;
+            }
+            return 2;
+        },
+        [currentReport],
+    );
+    const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList = useMemo(() => {
+        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policyID);
+        if (!ReportUtils.isGroupChat(currentReport) && !ReportUtils.doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
+            return personalDetails;
+        }
+        return lodashMapValues(personalDetails, (detail) =>
+            detail
+                ? {
+                      ...detail,
+                      weight: getPersonalDetailsWeight(detail, policyEmployeeAccountIDs),
+                  }
+                : null,
+        );
+    }, [policyID, currentReport, personalDetails, getPersonalDetailsWeight]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -190,7 +231,7 @@ function SuggestionMention(
     );
 
     const getUserMentionOptions = useCallback(
-        (personalDetailsParam: PersonalDetailsList, searchValue = ''): Mention[] => {
+        (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList, searchValue = ''): Mention[] => {
             const suggestions = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
@@ -231,8 +272,7 @@ function SuggestionMention(
                 return true;
             });
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
+            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, ['weight', 'displayName', 'login']);
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
@@ -320,7 +360,7 @@ function SuggestionMention(
             };
 
             if (isMentionCode(suggestionWord) && prefixType === '@') {
-                const suggestions = getUserMentionOptions(personalDetails, prefix);
+                const suggestions = getUserMentionOptions(weightedPersonalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
@@ -340,7 +380,7 @@ function SuggestionMention(
             }));
             setHighlightedMentionIndex(0);
         },
-        [isComposerFocused, value, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, personalDetails, getRoomMentionOptions, reports],
+        [isComposerFocused, value, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
     useEffect(() => {
