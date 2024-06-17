@@ -91,9 +91,10 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     isSortingAllowed: boolean;
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
+    shouldShowYear: boolean;
 };
 
-function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPress}: SearchTableHeaderProps) {
+function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -123,7 +124,7 @@ function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPre
                             textStyle={textStyle}
                             sortOrder={sortOrder ?? CONST.SORT_ORDER.ASC}
                             isActive={isActive}
-                            containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName)]}
+                            containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName, shouldShowYear)]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(columnName, order)}
                         />
