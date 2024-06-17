@@ -21,7 +21,7 @@ let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let currentUserAccountID: number | undefined | null;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -70,11 +70,11 @@ Onyx.connect({
     },
 });
 
-let hasTriedFocusMode: boolean | undefined | null;
+let hasTriedFocusMode: boolean | null | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {
-        hasTriedFocusMode = val;
+        hasTriedFocusMode = val ?? null;
 
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         checkRequiredData();
@@ -118,7 +118,7 @@ function tryFocusModeUpdate() {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? 0, report)) {
+            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? -1, report)) {
                 return;
             }
 

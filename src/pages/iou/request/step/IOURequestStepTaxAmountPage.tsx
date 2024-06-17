@@ -157,14 +157,14 @@ function IOURequestStepTaxAmountPage({
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepTaxAmountPage.displayName}
-            shouldShowWrapper={Boolean(backTo || isEditing)}
+            shouldShowWrapper={!!(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo || isEditing)}
+                isEditing={!!(backTo || isEditing)}
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, policy, currency, Boolean(backTo || isEditing))}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, !!(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
@@ -184,13 +184,13 @@ const IOURequestStepTaxAmountPageWithOnyx = withOnyx<IOURequestStepTaxAmountPage
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
     },
 })(IOURequestStepTaxAmountPage);
 

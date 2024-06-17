@@ -514,7 +514,7 @@ function getButtonStyleWithIcon(
     hasText?: boolean,
     shouldShowRightIcon?: boolean,
 ): ViewStyle | undefined {
-    const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
+    const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
     switch (true) {
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
@@ -1556,14 +1556,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getSearchTableColumnStyles: (columnName: string): ViewStyle => {
+    getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(variables.w44);
+                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w80 : variables.w44);
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH_TABLE_COLUMNS.FROM:

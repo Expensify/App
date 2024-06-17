@@ -27,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
@@ -80,10 +81,10 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const reportKey = useMemo(() => {
-        const accountID = Number(route.params?.accountID ?? 0);
-        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '';
+        const accountID = Number(route.params?.accountID ?? -1);
+        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
 
-        if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+        if ((!!session && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -92,12 +93,33 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const accountID = Number(route.params?.accountID ?? 0);
+    const accountID = Number(route.params?.accountID ?? -1);
     const isCurrentUser = session?.accountID === accountID;
+
     const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
-    const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (isValidAccountID ? {} : {accountID: 0});
+    const loginParams = route.params?.login;
+
+    const details = useMemo((): PersonalDetails | EmptyObject => {
+        // Check if we have the personal details already in Onyx
+        if (personalDetails?.[accountID]) {
+            return personalDetails?.[accountID] ?? {};
+        }
+        // Check if we have the login param
+        if (!loginParams) {
+            return isValidAccountID ? {} : {accountID: 0};
+        }
+        // Look up the personal details by login
+        const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
+        if (foundDetails) {
+            return foundDetails;
+        }
+        // If we don't have the personal details in Onyx, we can create an optimistic account
+        const optimisticAccountID = UserUtils.generateAccountID(loginParams);
+        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
+    }, [personalDetails, accountID, loginParams, isValidAccountID]);
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -117,8 +139,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasAvatar = Boolean(details.avatar);
-    const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const hasAvatar = !!details.avatar;
+    const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
@@ -136,10 +158,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID)) {
+        if (ValidationUtils.isValidAccountRoute(accountID) && !loginParams) {
             PersonalDetailsActions.openPublicProfilePage(accountID);
         }
-    }, [accountID]);
+    }, [accountID, loginParams]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -148,10 +170,10 @@ function ProfilePage({route}: ProfilePageProps) {
         }
 
         if (!isCurrentUser && !SessionActions.isAnonymousUser()) {
-            result.push(PromotedActions.message(accountID));
+            result.push(PromotedActions.message({accountID, login: loginParams}));
         }
         return result;
-    }, [accountID, isCurrentUser, report]);
+    }, [accountID, isCurrentUser, loginParams, report]);
 
     return (
         <ScreenWrapper testID={ProfilePage.displayName}>
@@ -176,12 +198,13 @@ function ProfilePage({route}: ProfilePageProps) {
                                         imageStyles={[styles.avatarXLarge]}
                                         source={details.avatar}
                                         avatarID={accountID}
+                                        type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.XLARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
                             </PressableWithoutFocus>
-                            {Boolean(displayName) && (
+                            {!!displayName && (
                                 <Text
                                     style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
