@@ -1,8 +1,7 @@
 import {NativeModules} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CompleteHybridAppOnboardingParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -123,12 +122,27 @@ function setOnboardingPolicyID(policyID?: string) {
 }
 
 function completeHybridAppOnboarding() {
-    // TO DO: Add optimistic and failure data
-    const parameters: CompleteHybridAppOnboardingParams = {
-        keyToSet: true,
-    };
+    const optimisticData: OnyxUpdate[] = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_TRYNEWDOT,
+        value: {
+            classicRedirect: {
+                completedHybridAppOnboarding: true,
+            }
+        }
+    }];
 
-    API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, parameters);
+    const failureData: OnyxUpdate[] = [{
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_TRYNEWDOT,
+        value: {
+            classicRedirect: {
+                completedHybridAppOnboarding: false,
+            }
+        }
+    }];
+   
+    API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
 }
 
 Onyx.connect({
