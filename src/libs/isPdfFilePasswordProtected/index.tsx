@@ -9,24 +9,24 @@ const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
             const arrayBuffer = event.target?.result;
             if (!arrayBuffer) {
                 resolve(false);
-            } else {
-                try {
-                    const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
-                    loadingTask.promise.then(
-                        () => {
-                            resolve(false);
-                        },
-                        (error) => {
-                            if (error.name === 'PasswordException') {
-                                resolve(true);
-                            } else {
-                                resolve(false);
-                            }
-                        },
-                    );
-                } catch (error) {
-                    resolve(false);
-                }
+                return;
+            }
+            try {
+                const loadingTask = pdfjsLib.getDocument({data: arrayBuffer});
+                loadingTask.promise.then(
+                    () => {
+                        resolve(false);
+                    },
+                    (error) => {
+                        if (error.name === 'PasswordException') {
+                            resolve(true);
+                            return;
+                        }
+                        resolve(false);
+                    },
+                );
+            } catch (error) {
+                resolve(false);
             }
         };
 
