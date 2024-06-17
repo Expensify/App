@@ -42,7 +42,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     );
 
     const selectExportDate = useCallback(
-        (row: MenuListItem) => {
+        (row: SelectorType) => {
             if (row.value !== exportDate) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {exportDate: row.value});
             }
@@ -58,7 +58,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
-            onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
+            onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

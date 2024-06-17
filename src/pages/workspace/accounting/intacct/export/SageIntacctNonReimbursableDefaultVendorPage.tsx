@@ -57,6 +57,7 @@ function SageIntacctNonReimbursableDefaultVendorPage({policy}: WithPolicyConnect
         [policyID, activeDefaultVendor, nonReimbursable],
     );
 
+    // TODO: test on empty list
     const listEmptyContent = useMemo(
         () => (
             <BlockingView

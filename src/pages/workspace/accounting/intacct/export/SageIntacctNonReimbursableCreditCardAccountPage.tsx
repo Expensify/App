@@ -25,7 +25,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
 
     const {nonReimbursableAccount} = policy?.connections?.intacct?.config.export ?? {};
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, nonReimbursableAccount), [nonReimbursableAccount, policy]);
+    const creditCardSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, nonReimbursableAccount), [nonReimbursableAccount, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -36,7 +36,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
     );
 
-    const updateDefaultVendor = useCallback(
+    const updateCreditCardAccount = useCallback(
         ({value}: SelectorType) => {
             if (value !== nonReimbursableAccount) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {
@@ -48,6 +48,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         [policyID, nonReimbursableAccount],
     );
 
+    // TODO: test on empty data
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
@@ -67,10 +68,10 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
-            sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
+            sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
             listItem={RadioListItem}
-            onSelectRow={updateDefaultVendor}
-            initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+            onSelectRow={updateCreditCardAccount}
+            initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID))}
             title="workspace.sageIntacct.creditCardAccount"

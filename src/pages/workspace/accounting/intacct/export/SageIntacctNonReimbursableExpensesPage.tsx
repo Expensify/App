@@ -50,12 +50,11 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         [translate, styles.pb5, styles.ph5],
     );
 
-    const selectExportDate = useCallback(
-        (row: MenuListItem) => {
+    const selectNonReimbursableExpense = useCallback(
+        (row: SelectorType) => {
             if (row.value === exportConfig.nonReimbursable) {
                 return;
             }
-            // TODO: change CONST.XERO_CONFIG.EXPORT to CONST.SAGE_INTACCT.EXPORT
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {nonReimbursable: row.value});
         },
         [exportConfig.nonReimbursable, policyID],
@@ -95,6 +94,21 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         pendingAction: pendingFields?.export,
     };
 
+    const creditCardAccount = (
+        <OfflineWithFeedback
+            key={creditCardAccountSection.description}
+            pendingAction={creditCardAccountSection.pendingAction}
+        >
+            <MenuItemWithTopDescription
+                title={creditCardAccountSection.title}
+                description={creditCardAccountSection.description}
+                shouldShowRightIcon
+                onPress={creditCardAccountSection.action}
+                brickRoadIndicator={creditCardAccountSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            />
+        </OfflineWithFeedback>
+    );
+
     return (
         <View>
             <SelectionScreen
@@ -103,7 +117,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                 headerContent={headerContent}
                 sections={[{data}]}
                 listItem={RadioListItem}
-                onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
+                onSelectRow={selectNonReimbursableExpense}
                 initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -114,18 +128,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             {exportConfig.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && defaultVendor}
             {exportConfig.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && (
                 <View>
-                    <OfflineWithFeedback
-                        key={creditCardAccountSection.description}
-                        pendingAction={creditCardAccountSection.pendingAction}
-                    >
-                        <MenuItemWithTopDescription
-                            title={creditCardAccountSection.title}
-                            description={creditCardAccountSection.description}
-                            shouldShowRightIcon
-                            onPress={creditCardAccountSection.action}
-                            brickRoadIndicator={creditCardAccountSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                    </OfflineWithFeedback>
+                    {creditCardAccount}
                     <ToggleSettingOptionRow
                         title={translate('workspace.sageIntacct.defaultVendor')}
                         subtitle={translate('workspace.sageIntacct.defaultVendorDescription')}
@@ -138,7 +141,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                             });
                             setIsSwitchOn(!isSwitchOn);
                         }}
-                        wrapperStyle={styles.ph5}
+                        wrapperStyle={[styles.ph5, styles.pv3]}
                     />
                     {isSwitchOn && defaultVendor}
                 </View>

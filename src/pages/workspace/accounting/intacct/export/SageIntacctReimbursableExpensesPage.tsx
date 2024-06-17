@@ -41,9 +41,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     const selectExportDate = useCallback(
-        (row: MenuListItem) => {
+        (row: SelectorType) => {
             if (row.value !== reimbursable) {
-                // TODO: change CONST.XERO_CONFIG.EXPORT to CONST.SAGE_INTACCT.EXPORT
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {reimbursable: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
@@ -58,7 +57,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
-            onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
+            onSelectRow={selectExportDate}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

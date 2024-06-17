@@ -21,10 +21,10 @@ type CardListItem = ListItem & {
 };
 
 function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
-    const {export: exportConfiguration} = policy?.connections?.intacct?.config ?? {};
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
+    const {export: exportConfiguration} = policy?.connections?.intacct?.config ?? {};
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
