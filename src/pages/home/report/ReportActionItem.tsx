@@ -111,7 +111,7 @@ type ReportActionItemOnyxProps = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The transaction (linked with the report action) route error */
-    linkedTransactionRouteError: OnyxEntry<Errors>;
+    linkedTransactionRouteError: NonNullable<OnyxEntry<Errors>> | null;
 };
 
 type ReportActionItemProps = {
@@ -528,11 +528,11 @@ function ReportActionItem({
                 isSendingMoney)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
-            const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+            const iouReportID = action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '-1';
             children = (
                 <MoneyRequestAction
                     // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
-                    chatReportID={action.originalMessage.IOUReportID ? report.chatReportID ?? '' : report.reportID}
+                    chatReportID={action.originalMessage.IOUReportID ? report.chatReportID ?? '-1' : report.reportID}
                     requestReportID={iouReportID}
                     reportID={report.reportID}
                     action={action}
@@ -551,7 +551,7 @@ function ReportActionItem({
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={report.reportID}
-                    policyID={report.policyID ?? ''}
+                    policyID={report.policyID ?? '-1'}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
@@ -566,13 +566,13 @@ function ReportActionItem({
             children = (
                 <ShowContextMenuContext.Provider value={contextValue}>
                     <TaskPreview
-                        taskReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ? action.originalMessage.taskReportID?.toString() ?? '' : ''}
+                        taskReportID={action.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ? action.originalMessage.taskReportID?.toString() ?? '-1' : ''}
                         chatReportID={report.reportID}
                         action={action}
                         isHovered={hovered}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                        policyID={report.policyID ?? ''}
+                        policyID={report.policyID ?? '-1'}
                     />
                 </ShowContextMenuContext.Provider>
             );
@@ -581,7 +581,7 @@ function ReportActionItem({
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
-            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '', action);
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '-1', action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
@@ -946,9 +946,9 @@ function ReportActionItem({
     const whisperedTo = ReportActionsUtils.getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
-    const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '0';
+    const iouReportID = isIOUReport(action) && action.originalMessage.IOUReportID ? action.originalMessage.IOUReportID.toString() : '-1';
     const transactionsWithReceipts = ReportUtils.getTransactionsWithReceipts(iouReportID);
-    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0 && !action.pendingAction;
+    const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
     const whisperedToPersonalDetails = isWhisper
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
@@ -980,7 +980,7 @@ function ReportActionItem({
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}
                             anchor={popoverAnchorRef}
-                            originalReportID={originalReportID ?? ''}
+                            originalReportID={originalReportID ?? '-1'}
                             isArchivedRoom={ReportUtils.isArchivedRoom(report)}
                             displayAsGroup={displayAsGroup}
                             disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
@@ -1048,12 +1048,12 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
     iouReport: {
         key: ({action}) => {
             const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(action);
-            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.REPORT}${iouReportID ?? -1}`;
         },
         initialValue: {} as OnyxTypes.Report,
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? 0}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID ?? -1}`,
         initialValue: {} as OnyxTypes.Policy,
     },
     emojiReactions: {
@@ -1072,7 +1072,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         },
     },
     linkedTransactionRouteError: {
-        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? -1}`,
         selector: (transaction: OnyxEntry<OnyxTypes.Transaction>) => transaction?.errorFields?.route ?? null,
     },
     modal: {

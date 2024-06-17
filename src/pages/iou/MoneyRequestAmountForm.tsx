@@ -10,6 +10,7 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -130,7 +131,8 @@ function MoneyRequestAmountForm(
         if (!textInput.current) {
             return;
         }
-        if (!textInput.current.isFocused()) {
+
+        if (!isTextInputFocused(textInput)) {
             textInput.current.focus();
         }
     };
@@ -171,7 +173,7 @@ function MoneyRequestAmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !textInput.current?.isFocused()) {
+            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
@@ -198,7 +200,7 @@ function MoneyRequestAmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !textInput.current?.isFocused()) {
+        if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
     }, []);
@@ -308,7 +310,7 @@ function MoneyRequestAmountForm(
                             addBankAccountRoute={bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={currency ?? CONST.CURRENCY.USD}
-                            policyID={policyID ?? ''}
+                            policyID={policyID ?? '-1'}
                             style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             kycWallAnchorAlignment={{
