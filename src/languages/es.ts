@@ -3806,7 +3806,7 @@ export default {
         tooExpensive: 'Demasiado caro',
         inadequateSupport: 'Atención al cliente inadecuada',
         businessClosing: 'Cierre, reducción, o adquisición de la empresa',
-        additionalInfoTitle: 'What software are you moving to and why?',
+        additionalInfoTitle: '¿A qué software está migrando y por qué?',
         additionalInfoInputLabel: 'Tu respuesta',
     },
 } satisfies EnglishTranslation;

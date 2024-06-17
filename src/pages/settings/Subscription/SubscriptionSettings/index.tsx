@@ -35,12 +35,9 @@ function SubscriptionSettings() {
         }
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
     };
+
     const handleAutoIncreaseToggle = () => {
-        if (privateSubscription?.addNewUsersAutomatically === undefined) {
-            Subscription.updateSubscriptionAddNewUsersAutomatically(true);
-        } else {
-            Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription.addNewUsersAutomatically);
-        }
+        Subscription.updateSubscriptionAddNewUsersAutomatically(!privateSubscription?.addNewUsersAutomatically);
     };
 
     if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.PAYPERUSE) {

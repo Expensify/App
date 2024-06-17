@@ -21,7 +21,7 @@ type FeedbackSurveyProps = {
     description: string;
 
     /** Callback to be called when the survey is submitted */
-    onSubmit: (reason: FeedbackSurveyOptionID, additionalNote?: string) => void;
+    onSubmit: (reason: FeedbackSurveyOptionID, note?: string) => void;
 
     /** Styles for the option row element */
     optionRowStyles?: StyleProp<ViewStyle>;
@@ -46,7 +46,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
 
     const selectCircleStyles: StyleProp<ViewStyle> = {borderColor: theme.border};
     const [reason, setReason] = useState<Option>();
-    const [additionalNote, setAdditionalNote] = useState('');
+    const [note, setNote] = useState('');
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
     const handleOptionSelect = (option: Option) => {
@@ -60,7 +60,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
             return;
         }
 
-        onSubmit(reason.key, additionalNote);
+        onSubmit(reason.key, note);
     };
 
     return (
@@ -82,8 +82,8 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
                             label={translate('feedbackSurvey.additionalInfoInputLabel')}
                             accessibilityLabel={translate('feedbackSurvey.additionalInfoInputLabel')}
                             role={CONST.ROLE.PRESENTATION}
-                            onChangeText={setAdditionalNote}
-                            value={additionalNote}
+                            onChangeText={setNote}
+                            value={note}
                         />
                     </>
                 )}
