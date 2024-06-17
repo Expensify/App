@@ -1833,7 +1833,7 @@ function getOptions(
             isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
-            isSearchingForReports
+            isSearchingForReports,
         });
     });
 
