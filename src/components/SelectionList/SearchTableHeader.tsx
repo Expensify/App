@@ -53,17 +53,17 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
-        shouldShow: ({metadata}): OnyxTypes.SearchResults['search'] => metadata?.columnsToShow.shouldShowCategoryColumn,
+        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowCategoryColumn ?? false,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
-        shouldShow: ({metadata}) => metadata?.columnsToShow.shouldShowTagColumn,
+        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowTagColumn ?? false,
     },
     {
         columnName: CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        shouldShow: ({metadata}) => metadata?.columnsToShow.shouldShowTaxColumn,
+        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowTaxColumn ?? false,
         isColumnSortable: false,
     },
     {
