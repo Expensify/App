@@ -1,19 +1,4 @@
-/**
- * Key is equal to list of arguments passed to memoized function
- */
-type Key<K> = K[];
-
-type KeyComparator = <K>(key1: Key<K>, key2: Key<K>) => boolean;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GenericFn = (...args: any[]) => any;
-
-/**
- * Checks wheter keys are equal
- * @param key1
- * @param key2
- */
-// declare function isEqual<K>(key1: Key<K>, key2: Key<K>);
+type KeyComparator = <K>(key1: K[], key2: K[]) => boolean;
 
 type Cache<K, V> = {
     has: (key: K) => boolean;
@@ -45,4 +30,4 @@ type Options = {
 
 type ClientOptions = Partial<Omit<Options, keyof InternalOptions>>;
 
-export type {Cache, CacheOpts, Key, KeyComparator, GenericFn, Options, ClientOptions};
+export type {Cache, CacheOpts, Options, ClientOptions};

@@ -1,7 +1,12 @@
 import type {Cache, CacheOpts} from '@libs/memoize/types';
 import {getEqualityComparator} from '@libs/memoize/utils';
 
-function buildArrayCache<K, V>(opts: CacheOpts): Cache<K, V> {
+/**
+ * Builder of the cache using `Array` primitive under the hood.
+ * @param opts - Cache options, check `CacheOpts` type for more details.
+ * @returns
+ */
+function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
     const cache: Array<[K, V]> = [];
 
     const keyComparator = getEqualityComparator(opts);
@@ -15,11 +20,6 @@ function buildArrayCache<K, V>(opts: CacheOpts): Cache<K, V> {
             return cache.find((entry) => keyComparator(entry[0], key))?.[1];
         },
         set(key, value) {
-            // Set consists of those steps:
-            // 1. Find index of the key
-            // 2. If key in cache, delete old entry
-            // 3. Add new entry to the end
-            // 4. If cache is too big, remove first entry
             // FIXME They are pretty slow, be mindful about it and improve - find better data structure
             const index = cache.findIndex((entry) => keyComparator(entry[0], key));
 

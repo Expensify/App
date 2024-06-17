@@ -1,14 +1,15 @@
 import buildArrayCache from './cache/arrayCacheBuilder';
-import type {ClientOptions, GenericFn} from './types';
+import type {Cache, ClientOptions} from './types';
 import {mergeOptions} from './utils';
 
 /**
- *
+ * Wraps a function with a memoization layer. Useful for caching expensive calculations.
  * @param fn - Function to memoize
- * @param options -
- * @returns
+ * @param options - Options for the memoization layer, for more details see `ClientOptions` type.
+ * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends GenericFn>(fn: Fn, opts?: ClientOptions) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function memoize<Fn extends (...args: any[]) => any>(fn: Fn, opts?: ClientOptions): Fn & {cache: Cache<Parameters<Fn>, ReturnType<Fn>>} {
     const options = mergeOptions(opts);
 
     const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);
