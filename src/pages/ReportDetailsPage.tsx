@@ -20,7 +20,6 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -107,12 +106,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const isMoneyRequest = useMemo(() => ReportUtils.isMoneyRequest(report), [report]);
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
+    const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
-    const isPolicy = isPolicyAdmin || isPolicyEmployee;
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
@@ -198,9 +197,21 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
 
-    const chatRoomAdminSubtitleText = translate('reportDetailsPage.inWorkspace', {policyName: report.policyName});
-
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '') : ReportUtils.getReportName(report);
+
+    const additionalRoomDetails =
+        (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report) || isPolicyExpenseChat || isInvoiceRoom
+            ? chatRoomSubtitle
+            : `${translate('threads.in')} ${chatRoomSubtitle}`;
+
+    let roomDescription;
+    if (isInvoiceRoom || isPolicyExpenseChat) {
+        roomDescription = translate('common.name');
+    } else if (isGroupChat) {
+        roomDescription = translate('groupConfirmPage.groupName');
+    } else {
+        roomDescription = translate('newRoomPage.roomName');
+    }
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const shouldShowWriteCapability = !isMoneyRequestReport;
@@ -438,17 +449,37 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-            <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
-                <DisplayNames
-                    fullTitle={reportName ?? ''}
-                    displayNamesWithTooltips={displayNamesWithTooltips}
-                    tooltipEnabled
-                    numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
-                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
-                    shouldUseFullTitle={shouldUseFullTitle}
-                />
-            </View>
-            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest) && (
+            {shouldDisableRename && (
+                <>
+                    <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
+                        <DisplayNames
+                            fullTitle={reportName ?? ''}
+                            displayNamesWithTooltips={displayNamesWithTooltips}
+                            tooltipEnabled
+                            numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
+                            textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
+                            shouldUseFullTitle={shouldUseFullTitle}
+                        />
+                    </View>
+                    {isPolicyAdmin ? (
+                        <PressableWithoutFeedback
+                            style={[styles.w100]}
+                            disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={chatRoomSubtitle ?? ''}
+                            accessible
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                            }}
+                        >
+                            {chatRoomSubtitleText}
+                        </PressableWithoutFeedback>
+                    ) : (
+                        chatRoomSubtitleText
+                    )}
+                </>
+            )}
+            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport || isMoneyRequest || isTaskReport) && (
                 <ParentNavigationSubtitle
                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                     parentReportID={report?.parentReportID}
@@ -464,37 +495,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             pendingAction={report?.pendingFields?.reportName}
             errors={report?.errorFields?.reportName}
             errorRowStyles={[styles.ph5]}
-            onClose={() => Report.clearPolicyRoomNameErrors(report.reportID)}
+            onClose={() => Report.clearPolicyRoomNameErrors(report?.reportID)}
         >
-            <MenuItemWithTopDescription
-                shouldShowRightIcon={!shouldDisableRename}
-                title={reportName ?? ''}
-                style={[isPolicy ? styles.pb1 : undefined]}
-                titleStyle={styles.textHeadline}
-                description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
-                disabled={shouldDisableRename}
-                shouldGreyOutWhenDisabled={false}
-            />
-
-            {isPolicyAdmin ? (
-                <PressableWithoutFeedback
-                    style={[styles.w100, styles.ph5, styles.pb3]}
-                    disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={chatRoomSubtitle ?? ''}
-                    accessible
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
-                    }}
-                >
-                    <Text style={[styles.textLabelSupporting]}>{chatRoomAdminSubtitleText}</Text>
-                </PressableWithoutFeedback>
-            ) : (
-                <View style={[styles.w100, styles.ph5, styles.pb3]}>
-                    <Text style={[styles.textLabelSupporting]}>{chatRoomSubtitleText}</Text>
-                </View>
-            )}
+            <View style={[styles.flex1, !shouldDisableRename && styles.mt3, isGroupChat && styles.mb5]}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!shouldDisableRename}
+                    interactive={!shouldDisableRename}
+                    title={reportName}
+                    titleStyle={styles.newKansasLarge}
+                    shouldCheckActionAllowedOnPress={false}
+                    description={!shouldDisableRename ? roomDescription : ''}
+                    furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
+                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
+                />
+            </View>
         </OfflineWithFeedback>
     );
 
