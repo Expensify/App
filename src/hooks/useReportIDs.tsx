@@ -77,23 +77,25 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
 
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
     (reportActions &&
-        Object.values(reportActions).map((reportAction) => {
-            const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
-            const message = ReportActionsUtils.getReportActionMessage(reportAction);
-            const decision = message?.moderationDecision?.decision;
+        Object.values(reportActions)
+            .filter(Boolean)
+            .map((reportAction) => {
+                const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
+                const message = ReportActionsUtils.getReportActionMessage(reportAction);
+                const decision = message?.moderationDecision?.decision;
 
-            return {
-                reportActionID,
-                actionName,
-                errors,
-                message: [
-                    {
-                        moderationDecision: {decision},
-                    },
-                ] as Message[],
-                originalMessage,
-            };
-        })) as ReportActionsSelector;
+                return {
+                    reportActionID,
+                    actionName,
+                    errors,
+                    message: [
+                        {
+                            moderationDecision: {decision},
+                        },
+                    ] as Message[],
+                    originalMessage,
+                };
+            })) as ReportActionsSelector;
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
