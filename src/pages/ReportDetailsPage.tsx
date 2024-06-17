@@ -144,9 +144,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     const requestParentReportAction = useMemo(() => {
+        // 2. MoneyRequestHeader case
         if (isSingleTransactionView && parentReportAction) {
             return parentReportAction;
         }
+        // 1. MoneyReportHeader case
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
         }
@@ -159,11 +161,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     let moneyRequestReport;
     if (isMoneyRequestReport || isInvoiceReport) {
+        // 1. MoneyReportHeader case
         moneyRequestReport = report;
     } else if (isSingleTransactionView) {
+        // 2. MoneyRequestHeader case
         moneyRequestReport = parentReport;
     }
-
     const canDeleteRequest =
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
 
@@ -498,20 +501,22 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
-        if (parentReportAction) {
-            if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+        if (requestParentReportAction) {
+            if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
                 if (isMoneyRequestReport || isInvoiceReport) {
-                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                    // 1. MoneyReportHeader case
+                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
                 } else if (isSingleTransactionView) {
-                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                    // 2. MoneyRequestHeader case
+                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
                 }
             } else {
-                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
         }
 
         setIsDeleteModalVisible(false);
-    }, [iouTransactionID, isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, parentReportAction, report?.reportID]);
+    }, [iouTransactionID, isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, report?.reportID, requestParentReportAction]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
