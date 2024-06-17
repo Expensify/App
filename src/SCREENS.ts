@@ -269,6 +269,7 @@ const SCREENS = {
             SAGE_INTACCT_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Reimbursable_Expenses',
             SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Expenses',
             SAGE_INTACCT_NON_REIMBURSABLE_DEFAULT_VENDOR: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Default_Vendor',
+            SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',

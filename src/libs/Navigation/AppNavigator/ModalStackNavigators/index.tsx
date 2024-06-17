@@ -327,6 +327,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('@pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableExpensesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DEFAULT_VENDOR]: () =>
         require('@pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableDefaultVendorPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
+        require('@pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableCreditCardAccountPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,

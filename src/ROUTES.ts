@@ -929,6 +929,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/sage-intacct/export/non-reimbursable/default-vendor',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/non-reimbursable/default-vendor` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/connections/sage-intacct/export/non-reimbursable/credit-card-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/sage-intacct/export/non-reimbursable/credit-card-account` as const,
+    },
 } as const;
 
 /**

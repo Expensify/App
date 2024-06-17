@@ -2213,6 +2213,7 @@ export default {
                 },
             },
             creditCardAccount: 'Credit card account',
+            creditCardAccountDescription: 'We should have some description here, right?',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: "Set a default vendor that will apply to nonreimbursable expenses that don't have a matching vendor in Sage Intacct.",
             exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',

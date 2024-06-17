@@ -465,7 +465,7 @@ function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: str
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
 
-    return (vendors ?? []).map(({id, name, value}, index) => ({
+    return (vendors ?? []).map(({id, value}) => ({
         value: id,
         text: value,
         keyForList: id,
@@ -473,7 +473,7 @@ function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: str
     }));
 }
 
-function getSageIntacctActiveDefaultVendor(policy: Policy | undefined): string {
+function getSageIntacctActiveDefaultVendor(policy: Policy | undefined): string | null {
     const {
         nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
         nonReimbursableExpenseReportDefaultVendor: expenseReportDefaultVendor,
@@ -481,6 +481,18 @@ function getSageIntacctActiveDefaultVendor(policy: Policy | undefined): string {
     } = policy?.connections?.intacct?.config.export ?? {};
 
     return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
+}
+
+function getSageIntacctCreditCards(policy: Policy | undefined, selectedAccountId: string | undefined): SelectorType[] {
+    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
+    const isMatchFound = creditCards?.some(({id}) => id === selectedAccountId);
+
+    return (creditCards ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: isMatchFound && selectedAccountId === id,
+    }));
 }
 
 /**
@@ -570,6 +582,7 @@ export {
     getXeroBankAccountsWithDefaultSelect,
     getSageIntacctVendors,
     getSageIntacctActiveDefaultVendor,
+    getSageIntacctCreditCards,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,

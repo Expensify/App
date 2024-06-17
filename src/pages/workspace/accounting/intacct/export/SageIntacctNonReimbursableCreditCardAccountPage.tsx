@@ -10,29 +10,27 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSageIntacctActiveDefaultVendor, getSageIntacctVendors} from '@libs/PolicyUtils';
+import {getSageIntacctCreditCards} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function SageIntacctNonReimbursableDefaultVendorPage({policy}: WithPolicyConnectionsProps) {
+function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
 
-    const {nonReimbursable} = policy?.connections?.intacct?.config.export ?? {};
+    const {nonReimbursableAccount} = policy?.connections?.intacct?.config.export ?? {};
 
-    const activeDefaultVendor = getSageIntacctActiveDefaultVendor(policy);
-
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy ?? undefined, activeDefaultVendor), [activeDefaultVendor, policy]);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, nonReimbursableAccount), [nonReimbursableAccount, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.creditCardAccountDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -40,21 +38,14 @@ function SageIntacctNonReimbursableDefaultVendorPage({policy}: WithPolicyConnect
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value !== activeDefaultVendor) {
-                Connections.updatePolicyConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-                    CONST.XERO_CONFIG.EXPORT,
-                    nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                        ? {
-                              nonReimbursableCreditCardChargeDefaultVendor: value,
-                          }
-                        : {nonReimbursableExpenseReportDefaultVendor: value},
-                );
+            if (value !== nonReimbursableAccount) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {
+                    nonReimbursableAccount: value,
+                });
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
-        [policyID, activeDefaultVendor, nonReimbursable],
+        [policyID, nonReimbursableAccount],
     );
 
     const listEmptyContent = useMemo(
@@ -75,20 +66,20 @@ function SageIntacctNonReimbursableDefaultVendorPage({policy}: WithPolicyConnect
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctNonReimbursableDefaultVendorPage.displayName}
+            displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
             sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID))}
-            title="workspace.sageIntacct.defaultVendor"
+            title="workspace.sageIntacct.creditCardAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         />
     );
 }
 
-SageIntacctNonReimbursableDefaultVendorPage.displayName = 'PolicySageIntacctNonReimbursableDefaultVendorPage';
+SageIntacctNonReimbursableCreditCardAccountPage.displayName = 'PolicySageIntacctNonReimbursableCreditCardAccountPage';
 
-export default withPolicyConnections(SageIntacctNonReimbursableDefaultVendorPage);
+export default withPolicyConnections(SageIntacctNonReimbursableCreditCardAccountPage);

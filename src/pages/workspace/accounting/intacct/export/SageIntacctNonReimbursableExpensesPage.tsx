@@ -52,10 +52,11 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== exportConfig.nonReimbursable) {
-                // TODO: change CONST.XERO_CONFIG.EXPORT to CONST.SAGE_INTACCT.EXPORT
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {nonReimbursable: row.value});
+            if (row.value === exportConfig.nonReimbursable) {
+                return;
             }
+            // TODO: change CONST.XERO_CONFIG.EXPORT to CONST.SAGE_INTACCT.EXPORT
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {nonReimbursable: row.value});
         },
         [exportConfig.nonReimbursable, policyID],
     );
@@ -86,8 +87,10 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     const creditCardAccountSection = {
         description: translate('workspace.sageIntacct.creditCardAccount'),
-        action: () => {},
-        title: exportConfig.nonReimbursableAccount ? exportConfig.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
+        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
+        title: exportConfig.nonReimbursableAccount
+            ? intacctData.creditCards.find((creditCard) => creditCard.id === exportConfig.nonReimbursableAccount).name
+            : translate('workspace.sageIntacct.notConfigured'),
         hasError: !!errorFields?.exporter,
         pendingAction: pendingFields?.export,
     };
@@ -126,7 +129,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     <ToggleSettingOptionRow
                         title={translate('workspace.sageIntacct.defaultVendor')}
                         subtitle={translate('workspace.sageIntacct.defaultVendorDescription')}
-                        shouldPlaceSubtitleBelowSwitch={true}
+                        shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
