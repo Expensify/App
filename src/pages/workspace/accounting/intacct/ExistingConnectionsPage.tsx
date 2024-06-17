@@ -19,7 +19,7 @@ import type SCREENS from '@src/SCREENS';
 type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
 
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
-    const {translate} = useLocalize();
+    const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct(policies);
@@ -28,14 +28,13 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
 
     const menuItemsBetter = policiesConnectedToSageIntacct.map((policy) => {
         const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;
-        const formattedDate = lastSuccessfulSyncDate ? new Date(lastSuccessfulSyncDate) : undefined;
-        const date = formattedDate ? formatDistanceToNow(formattedDate, {addSuffix: true}) : undefined;
+        const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
             title: policy.name,
             key: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
-            description: date ? `Sage Intacct - Last synced ${date}` : 'Sage Intacct',
+            description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
         };
     });
 

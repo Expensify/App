@@ -90,7 +90,7 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                     <Button
                         success
                         text={translate('common.next')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ENTER_SAGE_INTACCT_CREDENTIALS.getRoute(policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
                         pressOnEnter
                         large
                     />

@@ -133,7 +133,7 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
         }
         return res;
     }
-    const parsedDatetime = new Date(`${datetime}Z`);
+    const parsedDatetime = new Date(datetime.length === 23 ? `${datetime}Z` : datetime);
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 

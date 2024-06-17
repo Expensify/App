@@ -34,6 +34,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
         Navigation.goBack();
     }, []);
 
+    const formItems = Object.values(INPUT_IDS);
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
@@ -71,42 +72,20 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
                 shouldValidateOnChange
             >
                 <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMPANY_ID}
-                        name="companyID"
-                        label={translate('common.companyID')}
-                        aria-label={translate('common.companyID')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={sageIntacctCredentialsDraft?.[INPUT_IDS.COMPANY_ID]}
-                        spellCheck={false}
-                    />
-                </View>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.USER_ID}
-                        name="userID"
-                        label={translate('common.userID')}
-                        aria-label={translate('common.userID')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={sageIntacctCredentialsDraft?.[INPUT_IDS.USER_ID]}
-                        spellCheck={false}
-                    />
-                </View>
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.PASSWORD}
-                        name="password"
-                        label={translate('common.password')}
-                        aria-label={translate('common.password')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={sageIntacctCredentialsDraft?.[INPUT_IDS.PASSWORD]}
-                        spellCheck={false}
-                    />
-                </View>
+                {formItems.map((formItem) => (
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={formItem}
+                            name="companyID"
+                            label={translate(`common.${formItem}`)}
+                            aria-label={translate(`common.${formItem}`)}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={sageIntacctCredentialsDraft?.[formItem]}
+                            spellCheck={false}
+                        />
+                    </View>
+                ))}
             </FormProvider>
         </ScreenWrapper>
     );

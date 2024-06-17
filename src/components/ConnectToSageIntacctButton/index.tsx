@@ -52,7 +52,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
             icon: Expensicons.Copy,
             text: translate('workspace.intacct.reuseExitingConnection'),
             onSelected: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_EXISTING_SAGE_INTACCT_CONNECTIONS.getRoute(policyID));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);
             },
         },

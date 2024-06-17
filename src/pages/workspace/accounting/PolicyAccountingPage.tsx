@@ -1,4 +1,4 @@
-import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -124,7 +124,7 @@ function accountingIntegrationData(
 function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseXeroIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -144,7 +144,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
     const successfulDate = connectedIntegration ? policy?.connections?.[connectedIntegration]?.lastSync?.successfulDate : undefined;
-    const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
@@ -169,8 +168,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     );
 
     useEffect(() => {
-        setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
-    }, [formattedDate]);
+        if (successfulDate) {
+            setDateTimeToRelative(getDatetimeToRelative(successfulDate));
+            return;
+        }
+        setDateTimeToRelative('');
+    }, [getDatetimeToRelative, successfulDate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {

@@ -2218,6 +2218,7 @@ export default {
             createNewConnection: 'Crear una nueva conexión',
             reuseExitingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
+            sageIntacctLastSync: ({formattedDate}) => `Sage Intacct - Última sincronización ${formattedDate}`,
         },
         type: {
             free: 'Gratis',
