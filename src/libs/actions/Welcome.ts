@@ -6,8 +6,8 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type TryNewDot from '@src/types/onyx/TryNewDot';
 import type OnyxPolicy from '@src/types/onyx/Policy';
+import type TryNewDot from '@src/types/onyx/TryNewDot';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
@@ -123,26 +123,30 @@ function setOnboardingPolicyID(policyID?: string) {
 }
 
 function completeHybridAppOnboarding() {
-    const optimisticData: OnyxUpdate[] = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.NVP_TRYNEWDOT,
-        value: {
-            classicRedirect: {
-                completedHybridAppOnboarding: true,
-            }
-        }
-    }];
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRYNEWDOT,
+            value: {
+                classicRedirect: {
+                    completedHybridAppOnboarding: true,
+                },
+            },
+        },
+    ];
 
-    const failureData: OnyxUpdate[] = [{
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.NVP_TRYNEWDOT,
-        value: {
-            classicRedirect: {
-                completedHybridAppOnboarding: false,
-            }
-        }
-    }];
-   
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_TRYNEWDOT,
+            value: {
+                classicRedirect: {
+                    completedHybridAppOnboarding: false,
+                },
+            },
+        },
+    ];
+
     API.write(WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING, {}, {optimisticData, failureData});
 }
 

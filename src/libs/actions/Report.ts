@@ -3367,9 +3367,7 @@ function completeOnboarding(
             value: {choice: engagementChoice},
         },
     ];
-    const successData: OnyxUpdate[] = [
-        ...tasksForSuccessData,
-    ];
+    const successData: OnyxUpdate[] = [...tasksForSuccessData];
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
