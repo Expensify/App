@@ -4602,12 +4602,7 @@ function buildOptimisticChatReport(
     return optimisticChatReport;
 }
 
-function buildOptimisticGroupChatReport(
-    participantAccountIDs: number[],
-    reportName: string,
-    avatarUri: string,
-    optimisticReportID?: string,
-) {
+function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string, optimisticReportID?: string) {
     return buildOptimisticChatReport(
         participantAccountIDs,
         reportName,
