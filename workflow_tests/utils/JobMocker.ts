@@ -1,9 +1,8 @@
-import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {StepIdentifier} from '@kie/act-js';
 import type {PathOrFileDescriptor} from 'fs';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
-import type CustemStepIdentifier from './types';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 type YamlMockJob = Omit<MockJob, 'runsOn'> & {'runs-on'?: string};
@@ -13,7 +12,7 @@ type YamlWorkflow = {
 };
 
 type MockJob = {
-    steps: Array<CustemStepIdentifier | StepIdentifier>;
+    steps: StepIdentifier[];
     uses?: string;
     secrets?: string[];
     with?: string;
@@ -52,13 +51,12 @@ class JobMocker {
                     delete job.with;
                 }
                 job.steps = mockJob.steps.map((step) => {
-                    const customStep = step as CustemStepIdentifier;
-                    const mockStep: CustemStepIdentifier = {
-                        name: customStep.name,
+                    const mockStep = {
+                        name: step.name,
                         run: step.mockWith,
-                    };
-                    if (customStep.id) {
-                        mockStep.id = customStep.id;
+                    } as StepIdentifier;
+                    if (step.id) {
+                        mockStep.id = step.id;
                     }
                     if (jobWith) {
                         mockStep.with = jobWith;
