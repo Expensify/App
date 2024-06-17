@@ -134,7 +134,7 @@ const runTests = async (): Promise<void> => {
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage: string, iterationText: string, branch: 'main' | 'delta', launchArgs: Record<string, boolean> = {}): Promise<void> {
+    async function runTestIteration(appPackage: string, iterationText: string, branch: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -218,10 +218,10 @@ const runTests = async (): Promise<void> => {
         const iterations = 2;
         for (let i = 0; i < iterations; i++) {
             // Warmup the main app:
-            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, 'main');
+            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_MAIN);
 
             // Warmup the delta app:
-            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, 'delta');
+            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_DELTA);
         }
 
         server.setReadyToAcceptTestResults(true);
@@ -256,10 +256,10 @@ const runTests = async (): Promise<void> => {
             const deltaIterationText = `[DELTA] ${iterationText}`;
             try {
                 // Run the test on the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, 'main', launchArgs);
+                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, config.BRANCH_MAIN, launchArgs);
 
                 // Run the test on the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, 'delta', launchArgs);
+                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
             } catch (e) {
                 onError(e as Error);
             }

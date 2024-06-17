@@ -26,6 +26,9 @@ export default {
     MAIN_APP_PATH: './app-e2eRelease.apk',
     DELTA_APP_PATH: './app-e2edeltaRelease.apk',
 
+    BRANCH_MAIN: 'main',
+    BRANCH_DELTA: 'delta',
+
     ENTRY_FILE: 'src/libs/E2E/reactNativeLaunchingTest.ts',
 
     // The path to the activity within the app that we want to launch.
