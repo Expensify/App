@@ -13,6 +13,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
+import Permissions from "@libs/Permissions";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -640,6 +641,10 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
 function isDuplicate(transactionID: string, checkDismissed = false): boolean {
+    if (Permissions.canUseDupeDetection(allBetas ?? [])) {
+        return false;
+    }
+
     const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
