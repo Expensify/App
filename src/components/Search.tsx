@@ -39,6 +39,7 @@ const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
 const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
+const searchHeaderHeight = 54;
 
 function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
@@ -162,7 +163,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     shouldShowYear={shouldShowYear}
                 />
             }
-            customListHeaderHeight={54}
+            customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
             // The windowSize determines the number of items rendered before and after the currently visible items.

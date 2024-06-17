@@ -199,7 +199,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    return Object.values(reportIDToTransactions).filter((item) => item.transactions?.length !== 0);
 }
 
 const searchTypeToItemMap: SearchTypeToItemMap = {
