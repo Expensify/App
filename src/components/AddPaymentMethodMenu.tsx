@@ -66,7 +66,7 @@ function AddPaymentMethodMenu({
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
     const isIOUReport = ReportUtils.isIOUReport(iouReport ?? null);
     const canUseBusinessBankAccount =
-        ReportUtils.isExpenseReport(iouReport ?? null) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '', session?.accountID ?? 0));
+        ReportUtils.isExpenseReport(iouReport ?? null) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
 

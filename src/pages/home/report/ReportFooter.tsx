@@ -70,7 +70,7 @@ type ReportFooterProps = {
 function ReportFooter({
     lastReportAction,
     pendingAction,
-    report = {reportID: '0'},
+    report = {reportID: '-1'},
     reportMetadata,
     reportNameValuePairs,
     policy,

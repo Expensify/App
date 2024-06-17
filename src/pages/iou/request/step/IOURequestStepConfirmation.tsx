@@ -139,7 +139,7 @@ function IOURequestStepConfirmation({
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
-                const participantAccountID = participant.accountID ?? 0;
+                const participantAccountID = participant.accountID ?? -1;
 
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;

@@ -476,6 +476,24 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
     return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
 };
 
+/**
+ * Takes removes pendingFields and errorFields from a customUnit
+ */
+function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
+    const cleanedCustomUnit = {...customUnit};
+
+    delete cleanedCustomUnit.pendingFields;
+    delete cleanedCustomUnit.errorFields;
+
+    return cleanedCustomUnit;
+}
+
+function navigateWhenEnableFeature(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -530,6 +548,8 @@ export {
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,
+    removePendingFieldsFromCustomUnit,
+    navigateWhenEnableFeature,
 };
 
 export type {MemberEmailsToAccountIDs};

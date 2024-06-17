@@ -110,7 +110,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         return '';
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ModifiedExpense | undefined;
-    const policyID = getReportPolicyID(reportID) ?? '';
+    const policyID = getReportPolicyID(reportID) ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
