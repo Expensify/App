@@ -1,4 +1,5 @@
-import type {MockStep as ActMockStep, StepIdentifier as ActStepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {EventJSON} from '@kie/act-js/build/src/action-event/action-event.types';
+import type {StepIdentifier as ActStepIdentifier, MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
 
 declare module '@kie/act-js' {
     type StepIdentifier = ActStepIdentifier & {
@@ -11,7 +12,5 @@ declare module '@kie/act-js' {
         inputs?: string[];
     };
 
-    type MockStep = ActMockStep;
-
-    export type {StepIdentifier, MockStep};
+    export type {StepIdentifier, MockStep, EventJSON};
 }

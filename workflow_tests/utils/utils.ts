@@ -1,5 +1,4 @@
-import type {StepIdentifier} from '@kie/act-js';
-import type {EventJSON} from '@kie/act-js/build/src/action-event/action-event.types';
+import type {EventJSON, StepIdentifier} from '@kie/act-js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
