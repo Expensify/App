@@ -484,7 +484,7 @@ function isExistingTaxName(taxName: string, taxRates: TaxRates): boolean {
  */
 function isValidSubscriptionSize(subscriptionSize: string): boolean {
     const parsedSubscriptionSize = Number(subscriptionSize);
-    return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT;
+    return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST.SUBSCRIPTION_SIZE_LIMIT && Number.isInteger(parsedSubscriptionSize);
 }
 
 export {
