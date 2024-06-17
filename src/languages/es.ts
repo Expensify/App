@@ -2213,6 +2213,53 @@ export default {
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión',
         },
+        sageIntacct: {
+            preferredExporter: 'Exportador preferido',
+            notConfigured: 'No configurado',
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Utilice esta fecha cuando exporte informes a Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en la que se exportó el informe a Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha de presentación del informe para su aprobación.',
+                    },
+                },
+            },
+            reimbursableExpenses: {
+                label: 'Gastos reembolsables de exportación como',
+                description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            nonReimbursableExpenses: {
+                label: 'Exportar gastos no reembolsables como',
+                description:
+                    'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            creditCardAccount: 'Cuenta de tarjeta de crédito',
+            creditCardAccountDescription: '!!!!!!!!',
+            defaultVendor: 'Proveedor por defecto',
+            defaultVendorDescription: 'Establezca un proveedor predeterminado que se aplicará a los gastos no reembolsables que no tienen un proveedor coincidente en Sage Intacct.',
+            exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Inacct.',
+            exportPreferredExporterNote:
+                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+        },
         type: {
             free: 'Gratis',
             control: 'Control',
