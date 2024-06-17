@@ -143,11 +143,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
-    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
+    const successfulDate = connectedIntegration ? policy?.connections?.[connectedIntegration]?.lastSync?.successfulDate : undefined;
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);

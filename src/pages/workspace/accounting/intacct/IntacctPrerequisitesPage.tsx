@@ -61,7 +61,7 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                 numberOfLinesTitle: 3,
             },
         ],
-        [],
+        [translate],
     );
 
     return (

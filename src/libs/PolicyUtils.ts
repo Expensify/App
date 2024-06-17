@@ -461,6 +461,10 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+function getPolicyConnectedToSageIntacct(policies: OnyxCollection<Policy>): Policy[] {
+    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && policy && !!policy?.connections?.intacct);
+}
+
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.
  * @param workspace1 Details of the first workspace to be compared.
@@ -528,6 +532,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    getPolicyConnectedToSageIntacct,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,

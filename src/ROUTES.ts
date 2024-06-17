@@ -918,6 +918,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
     },
+    POLICY_ACCOUNTING_EXISTING_SAGE_INTACCT_CONNECTIONS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/exisitng-connections',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/exisitng-connections` as const,
+    },
 } as const;
 
 /**
