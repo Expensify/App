@@ -11,17 +11,30 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
 
     const keyComparator = getEqualityComparator(opts);
 
+    function getKeyIndex(key: K) {
+        for (let i = cache.length - 1; i >= 0; i--) {
+            if (keyComparator(cache[i][0], key)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     return {
-        // FIXME - Assumption is hot parts of the cache should have quicker access, so let's start our loops from the end
         has(key) {
-            return cache.some((entry) => keyComparator(entry[0], key));
+            return getKeyIndex(key) !== -1;
         },
         get(key) {
-            return cache.find((entry) => keyComparator(entry[0], key))?.[1];
+            const index = getKeyIndex(key);
+
+            if (index !== -1) {
+                const [entry] = cache.splice(index, 1);
+                cache.push(entry);
+                return entry[1];
+            }
         },
         set(key, value) {
-            // FIXME They are pretty slow, be mindful about it and improve - find better data structure
-            const index = cache.findIndex((entry) => keyComparator(entry[0], key));
+            const index = getKeyIndex(key);
 
             if (index !== -1) {
                 cache.splice(index, 1);
@@ -34,7 +47,7 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
             }
         },
         delete(key) {
-            const index = cache.findIndex((entry) => keyComparator(entry[0], key));
+            const index = getKeyIndex(key);
 
             if (index !== -1) {
                 cache.splice(index, 1);
