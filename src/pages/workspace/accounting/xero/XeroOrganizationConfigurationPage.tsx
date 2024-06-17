@@ -48,7 +48,7 @@ function XeroOrganizationConfigurationPage({
         }
 
         updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.TENANT_ID, keyForList);
-        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+        Navigation.goBack();
     };
 
     return (
