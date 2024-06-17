@@ -703,7 +703,7 @@ function getSortedReportActionsForDisplay(reportActions: OnyxEntry<ReportActions
     }
 
     if (shouldIncludeInvisibleActions) {
-        filteredReportActions = Object.values(reportActions);
+        filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
         filteredReportActions = Object.entries(reportActions)
             .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key))

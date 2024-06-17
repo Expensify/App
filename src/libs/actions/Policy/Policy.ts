@@ -862,6 +862,9 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 },
                 isOptimisticReport: false,
                 pendingChatMembers: null,
+                participants: {
+                    [accountID]: allPersonalDetails && allPersonalDetails[accountID] ? {} : null,
+                },
             },
         });
         workspaceMembersChats.onyxSuccessData.push({

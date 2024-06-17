@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -62,10 +63,16 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
 
     const shouldDisableInputs = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
 
+    const handleSubmit = useReimbursementAccountStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            onSubmit={onNext}
+            onSubmit={handleSubmit}
             validate={validate}
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
