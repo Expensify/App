@@ -298,11 +298,17 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
-type ModifyExpenseParams = {oldValue: string; value: string};
+type ModifyExpenseParams = {oldValue: string; newValue: string};
 
 type ChangeFieldParams = ModifyExpenseParams & {fieldName: string};
 
-type DelegateSubmitParams = {delegateUser: string; awayUser: string};
+type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+
+type ChangeTypeParams = {oldType: string; newType: string};
+
+type DelegateSubmitParams = {delegateUser: string; originalManager: string};
+
+type ExportedToIntegrationParams = {label: string};
 
 type ForwardedParams = {amount: string; currency: string};
 
@@ -422,6 +428,9 @@ export type {
     ReimbursementRateParams,
     ModifyExpenseParams,
     ChangeFieldParams,
+    ChangePolicyParams,
+    ChangeTypeParams,
+    ExportedToIntegrationParams,
     DelegateSubmitParams,
     ForwardedParams,
     IntegrationsMessageParams,

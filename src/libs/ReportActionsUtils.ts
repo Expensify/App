@@ -909,7 +909,7 @@ function getOneTransactionThreadReportID(
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            (Boolean(action.originalMessage.IOUTransactionID) ||
+            (!!action.originalMessage.IOUTransactionID ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
@@ -1068,8 +1068,6 @@ function isOldDotReportAction(action: ReportAction): boolean {
         CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
-        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
-        CONST.REPORT.ACTIONS.TYPE.DONATION,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
@@ -1084,8 +1082,6 @@ function isOldDotReportAction(action: ReportAction): boolean {
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
         CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
@@ -1102,14 +1098,13 @@ function isOldDotReportAction(action: ReportAction): boolean {
 function getMessageOfOldDotReportAction({originalMessage}: ReportAction, actionName: ActionName): string {
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
-            const fieldName = getOriginalMessageModifiedField(action.originalMessage);
-            const {value, oldValue} = originalMessage;
+            const {oldValue, newValue, fieldName} = originalMessage;
 
-            return Localize.translateLocal('report.actions.type.changeField', {value, oldValue, fieldName});
+            return Localize.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
         }
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
-            const {value, oldValue} = originalMessage;
-            return Localize.translateLocal('report.actions.type.changePolicy', {value, oldValue});
+            const {fromPolicy, toPolicy} = originalMessage;
+            return Localize.translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
         }
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE: {
             const {value, oldValue} = originalMessage;
@@ -1245,7 +1240,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
-    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+    return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
 }
 
 /**
