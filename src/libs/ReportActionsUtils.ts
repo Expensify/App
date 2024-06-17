@@ -313,7 +313,7 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
-    if (isEmptyObject(transactionThreadReportActions)) {
+    if (isEmptyObject(transactionThreadReportActions) || reportActions.some((action) => isSentMoneyReportAction(action))) {
         return reportActions;
     }
 
