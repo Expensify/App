@@ -45,9 +45,11 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 pendingAction: pendingFields?.export,
             },
             {
-                description: translate('workspace.sageIntacct.exportNonReimbursableExpensesAs'),
-                action: () => {},
-                title: exportConfig.nonReimbursable ? 'nonreimbursable' : translate('workspace.sageIntacct.notConfigured'),
+                description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)),
+                title: exportConfig.nonReimbursable
+                    ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)
+                    : translate('workspace.sageIntacct.notConfigured'),
                 hasError: !!errorFields?.nonReimbursable,
                 pendingAction: pendingFields?.export,
             },

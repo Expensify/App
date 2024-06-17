@@ -461,6 +461,28 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
+    const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
+    const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
+
+    return (vendors ?? []).map(({id, name, value}, index) => ({
+        value: id,
+        text: value,
+        keyForList: id,
+        isSelected: isMatchFound && selectedVendorId === id,
+    }));
+}
+
+function getSageIntacctActiveDefaultVendor(policy: Policy | undefined): string {
+    const {
+        nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
+        nonReimbursableExpenseReportDefaultVendor: expenseReportDefaultVendor,
+        nonReimbursable,
+    } = policy?.connections?.intacct?.config.export ?? {};
+
+    return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
+}
+
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.
  * @param workspace1 Details of the first workspace to be compared.
@@ -546,6 +568,8 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    getSageIntacctVendors,
+    getSageIntacctActiveDefaultVendor,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,

@@ -323,6 +323,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE]: () => require('@pages/workspace/accounting/intacct/export/SageIntacctDatePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES]: () =>
         require('@pages/workspace/accounting/intacct/export/SageIntacctReimbursableExpensesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: () =>
+        require('@pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableExpensesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DEFAULT_VENDOR]: () =>
+        require('@pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableDefaultVendorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,

@@ -2203,8 +2203,19 @@ export default {
                     [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
+            nonReimbursableExpenses: {
+                label: 'Export non-reimbursable expenses as',
+                description:
+                    'Non-reimbursable expenses will export to Sage Intacct as either credit card transactions or vendor bills and credit the account selected below. Learn more about assigning cards to individual accounts.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit card transactions',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
+                },
+            },
+            creditCardAccount: 'Credit card account',
+            defaultVendor: 'Default vendor',
+            defaultVendorDescription: "Set a default vendor that will apply to nonreimbursable expenses that don't have a matching vendor in Sage Intacct.",
             exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',
-            exportNonReimbursableExpensesAs: 'Export non-reimbursable expenses as',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
