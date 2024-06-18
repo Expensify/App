@@ -300,15 +300,17 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         );
         return action;
     });
-    const optimisticReportAction = buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
+    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() =>
+        buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}),
+    );
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
 
-    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action) => ({
+    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticReportAction.reportActionID]: optimisticReportAction as ReportAction,
+            [optimisticDissmidedViolationReportActions[index].reportActionID]: optimisticDissmidedViolationReportActions[index] as ReportAction,
         },
     }));
     const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
@@ -352,11 +354,11 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
         },
     }));
 
-    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action) => ({
+    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
-            [optimisticReportAction.reportActionID]: null,
+            [optimisticDissmidedViolationReportActions[index].reportActionID]: null,
         },
     }));
 
