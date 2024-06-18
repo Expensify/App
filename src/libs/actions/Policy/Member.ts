@@ -239,7 +239,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
     emailList.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
-        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
+        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove')};
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -415,7 +415,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: previousEmployeeList,
-                errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
             },
         },
     ];
@@ -538,7 +538,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         };
     });
 
@@ -618,7 +618,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxError('common.genericEditFailureMessage')},
+            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
         },
     ];
 

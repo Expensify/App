@@ -156,7 +156,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -239,7 +239,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                     ...oldLoginData,
                     errorFields: {
                         ...oldLoginData?.errorFields,
-                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -326,7 +326,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -430,7 +430,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                         validateCodeSent: null,
                     },
                     pendingFields: {
@@ -863,7 +863,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },

@@ -73,20 +73,20 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
             if (!values.comment) {
-                errors.comment = 'common.error.fieldRequired';
+                errors.comment = translate('common.error.fieldRequired');
             }
             // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
             // as we do not allow requestee to edit fields like description and amount.
             // But, we still want the requestee to be able to put the request on hold
             if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
-                ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
+                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
             }
 
             return errors;
         },
-        [parentReportAction, isWorkspaceRequest],
+        [parentReportAction, isWorkspaceRequest, translate],
     );
 
     useEffect(() => {

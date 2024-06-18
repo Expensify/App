@@ -10,6 +10,7 @@ import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
+import * as Localize from '@src/libs/Localize';
 import * as NumberUtils from '@src/libs/NumberUtils';
 import * as PersonalDetailsUtils from '@src/libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
@@ -775,7 +776,7 @@ describe('actions/IOU', () => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
                                         expect(transaction?.errors).toBeTruthy();
-                                        expect(Object.values(transaction?.errors ?? {})[0]).toEqual(expect.arrayContaining(['iou.error.genericCreateFailureMessage', {isTranslated: false}]));
+                                        expect(Object.values(transaction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericCreateFailureMessage'));
                                         resolve();
                                     },
                                 });
@@ -1874,7 +1875,7 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
                                     expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
-                                    expect(Object.values(updatedAction?.errors ?? {})).toEqual(expect.arrayContaining([['iou.error.genericEditFailureMessage', {isTranslated: false}]]));
+                                    expect(Object.values(updatedAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.genericEditFailureMessage'));
                                     resolve();
                                 },
                             });
@@ -2096,7 +2097,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const erroredAction = Object.values(allActions ?? {}).find((action) => !isEmptyObject(action?.errors));
-                                    expect(Object.values(erroredAction?.errors ?? {})).toEqual(expect.arrayContaining([['iou.error.other', {isTranslated: false}]]));
+                                    expect(Object.values(erroredAction?.errors ?? {})[0]).toEqual(Localize.translateLocal('iou.error.other'));
                                     resolve();
                                 },
                             });
