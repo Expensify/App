@@ -1821,7 +1821,7 @@ export default {
         areThereMoreIndividualsWhoOwn25percent: 'Are there more individuals who own 25% or more of',
         regulationRequiresUsToVerifyTheIdentity: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the company.',
         companyOwner: 'Company owner',
-        enterLegalFirstAndLastName: 'What's the owner's legal name?',
+        enterLegalFirstAndLastName: "What's the owner's legal name?",
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: "What's the owner's date of birth?",
