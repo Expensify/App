@@ -5,14 +5,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 import * as Expensicons from './Icon/Expensicons';
-import { ReportAction } from '@src/types/onyx';
 
 type PromotedAction = {
     key: string;
@@ -21,7 +21,7 @@ type PromotedAction = {
 type PromotedActionsType = Record<'pin' | 'share' | 'join', (report: OnyxReport) => PromotedAction> & {
     message: (params: {accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean, reportAction: ReportAction | undefined}) => PromotedAction;
+    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
 };
 
 const PromotedActions = {
