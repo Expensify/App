@@ -17,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
+import ActionCell from './ActionCell';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -29,10 +30,6 @@ type ReportCellProps = {
     reportItem: ReportListItemType;
 } & CellProps;
 
-type ActionCellProps = {
-    onButtonPress: () => void;
-} & CellProps;
-
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
     const styles = useThemeStyles();
 
@@ -41,21 +38,6 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
-        />
-    );
-}
-
-function ActionCell({onButtonPress}: ActionCellProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    return (
-        <Button
-            text={translate('common.view')}
-            onPress={onButtonPress}
-            small
-            pressOnEnter
-            style={[styles.w100]}
         />
     );
 }
@@ -150,7 +132,7 @@ function ReportListItem<TItem extends ListItem>({
                         participantFromDisplayName={participantFromDisplayName}
                         participantTo={participantTo}
                         participantToDisplayName={participantToDisplayName}
-                        buttonText={translate('common.view')}
+                        action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
@@ -176,9 +158,9 @@ function ReportListItem<TItem extends ListItem>({
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)} />
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
-                                    showTooltip={showTooltip}
                                     isLargeScreenWidth={isLargeScreenWidth}
                                     onButtonPress={handleOnButtonPress}
+                                    action={reportItem.action}
                                 />
                             </View>
                         </>
