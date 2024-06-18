@@ -110,7 +110,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                 validate={() => {
                     const errors: Errors = {};
                     if (!draftResponse?.trim()) {
-                        errors[INPUT_IDS.RESPONSE] = 'common.error.fieldRequired';
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
                     }
                     return errors;
                 }}
