@@ -46,7 +46,7 @@ const triggerUnreadUpdate = debounce(() => {
     const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);
 
     updateUnread(unreadReports.length);
-}, 300);
+}, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
