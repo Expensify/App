@@ -2458,7 +2458,7 @@ export default {
                 if (!integrationToConnect) {
                     return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'integración'}?`;
                 }
-                return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'this integration'} para configurar ${integrationToConnect}`;
+                return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'integración'} para configurar ${integrationToConnect}`;
             },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
