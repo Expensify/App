@@ -244,12 +244,19 @@ function renameDownloadedSourcemapFile() {
     fs.renameSync(downloadSourcemapPath, localSourceMapPath);
 }
 
+// Symbolicate using the downloaded source map
+function symbolicateProfile() {
+    const command = `npx react-native-release-profiler --local ${argsMap.profile} --sourcemap-path ${localSourceMapPath}`;
+    execSync(command, {stdio: 'inherit'});
+}
+
 // #endregion
 
 // Step: check if source map locally already exists (if so we can skip the download)
 if (fs.existsSync(localSourceMapPath)) {
     Logger.success(`Found local source map at ${localSourceMapPath}`);
     Logger.info('Skipping download step');
+    symbolicateProfile();
 } else {
     // Step: Download the source map for the app version:
     getWorkflowId()
@@ -258,10 +265,6 @@ if (fs.existsSync(localSourceMapPath)) {
         .then((artifactId) => getDownloadUrl(artifactId))
         .then((downloadUrl) => downloadFile(downloadUrl))
         .then((zipPath) => unpackZipFile(zipPath))
-        .then(() => renameDownloadedSourcemapFile());
+        .then(() => renameDownloadedSourcemapFile())
+        .then(() => symbolicateProfile());
 }
-
-// Symbolicate using the downloaded source map
-
-const command = `npx react-native-release-profiler --local ${argsMap.profile} --sourcemap-path ${localSourceMapPath}`;
-execSync(command, {stdio: 'inherit'});
