@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -9,17 +8,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
 import UserInfoCell from './UserInfoCell';
+import ActionCell from './ActionCell';
 
 type ExpenseItemHeaderNarrowProps = {
     participantFrom: SearchAccountDetails;
     participantTo: SearchAccountDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
-    buttonText: string;
+    action: string;
     onButtonPress: () => void;
 };
 
-function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, buttonText, onButtonPress}: ExpenseItemHeaderNarrowProps) {
+function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, action, onButtonPress}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -46,13 +46,10 @@ function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, p
                     />
                 </View>
             </View>
-            <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
-                <Button
-                    text={buttonText}
-                    onPress={onButtonPress}
-                    small
-                    pressOnEnter
-                    style={[styles.p0]}
+            <View style={[StyleUtils.getWidthStyle(variables.w80), styles.alignItemsEnd]}>
+                <ActionCell
+                    onButtonPress={onButtonPress}
+                    action={action}
                 />
             </View>
         </View>

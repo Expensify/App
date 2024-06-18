@@ -1,13 +1,11 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,11 +16,11 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import Badge from '@components/Badge';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
+import ActionCell from './ActionCell';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -33,11 +31,6 @@ type CellProps = {
 
 type TransactionCellProps = {
     transactionItem: TransactionListItemType;
-} & CellProps;
-
-type ActionCellProps = {
-    onButtonPress: () => void;
-    action: string;
 } & CellProps;
 
 type TotalCellProps = {
@@ -150,37 +143,6 @@ function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     );
 }
 
-function ActionCell({onButtonPress, action}: ActionCellProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const StyleUtils = useStyleUtils();
-
-    if (action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE) {
-        const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
-        return (
-            <Badge
-                text={translate(buttonTextKey)}
-                icon={Expensicons.Checkmark}
-                badgeStyles={[styles.ml0, styles.ph2, styles.gap1, StyleUtils.getBorderColorStyle(theme.border), StyleUtils.getHeight(variables.h20), StyleUtils.getMinimumHeight(variables.h20)]}
-                textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
-                iconStyles={styles.mr0}
-                success
-            />
-        )
-    }
-
-    return (
-        <Button
-            text={translate('common.view')}
-            onPress={onButtonPress}
-            small
-            pressOnEnter
-            style={[styles.w100]}
-        />
-    );
-}
-
 function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
@@ -233,7 +195,6 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
 
 function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
@@ -246,8 +207,8 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         participantFromDisplayName={item.formattedFrom}
                         participantTo={item.to}
                         participantToDisplayName={item.formattedTo}
-                        buttonText={translate('common.view')}
                         onButtonPress={onButtonPress}
+                        action={item.action}
                     />
                 )}
 
@@ -383,8 +344,6 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         onButtonPress={onButtonPress}
-                        showTooltip={false}
-                        isLargeScreenWidth={false}
                         action={item.action}
                     />
                 </View>
