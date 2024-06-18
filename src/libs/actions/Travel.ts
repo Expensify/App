@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
 function acceptSpotnanaTerms() {
-    const successData: OnyxUpdate[] = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.ACCOUNT,
@@ -19,7 +19,7 @@ function acceptSpotnanaTerms() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, {}, {successData});
+    API.write(WRITE_COMMANDS.ACCEPT_SPOTNANA_TERMS, {}, {optimisticData});
 }
 
 // eslint-disable-next-line import/prefer-default-export
