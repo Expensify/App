@@ -48,13 +48,14 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
     const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const isCurrentSearchResultsEmpty = isEmptyObject(currentSearchResults?.data ?? {});
 
     // save last non-empty search results to avoid ugly flash of loading screen when hash changes and onyx returns empty data
-    if (currentSearchResults?.data && currentSearchResults !== lastSearchResultsRef.current) {
+    if (!isCurrentSearchResultsEmpty && currentSearchResults !== lastSearchResultsRef.current) {
         lastSearchResultsRef.current = currentSearchResults;
     }
 
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastSearchResultsRef.current;
+    const searchResults = !isCurrentSearchResultsEmpty ? currentSearchResults : lastSearchResultsRef.current;
 
     useEffect(() => {
         if (isOffline) {
