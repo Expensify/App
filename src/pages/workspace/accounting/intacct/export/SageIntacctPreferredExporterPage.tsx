@@ -36,7 +36,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
                     value: policyOwner,
                     text: policyOwner,
                     keyForList: policyOwner,
-                    isSelected: true,
+                    isSelected: exportConfiguration?.exporter === policyOwner,
                 },
             ];
         }
