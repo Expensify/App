@@ -275,15 +275,15 @@ function createTaskAndNavigate(
             },
         },
     });
-
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
         value: {
             hasOutstandingChildTask: parentReport?.hasOutstandingChildTask,
         },
-    }),
-        clearOutTaskInfo();
+    });
+
+    clearOutTaskInfo();
 
     const parameters: CreateTaskParams = {
         parentReportActionID: optimisticAddCommentReport.reportAction.reportActionID,
@@ -323,6 +323,8 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
         ) {
             return true;
         }
+
+        return false;
     });
 }
 
