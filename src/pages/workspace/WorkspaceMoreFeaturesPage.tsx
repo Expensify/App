@@ -61,9 +61,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
     const policyID = policy?.id ?? '';
 
-    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState<boolean>(false);
-    const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState<boolean>(false);
-    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState<boolean>(false);
+    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
+    const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
+    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
 
     const spendItems: Item[] = [
         {
