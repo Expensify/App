@@ -37,6 +37,7 @@ import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
+import { PressableWithoutFeedback } from './Pressable';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -259,6 +260,10 @@ type MenuItemBaseProps = {
     /** Text to display under the main item */
     furtherDetails?: string;
 
+    furtherDetailsPressable?: boolean;
+
+    furtherDetailsPressableAction?: () => void;
+
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
@@ -322,6 +327,8 @@ function MenuItem(
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
         furtherDetails,
+        furtherDetailsPressable = false,
+        furtherDetailsPressableAction,
         description,
         helperText,
         helperTextStyle,
@@ -638,12 +645,24 @@ function MenuItem(
                                                                 inline
                                                             />
                                                         )}
-                                                        <Text
-                                                            style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
-                                                            numberOfLines={2}
-                                                        >
-                                                            {furtherDetails}
-                                                        </Text>
+                                                        {furtherDetailsPressable ? (
+                                                            <PressableWithoutFeedback
+                                                                style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
+                                                                onPress={furtherDetailsPressableAction}
+                                                                role={CONST.ROLE.BUTTON}
+                                                                accessibilityLabel={furtherDetails ?? ''}
+                                                                accessible
+                                                            >
+                                                                {furtherDetails}
+                                                            </PressableWithoutFeedback>
+                                                        ) : (
+                                                            <Text
+                                                                style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
+                                                                numberOfLines={2}
+                                                            >
+                                                                {furtherDetails}
+                                                            </Text>
+                                                        )}
                                                     </View>
                                                 )}
                                                 {titleComponent}
