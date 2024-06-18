@@ -1791,7 +1791,7 @@ export default {
         enterYourCompanysTaxIdNumber: "What's your company’s Tax ID number?",
         taxIDNumber: 'Tax ID number',
         taxIDNumberPlaceholder: '9 digits',
-        enterYourCompanysWebsite: 'What's your company’s website?',
+        enterYourCompanysWebsite: "What's your company’s website?",
         companyWebsite: 'Company website',
         enterYourCompanysPhoneNumber: 'What's your company’s phone number?',
         enterYourCompanysAddress: 'What's your company’s address?',
