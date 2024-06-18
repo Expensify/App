@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
-import type {TravelSettings} from './TravelSettings';
 
 /** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
