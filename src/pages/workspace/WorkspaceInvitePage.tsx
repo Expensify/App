@@ -241,7 +241,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {};
         selectedOptions.forEach((option) => {
             const login = option.login ?? '';
-            const accountID = option.accountID ?? '';
+            const accountID = option.accountID ?? '-1';
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
@@ -278,7 +278,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                 isAlertVisible={shouldShowAlertPrompt}
                 buttonText={translate('common.next')}
                 onSubmit={inviteUser}
-                message={[policy?.alertMessage ?? '', {isTranslated: true}]}
+                message={policy?.alertMessage ?? ''}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
                 disablePressOnEnter

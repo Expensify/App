@@ -5,7 +5,9 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 import useTheme from './useTheme';
 
-function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = []): MarkdownStyle {
+const defaultEmptyArray: Array<keyof MarkdownStyle> = [];
+
+function useMarkdownStyle(message: string | null = null, excludeStyles: Array<keyof MarkdownStyle> = defaultEmptyArray): MarkdownStyle {
     const theme = useTheme();
     const emojiFontSize = containsOnlyEmojis(message ?? '') ? variables.fontSizeOnlyEmojis : variables.fontSizeNormal;
 
