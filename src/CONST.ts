@@ -3319,6 +3319,11 @@ const CONST = {
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     BOOK_TRAVEL_DEMO_URL: 'https://calendly.com/d/ck2z-xsh-q97/expensify-travel-demo-travel-page',
+    TRAVEL_DOT_URL: 'https://travel.expensify.com',
+    STAGING_TRAVEL_DOT_URL: 'https://staging.travel.expensify.com',
+    TRIP_ID_PATH: (tripID: string) => `trips/${tripID}`,
+    SPOTNANA_TMC_ID: '8e8e7258-1cf3-48c0-9cd1-fe78a6e31eed',
+    STAGING_SPOTNANA_TMC_ID: '7a290c6e-5328-4107-aff6-e48765845b81',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
