@@ -164,7 +164,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
-        if (caseID === CASES.MONEY_REPORT && reportActions && transactionThreadReport?.parentReportActionID) {
+        if (caseID === CASES.MONEY_REPORT) {
+            if (!reportActions || !transactionThreadReport?.parentReportActionID) {
+                return null;
+            }
             return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
         return parentReportAction;
@@ -172,7 +175,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
     const moneyRequestReport = useMemo(() => {
         if (caseID === CASES.MONEY_REQUEST) {
