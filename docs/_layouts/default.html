@@ -52,13 +52,13 @@
             {% if page.url == "/" or page.url contains "/hubs/" %}
                 {% include lhn-template.html %}
             {% else %}
-                <div id="back-button" class="icon-with-link">
-                    <img src="/assets/images/back-left.svg" class="base-icon"></img>
+                <a href="/" id="back-button" class="icon-with-link">
+                    <img src="/assets/images/back-left.svg" class="base-icon">
                     <div class="link">Back</div>
-                </div>
+                </a>
                 <div class="article-toc"></div>
             {% endif %}
-        </div>
+        </div>        
     </div>
 
     <div id="content-area">

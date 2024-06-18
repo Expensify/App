@@ -1,0 +1,8 @@
+[commit]
+    gpgsign = true
+[user]
+    email = rasheedrtm1@gmail.com
+    name = taiwrash
+    signingkey = 30C8087C891F6D07
+[gpg]
+    program = gpg
