@@ -1959,6 +1959,7 @@ export default {
         hotel: 'Hotel',
         car: 'Auto',
         viewTrip: 'Ver viaje',
+        viewTripDetails: 'Ver detalles del viaje',
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
@@ -2832,6 +2833,7 @@ export default {
             search: 'Abrir diálogo de búsqueda',
             newChat: 'Nueva pantalla de chat',
             copy: 'Copiar comentario',
+            openDebug: 'Abrir el diálogo de preferencias de pruebas',
         },
     },
     guides: {

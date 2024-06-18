@@ -10,7 +10,7 @@ import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import * as CardUtils from './CardUtils';
 import DateUtils from './DateUtils';
-import type {MaybePhraseKey} from './Localize';
+import * as Localize from './Localize';
 import * as LoginUtils from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
@@ -111,7 +111,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxVal
             return;
         }
 
-        errors[fieldKey] = 'common.error.fieldRequired';
+        errors[fieldKey] = Localize.translateLocal('common.error.fieldRequired');
     });
 
     return errors;
@@ -190,12 +190,12 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): MaybePhraseKey {
+function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return 'common.error.dateInvalid';
+        return Localize.translateLocal('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -206,10 +206,10 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)}];
+        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
     }
 
-    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)}];
+    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
 }
 
 /**
@@ -221,14 +221,14 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return 'common.error.dateInvalid';
+        return Localize.translateLocal('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return 'common.error.dateInvalid';
+        return Localize.translateLocal('common.error.dateInvalid');
     }
 
     return '';

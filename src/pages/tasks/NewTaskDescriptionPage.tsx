@@ -50,7 +50,11 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
         const errors = {};
 
         if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}]);
+            ErrorUtils.addErrorMessage(
+                errors,
+                'taskDescription',
+                translate('common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}),
+            );
         }
 
         return errors;

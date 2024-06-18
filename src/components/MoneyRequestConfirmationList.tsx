@@ -30,10 +30,12 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import playSound, { SOUNDS } from '@libs/Sound';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -319,7 +321,7 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
-    const [formError, debouncedFormError, setFormError] = useDebouncedState('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
@@ -347,12 +349,12 @@ function MoneyRequestConfirmationList({
     const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
-        if (shouldDisplayFieldError && hasSmartScanFailed) {
-            setFormError('iou.receiptScanningFailed');
-            return;
-        }
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
+            return;
+        }
+        if (shouldDisplayFieldError && hasSmartScanFailed) {
+            setFormError('iou.receiptScanningFailed');
             return;
         }
         // reset the form error whenever the screen gains or loses focus
@@ -717,20 +719,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (formError) {
-                return;
-            }
-
-            if (iouType === CONST.IOU.TYPE.PAY) {
-                if (!paymentMethod) {
-                    return;
-                }
-
-                setDidConfirm(true);
-
-                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
-                onSendMoney?.(paymentMethod);
-            } else {
+            if (iouType !== CONST.IOU.TYPE.PAY) {
                 // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
@@ -744,26 +733,43 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
+                if (formError) {
+                    return;
+                }
+
+                playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
+            } else {
+                if (!paymentMethod) {
+                    return;
+                }
+                if (formError) {
+                    return;
+                }
+
+                setDidConfirm(true);
+
+                Log.info(`[IOU] Sending money via: ${paymentMethod}`);
+                onSendMoney?.(paymentMethod);
             }
         },
         [
             selectedParticipants,
+            isEditingSplitBill,
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
+            iouCategory.length,
+            formError,
             iouType,
+            setFormError,
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            iouCategory,
             isDistanceRequestWithPendingRoute,
             iouAmount,
-            isEditingSplitBill,
-            formError,
-            setFormError,
             onConfirm,
         ],
     );
@@ -815,7 +821,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={!shouldShowReadOnlySplits ? debouncedFormError : formError}
+                        message={!shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
                     />
                 )}
 
@@ -832,10 +838,11 @@ function MoneyRequestConfirmationList({
         policyID,
         splitOrRequestOptions,
         formError,
-        debouncedFormError,
-        shouldShowReadOnlySplits,
         styles.ph1,
         styles.mb2,
+        shouldShowReadOnlySplits,
+        debouncedFormError,
+        translate,
     ]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
