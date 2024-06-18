@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 import type ImageViewProps from './types';
@@ -195,7 +196,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         };
     }, [canUseTouchScreen, trackMovement, trackPointerPosition]);
 
-    const isLocalFile = url.startsWith('blob:') || url.startsWith('file:');
+    const isLocalFile = FileUtils.isLocalFile(url);
 
     if (canUseTouchScreen) {
         return (

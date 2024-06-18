@@ -12,6 +12,7 @@ import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
@@ -197,7 +198,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [onScaleChangedContext, onScaleChangedProp],
     );
 
-    const isLocalFile = uri.startsWith('blob:') || uri.startsWith('file:');
+    const isLocalFile = FileUtils.isLocalFile(uri);
 
     return (
         <View
