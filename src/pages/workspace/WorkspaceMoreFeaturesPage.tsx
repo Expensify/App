@@ -133,6 +133,20 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyTaxes(policy?.id ?? '-1', isEnabled);
             },
         },
+        {
+            icon: Illustrations.Pencil,
+            titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
+            isActive: policy?.areReportFieldsEnabled ?? false,
+            disabled: hasAccountingConnection,
+            pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
+            action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setIsOrganizeWarningModalOpen(true);
+                    return;
+                }
+            },
+        },
     ];
 
     const integrateItems: Item[] = [
