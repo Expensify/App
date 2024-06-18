@@ -2172,6 +2172,17 @@ export default {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
+        sageIntacct: {
+            autoSync: 'Auto-sync',
+            autoSyncDescription: 'Sync Sage Intacct and Expensify automatically, every day.',
+            inviteEmployees: 'Invite employees',
+            inviteEmployeesDescription:
+                'Import Sage Intacct employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be furthered configured on the Members page.',
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
+            paymentAccount: 'Sage Intacct payment account',
+            notConfigured: 'Not configured',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -2392,6 +2403,19 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            intacct: 'Sage Intacct',
+            integrationName: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default:
+                        return 'Integration';
+                }
+            },
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
