@@ -1,11 +1,12 @@
 import {profiler} from '@perf-profiler/profiler';
 import {getAverageCpuUsage, getAverageFPSUsage, getAverageRAMUsage} from '@perf-profiler/reporter';
 import type {Measure} from '@perf-profiler/types';
-import noop from 'lodash/noop';
 
 let measures: Measure[] = [];
 let polling = {
-    stop: noop,
+    stop: (): void => {
+        throw new Error('Cannot stop polling on a stopped profiler');
+    },
 };
 
 const start = (bundleId: string) => {

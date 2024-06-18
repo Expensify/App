@@ -26,7 +26,7 @@ import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
 import * as Logger from './utils/logger';
-import {start, stop} from './utils/measure';
+import * as MeasureUtils from './utils/measure';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
@@ -144,13 +144,13 @@ const runTests = async (): Promise<void> => {
         Logger.log('Launching', appPackage);
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
-        start(appPackage);
+        MeasureUtils.start(appPackage);
         await withFailTimeout(
             new Promise<void>((resolve) => {
-                const subscription = server.addTestDoneListener(() => {
+                const removeListener = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
 
-                    const metrics = stop();
+                    const metrics = MeasureUtils.stop();
                     const test = server.getTestConfig();
 
                     if (server.isReadyToAcceptTestResults) {
@@ -170,7 +170,7 @@ const runTests = async (): Promise<void> => {
                             duration: metrics.ram,
                         });
                     }
-                    subscription();
+                    removeListener();
                     resolve();
                 });
             }),
