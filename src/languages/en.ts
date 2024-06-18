@@ -1931,6 +1931,7 @@ export default {
         hotel: 'Hotel',
         car: 'Car',
         viewTrip: 'View trip',
+        viewTripDetails: 'View trip details',
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
@@ -2790,6 +2791,7 @@ export default {
             search: 'Open search dialog',
             newChat: 'New chat screen',
             copy: 'Copy comment',
+            openDebug: 'Open testing preferences dialog',
         },
     },
     guides: {
