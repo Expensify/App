@@ -22,6 +22,7 @@ import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
+import Badge from '@components/Badge';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -36,6 +37,7 @@ type TransactionCellProps = {
 
 type ActionCellProps = {
     onButtonPress: () => void;
+    action: string;
 } & CellProps;
 
 type TotalCellProps = {
@@ -148,9 +150,23 @@ function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     );
 }
 
-function ActionCell({onButtonPress}: ActionCellProps) {
+function ActionCell({onButtonPress, action}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
+
+    if (action === 'paid' || action === 'done') {
+        return (
+            <Badge
+                text={action === 'paid' ? 'Paid' : 'Done'}
+                icon={Expensicons.Checkmark}
+                badgeStyles={[{borderColor: theme.border, height: 20, minHeight: 20}, styles.ml0, styles.ph2, styles.gap1]}
+                textStyles={{fontSize: variables.fontSizeExtraSmall}}
+                iconStyles={styles.mr0}
+                success
+            />
+        )
+    }
 
     return (
         <Button
@@ -367,6 +383,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         onButtonPress={onButtonPress}
                         showTooltip={false}
                         isLargeScreenWidth={false}
+                        action={item.action}
                     />
                 </View>
             </View>
