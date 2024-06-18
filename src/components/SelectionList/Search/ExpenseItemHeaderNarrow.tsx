@@ -50,6 +50,7 @@ function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, p
                 <ActionCell
                     onButtonPress={onButtonPress}
                     action={action}
+                    isLargeScreenWidth={false}
                 />
             </View>
         </View>

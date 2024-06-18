@@ -12,9 +12,10 @@ import variables from '@styles/variables';
 type ActionCellProps = {
     onButtonPress: () => void;
     action: string;
+    isLargeScreenWidth?: boolean;
 };
 
-function ActionCell({onButtonPress, action}: ActionCellProps) {
+function ActionCell({onButtonPress, action, isLargeScreenWidth = true}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -26,7 +27,7 @@ function ActionCell({onButtonPress, action}: ActionCellProps) {
             <Badge
                 text={translate(buttonTextKey)}
                 icon={Expensicons.Checkmark}
-                badgeStyles={[styles.ml0, styles.ph2, styles.gap1, StyleUtils.getBorderColorStyle(theme.border), StyleUtils.getHeight(variables.h20), StyleUtils.getMinimumHeight(variables.h20)]}
+                badgeStyles={[styles.ml0, styles.ph2, styles.gap1, isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd, StyleUtils.getBorderColorStyle(theme.border), StyleUtils.getHeight(variables.h20), StyleUtils.getMinimumHeight(variables.h20)]}
                 textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                 iconStyles={styles.mr0}
                 success
