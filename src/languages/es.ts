@@ -2456,8 +2456,10 @@ export default {
             },
             disconnectPrompt: (currentIntegration?: string, integrationToConnect?: string): string => {
                 if (!integrationToConnect) {
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'integración'}?`;
                 }
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'integración'} para configurar ${integrationToConnect}`;
             },
             enterCredentials: 'Ingresa tus credenciales',
