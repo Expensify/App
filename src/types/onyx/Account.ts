@@ -72,9 +72,6 @@ type Account = {
     /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
 
-    /** Object containing all account information necessary to connect with Spontana */
-    travelSettings?: TravelSettings;
-
     /** Indicates whether the user is an approved accountant */
     isApprovedAccountant?: boolean;
 
