@@ -149,16 +149,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const caseID = useMemo((): CaseID => {
         // 3. MoneyReportHeader
         if (isMoneyRequestReport || isInvoiceReport) {
-            return CASES.MONEY_REQUEST;
+            return CASES.MONEY_REPORT;
         }
         // 2. MoneyRequestHeader
         if (isSingleTransactionView) {
-            return CASES.MONEY_REPORT;
+            return CASES.MONEY_REQUEST;
         }
         // 1. HeaderView
         return CASES.DEFAULT;
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
-
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
