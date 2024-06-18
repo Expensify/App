@@ -44,6 +44,7 @@ function formatBytes(bytes: number, decimals = 2) {
     return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
+// NOTE: When changing this name make sure that the "scripts/symbolicate-profile.ts" script is still working!
 const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
 
 function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {

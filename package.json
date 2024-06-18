@@ -53,6 +53,7 @@
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "symbolicate-release:ios": "scripts/release-profile.ts --platform=ios",
     "symbolicate-release:android": "scripts/release-profile.ts --platform=android",
+    "symbolicate-profile": "scripts/symbolicate-profile.ts",
     "test:e2e": "ts-node tests/e2e/testRunner.ts --config ./config.local.ts",
     "test:e2e:dev": "ts-node tests/e2e/testRunner.ts --config ./config.dev.ts",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
