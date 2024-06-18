@@ -33,15 +33,18 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+            const errors = {};
 
-        if (values?.description && values.description?.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
-        }
+            if (values?.description && values.description?.length > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
