@@ -28,6 +28,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -112,6 +113,7 @@ export type {
     MapboxAccessToken,
     Modal,
     Network,
+    OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     PersonalBankAccount,

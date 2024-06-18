@@ -45,7 +45,7 @@ function WorkspaceJoinUserPage({route, policy}: WorkspaceJoinUserPageProps) {
         if (!isEmptyObject(policy) && !policy?.isJoinRequestPending) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack(undefined, false, true);
-                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? ''));
+                Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID ?? '-1'));
             });
             return;
         }
