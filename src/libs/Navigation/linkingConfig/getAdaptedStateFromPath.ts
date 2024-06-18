@@ -312,7 +312,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             if (!isNarrowLayout) {
-                routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? ''}}));
+                routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? '-1'}}));
             }
             routes.push(reportAttachments);
 

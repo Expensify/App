@@ -177,7 +177,7 @@ function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalPro
                     );
 
                     // Pass through the selected assignee
-                    TaskActions.editTaskAssignee(report, session?.accountID ?? 0, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    TaskActions.editTaskAssignee(report, session?.accountID ?? -1, option?.login ?? '', option?.accountID, assigneeChatReport);
                 }
                 Navigation.dismissModal(report.reportID);
                 // If there's no report, we're creating a new task

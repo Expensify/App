@@ -124,12 +124,12 @@ function WorkspacePageWithSections({
     isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '';
+    const policyID = route.params?.policyID ?? '-1';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state ?? '';
+    const achState = reimbursementAccount?.achData?.state ?? '-1';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
