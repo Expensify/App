@@ -1,5 +1,4 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -10,15 +9,19 @@ import type {
     TextInput,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
-    TextInputSelectionChangeEventData,
+    TextInputScrollEventData,
 } from 'react-native';
 import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import type {useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -35,12 +38,14 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SuggestionUtils from '@libs/SuggestionUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
+import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
 import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
@@ -132,9 +137,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
 
         /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-        /** The height of the list */
-        listHeight: number;
 
         /** Whether the scroll is likely to trigger a layout */
         isScrollLikelyLayoutTriggered: RefObject<boolean>;
@@ -248,7 +250,6 @@ function ComposerWithSuggestions(
         handleSendMessage,
         shouldShowComposeInput,
         measureParentContainer = () => {},
-        listHeight,
         isScrollLikelyLayoutTriggered,
         raiseIsScrollLikelyLayoutTriggered,
 
@@ -271,6 +272,9 @@ function ComposerWithSuggestions(
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
+    const mobileInputScrollPosition = useRef(0);
+    const cursorPositionValue = useSharedValue({x: 0, y: 0});
+    const tag = useSharedValue(-1);
     const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
         if (draftComment) {
@@ -284,7 +288,7 @@ function ComposerWithSuggestions(
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
-    const parentReportAction = parentReportActions?.[parentReportActionID ?? ''];
+    const parentReportAction = parentReportActions?.[parentReportActionID ?? '-1'];
     const shouldAutoFocus =
         !modal?.isVisible &&
         Modal.areAllModalsHidden() &&
@@ -295,7 +299,7 @@ function ComposerWithSuggestions(
     const valueRef = useRef(value);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState(() => ({start: 0, end: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
@@ -303,12 +307,6 @@ function ComposerWithSuggestions(
     const insertedEmojisRef = useRef<Emoji[]>([]);
 
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
-
-    const suggestions = suggestionsRef.current?.getSuggestions() ?? [];
-
-    const hasEnoughSpaceForLargeSuggestion = SuggestionUtils.hasEnoughSpaceForLargeSuggestionMenu(listHeight, composerHeight, suggestions?.length ?? 0);
-
-    const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
@@ -389,9 +387,9 @@ function ComposerWithSuggestions(
 
             if (currentIndex < newText.length) {
                 startIndex = currentIndex;
-                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection.end);
+                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
                 // if text is getting pasted over find length of common suffix and subtract it from new text length
-                if (commonSuffixLength > 0 || selection.end - selection.start > 0) {
+                if (commonSuffixLength > 0 || (selection?.end ?? 0) - selection.start > 0) {
                     endIndex = newText.length - commonSuffixLength;
                 } else {
                     endIndex = currentIndex + newText.length;
@@ -438,16 +436,18 @@ function ComposerWithSuggestions(
             emojisPresentBefore.current = emojis;
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
-                const position = Math.max(selection.end + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
+                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
                 if (commentWithSpaceInserted !== newComment && isIOSNative) {
                     syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
                 }
 
-                setSelection({
+                setSelection((prevSelection) => ({
                     start: position,
                     end: position,
-                });
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
             }
 
             commentRef.current = newCommentConverted;
@@ -490,7 +490,7 @@ function ComposerWithSuggestions(
         debouncedSaveReportComment.cancel();
         isCommentPendingSaved.current = false;
 
-        setSelection({start: 0, end: 0});
+        setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
         updateComment('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
@@ -542,8 +542,7 @@ function ComposerWithSuggestions(
             ) {
                 event.preventDefault();
                 if (lastReportAction) {
-                    const parser = new ExpensiMark();
-                    Report.saveReportActionDraft(reportID, lastReportAction, parser.htmlToMarkdown(lastReportAction.message?.at(-1)?.html ?? ''));
+                    Report.saveReportActionDraft(reportID, lastReportAction, parseHtmlToMarkdown(lastReportAction.message?.at(-1)?.html ?? ''));
                 }
             }
         },
@@ -570,22 +569,27 @@ function ComposerWithSuggestions(
     );
 
     const onSelectionChange = useCallback(
-        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-            if (textInputRef.current?.isFocused() && suggestionsRef.current?.onSelectionChange?.(e)) {
+        (e: CustomSelectionChangeEvent) => {
+            if (!textInputRef.current?.isFocused()) {
                 return;
             }
+            suggestionsRef.current?.onSelectionChange?.(e);
 
             setSelection(e.nativeEvent.selection);
         },
         [suggestionsRef],
     );
 
-    const hideSuggestionMenu = useCallback(() => {
-        if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
-            return;
-        }
-        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    }, [suggestionsRef, isScrollLikelyLayoutTriggered]);
+    const hideSuggestionMenu = useCallback(
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+            if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
+                return;
+            }
+            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+        },
+        [suggestionsRef, isScrollLikelyLayoutTriggered],
+    );
 
     const setShouldBlockSuggestionCalcToFalse = useCallback(() => {
         if (!suggestionsRef.current) {
@@ -741,6 +745,43 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        tag.value = findNodeHandle(textInputRef.current) ?? -1;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    useFocusedInputHandler(
+        {
+            onSelectionChange: (event) => {
+                'worklet';
+
+                if (event.target === tag.value) {
+                    cursorPositionValue.value = {
+                        x: event.selection.end.x,
+                        y: event.selection.end.y,
+                    };
+                }
+            },
+        },
+        [],
+    );
+    const measureParentContainerAndReportCursor = useCallback(
+        (callback: MeasureParentContainerAndCursorCallback) => {
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            measureParentContainer((x, y, width, height) => {
+                callback({
+                    x,
+                    y,
+                    width,
+                    height,
+                    scrollValue,
+                    cursorCoordinates: {x: xPosition, y: yPosition},
+                });
+            });
+        },
+        [measureParentContainer, cursorPositionValue, selection],
+    );
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -781,12 +822,9 @@ function ComposerWithSuggestions(
 
             <Suggestions
                 ref={suggestionsRef}
-                isComposerFullSize={isComposerFullSize}
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
-                composerHeight={composerHeight}
-                measureParentContainer={measureParentContainer}
-                isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input

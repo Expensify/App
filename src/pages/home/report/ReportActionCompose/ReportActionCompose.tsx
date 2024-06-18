@@ -1,4 +1,3 @@
-import {PortalHost} from '@gorhom/portal';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -73,7 +72,7 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
         onSubmit: (newComment: string) => void;
 
@@ -111,7 +110,6 @@ function ReportActionCompose({
     pendingAction,
     report,
     reportID,
-    listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     isEmptyChat,
@@ -338,7 +336,7 @@ function ReportActionCompose({
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID ?? '')) {
+            if (!EmojiPickerActions.isActive(report?.reportID ?? '-1')) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
@@ -384,7 +382,6 @@ function ReportActionCompose({
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <PortalHost name="suggestions" />
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -438,7 +435,7 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        policyID={report?.policyID ?? ''}
+                                        policyID={report?.policyID ?? '-1'}
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
@@ -461,7 +458,6 @@ function ReportActionCompose({
                                         onFocus={onFocus}
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
                                         onValueChange={(value) => {
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);

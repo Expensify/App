@@ -266,10 +266,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             justifyContent: 'center',
+            overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
-            position: 'absolute',
-            left: 0,
-            right: 0,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
 
@@ -4024,6 +4022,11 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
+        },
+
         taskCheckbox: {
             height: 16,
             width: 16,
@@ -4442,10 +4445,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
             borderWidth: 2,
             overflow: 'hidden',
-        },
-
-        magicCodeAnimation: {
-            width: variables.modalTopIconWidth,
         },
 
         justSignedInModalAnimation: (is2FARequired: boolean) => ({
@@ -4997,15 +4996,6 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
-        },
-
-        tripReservationIconContainer: {
-            width: variables.avatarSizeNormal,
-            height: variables.avatarSizeNormal,
-            backgroundColor: theme.border,
-            borderRadius: variables.componentBorderRadiusXLarge,
-            alignItems: 'center',
-            justifyContent: 'center',
         },
 
         textLineThrough: {
