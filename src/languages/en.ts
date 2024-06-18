@@ -770,7 +770,7 @@ export default {
         confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
         confirmPay: 'Confirm payment amount',
-        confirmPayAmount: "Pay what's not on hold, or pay all out-of-pocket spend.",
+        confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
         confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
             `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to pay anyway?`,
         payOnly: 'Pay only',
