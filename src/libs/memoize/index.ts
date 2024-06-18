@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import buildArrayCache from './cache/arrayCacheBuilder';
-import type {ClientOptions, MemoizedFn, MemoizeFnPredicate} from './types';
+import type {ClientOptions, MemoizeFnPredicate} from './types';
 import {mergeOptions} from './utils';
 
 /**
@@ -8,8 +9,7 @@ import {mergeOptions} from './utils';
  * @param options - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
+function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions) {
     const options = mergeOptions(opts);
 
     const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);
@@ -23,7 +23,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
 
         const result = fn(...key);
 
-        cache.set(key, result);
+        cache.set(key, result as ReturnType<Fn>);
 
         return result;
     };
