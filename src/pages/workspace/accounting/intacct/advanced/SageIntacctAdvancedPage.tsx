@@ -5,10 +5,12 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -17,6 +19,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
 
     const {syncReimbursedReports, reimbursementAccountID} = policy?.connections?.intacct?.config?.sync ?? {};
     const {autoSync, pendingFields, errorFields, credentials} = policy?.connections?.intacct?.config ?? {};
+    const {data} = policy?.connections?.intacct ?? {};
 
     const currentSageIntacctOrganizationName = credentials?.companyID;
 
@@ -62,6 +65,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             pendingFields?.importEmployees,
             pendingFields?.sync?.syncReimbursedReports,
             policy?.connections?.intacct?.config?.autoSync?.enabled,
+            policy?.connections?.intacct?.config?.importEmployees,
             policyID,
             syncReimbursedReports,
             translate,
@@ -102,10 +106,10 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 pendingAction={pendingFields?.sync?.reimbursementAccountID}
             >
                 <MenuItem
-                    title={reimbursementAccountID || translate('workspace.sageIntacct.notConfigured')}
+                    title={data.bankAccounts.find((bankAccount) => bankAccount.id === reimbursementAccountID).name || translate('workspace.sageIntacct.notConfigured')}
                     description={translate('workspace.sageIntacct.paymentAccount')}
                     shouldShowRightIcon
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
                     brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
