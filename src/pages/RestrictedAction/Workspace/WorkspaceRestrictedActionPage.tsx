@@ -11,23 +11,28 @@ import WorkspaceUserRestrictedAction from './WorkspaceUserRestrictedAction';
 
 type WorkspaceRestrictedActionPageProps = StackScreenProps<RestrictedActionParamList, typeof SCREENS.RESTRICTED_ACTION_ROOT>;
 
-function WorkspaceRestrictedActionPage({route}: WorkspaceRestrictedActionPageProps) {
+function WorkspaceRestrictedActionPage({
+    route: {
+        params: {policyID},
+    },
+}: WorkspaceRestrictedActionPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const userRole = policy?.employeeList?.[session?.email ?? '']?.role;
 
     // Workspace Owner
     if (session?.accountID === policy?.ownerAccountID) {
-        return <WorkspaceOwnerRestrictedAction policyID={route.params.policyID} />;
+        return <WorkspaceOwnerRestrictedAction />;
     }
 
     // Workspace Admin
-    if (policy?.employeeList?.[session?.email ?? '']?.role === 'admin') {
-        return <WorkspaceAdminRestrictedAction policyID={route.params.policyID} />;
+    if (userRole === 'admin') {
+        return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
     // Workspace User
-    if (policy?.employeeList?.[session?.email ?? '']?.role === 'user') {
-        return <WorkspaceUserRestrictedAction policyID={route.params.policyID} />;
+    if (userRole === 'user') {
+        return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 
     return <NotFoundPage />;

@@ -6965,7 +6965,7 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
 }
 
 function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
-    return Object.values(allReports ?? {}).find((report) => report?.isPolicyExpenseChat && report.policyID === policyID);
+    return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
 

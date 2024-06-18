@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +25,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const styles = useThemeStyles();
 
-    const onPress = useCallback(() => {
+    const openPolicyExpenseReport = useCallback(() => {
         const reportID = ReportUtils.findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
         Report.openReport(reportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
@@ -37,9 +38,13 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, styles.p5, styles.pt0]}>
+            <ScrollView
+                style={[styles.p5, styles.pt0]}
+                contentContainerStyle={styles.flexGrow1}
+            >
+                {' '}
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.mb15]}>
                     <ImageSVG
                         src={Illustrations.LockClosedOrange}
@@ -47,7 +52,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                         height={136}
                     />
                     <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
-                        {translate('workspace.restrictedAction.expensesAreCurrentlyRestricted', {workspaceName: policy?.name})}
+                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name})}
                     </Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.textAlignCenter, styles.lh20, styles.mt2]}>
                         {translate('workspace.restrictedAction.pleaseReachOutToYourWorkspaceAdmin')}
@@ -55,10 +60,10 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                 </View>
                 <Button
                     text={translate('workspace.restrictedAction.chatWithYourAdmin')}
-                    onPress={onPress}
+                    onPress={openPolicyExpenseReport}
                     success
                 />
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
