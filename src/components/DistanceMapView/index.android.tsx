@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type DistanceMapViewProps from './types';
 
-function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
+function DistanceMapView({overlayStyle, pendingMapContent, ...rest}: DistanceMapViewProps) {
     const styles = useThemeStyles();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
@@ -30,13 +30,17 @@ function DistanceMapView({overlayStyle, ...rest}: DistanceMapViewProps) {
             />
             {!isMapReady && (
                 <View style={[styles.mapViewOverlay, overlayStyle]}>
-                    <BlockingView
-                        icon={Expensicons.EmptyStateRoutePending}
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        shouldShowLink={false}
-                        iconColor={theme.border}
-                    />
+                    {!pendingMapContent ? (
+                        <BlockingView
+                            icon={Expensicons.EmptyStateRoutePending}
+                            title={translate('distance.mapPending.title')}
+                            subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                            shouldShowLink={false}
+                            iconColor={theme.border}
+                        />
+                    ) : (
+                        pendingMapContent
+                    )}
                 </View>
             )}
         </>

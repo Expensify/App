@@ -118,6 +118,14 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
+            pendingMapContent={
+                requireRouteToDisplayMap && (
+                    <PendingMapView
+                        isSmallerIcon={isSmallerIcon}
+                        style={!shouldHaveBorderRadius && StyleUtils.getBorderRadiusStyle(0)}
+                    />
+                )
+            }
         />
     ) : (
         <PendingMapView
