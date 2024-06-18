@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {formatDistanceToNow} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
