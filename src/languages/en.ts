@@ -1089,7 +1089,7 @@ export default {
             paymentCardNumber: 'Please enter a valid card number',
             expirationDate: 'Please select a valid expiration date',
             securityCode: 'Please enter a valid security code',
-            addressStreet: 'Please enter a valid billing address that's not a PO box',
+            addressStreet: "Please enter a valid billing address that's not a PO box",
             addressState: 'Please select a state',
             addressCity: 'Please enter a city',
             genericFailureMessage: 'An error occurred while adding your card. Please try again.',
