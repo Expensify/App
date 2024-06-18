@@ -164,6 +164,9 @@ type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Connection sync source values */
+type ConnectionSourceValues = 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
+
 /** Connection last synchronization state */
 type ConnectionLastSync = {
     /** Date when the connection's last successful sync occurred */
@@ -176,7 +179,7 @@ type ConnectionLastSync = {
     isSuccessful: boolean;
 
     /** Where did the connection's last sync came from */
-    source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
+    source: ConnectionSourceValues;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -906,14 +909,14 @@ type NetSuiteConnection = {
     /** */
     verified: boolean;
 
-    /** */
+    /** Date when the connection's last successful sync occurred */
     lastSyncDate: string;
 
-    /** */
+    /** Date when the connection's last failed sync occurred */
     lastErrorSyncDate: string;
 
-    /** */
-    source: string;
+    /** Where did the connection's last sync came from */
+    source: ConnectionSourceValues;
 
     /** */
     config: {
