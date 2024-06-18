@@ -248,10 +248,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
             value: {employeeList: optimisticMembersState},
         },
     ];
-
-    if (announceRoomMembers.onyxOptimisticData) {
-        optimisticData.push(...announceRoomMembers.onyxOptimisticData);
-    }
+    optimisticData.push(...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -260,10 +257,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
             value: {employeeList: successMembersState},
         },
     ];
-
-    if (announceRoomMembers.onyxSuccessData) {
-        successData.push(...announceRoomMembers.onyxSuccessData);
-    }
+    successData.push(...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -272,10 +266,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
             value: {employeeList: failureMembersState},
         },
     ];
-
-    if (announceRoomMembers.onyxFailureData) {
-        failureData.push(...announceRoomMembers.onyxFailureData);
-    }
+    failureData.push(...announceRoomMembers.onyxFailureData);
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -561,17 +552,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             },
         },
     ];
-
-    if (newPersonalDetailsOnyxData.optimisticData) {
-        optimisticData.push(...newPersonalDetailsOnyxData.optimisticData);
-    }
-    if (membersChats.onyxOptimisticData) {
-        optimisticData.push(...membersChats.onyxOptimisticData);
-    }
-
-    if (announceRoomMembers.onyxOptimisticData) {
-        optimisticData.push(...announceRoomMembers.onyxOptimisticData);
-    }
+    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData, ...membersChats.onyxOptimisticData, ...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -582,16 +563,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             },
         },
     ];
-
-    if (newPersonalDetailsOnyxData.finallyData) {
-        successData.push(...newPersonalDetailsOnyxData.finallyData);
-    }
-    if (membersChats.onyxSuccessData) {
-        successData.push(...membersChats.onyxSuccessData);
-    }
-    if (announceRoomMembers.onyxSuccessData) {
-        successData.push(...announceRoomMembers.onyxSuccessData);
-    }
+    successData.push(...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -605,13 +577,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             },
         },
     ];
-
-    if (membersChats.onyxFailureData) {
-        failureData.push(...membersChats.onyxFailureData);
-    }
-    if (announceRoomMembers.onyxFailureData) {
-        failureData.push(...announceRoomMembers.onyxFailureData);
-    }
+    failureData.push(...membersChats.onyxFailureData, ...announceRoomMembers.onyxFailureData);
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),

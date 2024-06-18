@@ -17,7 +17,7 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type AddDebitCardForm = Form<
+type AddPaymentCardForm = Form<
     InputID,
     {
         /** Whether the form has been submitted */
@@ -34,5 +34,5 @@ type AddDebitCardForm = Form<
     }
 >;
 
-export type {AddDebitCardForm};
+export type {AddPaymentCardForm};
 export default INPUT_IDS;

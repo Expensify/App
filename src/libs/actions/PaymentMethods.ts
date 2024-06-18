@@ -13,13 +13,13 @@ import type {
     TransferWalletBalanceParams,
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/AddDebitCardForm';
+import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -178,7 +178,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: true},
         },
     ];
@@ -186,7 +186,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -194,7 +194,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -235,7 +235,7 @@ function addSubscriptionPaymentCard(cardData: {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: true},
         },
     ];
@@ -243,7 +243,7 @@ function addSubscriptionPaymentCard(cardData: {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -251,24 +251,36 @@ function addSubscriptionPaymentCard(cardData: {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
 
-    // TODO integrate API for subscription card as a follow up
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    if (currency === CONST.CURRENCY.GBP) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBR, parameters, {optimisticData, successData, failureData}).then((response) => {
+            if (response?.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                // TODO 3ds flow will be done as a part https://github.com/Expensify/App/issues/42432
+                // We will use this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
+                Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
+            }
+        });
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+        Navigation.goBack();
+    }
 }
 
 /**
- * Resets the values for the add debit card form back to their initial states
+ * Resets the values for the add payment card form back to their initial states
  */
-function clearDebitCardFormErrorAndSubmit() {
-    Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+function clearPaymentCardFormErrorAndSubmit() {
+    Onyx.set(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
         [INPUT_IDS.SETUP_COMPLETE]: false,
@@ -285,11 +297,19 @@ function clearDebitCardFormErrorAndSubmit() {
 }
 
 /**
+ * Clear 3ds flow - when verification will be finished
+ *
+ */
+function clearPaymentCard3dsVerification() {
+    Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
  * Set currency for payments
  *
  */
 function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.CURRENCY>) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
         [INPUT_IDS.CURRENCY]: currency,
     });
 }
@@ -499,7 +519,7 @@ export {
     kycWallRef,
     continueSetup,
     addSubscriptionPaymentCard,
-    clearDebitCardFormErrorAndSubmit,
+    clearPaymentCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
     resetWalletTransferData,
@@ -511,5 +531,6 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     setPaymentMethodCurrency,
+    clearPaymentCard3dsVerification,
     clearWalletTermsError,
 };

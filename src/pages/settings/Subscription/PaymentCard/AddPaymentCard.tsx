@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +16,6 @@ import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@navigation/Navigation';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,15 +33,14 @@ function AddPaymentCard() {
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
     useEffect(() => {
-        PaymentMethods.clearDebitCardFormErrorAndSubmit();
+        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearDebitCardFormErrorAndSubmit();
+            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
-    // TODO refactor ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM to ONYXKEYS.FORMS.ADD_CARD_FORM as a follow up
-    const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>, currency?: ValueOf<typeof CONST.CURRENCY>) => {
+    const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
         const cardData = {
             cardNumber: values.cardNumber,
             cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
@@ -51,14 +48,9 @@ function AddPaymentCard() {
             cardCVV: values.securityCode,
             addressName: values.nameOnCard,
             addressZip: values.addressZipCode,
-            currency: currency ?? CONST.CURRENCY.USD,
+            currency: values.currency ?? CONST.CURRENCY.USD,
         };
-        if (currency === CONST.CURRENCY.GBP) {
-            // TODO add AddPaymentCardGBP flow as a follow up
-            return;
-        }
         PaymentMethods.addSubscriptionPaymentCard(cardData);
-        Navigation.goBack();
     }, []);
 
     return (

@@ -1,4 +1,4 @@
-export type {AddDebitCardForm} from './AddDebitCardForm';
+export type {AddPaymentCardForm} from './AddPaymentCardForm';
 export type {CloseAccountForm} from './CloseAccountForm';
 export type {DateOfBirthForm} from './DateOfBirthForm';
 export type {DisplayNameForm} from './DisplayNameForm';

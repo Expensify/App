@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function ChangeCurrency() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [debitCardForm] = useOnyx(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM);
+    const [debitCardForm] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
     const changeCurrency = useCallback((currency?: ValueOf<typeof CONST.CURRENCY>) => {
         if (currency) {

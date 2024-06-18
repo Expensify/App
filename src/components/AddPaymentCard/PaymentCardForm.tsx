@@ -23,7 +23,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/AddDebitCardForm';
+import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 
 type PaymentCardFormProps = {
     shouldShowPaymentCardForm?: boolean;
@@ -32,7 +32,7 @@ type PaymentCardFormProps = {
     showCurrencyField?: boolean;
     showStateSelector?: boolean;
     isDebitCard?: boolean;
-    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>, currency?: ValueOf<typeof CONST.CURRENCY>) => void;
+    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>, currency?: ValueOf<typeof CONST.CURRENCY>) => void;
     submitButtonText: string;
     /** Custom content to display in the footer after card form */
     footerContent?: ReactNode;
@@ -129,7 +129,7 @@ function PaymentCardForm({
     headerContent,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
-    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM);
+    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
     const {translate} = useLocalize();
     const route = useRoute();
@@ -137,7 +137,7 @@ function PaymentCardForm({
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
-    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
+    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
 
         if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
@@ -179,7 +179,7 @@ function PaymentCardForm({
         <>
             {headerContent}
             <FormProvider
-                formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
+                formID={ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM}
                 validate={validate}
                 onSubmit={addPaymentCard}
                 submitButtonText={submitButtonText}

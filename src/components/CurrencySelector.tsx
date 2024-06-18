@@ -5,7 +5,6 @@ import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -13,7 +12,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CurrencySelectorProps = {
     /** Form error text. e.g when no country is selected */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Callback called when the currency changes. */
     onInputChange?: (value?: string) => void;
