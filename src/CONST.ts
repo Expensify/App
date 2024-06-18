@@ -2112,6 +2112,7 @@ const CONST = {
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
+        MARK_AS_INCOMPLETE: 'markAsIncomplete',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',

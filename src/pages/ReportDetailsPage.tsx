@@ -32,6 +32,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import * as Task from '@userActions/Task';
 import ConfirmModal from '@src/components/ConfirmModal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -66,6 +68,14 @@ type ReportDetailsPageOnyxProps = {
     session: OnyxEntry<OnyxTypes.Session>;
 };
 type ReportDetailsPageProps = ReportDetailsPageOnyxProps & WithReportOrNotFoundProps & StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
+
+const CASES = {
+    DEFAULT: 'default',
+    MONEY_REQUEST: 'money_request',
+    MONEY_REPORT: 'money_report',
+};
+
+type CaseID = ValueOf<typeof CASES>;
 
 function ReportDetailsPage({policies, report, session, personalDetails}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
@@ -108,6 +118,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
+    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
@@ -136,23 +148,30 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
     });
 
+    const caseID = useMemo((): CaseID => {
+        // 3. MoneyReportHeader
+        if (isMoneyRequestReport || isInvoiceReport) {
+            return CASES.MONEY_REQUEST;
+        }
+        // 2. MoneyRequestHeader
+        if (isSingleTransactionView) {
+            return CASES.MONEY_REPORT;
+        }
+        // 1. HeaderView
+        return CASES.DEFAULT;
+    }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
+
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyRequestHeader case
-        if (isSingleTransactionView && parentReportAction) {
-            return parentReportAction;
+        if (caseID === CASES.MONEY_REPORT && reportActions && transactionThreadReport?.parentReportActionID) {
+            return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
-        // 1. MoneyReportHeader case
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-    }, [isSingleTransactionView, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
+        return parentReportAction;
+    }, [caseID, parentReportAction, reportActions, transactionThreadReport?.parentReportActionID]);
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
@@ -205,7 +224,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
     let roomDescription;
-    if (isInvoiceRoom || isPolicyExpenseChat) {
+    if (caseID === CASES.MONEY_REQUEST) {
         roomDescription = translate('common.name');
     } else if (isGroupChat) {
         roomDescription = translate('groupConfirmPage.groupName');
@@ -293,6 +312,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
+        if (isTaskReport && !isCanceledTaskReport) {
+            const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
+            if (ReportUtils.isCompletedTaskReport(report) && canModifyTask) {
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
+                    icon: Expensicons.Checkmark,
+                    translationKey: 'task.markAsIncomplete',
+                    isAnonymousAction: false,
+                    action: Session.checkIfActionIsAllowed(() => Task.reopenTask(report)),
+                });
+            }
+        }
 
         if (shouldShowLeaveButton) {
             items.push({
@@ -327,6 +358,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isMoneyRequestReport,
         isInvoiceReport,
         isTaskReport,
+        isCanceledTaskReport,
         shouldShowLeaveButton,
         activeChatMembers.length,
         isPolicyAdmin,
