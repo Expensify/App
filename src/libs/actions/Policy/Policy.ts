@@ -2259,9 +2259,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
             value: {
                 pendingFields: {
                     addWorkspaceRoom: null,
-                    autoReporting: null,
-                    approvalMode: null,
-                    reimbursementChoice: null,
                 },
                 pendingAction: null,
             },
