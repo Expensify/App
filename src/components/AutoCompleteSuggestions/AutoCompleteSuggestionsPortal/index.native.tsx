@@ -9,7 +9,6 @@ import type {AutoCompleteSuggestionsPortalProps} from './types';
 function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
     const styles = useMemo(() => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + getBottomSuggestionPadding()}), [StyleUtils, left, width, bottom]);
-    // const styles = useMemo(() => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + 0}), [StyleUtils, left, width, bottom]);
 
     if (!width) {
         return null;
