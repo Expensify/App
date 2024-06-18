@@ -271,7 +271,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
 
-    SkeletonView: React.FC<SkeletonViewProps>;
+    SkeletonView?: React.FC<SkeletonViewProps>;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
