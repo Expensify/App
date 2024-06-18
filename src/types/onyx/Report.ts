@@ -275,16 +275,16 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 
-        /** Trip data associated with the report */
+        /** The trip data for a trip room */
         tripData?: {
-            /** Trip start date */
+            /** The start date of a trip */
             startDate: string;
 
-            /** Trip end date */
+            /** The end date of a trip */
             endDate: string;
 
-            /** ID of the trip */
-            tripId: string;
+            /** The trip ID in spotnana */
+            tripID: string;
         };
     },
     PolicyReportField['fieldID']

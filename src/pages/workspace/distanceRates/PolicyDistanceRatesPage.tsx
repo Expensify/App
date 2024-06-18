@@ -100,18 +100,20 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
 
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
-            Object.values(customUnitRates).map((value) => ({
-                value: value.customUnitRateID ?? '',
-                text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
-                    `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
-                )}`,
-                keyForList: value.customUnitRateID ?? '',
-                isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
-                isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
-                errors: value.errors ?? undefined,
-                rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-            })),
+            Object.values(customUnitRates)
+                .sort((rateA, rateB) => (rateA?.rate ?? 0) - (rateB?.rate ?? 0))
+                .map((value) => ({
+                    value: value.customUnitRateID ?? '',
+                    text: `${CurrencyUtils.convertAmountToDisplayString(value.rate, value.currency ?? CONST.CURRENCY.USD)} / ${translate(
+                        `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
+                    )}`,
+                    keyForList: value.customUnitRateID ?? '',
+                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined,
+                    isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
+                    errors: value.errors ?? undefined,
+                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+                })),
         [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate],
     );
 

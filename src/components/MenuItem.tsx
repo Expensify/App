@@ -14,7 +14,6 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -154,13 +153,13 @@ type MenuItemBaseProps = {
     shouldShowDescriptionOnTop?: boolean;
 
     /** Error to display at the bottom of the component */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Any additional styles to pass to error text. */
     errorTextStyle?: StyleProp<ViewStyle>;
 
     /** Hint to display at the bottom of the component */
-    hintText?: MaybePhraseKey;
+    hintText?: string;
 
     /** Should the error text red dot indicator be shown */
     shouldShowRedDotIndicator?: boolean;
