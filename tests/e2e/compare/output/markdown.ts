@@ -111,7 +111,6 @@ const writeToFile = (filePath: string, content: string) =>
             throw error;
         });
 
-// TODO: modify
 const writeToMarkdown = (filePath: string, data: Data) => {
     const markdown = buildMarkdown(data);
     return writeToFile(filePath, markdown).catch((error) => {
