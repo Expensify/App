@@ -227,4 +227,5 @@ export type {default as PayInvoiceParams} from './PayInvoiceParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
 export type {default as UpdateSubscriptionTypeParams} from './UpdateSubscriptionTypeParams';
 export type {default as SignUpUserParams} from './SignUpUserParams';
+export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
