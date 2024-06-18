@@ -553,7 +553,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton title={translate('common.details')} />
                 <ScrollView style={[styles.flex1]}>
-                    <View style={[styles.reportDetailsTitleContainer, !isExpenseReport ? styles.pb0 : styles.pb2]}>
+                    <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
                         {isExpenseReport && nameSectionExpenseIOU}
                     </View>
