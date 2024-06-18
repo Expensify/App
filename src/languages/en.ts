@@ -1771,7 +1771,7 @@ export default {
         enterTheLast4: 'What are the last four digits of your Social Security Number?',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         last4SSN: 'Last 4 of SSN',
-        enterYourAddress: 'What's your address?',
+        enterYourAddress: "What's your address?",
         address: 'Address',
         letsDoubleCheck: "Let's double check that everything looks right.",
         byAddingThisBankAccount: "By adding this bank account, you confirm that you've read, understand, and accept",
