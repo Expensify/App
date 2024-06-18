@@ -63,6 +63,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState<boolean>(false);
     const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState<boolean>(false);
+    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState<boolean>(false);
 
     const spendItems: Item[] = [
         {
@@ -145,6 +146,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     setIsOrganizeWarningModalOpen(true);
                     return;
                 }
+                if (isEnabled) {
+                    Policy.enablePolicyReportFields(policyID, true);
+                    return;
+                }
+                setIsReportFieldsWarningModalOpen(true);
             },
         },
     ];
@@ -288,6 +294,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     prompt={translate('workspace.moreFeatures.connectionsWarningModal.disconnectText')}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.reportFields.disableReportFields')}
+                    isVisible={isReportFieldsWarningModalOpen}
+                    onConfirm={() => {
+                        setIsReportFieldsWarningModalOpen(false);
+                        Policy.enablePolicyReportFields(policyID, false);
+                    }}
+                    onCancel={() => setIsReportFieldsWarningModalOpen(false)}
+                    prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
+                    confirmText={translate('common.disable')}
+                    cancelText={translate('common.cancel')}
+                    danger
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
