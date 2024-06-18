@@ -160,7 +160,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
+                    if (isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin)) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? '-1'));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1'));
@@ -232,6 +232,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isChatThread,
         isPolicyEmployee,
         isPolicyExpenseChat,
+        isPolicyAdmin,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
