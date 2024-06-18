@@ -19,9 +19,9 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Report from '@libs/actions/Report';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -52,7 +52,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const selectionListRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<TextInput>(null);
     const currentUserAccountID = Number(session?.accountID);
@@ -269,7 +269,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 ) : (
                     <Button
@@ -278,13 +278,13 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
-                        innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat]);
+    }, [bulkActionsButtonOptions, inviteUser, shouldUseNarrowLayout, selectedMembers, styles, translate, isGroupChat]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(

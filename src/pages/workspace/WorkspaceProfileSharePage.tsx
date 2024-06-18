@@ -12,8 +12,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
@@ -28,7 +28,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareHandle>(null);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const session = useSession();
 
     const policyName = policy?.name ?? '';
@@ -52,7 +52,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                     onBackButtonPress={Navigation.goBack}
                 />
                 <ScrollView style={[themeStyles.flex1, themeStyles.pt2]}>
-                    <View style={[themeStyles.flex1, isSmallScreenWidth ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
+                    <View style={[themeStyles.flex1, shouldUseNarrowLayout ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
                         <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph9]}>
                             {/* 
                             Right now QR code download button is not shown anymore

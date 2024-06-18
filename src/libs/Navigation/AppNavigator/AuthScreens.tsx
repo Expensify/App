@@ -173,12 +173,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumScreenWidth} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
-    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(isMediumScreenWidth), [screenOptions, isMediumScreenWidth]);
     const onboardingScreenOptions = useMemo(
-        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, shouldUseNarrowLayout),
-        [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
+        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, isMediumScreenWidth),
+        [StyleUtils, isSmallScreenWidth, isMediumScreenWidth, styles],
     );
     const isInitialRender = useRef(true);
 

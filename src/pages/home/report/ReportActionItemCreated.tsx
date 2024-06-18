@@ -7,8 +7,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportWelcomeText from '@components/ReportWelcomeText';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -39,7 +39,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
 
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
@@ -78,8 +78,8 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                                 icons={icons}
                                 size={isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
                                 shouldStackHorizontally
-                                shouldDisplayAvatarsInRows={isSmallScreenWidth}
-                                maxAvatarsInRow={isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                                shouldDisplayAvatarsInRows={shouldUseNarrowLayout}
+                                maxAvatarsInRow={shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
                             />
                         </PressableWithoutFeedback>
                     </OfflineWithFeedback>

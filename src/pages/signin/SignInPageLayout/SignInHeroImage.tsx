@@ -5,13 +5,11 @@ import LottieAnimations from '@components/LottieAnimations';
 import useIsSplashHidden from '@hooks/useIsSplashHidden';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
 
 function SignInHeroImage() {
     const styles = useThemeStyles();
-    const {isMediumScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const imageSize = useMemo(() => {
         if (shouldUseNarrowLayout) {
             return {

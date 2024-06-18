@@ -5,8 +5,8 @@ import FeatureList from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -25,7 +25,7 @@ const tripsFeatures: FeatureListItem[] = [
 
 function ManageTrips() {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const navigateToBookTravelDemo = () => {
@@ -34,7 +34,7 @@ function ManageTrips() {
 
     return (
         <ScrollView contentContainerStyle={styles.pt3}>
-            <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
                     menuItems={tripsFeatures}
                     title={translate('travel.title')}

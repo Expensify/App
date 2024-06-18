@@ -11,8 +11,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -125,7 +125,7 @@ function WorkspacePageWithSections({
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
@@ -173,7 +173,7 @@ function WorkspacePageWithSections({
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
-                    shouldShowBackButton={isSmallScreenWidth || shouldShowBackButton}
+                    shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}

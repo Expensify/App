@@ -9,6 +9,7 @@ import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -112,12 +113,13 @@ function ReportActionsView({
     const isFirstLinkedActionRender = useRef(true);
 
     const network = useNetwork();
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentListHeight = useRef(0);
     const isFocused = useIsFocused();
     const prevAuthTokenType = usePrevious(session?.authTokenType);
     const [isNavigatingToLinkedMessage, setNavigatingToLinkedMessage] = useState(!!reportActionID);
-    const prevIsSmallScreenWidthRef = useRef(isSmallScreenWidth);
+    const prevshouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const reportID = report.reportID;
     const isLoading = (!!reportActionID && isLoadingInitialReportActions) || !isReadyForCommentLinking;
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
@@ -272,18 +274,18 @@ function ReportActionsView({
     }, [session, report]);
 
     useEffect(() => {
-        const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
+        const prevshouldUseNarrowLayout = prevshouldUseNarrowLayoutRef.current;
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didScreenSizeIncrease = prevIsSmallScreenWidth && !isSmallScreenWidth;
+        const didScreenSizeIncrease = prevshouldUseNarrowLayout && !shouldUseNarrowLayout;
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             openReportIfNecessary();
         }
         // update ref with current state
-        prevIsSmallScreenWidthRef.current = isSmallScreenWidth;
+        prevshouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
+    }, [shouldUseNarrowLayout, reportActions, isReportFullyVisible]);
 
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;

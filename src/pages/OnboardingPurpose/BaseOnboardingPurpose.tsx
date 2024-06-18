@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -41,9 +42,11 @@ const menuIcons = {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumScreenWidth} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const theme = useTheme();
 
     useDisableModalDismissOnEscape();
@@ -56,7 +59,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
 
-    const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
+    const paddingHorizontal = isMediumScreenWidth ? styles.ph8 : styles.ph5;
 
     const selectedCheckboxIcon = useMemo(
         () => (
@@ -123,16 +126,16 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
-                    <View style={shouldUseNarrowLayout && styles.mh3}>
+                    <View style={isMediumScreenWidth && styles.mh3}>
                         <HeaderWithBackButton
                             shouldShowBackButton={false}
                             iconFill={theme.iconColorfulBackground}
                             progressBarPercentage={25}
                         />
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, paddingHorizontal]}>
+                    <ScrollView style={[styles.flex1, styles.flexGrow1, isMediumScreenWidth && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
-                            <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                            <View style={[isMediumScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                                 <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
                             </View>
                             <MenuItemList

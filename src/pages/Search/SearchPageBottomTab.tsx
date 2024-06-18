@@ -5,8 +5,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
@@ -26,7 +26,7 @@ const defaultSearchProps = {
 };
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const activeRoute = useActiveRoute();
     const styles = useThemeStyles();
 
@@ -64,7 +64,7 @@ function SearchPageBottomTab() {
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />
-                {isSmallScreenWidth && (
+                {shouldUseNarrowLayout && (
                     <Search
                         policyIDs={policyIDs}
                         query={query}

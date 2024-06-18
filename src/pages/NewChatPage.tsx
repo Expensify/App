@@ -18,10 +18,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -125,7 +125,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
 function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {insets} = useStyledSafeAreaInsets();
@@ -325,7 +325,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     initiallyFocusedOptionKey={firstKeyForList}
                     shouldTextInputInterceptSwipe
                 />
-                {isSmallScreenWidth && <OfflineIndicator />}
+                {shouldUseNarrowLayout && <OfflineIndicator />}
             </KeyboardAvoidingView>
         </ScreenWrapper>
     );

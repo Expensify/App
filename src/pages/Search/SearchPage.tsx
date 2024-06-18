@@ -6,7 +6,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useLocalize from '@hooks/useLocalize';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -19,7 +19,7 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {query: rawQuery, policyIDs, sortBy, sortOrder} = route?.params ?? {};
 
@@ -37,7 +37,7 @@ function SearchPage({route}: SearchPageProps) {
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return null;
     }
 

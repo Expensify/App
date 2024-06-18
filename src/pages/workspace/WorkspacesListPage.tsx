@@ -22,9 +22,9 @@ import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -121,13 +121,14 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
-    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
+    const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     const confirmDeleteAndHideModal = () => {
         if (!policyIDToDelete || !policyNameToDelete) {
@@ -365,7 +366,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button
@@ -404,7 +405,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             <View style={styles.flex1}>
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
                 >
                     <Button

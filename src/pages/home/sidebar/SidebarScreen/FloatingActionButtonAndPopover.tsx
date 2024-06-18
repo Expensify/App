@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getIconForAction from '@libs/getIconForAction';
@@ -39,10 +40,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
 const useIsFocused = () => {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocusedOriginal();
     const topmostCentralPane = useNavigationState<RootStackParamList, NavigationPartialRoute<CentralPaneName> | undefined>(getTopmostCentralPaneRoute);
-    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
+    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && shouldUseNarrowLayout);
 };
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id'>;
@@ -175,7 +176,8 @@ function FloatingActionButtonAndPopover(
     const {translate} = useLocalize();
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const fabRef = useRef<HTMLDivElement>(null);
-    const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
@@ -273,14 +275,14 @@ function FloatingActionButtonAndPopover(
      */
     const showCreateMenu = useCallback(
         () => {
-            if (!isFocused && isSmallScreenWidth) {
+            if (!isFocused && shouldUseNarrowLayout) {
                 return;
             }
             setIsCreateMenuActive(true);
             onShowCreateMenu?.();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isFocused, isSmallScreenWidth],
+        [isFocused, shouldUseNarrowLayout],
     );
 
     /**
@@ -329,10 +331,10 @@ function FloatingActionButtonAndPopover(
         <View style={styles.flexGrow1}>
             <PopoverMenu
                 onClose={hideCreateMenu}
-                isVisible={isCreateMenuActive && (!isSmallScreenWidth || isFocused)}
+                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!isSmallScreenWidth}
+                fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 menuItems={[
                     {
                         icon: Expensicons.ChatBubble,

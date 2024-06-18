@@ -22,13 +22,12 @@ import type {CurrentReportIDContextValue} from '@components/withCurrentReportID'
 import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
-import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
 import Navigation from '@libs/Navigation/Navigation';
@@ -140,9 +139,7 @@ function ReportScreen({
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
-    const isReportOpenInRHP = useIsReportOpenInRHP();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
+    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`, {initialValue: false});
@@ -315,12 +312,12 @@ function ReportScreen({
     }, [shouldHideReport, report]);
 
     const onBackButtonPress = useCallback(() => {
-        if (isReportOpenInRHP) {
+        if (isInNarrowPaneModal) {
             Navigation.dismissModal();
             return;
         }
         Navigation.goBack(undefined, false, true);
-    }, [isReportOpenInRHP]);
+    }, [isInNarrowPaneModal]);
 
     let headerView = (
         <HeaderView
@@ -378,7 +375,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isInNarrowPaneModal) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||
@@ -663,7 +660,7 @@ function ReportScreen({
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isReportOpenInRHP}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
                     testID={ReportScreen.displayName}
                 >
                     <FullPageNotFoundView

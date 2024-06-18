@@ -12,8 +12,8 @@ import TextInput from '@components/TextInput';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -30,8 +30,8 @@ const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isMediumScreenWidth} = useOnboardingLayout();
 
     useDisableModalDismissOnEscape();
 
@@ -83,9 +83,9 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 behavior="padding"
             >
                 <FormProvider
-                    style={[styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, styles.mb5, shouldUseNarrowLayout ? styles.mh8 : styles.mh5]}
+                    style={[styles.flexGrow1, isMediumScreenWidth && styles.mt5, styles.mb5, isMediumScreenWidth ? styles.mh8 : styles.mh5]}
                     formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_WORK}
-                    footerContent={isSmallScreenWidth && WorkFooterInstance}
+                    footerContent={shouldUseNarrowLayout && WorkFooterInstance}
                     validate={validate}
                     onSubmit={completeEngagement}
                     submitButtonText={translate('common.continue')}
@@ -95,7 +95,7 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                     shouldValidateOnChange
                     shouldTrimValues={false}
                 >
-                    <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                    <View style={[isMediumScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whereYouWork')}</Text>
                     </View>
                     <View style={styles.mb4}>
