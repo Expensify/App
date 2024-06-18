@@ -46,7 +46,7 @@ function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, p
                     />
                 </View>
             </View>
-            <View style={[StyleUtils.getWidthStyle(variables.w80), styles.alignItemsEnd]}>
+            <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
                     onButtonPress={onButtonPress}
                     action={action}
