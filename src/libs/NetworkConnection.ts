@@ -179,9 +179,21 @@ function subscribeToNetworkStatus(): () => void {
         setNetWorkStatus(state.isInternetReachable);
     });
 
+    // Debounce initial status check to allow network to stabilize after waking up
+    const debouncedInitialStatusCheck = throttle(() => {
+        NetInfo.fetch().then((state) => {
+            const isInternetReachable = state.isInternetReachable ?? false;
+            setOfflineStatus(!isInternetReachable, 'Initial debounced network status check');
+            setNetWorkStatus(isInternetReachable);
+        });
+    }, 1000);
+
+    debouncedInitialStatusCheck();    
+
     return () => {
         unsubscribeFromBackendReachability?.();
         unsubscribeNetInfo();
+        debouncedInitialStatusCheck.cancel();
     };
 }
 
