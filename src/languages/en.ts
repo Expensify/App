@@ -445,8 +445,8 @@ export default {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: ({email}: AlreadySignedInParams) => "You're already signed in as ${email}.",
-        goBackMessage: ({provider}: GoBackMessageParams) => "Don't want to sign in with ${provider}?",
+        alreadySignedIn: ({email}: AlreadySignedInParams) => `You're already signed in as ${email}.`,
+        goBackMessage: ({provider}: GoBackMessageParams) => `Don't want to sign in with ${provider}?`,
         continueWithMyCurrentSession: 'Continue with my current session',
         redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
         signInAgreementMessage: 'By logging in, you agree to the',
