@@ -2350,11 +2350,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarLarge: {
-            width: variables.avatarSizeLarge,
-            height: variables.avatarSizeLarge,
-        },
-
         avatarXLarge: {
             width: variables.avatarSizeXLarge,
             height: variables.avatarSizeXLarge,
