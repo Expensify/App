@@ -17,10 +17,10 @@ import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
-import ActionCell from './ActionCell';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types

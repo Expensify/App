@@ -7,8 +7,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
-import UserInfoCell from './UserInfoCell';
 import ActionCell from './ActionCell';
+import UserInfoCell from './UserInfoCell';
 
 type ExpenseItemHeaderNarrowProps = {
     participantFrom: SearchAccountDetails;

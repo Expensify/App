@@ -14,10 +14,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getSearchParams} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
-import ActionCell from './ActionCell';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
