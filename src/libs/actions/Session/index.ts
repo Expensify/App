@@ -393,7 +393,7 @@ function signInAttemptState(): OnyxData {
                 value: {
                     isLoading: false,
                     loadingForm: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('loginForm.cannotGetAccountDetails'),
                 },
             },
         ],
@@ -715,7 +715,7 @@ function clearAccountMessages() {
 }
 
 function setAccountError(error: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxError(error, true)});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(error)});
 }
 
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
