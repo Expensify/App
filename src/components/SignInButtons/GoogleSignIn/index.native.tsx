@@ -26,20 +26,20 @@ function googleSignInRequest() {
     GoogleSignin.signIn()
         .then((response) => response.idToken)
         .then((token) => Session.beginGoogleSignIn(token))
-        .catch((error) => {
+        .catch((error: GoogleError | undefined) => {
             // Handle unexpected error shape
-            const googleError = error as GoogleError;
-            if (error === undefined || googleError.code === undefined) {
-                Log.alert(`[Google Sign In] Google sign in failed: ${error}`);
+            if (error?.code === undefined) {
+                Log.alert(`[Google Sign In] Google sign in failed: ${JSON.stringify(error)}`);
+                return;
             }
             /** The logged code is useful for debugging any new errors that are not specifically handled. To decode, see:
               - The common status codes documentation: https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes
               - The Google Sign In codes documentation: https://developers.google.com/android/reference/com/google/android/gms/auth/api/signin/GoogleSignInStatusCodes
             */
-            if (googleError.code === statusCodes.SIGN_IN_CANCELLED) {
+            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
                 Log.info('[Google Sign In] Google Sign In cancelled');
             } else {
-                Log.alert(`[Google Sign In] Error Code: ${googleError.code}. ${googleError.message}`, {}, false);
+                Log.alert(`[Google Sign In] Error Code: ${error.code}. ${error.message}`, {}, false);
             }
         });
 }

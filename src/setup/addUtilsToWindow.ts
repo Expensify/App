@@ -4,11 +4,6 @@ import markAllPolicyReportsAsRead from '@libs/markAllPolicyReportsAsRead';
 import * as Session from '@userActions/Session';
 import type {OnyxKey} from '@src/ONYXKEYS';
 
-type WindowWithCustomMethods = Window &
-    typeof globalThis & {
-        markAllPolicyReportsAsRead: (policyID: string) => void;
-    };
-
 /**
  * This is used to inject development/debugging utilities into the window object on web and desktop.
  * We do this only on non-production builds - these should not be used in any application code.
@@ -50,6 +45,6 @@ export default function addUtilsToWindow() {
         window.setSupportToken = Session.setSupportAuthToken;
 
         // Workaround to give employees the ability to mark reports as read via the JS console
-        (window as WindowWithCustomMethods).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
+        window.markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }

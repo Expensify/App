@@ -11,7 +11,7 @@ import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type Item = {
+type ViewableItem = {
     reportActionID?: string;
 };
 
@@ -49,7 +49,7 @@ const test = (config: NativeConfig) => {
                     const res = getViewableItems();
                     console.debug('[E2E] Viewable items retrieved, verifying correct message…');
 
-                    if (!!res && (res[0]?.item as Item)?.reportActionID === linkedReportActionID) {
+                    if (!!res && (res[0]?.item as ViewableItem)?.reportActionID === linkedReportActionID) {
                         E2EClient.submitTestResults({
                             branch: Config.E2E_BRANCH,
                             name: 'Comment linking',
