@@ -18,6 +18,10 @@ function WorkspaceOwnerRestrictedAction() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const addPaymentCard = () => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+    }
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -46,9 +50,7 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
                         text={translate('workspace.restrictedAction.addPaymentCard')}
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
-                        }}
+                        onPress={addPaymentCard}
                         success
                     />
                 </View>
@@ -57,6 +59,6 @@ function WorkspaceOwnerRestrictedAction() {
     );
 }
 
-WorkspaceOwnerRestrictedAction.displayName = 'WorkspaceUserRestrictedAction';
+WorkspaceOwnerRestrictedAction.displayName = 'WorkspaceOwnerRestrictedAction';
 
 export default WorkspaceOwnerRestrictedAction;

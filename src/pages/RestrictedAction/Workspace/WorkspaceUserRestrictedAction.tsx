@@ -44,7 +44,6 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                 style={[styles.p5, styles.pt0]}
                 contentContainerStyle={styles.flexGrow1}
             >
-                {' '}
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.mb15]}>
                     <ImageSVG
                         src={Illustrations.LockClosedOrange}

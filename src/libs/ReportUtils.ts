@@ -6968,7 +6968,6 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
-
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
