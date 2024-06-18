@@ -55,12 +55,10 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const illustrationStyle = getLightbulbIllustrationStyle();
 
     const exportOnyxState = () => {
-        ExportOnyxState.readFromIndexedDB().then((value) => {
-            console.log('exported indexedDB state: ', value);
+        ExportOnyxState.readFromIndexedDB().then((value: Record<string, unknown>) => {
+            const maskedData = ExportOnyxState.maskFragileData(value);
 
-            ExportOnyxState.shareAsFile(JSON.stringify(value)).then(() => {
-                console.log('exported indexedDB state as file');
-            });
+            ExportOnyxState.shareAsFile(JSON.stringify(maskedData));
         });
     };
 
