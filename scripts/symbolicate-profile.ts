@@ -86,7 +86,7 @@ function getWorkflowId() {
             per_page: 100,
         })
         .then((workflowsResponse) => {
-            const workflow = workflowsResponse.data.workflows.find(({path: workflowPath}) => path === workflowFile);
+            const workflow = workflowsResponse.data.workflows.find(({path: workflowPath}) => workflowPath === workflowFile);
             if (workflow === undefined) {
                 throw new Error(`Could not find the workflow file ${workflowFile} in results! Has it been renamed?`);
             }
