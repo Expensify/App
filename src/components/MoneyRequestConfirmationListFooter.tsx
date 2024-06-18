@@ -257,7 +257,7 @@ function MoneyRequestConfirmationListFooter({
     // Determine if the merchant error should be displayed
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
     // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-    const shouldShowReceiptEmptyState = PolicyUtils.isPaidGroupPolicy(policy) && !isDistanceRequest && iouType === CONST.IOU.TYPE.SUBMIT;
+    const shouldShowReceiptEmptyState = iouType === CONST.IOU.TYPE.SUBMIT && PolicyUtils.isPaidGroupPolicy(policy);
     const {
         image: receiptImage,
         thumbnail: receiptThumbnail,
