@@ -1786,7 +1786,7 @@ export default {
     },
     businessInfoStep: {
         businessInfo: 'Company info',
-        enterTheNameOfYourBusiness: 'What's the name of your company?',
+        enterTheNameOfYourBusiness: "What's the name of your company?",
         businessName: 'Legal company name',
         enterYourCompanysTaxIdNumber: 'What's your company’s Tax ID number?',
         taxIDNumber: 'Tax ID number',
