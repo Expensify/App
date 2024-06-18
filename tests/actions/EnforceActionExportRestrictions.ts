@@ -32,7 +32,7 @@ describe('ReportUtils', () => {
 
     it('does not export getReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getReport).toBeUndefined();
+        expect(ReportUtils.getReportOrDraftReport).toBeUndefined();
     });
 });
 
@@ -51,7 +51,7 @@ describe('IOU', () => {
 
     it('does not export getReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(IOU.getReport).toBeUndefined();
+        expect(IOU.getReportOrDraftReport).toBeUndefined();
     });
 });
 
@@ -62,16 +62,9 @@ describe('Task', () => {
     });
 });
 
-describe('Report', () => {
-    it('does not export getReport', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(Report.getReport).toBeUndefined();
-    });
-});
-
 describe('OptionsListUtils', () => {
     it('does not export getReport', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(OptionsListUtils.getReport).toBeUndefined();
+        expect(OptionsListUtils.getReportOrDraftReport).toBeUndefined();
     });
 });

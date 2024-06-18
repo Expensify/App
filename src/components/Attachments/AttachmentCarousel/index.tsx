@@ -91,7 +91,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(targetAttachments[initialPage]);
             }
         }
-    }, [report, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, report.reportID, type]);
+    }, [report.privateNotes, reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, type]);
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {
