@@ -67,12 +67,12 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
         useEffect(() => {
-            if (!props.shouldUseNarrowLayout || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
+            if (!props.isSmallScreenWidth || (!isEmptyObject(props.report) && !isEmptyObject(reportAction))) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
             // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [props.shouldUseNarrowLayout, props.route.params.reportID]);
+        }, [props.isSmallScreenWidth, props.route.params.reportID]);
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && !props.report?.reportID;
