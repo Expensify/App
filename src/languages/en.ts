@@ -1763,7 +1763,7 @@ export default {
     },
     personalInfoStep: {
         personalInfo: 'Personal info',
-        enterYourLegalFirstAndLast: 'What's your legal name?',
+        enterYourLegalFirstAndLast: "What's your legal name?",
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         legalName: 'Legal name',
