@@ -1793,7 +1793,7 @@ export default {
         taxIDNumberPlaceholder: '9 digits',
         enterYourCompanysWebsite: "What's your company’s website?",
         companyWebsite: 'Company website',
-        enterYourCompanysPhoneNumber: 'What's your company’s phone number?',
+        enterYourCompanysPhoneNumber: "What's your company’s phone number?",
         enterYourCompanysAddress: 'What's your company’s address?',
         selectYourCompanysType: 'What type of company is it?',
         companyType: 'Company type',
