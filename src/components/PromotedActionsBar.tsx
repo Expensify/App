@@ -9,8 +9,10 @@ import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 import * as Expensicons from './Icon/Expensicons';
+import { ReportAction } from '@src/types/onyx';
 
 type PromotedAction = {
     key: string;
@@ -19,7 +21,7 @@ type PromotedAction = {
 type PromotedActionsType = Record<'pin' | 'share' | 'join', (report: OnyxReport) => PromotedAction> & {
     message: (params: {accountID?: number; login?: string}) => PromotedAction;
 } & {
-    hold: (params: {isTextHold: boolean; changeMoneyRequestStatus: () => void}) => PromotedAction;
+    hold: (params: {isTextHold: boolean, reportAction: ReportAction | undefined}) => PromotedAction;
 };
 
 const PromotedActions = {
@@ -54,11 +56,13 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, changeMoneyRequestStatus}) => ({
+    hold: ({isTextHold, reportAction}) => ({
         key: 'hold',
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
-        onSelected: changeMoneyRequestStatus,
+        onSelected: () => {
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+        },
     }),
 } satisfies PromotedActionsType;
 

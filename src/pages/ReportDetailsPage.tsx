@@ -429,45 +429,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as OnyxTypes.ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`);
-
-    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
-
-    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
-
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-
-    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
-
     const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID ?? '' : '';
-
-    const changeMoneyRequestStatus = useCallback(() => {
-        if (isOnHold) {
-            IOU.unholdRequest(iouTransactionID, report?.reportID);
-        } else {
-            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, report?.reportID, activeRoute));
-        }
-    }, [iouTransactionID, isOnHold, policy?.type, report?.reportID]);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
 
-        if (canHoldOrUnholdRequest) {
-            const isRequestIOU = parentReport?.type === 'iou';
-            const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
-            const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
-            const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-
-            if (isOnHold && !isDuplicate && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
-                result.push(PromotedActions.hold({isTextHold: false, changeMoneyRequestStatus}));
-            }
-            if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
-                result.push(PromotedActions.hold({isTextHold: true, changeMoneyRequestStatus}));
-            }
+        const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+        if (ReportUtils.canEditReportAction(parentReportAction) && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest)) {
+            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest ? true : false, reportAction: parentReportAction}));
         }
 
         if (report) {
@@ -477,7 +446,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [canHoldOrUnholdRequest, changeMoneyRequestStatus, isActionOwner, isApprover, isDuplicate, isOnHold, isPolicyAdmin, isScanning, parentReport?.type, report, transaction]);
+    }, [report]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
