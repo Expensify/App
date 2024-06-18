@@ -311,7 +311,7 @@ function createTaskAndNavigate(
 function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport?.parentReportID}`] ?? {};
     return Object.values(parentReportActions).some((reportAction) => {
-        if (reportAction.childReportID === taskReport?.reportID) {
+        if (String(reportAction.childReportID) === String(taskReport?.reportID)) {
             return false;
         }
 
