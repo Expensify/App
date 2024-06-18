@@ -1,6 +1,5 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -168,6 +167,11 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+
+        /** Whether we should show the transaction year.
+         * This is true if at least one transaction in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &
@@ -288,7 +292,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: MaybePhraseKey;
+    textInputHint?: string;
 
     /** Value for the text input */
     textInputValue?: string;
