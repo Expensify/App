@@ -180,7 +180,7 @@ function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: Transa
             icon={Expensicons.Folder}
             showTooltip={showTooltip}
             text={transactionItem?.category}
-            textStyle={[styles.textMicro]}
+            textStyle={[styles.textMicro, styles.minHeight0]}
         />
     );
 }

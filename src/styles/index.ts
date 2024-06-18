@@ -1388,6 +1388,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
+        minHeight0: {
+            minHeight: 0,
+        },
+
         lh14: {
             lineHeight: variables.lineHeightSmall,
         },
