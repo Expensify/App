@@ -31,18 +31,6 @@ function UserListSkeletonView({shouldAnimate = true}: SkeletonViewProps) {
                             width={'10%'}
                             height="8"
                         />
-                        <Rect
-                            x="87%"
-                            y="28"
-                            width={'3%'}
-                            height="8"
-                        />
-                        <Rect
-                            x="92%"
-                            y="28"
-                            width={'8%'}
-                            height="8"
-                        />
                     </>
                 );
             }}
