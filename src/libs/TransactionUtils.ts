@@ -13,6 +13,7 @@ import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
+import {getCurrencyDecimals} from "@libs/CurrencyUtils";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -699,9 +700,11 @@ function hasWarningTypeViolation(transactionID: string, transactionViolations: O
 /**
  * Calculates tax amount from the given expense amount and tax percentage
  */
-function calculateTaxAmount(percentage: string, amount: number) {
+function calculateTaxAmount(percentage: string, amount: number, currency: string | undefined = undefined) {
     const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
-    return Math.round(amount - amount / divisor) / 100;
+    const taxAmount = (amount - amount / divisor) / 100;
+    const decimals = getCurrencyDecimals(currency);
+    return parseFloat(taxAmount.toFixed(decimals));
 }
 
 /**

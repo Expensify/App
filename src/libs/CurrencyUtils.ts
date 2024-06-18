@@ -87,8 +87,9 @@ function convertToBackendAmount(amountAsFloat: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number): number {
-    return Math.trunc(amountAsInt) / 100.0;
+function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string): number {
+    const decimals = getCurrencyDecimals(currency);
+    return toFixedNumber((Math.trunc(amountAsInt) / 100.0), decimals);
 }
 
 /**
@@ -96,11 +97,11 @@ function convertToFrontendAmountAsInteger(amountAsInt: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,  currency: string): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    return convertToFrontendAmountAsInteger(amountAsInt).toFixed(2);
+    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(2);
 }
 
 /**
@@ -111,7 +112,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined)
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
@@ -137,7 +138,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
  * @param currency - IOU currency
  */
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
 
     return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
@@ -168,7 +169,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency,
