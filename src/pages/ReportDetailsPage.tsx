@@ -185,8 +185,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // 2. MoneyRequestHeader case
         moneyRequestReport = parentReport;
     }
+
+    const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
+    const shouldShowTaskDeleteButton =
+        isTaskReport &&
+        !isCanceledTaskReport &&
+        ReportUtils.canWriteInReport(report) &&
+        report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
+        !ReportUtils.isClosedReport(report) &&
+        canModifyTask;
     const canDeleteRequest =
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
+    const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     useEffect(() => {
         if (canDeleteRequest) {
@@ -312,8 +322,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 brickRoadIndicator: Report.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             });
         }
+
+        // Show actions related to Task Reports
         if (isTaskReport && !isCanceledTaskReport) {
-            const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
             if (ReportUtils.isCompletedTaskReport(report) && canModifyTask) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.MARK_AS_INCOMPLETE,
@@ -516,22 +527,29 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
-        if (requestParentReportAction) {
-            if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                if (isMoneyRequestReport || isInvoiceReport) {
-                    // 1. MoneyReportHeader case
-                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
-                } else if (isSingleTransactionView) {
-                    // 2. MoneyRequestHeader case
-                    navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
-                }
-            } else {
-                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
-            }
+        setIsDeleteModalVisible(false);
+        if (!requestParentReportAction) {
+            return;
         }
 
-        setIsDeleteModalVisible(false);
-    }, [iouTransactionID, isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, report?.reportID, requestParentReportAction]);
+        if (caseID === CASES.DEFAULT) {
+            Task.deleteTask(report);
+            navigateBackToAfterDelete.current = undefined;
+            return;
+        }
+
+        if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
+            if (isMoneyRequestReport || isInvoiceReport) {
+                // 1. MoneyReportHeader case
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+            } else if (isSingleTransactionView) {
+                // 2. MoneyRequestHeader case
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+            }
+        } else {
+            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
+        }
+    }, [caseID, iouTransactionID, isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, report, requestParentReportAction]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -580,11 +598,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         );
                     })}
 
-                    {canDeleteRequest && (
+                    {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
-                            title={translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
+                            title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
                             onPress={() => setIsDeleteModalVisible(true)}
                         />
                     )}
@@ -603,7 +621,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     cancelText={translate('common.cancel')}
                 />
                 <ConfirmModal
-                    title={translate('iou.deleteExpense')}
+                    title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense')}
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
@@ -613,7 +631,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         }
                         Navigation.goBack(navigateBackToAfterDelete.current);
                     }}
-                    prompt={translate('iou.deleteConfirmation')}
+                    prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
