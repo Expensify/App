@@ -8,7 +8,7 @@ import * as Localize from '@libs/Localize';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
-import {ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';

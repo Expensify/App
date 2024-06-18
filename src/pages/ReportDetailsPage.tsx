@@ -29,7 +29,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -42,7 +41,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -363,6 +361,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isUserCreatedPolicyRoom,
         participants.length,
         report,
+        canModifyTask,
         isSystemChat,
         isPolicyExpenseChat,
         shouldShowMenuItem,
@@ -447,7 +446,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
         if (ReportUtils.canEditReportAction(parentReportAction) && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest)) {
-            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest ? true : false, reportAction: parentReportAction}));
+            result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: parentReportAction}));
         }
 
         if (report) {
@@ -457,7 +456,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report]);
+    }, [report, parentReportAction]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
