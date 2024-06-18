@@ -1,10 +1,6 @@
-import {Linking} from 'react-native';
 import {check, PERMISSIONS, request} from 'react-native-permissions';
 
-function requestLocationPermission(hasError: boolean) {
-    if (hasError) {
-        return Linking.openSettings();
-    }
+function requestLocationPermission() {
     return request(PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION);
 }
 

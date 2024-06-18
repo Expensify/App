@@ -1,8 +1,7 @@
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function requestLocationPermission(hasError: boolean): Promise<PermissionStatus> {
+function requestLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
@@ -23,6 +22,10 @@ function getLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {
         if (navigator.geolocation) {
             navigator.permissions.query({name: 'geolocation'}).then((result) => {
+                if (result.state === 'prompt') {
+                    resolve(RESULTS.UNAVAILABLE);
+                    return;
+                }
                 resolve(result.state === 'granted' ? RESULTS.GRANTED : RESULTS.DENIED);
             });
         } else {

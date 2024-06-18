@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import { Linking } from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import useLocalize from '@hooks/useLocalize';
@@ -41,8 +42,16 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
 
-    const onConfirm = () => {
-        requestLocationPermission(hasError)
+    const errorHandler = (cb: () => void) => () => {
+        if (hasError && Linking.openSettings) {
+            Linking.openSettings();
+            return;
+        }
+        cb();
+    }
+
+    const onConfirm = errorHandler(() => {
+        requestLocationPermission()
             .then((status) => {
                 if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
                     onGrant();
@@ -57,7 +66,7 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
                 setShowModal(false);
                 setHasError(false);
             });
-    };
+    });
 
     const onCancel = () => {
         onDeny(RESULTS.DENIED);
