@@ -38,25 +38,28 @@ function Manual({reimbursementAccount, onNext}: ManualProps) {
         [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
     };
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-        const routingNumber = values.routingNumber?.trim();
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const routingNumber = values.routingNumber?.trim();
 
-        if (
-            values.accountNumber &&
-            !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
-            !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
-        ) {
-            errors.accountNumber = 'bankAccount.error.accountNumber';
-        } else if (values.accountNumber && values.accountNumber === routingNumber) {
-            errors.accountNumber = 'bankAccount.error.routingAndAccountNumberCannotBeSame';
-        }
-        if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber))) {
-            errors.routingNumber = 'bankAccount.error.routingNumber';
-        }
+            if (
+                values.accountNumber &&
+                !CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) &&
+                !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim())
+            ) {
+                errors.accountNumber = translate('bankAccount.error.accountNumber');
+            } else if (values.accountNumber && values.accountNumber === routingNumber) {
+                errors.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
+            }
+            if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber))) {
+                errors.routingNumber = translate('bankAccount.error.routingNumber');
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const shouldDisableInputs = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
 

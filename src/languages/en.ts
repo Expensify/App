@@ -3305,8 +3305,8 @@ export default {
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
-            whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
-            renewsOn: ({date}) => `Renews on ${date}`,
+            whatsMainReason: "What's the main reason you're disabling auto-renew?",
+            renewsOn: ({date}) => `Renews on ${date}.`,
         },
     },
     feedbackSurvey: {
@@ -3314,5 +3314,7 @@ export default {
         tooExpensive: 'Too expensive',
         inadequateSupport: 'Inadequate customer support',
         businessClosing: 'Company closing, downsizing, or acquired',
+        additionalInfoTitle: 'What software are you moving to and why?',
+        additionalInfoInputLabel: 'Your response',
     },
 } satisfies TranslationBase;
