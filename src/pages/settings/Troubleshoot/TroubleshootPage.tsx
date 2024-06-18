@@ -22,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -29,7 +30,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import ExportOnyxState from '@libs/ExportOnyxState';
 import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
@@ -78,8 +78,8 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
             {
                 translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
                 icon: Expensicons.Download,
-                action: exportOnyxState
-            }
+                action: exportOnyxState,
+            },
         ];
 
         if (shouldStoreLogs) {
