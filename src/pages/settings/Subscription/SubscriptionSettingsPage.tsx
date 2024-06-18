@@ -34,7 +34,10 @@ function SubscriptionSettingsPage() {
     }
 
     return (
-        <ScreenWrapper testID={SubscriptionSettingsPage.displayName} shouldShowOfflineIndicatorInWideScreen>
+        <ScreenWrapper
+            testID={SubscriptionSettingsPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => Navigation.goBack()}
