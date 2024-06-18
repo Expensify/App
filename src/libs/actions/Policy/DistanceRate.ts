@@ -13,6 +13,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +21,6 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature, removePendingFieldsFromCustomUnit} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -182,7 +182,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                     [customUnitID]: {
                         rates: {
                             [customUnitRate.customUnitRateID ?? '']: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -288,7 +288,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         pendingFields: {attributes: null},
                     },
                 },
@@ -319,7 +319,7 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {rate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -390,7 +390,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {enabled: null},
-                errorFields: {enabled: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {enabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -461,7 +461,7 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingAction: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             };
         } else {
             optimisticRates[rateID] = currentRates[rateID];
@@ -530,12 +530,12 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
     for (const rateID of Object.keys(customUnit.rates)) {
         if (rateIDs.includes(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {rate: null}};
+            optimisticRates[rateID] = {...foundRate, pendingFields: {taxClaimablePercentage: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+            successRates[rateID] = {...foundRate, pendingFields: {taxClaimablePercentage: null}};
             failureRates[rateID] = {
                 ...currentRates[rateID],
-                pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                pendingFields: {taxClaimablePercentage: null},
+                errorFields: {taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -601,12 +601,12 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
     for (const rateID of Object.keys(customUnit.rates)) {
         if (rateIDs.includes(rateID)) {
             const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
-            optimisticRates[rateID] = {...foundRate, pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
-            successRates[rateID] = {...foundRate, pendingFields: {rate: null}};
+            optimisticRates[rateID] = {...foundRate, pendingFields: {taxRateExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+            successRates[rateID] = {...foundRate, pendingFields: {taxRateExternalID: null}};
             failureRates[rateID] = {
                 ...currentRates[rateID],
-                pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                pendingFields: {taxRateExternalID: null},
+                errorFields: {taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
