@@ -13,9 +13,9 @@
  * 4. It then uses the source map to symbolicate the .cpuprofile file using the `react-native-release-profiler` cli.
  */
 import {Octokit} from '@octokit/core';
+import {execSync} from 'child_process';
 import fs from 'fs';
 import https from 'https';
-import {platform} from 'os';
 import path from 'path';
 import * as Logger from './utils/Logger';
 import parseCommandLineArguments from './utils/parseCommandLineArguments';
@@ -29,7 +29,7 @@ if (Object.keys(argsMap).length === 0 || argsMap.help !== undefined) {
     Logger.log('Options:');
     Logger.log('  --profile=<filename>   The .cpuprofile file to symbolicate');
     Logger.log('  --platform=<ios|android>   The platform for which the source map was uploaded');
-    Logger.log('  --gh-token   Optional token to use for requests send to the GitHub API');
+    Logger.log('  --gh-token   Token to use for requests send to the GitHub API. By default tries to pick up from the environment variable GITHUB_TOKEN');
     Logger.log('  --help   Display this help message');
     process.exit(0);
 }
@@ -47,6 +47,12 @@ if (argsMap.platform === undefined) {
     Logger.error('Please specify the platform using --platform=ios or --platform=android');
     process.exit(1);
 }
+
+const githubToken = argsMap.ghToken ?? process.env.GITHUB_TOKEN;
+if (githubToken === undefined) {
+    Logger.error('No GitHub token provided. Either set a GITHUB_TOKEN environment variable or pass it using --gh-token');
+    process.exit(1);
+}
 // #endregion
 
 // #region Get the app version
@@ -62,9 +68,8 @@ Logger.info(`Found app version ${appVersion} in the profile filename`);
 // #endregion
 
 // #region Utility functions
-// The token is optional. GitHub allows public requests, but its heavily rate-limited.
-// During development or when running this script a lot it can be useful to provide a token.
-const octokit = new Octokit({auth: argsMap.ghToken});
+// We need the token for the download step
+const octokit = new Octokit({auth: githubToken});
 const OWNER = 'Expensify';
 const REPO = 'App';
 
@@ -169,10 +174,10 @@ function getDownloadUrl(artifactId: number) {
         })
         .then((response) => {
             // The response should be a redirect to the actual download URL
-            const downloadUrl = response.headers.location;
+            const downloadUrl = response.url;
 
             if (downloadUrl === undefined) {
-                throw new Error('Could not find the download URL in the response headers!');
+                throw new Error(`Could not find the download URL in:\n${JSON.stringify(response, null, 2)}`);
             }
 
             return downloadUrl;
@@ -184,10 +189,17 @@ function getDownloadUrl(artifactId: number) {
         });
 }
 
+const dirName = '.sourcemaps';
+const sourcemapDir = path.join(process.cwd(), dirName);
+
 function downloadFile(url: string) {
     Logger.log(`Downloading file from URL: ${url}`);
+    if (!fs.existsSync(sourcemapDir)) {
+        Logger.info(`Creating download directory ${sourcemapDir}`);
+        fs.mkdirSync(sourcemapDir);
+    }
 
-    const destination = path.join(process.cwd(), `${argsMap.platform}-sourcemap.zip`);
+    const destination = path.join(sourcemapDir, `${argsMap.platform}-${appVersion}-sourcemap.zip`);
     const file = fs.createWriteStream(destination);
     return new Promise<string>((resolve, reject) => {
         https
@@ -207,10 +219,44 @@ function downloadFile(url: string) {
     });
 }
 
+function unpackZipFile(zipPath: string) {
+    Logger.info(`Unpacking file ${zipPath}`);
+    const command = `unzip -o ${zipPath} -d ${sourcemapDir}`;
+    execSync(command, {stdio: 'inherit'});
+    Logger.info(`Deleting zip file ${zipPath}`);
+    return new Promise<void>((resolve, reject) => {
+        fs.unlink(zipPath, (error) => (error ? reject(error) : resolve()));
+    });
+}
+
+const localSourceMapPath = path.join(sourcemapDir, `${appVersion}-${argsMap.platform}.map`);
+function renameDownloadedSourcemapFile() {
+    const androidName = 'index.android.bundle.map';
+    const iosName = 'main.jsbundle.map';
+    const downloadSourcemapPath = path.join(sourcemapDir, argsMap.platform === 'ios' ? iosName : androidName);
+
+    if (!fs.existsSync(downloadSourcemapPath)) {
+        Logger.error(`Could not find the sourcemap file ${downloadSourcemapPath}`);
+        process.exit(1);
+    }
+
+    Logger.info(`Renaming sourcemap file to ${localSourceMapPath}`);
+    fs.renameSync(downloadSourcemapPath, localSourceMapPath);
+}
+
 // #endregion
 
-getWorkflowId()
-    .then((workflowId) => getWorkflowRun(workflowId))
-    .then((runId) => getWorkflowRunArtifact(runId, argsMap.platform as 'ios' | 'android'))
-    .then((artifactId) => getDownloadUrl(artifactId))
-    .then((downloadUrl) => {});
+// Step: check if source map locally already exists (if so we can skip the download)
+if (fs.existsSync(localSourceMapPath)) {
+    Logger.success(`Found local source map at ${localSourceMapPath}`);
+    Logger.info('Skipping download step');
+} else {
+    // Step: Download the source map for the app version:
+    getWorkflowId()
+        .then((workflowId) => getWorkflowRun(workflowId))
+        .then((runId) => getWorkflowRunArtifact(runId, argsMap.platform as 'ios' | 'android'))
+        .then((artifactId) => getDownloadUrl(artifactId))
+        .then((downloadUrl) => downloadFile(downloadUrl))
+        .then((zipPath) => unpackZipFile(zipPath))
+        .then(() => renameDownloadedSourcemapFile());
+}
