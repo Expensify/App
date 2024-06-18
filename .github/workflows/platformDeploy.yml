@@ -97,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: android-sourcemap
-          path: android/app/build/generated/sourcemaps/react/release/*.map
+          path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Upload Android version to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
