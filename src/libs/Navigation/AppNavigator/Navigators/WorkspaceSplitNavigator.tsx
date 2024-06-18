@@ -1,11 +1,11 @@
 import React from 'react';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
-import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-type Screens = Partial<Record<keyof WorkspaceNavigatorParamList, () => React.ComponentType>>;
+type Screens = Partial<Record<keyof WorkspaceSplitNavigatorParamList, () => React.ComponentType>>;
 
 const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInitialPage').default;
 
@@ -26,7 +26,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
 
-const Stack = createSplitStackNavigator<WorkspaceNavigatorParamList>();
+const Stack = createSplitStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceNavigator() {
     return (
