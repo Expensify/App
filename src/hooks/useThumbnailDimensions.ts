@@ -2,7 +2,7 @@ import {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {DimensionValue} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import CONST from '@src/CONST';
-import useIsReportOpenInRHP from './useIsReportOpenInRHP';
+import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
 type ThumbnailDimensions = {
@@ -14,9 +14,9 @@ type ThumbnailDimensions = {
 };
 
 export default function useThumbnailDimensions(width: number, height: number): ThumbnailDimensions {
-    const isReportOpenInRHP = useIsReportOpenInRHP();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
+    const shouldUseNarrowLayout = isSmallScreenWidth || isInNarrowPaneModal;
     const fixedDimension = shouldUseNarrowLayout ? CONST.THUMBNAIL_IMAGE.SMALL_SCREEN.SIZE : CONST.THUMBNAIL_IMAGE.WIDE_SCREEN.SIZE;
     const thumbnailDimensionsStyles = useMemo(() => {
         if (!width || !height) {
