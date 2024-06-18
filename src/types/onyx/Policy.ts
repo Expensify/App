@@ -606,6 +606,9 @@ type Subsidiary = {
     name: string;
 };
 
+/** NetSuite financial account type values */
+type AccountTypeValues = '_accountsPayable' | '_otherCurrentLiability' | '_creditCard' | '_bank' | '_otherCurrentAsset' | '_longTermLiability' | '_accountsReceivable' | '_expense';
+
 /** NetSuite Financial account (bank account, debit card, etc) */
 type NetSuiteAccount = {
     /** GL code assigned to the financial account */
@@ -619,7 +622,7 @@ type NetSuiteAccount = {
     id: string;
 
     /** Type of the financial account */
-    type: string;
+    type: AccountTypeValues;
 };
 
 /** NetSuite Tax account */
@@ -866,13 +869,13 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** */
         reimbursable: {
             /** */
-            expenseReport: null;
+            expenseReport: string;
         };
 
         /** */
         nonReimbursable: {
             /** */
-            vendorBill: null;
+            vendorBill: string;
         };
 
         /** */
