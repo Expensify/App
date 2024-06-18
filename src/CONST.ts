@@ -4806,6 +4806,11 @@ const CONST = {
             TRANSACTION: 'transaction',
             REPORT: 'report',
         },
+        ACTION_TYPES: {
+            DONE: 'done',
+            PAID: 'paid',
+            VIEW: 'view',
+        },
         TRANSACTION_TYPE: {
             CASH: 'cash',
             CARD: 'card',

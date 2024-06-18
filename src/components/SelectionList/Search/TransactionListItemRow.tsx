@@ -18,11 +18,11 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import Badge from '@components/Badge';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
-import Badge from '@components/Badge';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -155,10 +155,11 @@ function ActionCell({onButtonPress, action}: ActionCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    if (action === 'paid' || action === 'done') {
+    if (action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE) {
+        const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
         return (
             <Badge
-                text={action === 'paid' ? 'Paid' : 'Done'}
+                text={translate(buttonTextKey)}
                 icon={Expensicons.Checkmark}
                 badgeStyles={[{borderColor: theme.border, height: 20, minHeight: 20}, styles.ml0, styles.ph2, styles.gap1]}
                 textStyles={{fontSize: variables.fontSizeExtraSmall}}
