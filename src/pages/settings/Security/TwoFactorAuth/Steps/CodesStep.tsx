@@ -31,7 +31,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isExtraSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
     const {setStep} = useTwoFactorAuthContext();
@@ -66,7 +66,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                     <View style={styles.mv3}>
                         <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, shouldUseNarrowLayout})}>
+                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                         {account?.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={theme.spinner} />
