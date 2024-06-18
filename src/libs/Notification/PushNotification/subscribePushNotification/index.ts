@@ -56,7 +56,7 @@ function applyOnyxData({reportID, reportActionID, onyxData, lastUpdateID, previo
         previousUpdateID,
         updates: [
             {
-                eventType: 'eventType',
+                eventType: '', // This is only needed for Pusher events
                 data: onyxData,
             },
         ],
