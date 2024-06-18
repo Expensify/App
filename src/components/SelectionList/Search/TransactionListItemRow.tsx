@@ -154,6 +154,7 @@ function ActionCell({onButtonPress, action}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     if (action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
@@ -161,8 +162,8 @@ function ActionCell({onButtonPress, action}: ActionCellProps) {
             <Badge
                 text={translate(buttonTextKey)}
                 icon={Expensicons.Checkmark}
-                badgeStyles={[{borderColor: theme.border, height: 20, minHeight: 20}, styles.ml0, styles.ph2, styles.gap1]}
-                textStyles={{fontSize: variables.fontSizeExtraSmall}}
+                badgeStyles={[styles.ml0, styles.ph2, styles.gap1, StyleUtils.getBorderColorStyle(theme.border), StyleUtils.getHeight(variables.h20), StyleUtils.getMinimumHeight(variables.h20)]}
+                textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                 iconStyles={styles.mr0}
                 success
             />

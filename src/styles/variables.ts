@@ -240,6 +240,7 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    h20: 20,
     h36: 36,
     w28: 28,
     w36: 36,
