@@ -1689,15 +1689,7 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                employeeList: null,
-                pendingAction: null,
-                pendingFields: {
-                    autoReporting: null,
-                    approvalMode: null,
-                    reimbursementChoice: null,
-                },
-            },
+            value: {employeeList: null},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
