@@ -32,6 +32,8 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
 
     const authToken = session?.authToken ?? null;
     const {isOffline} = useNetwork();
+    const currentIntegration = translate('workspace.accounting.integrationName', integrationToDisconnect);
+    const integrationToConnect = translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.XERO);
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -53,7 +55,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    title={translate('workspace.accounting.disconnectTitle', currentIntegration)}
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
@@ -61,7 +63,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                     }}
                     isVisible
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', currentIntegration, integrationToConnect)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

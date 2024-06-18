@@ -2450,8 +2450,12 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
             },
-            disconnectPrompt: (integrationToConnect?: string, currentIntegration?: string): string =>
-                `Are you sure you want to disconnect ${currentIntegration} to set up ${integrationToConnect}?`,
+            disconnectPrompt: (currentIntegration?: string, integrationToConnect?: string): string => {
+                if (!integrationToConnect) {
+                    return `Are you sure you want to disconnect ${currentIntegration || 'this integration'}?`;
+                }
+                return `Are you sure you want to disconnect ${currentIntegration || 'this integration'} to set up ${integrationToConnect}`;
+            },
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {

@@ -36,6 +36,8 @@ function ConnectToQuickbooksOnlineButton({
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
     const {isOffline} = useNetwork();
+    const currentIntegration = translate('workspace.accounting.integrationName', integrationToDisconnect);
+    const integrationToConnect = translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.QBO);
 
     const authToken = session?.authToken ?? null;
 
@@ -58,7 +60,7 @@ function ConnectToQuickbooksOnlineButton({
             />
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.XERO)}
+                    title={translate('workspace.accounting.disconnectTitle', currentIntegration)}
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
@@ -66,7 +68,7 @@ function ConnectToQuickbooksOnlineButton({
                     }}
                     isVisible
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', currentIntegration, integrationToConnect)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

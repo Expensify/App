@@ -362,9 +362,11 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                             childrenStyles={styles.pt5}
                         >
                             {connectionsMenuItems.map((menuItem) => (
-                                <OfflineWithFeedback pendingAction={menuItem.pendingAction}>
+                                <OfflineWithFeedback
+                                    pendingAction={menuItem.pendingAction}
+                                    key={menuItem.title}
+                                >
                                     <MenuItem
-                                        key={menuItem.title}
                                         brickRoadIndicator={menuItem.brickRoadIndicator}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...menuItem}
@@ -388,7 +390,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
+                    title={translate('workspace.accounting.disconnectTitle', translate('workspace.accounting.integrationName', connectedIntegration))}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         if (connectedIntegration) {
@@ -397,7 +399,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', translate('workspace.accounting.integrationName', connectedIntegration))}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

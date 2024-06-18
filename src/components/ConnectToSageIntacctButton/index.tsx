@@ -125,7 +125,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
                         setIsReuseConnectionsPopoverOpen(true);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', integrationToConnect, currentIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', currentIntegration, integrationToConnect)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

@@ -2454,8 +2454,12 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
             },
-            disconnectPrompt: (integrationToConnect?: string, currentIntegration?: string): string =>
-                `¿Estás seguro de que quieres desconectar ${currentIntegration} para configurar ${integrationToConnect}?`,
+            disconnectPrompt: (currentIntegration?: string, integrationToConnect?: string): string => {
+                if (!integrationToConnect) {
+                    return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'integración'}?`;
+                }
+                return `¿Estás seguro de que quieres desconectar ${currentIntegration || 'this integration'} para configurar ${integrationToConnect}`;
+            },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
