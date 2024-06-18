@@ -4,7 +4,6 @@ const COLOR_YELLOW = '\x1b[33m';
 const COLOR_RED = '\x1b[31m';
 const COLOR_GREEN = '\x1b[32m';
 
-
 const log = (...args: unknown[]) => {
     console.debug(...args);
 };
@@ -33,6 +32,6 @@ const error = (...args: unknown[]) => {
     log(...lines);
 };
 
-const formatLink = (name: string | number, url: string) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`
+const formatLink = (name: string | number, url: string) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 
 export {log, info, warn, note, error, success, formatLink};
