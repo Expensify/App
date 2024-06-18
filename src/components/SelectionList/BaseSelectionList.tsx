@@ -34,6 +34,7 @@ function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
         ListItem,
+        SkeletonView,
         canSelectMultiple = false,
         onSelectRow,
         shouldDebounceRowSelect = false,
@@ -675,7 +676,11 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldAnimate />
+                        SkeletonView ? (
+                            <SkeletonView shouldAnimate />
+                        ) : (
+                            <OptionsListSkeletonView shouldAnimate />
+                        )
                     ) : (
                         <>
                             {!listHeaderContent && header()}
