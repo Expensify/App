@@ -504,6 +504,10 @@ const styles = (theme: ThemeColors) =>
             ...whiteSpace.noWrap,
         },
 
+        textLineHeightNormal: {
+            lineHeight: variables.lineHeightNormal,
+        },
+
         colorReversed: {
             color: theme.textReversed,
         },
@@ -2820,7 +2824,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sectionSelectCircle: {
-            backgroundColor: theme.highlightBG,
+            backgroundColor: theme.cardBG,
         },
 
         qrShareSection: {
@@ -4439,6 +4443,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 2,
             overflow: 'hidden',
         },
+
+        justSignedInModalAnimation: (is2FARequired: boolean) => ({
+            height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
+        }),
+
         moneyRequestViewImage: {
             ...spacing.mh5,
             ...spacing.mv3,

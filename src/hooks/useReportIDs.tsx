@@ -76,22 +76,24 @@ const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSele
 
 const reportActionsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): ReportActionsSelector =>
     (reportActions &&
-        Object.values(reportActions).map((reportAction) => {
-            const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
-            const decision = reportAction.message?.[0]?.moderationDecision?.decision;
+        Object.values(reportActions)
+            .filter(Boolean)
+            .map((reportAction) => {
+                const {reportActionID, actionName, errors = [], originalMessage} = reportAction;
+                const decision = reportAction.message?.[0]?.moderationDecision?.decision;
 
-            return {
-                reportActionID,
-                actionName,
-                errors,
-                message: [
-                    {
-                        moderationDecision: {decision},
-                    },
-                ] as Message[],
-                originalMessage,
-            };
-        })) as ReportActionsSelector;
+                return {
+                    reportActionID,
+                    actionName,
+                    errors,
+                    message: [
+                        {
+                            moderationDecision: {decision},
+                        },
+                    ] as Message[],
+                    originalMessage,
+                };
+            })) as ReportActionsSelector;
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
@@ -154,12 +156,12 @@ function ReportIDsContextProvider({
         // the current report is missing from the list, which should very rarely happen. In this
         // case we re-generate the list a 2nd time with the current report included.
         if (derivedCurrentReportID && !orderedReportIDs.includes(derivedCurrentReportID)) {
-            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? ''};
+            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? '-1'};
         }
 
         return {
             orderedReportIDs,
-            currentReportID: derivedCurrentReportID ?? '',
+            currentReportID: derivedCurrentReportID ?? '-1',
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID]);
 

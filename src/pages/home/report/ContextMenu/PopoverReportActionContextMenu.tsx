@@ -32,11 +32,11 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef('0');
+    const reportIDRef = useRef('-1');
     const typeRef = useRef<ContextMenuType>();
-    const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
-    const reportActionIDRef = useRef('0');
-    const originalReportIDRef = useRef('0');
+    const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
+    const reportActionIDRef = useRef('-1');
+    const originalReportIDRef = useRef('-1');
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string>();
 
@@ -130,7 +130,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         !!actionID && (reportActionIDRef.current === actionID || reportActionRef.current?.reportActionID === actionID);
 
     const clearActiveReportAction = () => {
-        reportActionIDRef.current = '0';
+        reportActionIDRef.current = '-1';
         reportActionRef.current = null;
     };
 
@@ -209,9 +209,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         }).then(() => {
             setDisabledActions(disabledOptions);
             typeRef.current = type;
-            reportIDRef.current = reportID ?? '0';
-            reportActionIDRef.current = reportActionID ?? '0';
-            originalReportIDRef.current = originalReportID ?? '0';
+            reportIDRef.current = reportID ?? '-1';
+            reportActionIDRef.current = reportActionID ?? '-1';
+            originalReportIDRef.current = originalReportID ?? '-1';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -239,9 +239,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
 
     /** After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it */
     const runAndResetOnPopoverHide = () => {
-        reportIDRef.current = '0';
-        reportActionIDRef.current = '0';
-        originalReportIDRef.current = '0';
+        reportIDRef.current = '-1';
+        reportActionIDRef.current = '-1';
+        originalReportIDRef.current = '-1';
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -266,9 +266,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
             if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '-1', reportAction);
             } else {
-                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '', reportAction);
+                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '-1', reportAction);
             }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
@@ -294,7 +294,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         onComfirmDeleteModal.current = onConfirm;
 
         reportIDRef.current = reportID;
-        reportActionRef.current = reportAction;
+        reportActionRef.current = reportAction ?? null;
 
         setShouldSetModalVisibilityForDeleteConfirmation(shouldSetModalVisibility);
         setIsDeleteCommentConfirmModalVisible(true);
