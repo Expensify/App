@@ -96,7 +96,7 @@ type SearchReport = {
     type?: string;
 
     /** The action that can be performed for the report */
-    action: string;
+    action?: string;
 };
 
 /** Model of transaction search result */

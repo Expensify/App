@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';

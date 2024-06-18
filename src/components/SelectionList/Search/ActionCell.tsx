@@ -11,11 +11,11 @@ import CONST from '@src/CONST';
 
 type ActionCellProps = {
     onButtonPress: () => void;
-    action: string;
+    action?: string;
     isLargeScreenWidth?: boolean;
 };
 
-function ActionCell({onButtonPress, action, isLargeScreenWidth = true}: ActionCellProps) {
+function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();

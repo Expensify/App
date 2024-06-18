@@ -15,11 +15,11 @@ type ExpenseItemHeaderNarrowProps = {
     participantTo: SearchAccountDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
-    action: string;
     onButtonPress: () => void;
+    action?: string;
 };
 
-function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, action, onButtonPress}: ExpenseItemHeaderNarrowProps) {
+function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, onButtonPress, action}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
