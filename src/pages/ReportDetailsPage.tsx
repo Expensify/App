@@ -163,7 +163,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     const requestParentReportAction = useMemo(() => {
-        // 2. MoneyRequestHeader case
+        // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT && reportActions && transactionThreadReport?.parentReportActionID) {
             return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
@@ -436,7 +436,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID ?? '' : '';
+    const iouTransactionID = requestParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction?.originalMessage?.IOUTransactionID ?? '' : '';
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -528,9 +528,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const deleteTransaction = useCallback(() => {
         setIsDeleteModalVisible(false);
-        if (!requestParentReportAction) {
-            return;
-        }
 
         if (caseID === CASES.DEFAULT) {
             Task.deleteTask(report);
@@ -538,18 +535,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             return;
         }
 
+        if (!requestParentReportAction) {
+            return;
+        }
+
         if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            if (isMoneyRequestReport || isInvoiceReport) {
-                // 1. MoneyReportHeader case
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(report?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
-            } else if (isSingleTransactionView) {
-                // 2. MoneyRequestHeader case
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
-            }
+            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
         } else {
             navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
         }
-    }, [caseID, iouTransactionID, isInvoiceReport, isMoneyRequestReport, isSingleTransactionView, parentReport?.reportID, report, requestParentReportAction]);
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
