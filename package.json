@@ -152,6 +152,7 @@
     "react-native-image-picker": "^7.0.3",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#bf3ad41a61c4f6f80ed4d497599ef5247a2dd002",
     "react-native-key-command": "^1.0.8",
+    "react-native-keyboard-controller": "^1.12.2",
     "react-native-launch-arguments": "^4.0.2",
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
