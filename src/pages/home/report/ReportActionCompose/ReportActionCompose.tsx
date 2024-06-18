@@ -1,4 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
+import noop from 'lodash/noop';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -27,6 +28,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import Performance from '@libs/Performance';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -101,6 +103,9 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
+
+// eslint-disable-next-line import/no-mutable-exports
+let onSubmitAction = noop;
 
 function ReportActionCompose({
     blockedFromConcierge,
@@ -295,11 +300,15 @@ function ReportActionCompose({
                 return;
             }
 
+            Performance.markStart(CONST.TIMING.MESSAGE_SENT, {message: newComment});
+
             playSound(SOUNDS.DONE);
             onSubmit(newComment);
         },
         [onSubmit],
     );
+
+    onSubmitAction = submitForm;
 
     const onTriggerAttachmentPicker = useCallback(() => {
         isNextModalWillOpenRef.current = true;
@@ -525,5 +534,5 @@ export default withCurrentUserPersonalDetails(
         },
     })(memo(ReportActionCompose)),
 );
-
+export {onSubmitAction};
 export type {SuggestionsRef, ComposerRef};
