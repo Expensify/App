@@ -7,7 +7,7 @@ type StackState = StackNavigationState<ParamListBase> | PartialState<StackNaviga
 
 const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
-function adaptStateIfNecessary(state: StackState, sidebarScreen: keyof ParamListBase, initialCentralPaneScreen: keyof ParamListBase) {
+function adaptStateIfNecessary(state: StackState, sidebarScreen: string, initialCentralPaneScreen: string) {
     const isNarrowLayout = getIsNarrowLayout();
     const workspaceCentralPane = state.routes.at(-1);
     // There should always be sidebarScreen screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
