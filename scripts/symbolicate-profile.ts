@@ -24,13 +24,13 @@ const argsMap = parseCommandLineArguments();
 
 // #region Input validation
 if (Object.keys(argsMap).length === 0 || argsMap.help !== undefined) {
-    Logger.log('Symbolicates a .cpuprofile file obtained from a specific app version.');
+    Logger.log('Symbolicates a .cpuprofile file obtained from a specific app version by downloading the source map from the github action runs.');
     Logger.log('Usage: npm run symbolicate-profile -- --profile=<filename> --platform=<ios|android>');
     Logger.log('Options:');
-    Logger.log('  --profile=<filename>   The .cpuprofile file to symbolicate');
-    Logger.log('  --platform=<ios|android>   The platform for which the source map was uploaded');
-    Logger.log('  --gh-token   Token to use for requests send to the GitHub API. By default tries to pick up from the environment variable GITHUB_TOKEN');
-    Logger.log('  --help   Display this help message');
+    Logger.log('  --profile=<filename>          The .cpuprofile file to symbolicate');
+    Logger.log('  --platform=<ios|android>      The platform for which the source map was uploaded');
+    Logger.log('  --gh-token                    Token to use for requests send to the GitHub API. By default tries to pick up from the environment variable GITHUB_TOKEN');
+    Logger.log('  --help                        Display this help message');
     process.exit(0);
 }
 
@@ -86,7 +86,7 @@ function getWorkflowId() {
             per_page: 100,
         })
         .then((workflowsResponse) => {
-            const workflow = workflowsResponse.data.workflows.find(({path}) => path === workflowFile);
+            const workflow = workflowsResponse.data.workflows.find(({path: workflowPath}) => path === workflowFile);
             if (workflow === undefined) {
                 throw new Error(`Could not find the workflow file ${workflowFile} in results! Has it been renamed?`);
             }
@@ -116,7 +116,7 @@ function getWorkflowRun(workflowId: number) {
         })
         .then((runsResponse) => {
             if (runsResponse.data.total_count === 0) {
-                throw new Error(`No successful runs found for the app version ${appVersion}!\nAre you sure the job the upload source map job run successfully?`);
+                throw new Error(`No successful runs found for the app version ${appVersion}!\nAre you sure the job the upload source map job run successfully (or at all yet)?`);
             }
 
             const run = runsResponse.data.workflow_runs[0];
@@ -260,3 +260,8 @@ if (fs.existsSync(localSourceMapPath)) {
         .then((zipPath) => unpackZipFile(zipPath))
         .then(() => renameDownloadedSourcemapFile());
 }
+
+// Symbolicate using the downloaded source map
+
+const command = `npx react-native-release-profiler --local ${argsMap.profile} --sourcemap-path ${localSourceMapPath}`;
+execSync(command, {stdio: 'inherit'});
