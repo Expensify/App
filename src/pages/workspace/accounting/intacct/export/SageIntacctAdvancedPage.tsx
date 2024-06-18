@@ -4,7 +4,9 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import withPolicy, {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Connections from '@libs/actions/connections';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 
@@ -23,26 +25,32 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             {
                 label: translate('workspace.sageIntacct.autoSync'),
                 value: !!autoSync,
-                onToggle: () => {},
+                onToggle: (enabled: boolean) => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'autoSync', {enabled: enabled}),
                 pendingAction: pendingFields?.autoSync,
                 error: errorFields?.autoSync,
                 description: translate('workspace.sageIntacct.autoSyncDescription'),
+                isActive: policy?.connections?.intacct?.config?.autoSync?.enabled,
             },
             {
                 label: translate('workspace.sageIntacct.inviteEmployees'),
                 value: !!pendingFields?.importEmployees,
-                onToggle: () => {},
+                onToggle: (enabled) => {
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'importEmployees', enabled);
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'approvalMode', enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.MANUAL : null);
+                },
                 pendingAction: pendingFields?.importEmployees,
                 error: errorFields?.importEmployees,
                 description: translate('workspace.sageIntacct.inviteEmployeesDescription'),
+                isActive: policy?.connections?.intacct?.config?.importEmployees,
             },
             {
                 label: translate('workspace.sageIntacct.syncReimbursedReports'),
                 value: !!syncReimbursedReports,
-                onToggle: () => {},
+                onToggle: (enabled) => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'sync', {syncReimbursedReports: enabled}),
                 pendingAction: pendingFields?.sync?.syncReimbursedReports,
                 error: errorFields?.sync?.syncReimbursedReports,
                 description: translate('workspace.sageIntacct.syncReimbursedReportsDescription'),
+                isActive: syncReimbursedReports,
             },
         ],
         [
@@ -53,6 +61,8 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             pendingFields?.autoSync,
             pendingFields?.importEmployees,
             pendingFields?.sync?.syncReimbursedReports,
+            policy?.connections?.intacct?.config?.autoSync?.enabled,
+            policyID,
             syncReimbursedReports,
             translate,
         ],
@@ -80,8 +90,8 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         subtitle={section.description}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={section.label}
-                        isActive={true}
-                        onToggle={() => {}}
+                        isActive={section.isActive}
+                        onToggle={section.onToggle}
                         wrapperStyle={[styles.ph5, styles.pv5]}
                     />
                 </OfflineWithFeedback>

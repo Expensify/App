@@ -1343,6 +1343,12 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT: {
+        APPROVAL_MODE: {
+            MANUAL: 'MANUAL',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
