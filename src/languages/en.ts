@@ -394,7 +394,7 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
-        loggedInAs: ({email}: LoggedInAsParams) => "You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.",
+        loggedInAs: ({email}: LoggedInAsParams) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
         doNotSeePrompt: "Can't see the prompt?",
         tryAgain: 'Try again',
         or: ', or',
