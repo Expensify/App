@@ -138,7 +138,7 @@ function PaymentCardForm({
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
+        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = label.error.nameOnCard;
@@ -164,7 +164,7 @@ function PaymentCardForm({
             errors.addressZipCode = label.error.addressZipCode;
         }
 
-        if (!formValues.acceptTerms) {
+        if (!values.acceptTerms) {
             errors.acceptTerms = 'common.error.acceptTerms';
         }
 
