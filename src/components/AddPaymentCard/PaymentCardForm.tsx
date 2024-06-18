@@ -137,30 +137,30 @@ function PaymentCardForm({
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
-    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
 
-        if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
+        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = label.error.nameOnCard;
         }
 
-        if (formValues.cardNumber && !ValidationUtils.isValidDebitCard(formValues.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = label.error.cardNumber;
         }
 
-        if (formValues.expirationDate && !ValidationUtils.isValidExpirationDate(formValues.expirationDate)) {
+        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
             errors.expirationDate = label.error.expirationDate;
         }
 
-        if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
+        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
             errors.securityCode = label.error.securityCode;
         }
 
-        if (formValues.addressStreet && !ValidationUtils.isValidAddress(formValues.addressStreet)) {
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
             errors.addressStreet = label.error.addressStreet;
         }
 
-        if (formValues.addressZipCode && !ValidationUtils.isValidZipCode(formValues.addressZipCode)) {
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
             errors.addressZipCode = label.error.addressZipCode;
         }
 

@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CurrencySelectorProps = {
-    /** Form error text. e.g when no country is selected */
+    /** Form error text. e.g when no currency is selected */
     errorText?: string;
 
     /** Callback called when the currency changes. */
@@ -45,7 +45,7 @@ function CurrencySelector({errorText = '', value: currency, onInputChange = () =
     }, [isFocused, onBlur]);
 
     useEffect(() => {
-        // This will cause the form to revalidate and remove any error related to country name
+        // This will cause the form to revalidate and remove any error related to currency
         onInputChange(currency);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currency]);
