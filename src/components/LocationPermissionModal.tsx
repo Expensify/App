@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Linking } from 'react-native';
+import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import useLocalize from '@hooks/useLocalize';
@@ -48,7 +48,7 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             return;
         }
         cb();
-    }
+    };
 
     const onConfirm = errorHandler(() => {
         requestLocationPermission()
