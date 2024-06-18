@@ -10,6 +10,14 @@ const defaultPlugins = [
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
 
+    [
+        '@fullstory/babel-plugin-annotate-react',
+        {
+            'react-native-web': true,
+            native: true,
+        },
+    ],
+
     // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     'transform-class-properties',
@@ -35,6 +43,16 @@ const metro = {
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
         // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
         'react-native-reanimated/plugin',
+
+        /* Fullstory */
+        '@fullstory/react-native',
+        [
+            '@fullstory/babel-plugin-annotate-react',
+            {
+                native: true,
+            },
+        ],
+
         // Import alias for native devices
         [
             'module-resolver',

@@ -1,4 +1,3 @@
-import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -7,7 +6,7 @@ import SCREENS from '@src/SCREENS';
 const lightTheme = {
     // Figma keys
     appBG: colors.productLight100,
-    splashBG: getSplashBackgroundColor(),
+    splashBG: colors.green400,
     highlightBG: colors.productLight200,
     border: colors.productLight400,
     borderLighter: colors.productLight400,
@@ -83,6 +82,7 @@ const lightTheme = {
     ourMentionBG: colors.green100,
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
+    trialBannerBackgroundColor: colors.green100,
     skeletonLHNIn: colors.productLight400,
     skeletonLHNOut: colors.productLight600,
     QRLogo: colors.green400,
@@ -129,7 +129,7 @@ const lightTheme = {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
-        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productLight100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },

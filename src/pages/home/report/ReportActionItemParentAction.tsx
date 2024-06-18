@@ -3,9 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -64,8 +62,6 @@ function ReportActionItemParentAction({
     shouldUseThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
     const {isOffline} = useNetwork();
@@ -100,13 +96,12 @@ function ReportActionItemParentAction({
     }, []);
 
     return (
-        <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)]}>
+        <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
-            <View style={[StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]} />
             {allAncestors.map((ancestor) => (
                 <OfflineWithFeedback
                     key={ancestor.reportAction.reportActionID}
-                    shouldDisableOpacity={Boolean(ancestor.reportAction?.pendingAction)}
+                    shouldDisableOpacity={!!ancestor.reportAction?.pendingAction}
                     pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
                     errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
                     errorRowStyles={[styles.ml10, styles.mr2]}
@@ -120,12 +115,12 @@ function ReportActionItemParentAction({
                         onPress={
                             ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))
                                 ? () => {
-                                      const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                                      const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '-1');
                                       // Pop the thread report screen before navigating to the chat report.
-                                      Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''));
+                                      Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1'));
                                       if (isVisibleAction && !isOffline) {
                                           // Pop the chat report screen before navigating to the linked report action.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID));
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '-1', ancestor.reportAction.reportActionID));
                                       }
                                   }
                                 : undefined

@@ -227,7 +227,7 @@ function Button(
                     large && styles.buttonLargeText,
                     success && styles.buttonSuccessText,
                     danger && styles.buttonDangerText,
-                    Boolean(icon) && styles.textAlignLeft,
+                    !!icon && styles.textAlignLeft,
                     textStyles,
                 ]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -302,10 +302,6 @@ function Button(
                         currentTarget?.blur();
                     }
 
-                    if (event?.type === 'keyup') {
-                        return;
-                    }
-
                     if (shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
@@ -333,7 +329,7 @@ function Button(
                 ]}
                 style={[
                     styles.button,
-                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, Boolean(icon), Boolean(text?.length > 0), shouldShowRightIcon),
+                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
                     success ? styles.buttonSuccess : undefined,
                     danger ? styles.buttonDanger : undefined,
                     isDisabled ? styles.buttonOpacityDisabled : undefined,

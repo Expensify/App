@@ -12,6 +12,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
@@ -51,10 +52,12 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>(null);
+    const [parentReport, setParentReport] = useState<OnyxEntry<Report>>();
 
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
+
+    const {paddingBottom} = useStyledSafeAreaInsets();
 
     useEffect(() => {
         setErrorMessage('');
@@ -76,7 +79,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (task?.shareDestination) {
-            setParentReport(reports?.[`report_${task.shareDestination}`] ?? null);
+            setParentReport(reports?.[`report_${task.shareDestination}`]);
             const displayDetails = TaskActions.getShareDestination(task.shareDestination, reports, personalDetails);
             setShareDestination(displayDetails);
         }
@@ -96,23 +99,23 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     // the response
     const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
-            setErrorMessage('newTaskPage.confirmError');
+            setErrorMessage(translate('newTaskPage.confirmError'));
             return;
         }
 
         if (!task.title) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskName');
+            setErrorMessage(translate('newTaskPage.pleaseEnterTaskName'));
             return;
         }
 
         if (!task.shareDestination) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
+            setErrorMessage(translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
 
         playSound(SOUNDS.DONE);
         TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '',
+            parentReport?.reportID ?? '-1',
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',
@@ -196,12 +199,12 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                     </View>
                     <View style={styles.flexShrink0}>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={Boolean(errorMessage)}
+                            isAlertVisible={!!errorMessage}
                             message={errorMessage}
                             onSubmit={onSubmit}
                             enabledWhenOffline
                             buttonText={translate('newTaskPage.confirmTask')}
-                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5]}
+                            containerStyles={[styles.mh0, styles.mt5, styles.flex1, styles.ph5, !paddingBottom ? styles.mb5 : null]}
                         />
                     </View>
                 </ScrollView>

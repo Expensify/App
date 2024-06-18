@@ -16,10 +16,19 @@ const WHITELIST_CHANNELS_RENDERER_TO_MAIN = [
     ELECTRON_EVENTS.REQUEST_VISIBILITY,
     ELECTRON_EVENTS.START_UPDATE,
     ELECTRON_EVENTS.LOCALE_UPDATED,
+    ELECTRON_EVENTS.DOWNLOAD,
     ELECTRON_EVENTS.SILENT_UPDATE,
 ] as const;
 
-const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE, ELECTRON_EVENTS.UPDATE_DOWNLOADED, ELECTRON_EVENTS.FOCUS, ELECTRON_EVENTS.BLUR] as const;
+const WHITELIST_CHANNELS_MAIN_TO_RENDERER = [
+    ELECTRON_EVENTS.KEYBOARD_SHORTCUTS_PAGE,
+    ELECTRON_EVENTS.UPDATE_DOWNLOADED,
+    ELECTRON_EVENTS.FOCUS,
+    ELECTRON_EVENTS.BLUR,
+    ELECTRON_EVENTS.DOWNLOAD_COMPLETED,
+    ELECTRON_EVENTS.DOWNLOAD_FAILED,
+    ELECTRON_EVENTS.DOWNLOAD_CANCELED,
+] as const;
 
 const getErrorMessage = (channel: string): string => `Electron context bridge cannot be used with channel '${channel}'`;
 
@@ -67,7 +76,7 @@ contextBridge.exposeInMainWorld('electron', {
         }
 
         // Deliberately strip event as it includes `sender`
-        ipcRenderer.on(channel, (event, ...args) => func(...args));
+        ipcRenderer.on(channel, (event, ...args: unknown[]) => func(...args));
     },
 
     /** Remove listeners for a single channel from the main process and sent to the renderer process. */

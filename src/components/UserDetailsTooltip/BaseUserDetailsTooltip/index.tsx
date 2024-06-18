@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isAnonymousUser} from '@libs/actions/Session';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -32,7 +31,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
 
     // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
     // the Copilot feature is implemented.
-    if (delegateAccountID) {
+    if (delegateAccountID && delegateAccountID > 0) {
         const delegateUserDetails = personalDetails?.[delegateAccountID];
         const delegateUserDisplayName = ReportUtils.getUserDetailTooltipText(delegateAccountID);
         userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
@@ -60,7 +59,8 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={icon?.source ?? UserUtils.getAvatar(userAvatar, userAccountID)}
+                        source={icon?.source ?? userAvatar}
+                        avatarID={icon?.id ?? userAccountID}
                         type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
                         name={icon?.name ?? userLogin}
                         fallbackIcon={icon?.fallbackIcon}

@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
@@ -239,7 +239,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
-    const hasLabel = Boolean(label?.length);
+    const hasLabel = !!label?.length;
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -328,7 +328,7 @@ function BaseTextInput(
                                     />
                                 </View>
                             )}
-                            {Boolean(prefixCharacter) && (
+                            {!!prefixCharacter && (
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         tabIndex={-1}
@@ -371,7 +371,9 @@ function BaseTextInput(
 
                                     // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
                                     // for the issue mentioned here https://github.com/Expensify/App/issues/26735
-                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined},
+                                    // Set overflow property to enable the parent flexbox to shrink its size
+                                    // (See https://github.com/Expensify/App/issues/41766)
+                                    !isMultiline && Browser.isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight
@@ -397,7 +399,7 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
@@ -405,7 +407,7 @@ function BaseTextInput(
                                     style={[styles.mt4, styles.ml1]}
                                 />
                             )}
-                            {Boolean(inputProps.secureTextEntry) && (
+                            {!!inputProps.secureTextEntry && (
                                 <Checkbox
                                     style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
@@ -420,7 +422,7 @@ function BaseTextInput(
                                     />
                                 </Checkbox>
                             )}
-                            {!inputProps.secureTextEntry && icon && (
+                            {!inputProps.secureTextEntry && !!icon && (
                                 <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
                                     <Icon
                                         src={icon}

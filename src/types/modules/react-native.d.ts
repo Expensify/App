@@ -7,9 +7,16 @@
 import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
 import type {BootSplashModule} from '@libs/BootSplash/types';
+import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
+import type StartupTimer from '@libs/StartupTimer/types';
 
 type HybridAppModule = {
     closeReactNativeApp: () => void;
+    exitApp: () => void;
+};
+
+type RNTextInputResetModule = {
+    resetKeyboardInput: (nodeHandle: number | null) => void;
 };
 
 declare module 'react-native' {
@@ -196,6 +203,14 @@ declare module 'react-native' {
         touchHistory: TouchHistory;
     };
 
+    interface TextInputFocusEventData extends TargetedEvent {
+        text: string;
+        eventCount: number;
+        relatedTarget?: {
+            id?: string;
+        };
+    }
+
     // https://necolas.github.io/react-native-web/docs/interactions/#responderevent-props-api
     // Extracted from react-native-web, packages/react-native-web/src/modules/useResponderEvents/ResponderSystem.js
     interface ResponderProps {
@@ -359,5 +374,15 @@ declare module 'react-native' {
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
         HybridAppModule: HybridAppModule;
+        StartupTimer: StartupTimer;
+        RNTextInputReset: RNTextInputResetModule;
+        EnvironmentChecker: EnvironmentCheckerModule;
+    }
+
+    namespace Animated {
+        interface AnimatedInterpolation<OutputT extends number | string> extends AnimatedWithChildren {
+            interpolate(config: InterpolationConfigType): AnimatedInterpolation<OutputT>;
+            __getValue: () => OutputT;
+        }
     }
 }

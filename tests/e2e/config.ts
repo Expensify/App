@@ -68,7 +68,6 @@ export default {
     TESTS_CONFIG: {
         [TEST_NAMES.AppStartTime]: {
             name: TEST_NAMES.AppStartTime,
-
             // ... any additional config you might need
         },
         [TEST_NAMES.OpenChatFinderPage]: {
@@ -88,17 +87,16 @@ export default {
             // #announce Chat with many messages
             reportID: '5421294415618529',
         },
-        // TODO: fix and enable again
-        // [TEST_NAMES.Linking]: {
-        //     name: TEST_NAMES.Linking,
-        //     reportScreen: {
-        //         autoFocus: true,
-        //     },
-        //     // Crowded Policy (Do Not Delete) Report, has a input bar available:
-        //     reportID: '8268282951170052',
-        //     linkedReportID: '5421294415618529',
-        //     linkedReportActionID: '2845024374735019929',
-        // },
+        [TEST_NAMES.Linking]: {
+            name: TEST_NAMES.Linking,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '8268282951170052',
+            linkedReportID: '5421294415618529',
+            linkedReportActionID: '2845024374735019929',
+        },
     },
 };
 

@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     return (
@@ -27,6 +27,8 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
         >
             <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <View style={styles.flex1}>
@@ -44,7 +46,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             <MenuItemWithTopDescription
                 interactive={false}
                 title={translate('workspace.common.categories')}
-                description={translate('workspace.qbo.displayedAs')}
+                description={translate('workspace.common.displayedAs')}
                 wrapperStyle={styles.sectionMenuItemTopDescription}
             />
             <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>

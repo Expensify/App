@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -20,13 +21,13 @@ import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -89,10 +90,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
+    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
+    const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
     const {isOffline} = useNetwork();
@@ -110,7 +111,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         [policy],
     ) as PolicyFeatureStates;
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
@@ -142,7 +143,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
-    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
+    const {login} = useCurrentUserPersonalDetails();
+    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
@@ -320,7 +322,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '',
+            id: policy.id ?? '-1',
         };
     }, [policy]);
 
@@ -399,7 +401,7 @@ export default withPolicyAndFullscreenLoading(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
         },
     })(WorkspaceInitialPage),
 );

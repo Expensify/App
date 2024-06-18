@@ -13,7 +13,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -118,7 +117,6 @@ function AttachmentPickerWithMenuItems({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    const {canUseTrackExpense} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
@@ -131,34 +129,34 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? '-1'),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
                 icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? '-1'),
             },
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'),
             },
             [CONST.IOU.TYPE.TRACK]: {
                 icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                 text: translate('iou.trackExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? '-1'),
             },
             [CONST.IOU.TYPE.INVOICE]: {
-                icon: Expensicons.Invoice,
+                icon: Expensicons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? '-1'),
             },
         };
 
-        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
+        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? []).map((option) => ({
             ...options[option],
         }));
-    }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);
+    }, [translate, report, policy, reportParticipantIDs]);
 
     /**
      * Determines if we can show the task option
@@ -330,5 +328,6 @@ AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 export default withOnyx<AttachmentPickerWithMenuItemsProps, AttachmentPickerWithMenuItemsOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
+        initialValue: {} as OnyxTypes.Policy,
     },
 })(AttachmentPickerWithMenuItems);

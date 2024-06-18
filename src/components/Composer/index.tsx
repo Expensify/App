@@ -1,3 +1,4 @@
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import lodashDebounce from 'lodash/debounce';
 import type {BaseSyntheticEvent, ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -16,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
+import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -45,6 +47,9 @@ const getNextChars = (inputString: string, cursorPosition: number): string => {
     return subString.substring(0, spaceIndex);
 };
 
+const excludeNoStyles: Array<keyof MarkdownStyle> = [];
+const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
+
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer(
@@ -70,13 +75,15 @@ function Composer(
         isReportActionCompose = false,
         isComposerFullSize = false,
         shouldContainScroll = false,
+        isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput | HTMLInputElement>,
 ) {
+    const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle(value);
+    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const StyleUtils = useStyleUtils();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
@@ -84,6 +91,8 @@ function Composer(
         | {
               start: number;
               end?: number;
+              positionX?: number;
+              positionY?: number;
           }
         | undefined
     >({
@@ -122,7 +131,7 @@ function Composer(
         if (shouldCalculateCaretPosition && isRendered) {
             // we do flushSync to make sure that the valueBeforeCaret is updated before we calculate the caret position to receive a proper position otherwise we will calculate position for the previous state
             flushSync(() => {
-                setValueBeforeCaret(webEvent.target.value.slice(0, webEvent.nativeEvent.selection.start));
+                setValueBeforeCaret((webEvent.target as HTMLInputElement).value.slice(0, webEvent.nativeEvent.selection.start));
                 setCaretContent(getNextChars(value ?? '', webEvent.nativeEvent.selection.start));
             });
             const selectionValue = {
@@ -162,7 +171,6 @@ function Composer(
 
             if (textInput.current !== event.target && !(isContenteditableDivFocused && !event.clipboardData?.files.length)) {
                 const eventTarget = event.target as HTMLInputElement | HTMLTextAreaElement | null;
-
                 // To make sure the composer does not capture paste events from other inputs, we check where the event originated
                 // If it did originate in another input, we return early to prevent the composer from handling the paste
                 const isTargetInput = eventTarget?.nodeName === 'INPUT' || eventTarget?.nodeName === 'TEXTAREA' || eventTarget?.contentEditable === 'true';
@@ -313,9 +321,10 @@ function Composer(
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
             isComposerFullSize ? ({height: '100%', maxHeight: 'none' as DimensionValue} as TextStyle) : undefined,
+            textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {},
         ],
 
-        [style, styles.rtlTextRenderForSafari, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize],
+        [style, styles.rtlTextRenderForSafari, styles.onlyEmojisTextLineHeight, scrollStyleMemo, StyleUtils, maxLines, isComposerFullSize, textContainsOnlyEmojis],
     );
 
     return (

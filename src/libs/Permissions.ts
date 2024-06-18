@@ -23,8 +23,8 @@ function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
 }
 
-function canUseTrackExpense(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.TRACK_EXPENSE) || canUseAllBetas(betas);
+function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
 }
 
 function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | undefined): boolean {
@@ -60,7 +60,7 @@ export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
     canUseViolations,
-    canUseTrackExpense,
+    canUseDupeDetection,
     canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,

@@ -15,8 +15,10 @@ import {
     isAfter,
     isBefore,
     isSameDay,
+    isSameMonth,
     isSameSecond,
     isSameYear,
+    isThisYear,
     isValid,
     parse,
     set,
@@ -41,7 +43,7 @@ import * as CurrentDate from './actions/CurrentDate';
 import * as Localize from './Localize';
 import Log from './Log';
 
-type CustomStatusTypes = (typeof CONST.CUSTOM_STATUS_TYPES)[keyof typeof CONST.CUSTOM_STATUS_TYPES];
+type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 type WeekDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -378,7 +380,8 @@ function getDBTime(timestamp: string | number = ''): string {
  */
 function getDBTimeWithSkew(timestamp: string | number = ''): string {
     if (networkTimeSkew > 0) {
-        return getDBTime(new Date(timestamp).valueOf() + networkTimeSkew);
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return getDBTime(datetime.valueOf() + networkTimeSkew);
     }
     return getDBTime(timestamp);
 }
@@ -648,7 +651,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
-        return 'common.error.invalidDateShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
 };
@@ -662,7 +665,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
-        return 'common.error.invalidTimeShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
 };
@@ -701,15 +704,6 @@ function formatToSupportedTimezone(timezoneInput: Timezone): Timezone {
 }
 
 /**
- * Return the date with full format if the created date is the current date.
- * Otherwise return the created date.
- */
-function enrichMoneyRequestTimestamp(created: string): string {
-    const now = new Date();
-    const createdDate = parse(created, CONST.DATE.FNS_FORMAT_STRING, now);
-    return isSameDay(createdDate, now) ? getDBTimeFromDate(now) : created;
-}
-/**
  * Returns the last business day of given date month
  *
  * param {Date} inputDate
@@ -726,6 +720,78 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
     }
 
     return getDate(currentDate);
+}
+
+/**
+ * Returns a formatted date range from date 1 to date 2.
+ * Dates are formatted as follows:
+ * 1. When both dates refer to the same day: Mar 17
+ * 2. When both dates refer to the same month: Mar 17-20
+ * 3. When both dates refer to the same year: Feb 28 to Mar 1
+ * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
+ */
+function getFormattedDateRange(date1: Date, date2: Date): string {
+    const {translateLocal} = Localize;
+
+    if (isSameDay(date1, date2)) {
+        // Dates are from the same day
+        return format(date1, 'MMM d');
+    }
+    if (isSameMonth(date1, date2)) {
+        // Dates in the same month and year, differ by days
+        return `${format(date1, 'MMM d')}-${format(date2, 'd')}`;
+    }
+    if (isSameYear(date1, date2)) {
+        // Dates are in the same year, differ by months
+        return `${format(date1, 'MMM d')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d')}`;
+    }
+    // Dates differ by years, months, days
+    return `${format(date1, 'MMM d, yyyy')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy')}`;
+}
+
+/**
+ * Returns a formatted date range from date 1 to date 2 of a reservation.
+ * Dates are formatted as follows:
+ * 1. When both dates refer to the same day and the current year: Sunday, Mar 17
+ * 2. When both dates refer to the same day but not the current year: Wednesday, Mar 17, 2023
+ * 3. When both dates refer to the current year: Sunday, Mar 17 to Wednesday, Mar 20
+ * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
+ */
+function getFormattedReservationRangeDate(date1: Date, date2: Date): string {
+    const {translateLocal} = Localize;
+    if (isSameDay(date1, date2) && isThisYear(date1)) {
+        // Dates are from the same day
+        return format(date1, 'EEEE, MMM d');
+    }
+    if (isSameDay(date1, date2)) {
+        // Dates are from the same day but not this year
+        return format(date1, 'EEEE, MMM d, yyyy');
+    }
+    if (isSameYear(date1, date2) && isThisYear(date1)) {
+        // Dates are in the current year, differ by months
+        return `${format(date1, 'EEEE, MMM d')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d')}`;
+    }
+    // Dates differ by years, months, days or only by months but the year is not current
+    return `${format(date1, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionTo')} ${format(date2, 'EEEE, MMM d, yyyy')}`;
+}
+
+/**
+ * Returns a formatted date of departure.
+ * Dates are formatted as follows:
+ * 1. When the date refers to the current day: Departs on Sunday, Mar 17 at 8:00
+ * 2. When the date refers not to the current day: Departs on Wednesday, Mar 17, 2023 at 8:00
+ */
+function getFormattedTransportDate(date: Date): string {
+    const {translateLocal} = Localize;
+    if (isThisYear(date)) {
+        return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+    }
+    return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
+}
+
+function doesDateBelongToAPastYear(date: string): boolean {
+    const transactionYear = new Date(date).getFullYear();
+    return transactionYear !== new Date().getFullYear();
 }
 
 const DateUtils = {
@@ -766,8 +832,11 @@ const DateUtils = {
     getWeekEndsOn,
     isTimeAtLeastOneMinuteInFuture,
     formatToSupportedTimezone,
-    enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
+    getFormattedDateRange,
+    getFormattedReservationRangeDate,
+    getFormattedTransportDate,
+    doesDateBelongToAPastYear,
 };
 
 export default DateUtils;

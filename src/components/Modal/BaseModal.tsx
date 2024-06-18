@@ -2,6 +2,7 @@ import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react'
 import {View} from 'react-native';
 import ReactNativeModal from 'react-native-modal';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useKeyboardState from '@hooks/useKeyboardState';
 import usePrevious from '@hooks/usePrevious';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -16,6 +17,7 @@ import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ModalContent from './ModalContent';
+import ModalContext from './ModalContext';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -44,6 +46,7 @@ function BaseModal(
         children,
         shouldUseCustomBackdrop = false,
         onBackdropPress,
+        modalId,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
         shouldUseModalPaddingStyle = true,
@@ -53,7 +56,7 @@ function BaseModal(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth, windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowWidth, windowHeight} = useWindowDimensions();
     const keyboardStateContextValue = useKeyboardState();
 
     const safeAreaInsets = useSafeAreaInsets();
@@ -61,13 +64,13 @@ function BaseModal(
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
 
-    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
-    const saveFocusState = () => {
+    const uniqueModalId = useMemo(() => modalId ?? ComposerFocusManager.getId(), [modalId]);
+    const saveFocusState = useCallback(() => {
         if (shouldEnableNewFocusManagement) {
-            ComposerFocusManager.saveFocusState(modalId);
+            ComposerFocusManager.saveFocusState(uniqueModalId);
         }
-        ComposerFocusManager.resetReadyToFocus(modalId);
-    };
+        ComposerFocusManager.resetReadyToFocus(uniqueModalId);
+    }, [shouldEnableNewFocusManagement, uniqueModalId]);
 
     /**
      * Hides modal
@@ -75,17 +78,19 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            Modal.willAlertModalBecomeVisible(false);
-            if (shouldSetModalVisibility) {
-                Modal.setModalVisibility(false);
+            if (Modal.areAllModalsHidden()) {
+                Modal.willAlertModalBecomeVisible(false);
+                if (shouldSetModalVisibility) {
+                    Modal.setModalVisibility(false);
+                }
             }
             if (callHideCallback) {
                 onModalHide();
             }
             Modal.onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
+            ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
     );
 
     useEffect(() => {
@@ -137,7 +142,7 @@ function BaseModal(
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus(modalId);
+        ComposerFocusManager.setReadyToFocus(uniqueModalId);
     };
 
     const {
@@ -195,60 +200,71 @@ function BaseModal(
               paddingRight: safeAreaPaddingRight ?? 0,
           };
 
+    const modalContextValue = useMemo(
+        () => ({
+            activeModalType: isVisible ? type : undefined,
+        }),
+        [isVisible, type],
+    );
+
     return (
-        // this is a workaround for modal not being visible on the new arch in some cases
-        // it's necessary to have a non-collapseable view as a parent of the modal to prevent
-        // a conflict between RN core and Reanimated shadow tree operations
-        // position absolute is needed to prevent the view from interfering with flex layout
-        <View
-            collapsable={false}
-            style={[styles.pAbsolute]}
-        >
-            <ReactNativeModal
-                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-                onClick={(e) => e.stopPropagation()}
-                onBackdropPress={handleBackdropPress}
-                // Note: Escape key on web/desktop will trigger onBackButtonPress callback
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                onBackButtonPress={Modal.closeTop}
-                onModalShow={handleShowModal}
-                propagateSwipe={propagateSwipe}
-                onModalHide={hideModal}
-                onModalWillShow={saveFocusState}
-                onDismiss={handleDismissModal}
-                onSwipeComplete={() => onClose?.()}
-                swipeDirection={swipeDirection}
-                isVisible={isVisible}
-                backdropColor={theme.overlay}
-                backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
-                backdropTransitionOutTiming={0}
-                hasBackdrop={fullscreen}
-                coverScreen={fullscreen}
-                style={modalStyle}
-                deviceHeight={windowHeight}
-                deviceWidth={windowWidth}
-                animationIn={animationIn ?? modalStyleAnimationIn}
-                animationOut={animationOut ?? modalStyleAnimationOut}
-                useNativeDriver={useNativeDriverProp && useNativeDriver}
-                useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
-                hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-                animationInTiming={animationInTiming}
-                animationOutTiming={animationOutTiming}
-                statusBarTranslucent={statusBarTranslucent}
-                onLayout={onLayout}
-                avoidKeyboard={avoidKeyboard}
-                customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+        <ModalContext.Provider value={modalContextValue}>
+            <View
+                // this is a workaround for modal not being visible on the new arch in some cases
+                // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+                // a conflict between RN core and Reanimated shadow tree operations
+                // position absolute is needed to prevent the view from interfering with flex layout
+                collapsable={false}
+                style={[styles.pAbsolute, {zIndex: 1}]}
             >
-                <ModalContent onDismiss={handleDismissModal}>
-                    <View
-                        style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
-                        ref={ref}
-                    >
-                        <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                    </View>
-                </ModalContent>
-            </ReactNativeModal>
-        </View>
+                <ReactNativeModal
+                    // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                    onClick={(e) => e.stopPropagation()}
+                    onBackdropPress={handleBackdropPress}
+                    // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    onBackButtonPress={Modal.closeTop}
+                    onModalShow={handleShowModal}
+                    propagateSwipe={propagateSwipe}
+                    onModalHide={hideModal}
+                    onModalWillShow={saveFocusState}
+                    onDismiss={handleDismissModal}
+                    onSwipeComplete={() => onClose?.()}
+                    swipeDirection={swipeDirection}
+                    isVisible={isVisible}
+                    backdropColor={theme.overlay}
+                    backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
+                    backdropTransitionOutTiming={0}
+                    hasBackdrop={fullscreen}
+                    coverScreen={fullscreen}
+                    style={modalStyle}
+                    deviceHeight={windowHeight}
+                    deviceWidth={windowWidth}
+                    animationIn={animationIn ?? modalStyleAnimationIn}
+                    animationOut={animationOut ?? modalStyleAnimationOut}
+                    useNativeDriver={useNativeDriverProp && useNativeDriver}
+                    useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
+                    hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+                    animationInTiming={animationInTiming}
+                    animationOutTiming={animationOutTiming}
+                    statusBarTranslucent={statusBarTranslucent}
+                    onLayout={onLayout}
+                    avoidKeyboard={avoidKeyboard}
+                    customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+                >
+                    <ModalContent onDismiss={handleDismissModal}>
+                        <FocusTrapForModal active={isVisible}>
+                            <View
+                                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                                ref={ref}
+                            >
+                                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                            </View>
+                        </FocusTrapForModal>
+                    </ModalContent>
+                </ReactNativeModal>
+            </View>
+        </ModalContext.Provider>
     );
 }
 

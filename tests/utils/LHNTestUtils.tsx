@@ -10,6 +10,7 @@ import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
 import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import DateUtils from '@libs/DateUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
@@ -128,7 +129,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participantAccountIDs,
+        participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
     };
 }
 
@@ -149,8 +150,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,
-        timestamp,
-        reportActionTimestamp: timestamp,
         person: [
             {
                 type: 'TEXT',
@@ -158,7 +157,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedToAccountIDs: [],
         automatic: false,
         message: [
             {
@@ -168,20 +166,10 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 isEdited: false,
                 whisperedTo: [],
                 isDeletedParentAction: false,
-                reactions: [
-                    {
-                        emoji: 'heart',
-                        users: [
-                            {
-                                accountID: 1,
-                                skinTone: -1,
-                            },
-                        ],
-                    },
-                ],
             },
         ],
         originalMessage: {
+            whisperedTo: [],
             childReportID: `${reportActionID}`,
             emojiReactions: {
                 heart: {
@@ -197,17 +185,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
             },
             html: 'hey',
             lastModified: '2023-08-28 15:28:12.432',
-            reactions: [
-                {
-                    emoji: 'heart',
-                    users: [
-                        {
-                            accountID: 1,
-                            skinTone: -1,
-                        },
-                    ],
-                },
-            ],
         },
     };
 }
