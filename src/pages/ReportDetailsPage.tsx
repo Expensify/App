@@ -174,14 +174,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
 
-    let moneyRequestReport;
-    if (isMoneyRequestReport || isInvoiceReport) {
-        // 1. MoneyReportHeader case
-        moneyRequestReport = report;
-    } else if (isSingleTransactionView) {
-        // 2. MoneyRequestHeader case
-        moneyRequestReport = parentReport;
-    }
+    const moneyRequestReport = useMemo(() => {
+        if (caseID === CASES.MONEY_REQUEST) {
+            return parentReport;
+        }
+        return report;
+    }, [caseID, parentReport, report]);
 
     const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
     const shouldShowTaskDeleteButton =
