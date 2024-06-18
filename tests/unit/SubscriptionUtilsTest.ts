@@ -1,4 +1,4 @@
-import {addDays, format as formatDate, getUnixTime, subDays} from 'date-fns';
+import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
@@ -32,6 +32,11 @@ describe('SubscriptionUtils', () => {
             expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(0);
         });
 
+        it('should return 1 if the current date is on the same day of the free trial end date, but some minutes earlier', async () => {
+            await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
+            expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(1);
+        });
+
         it('should return the remaining days if the current date is before the free trial end date', async () => {
             await Onyx.set(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING));
             expect(SubscriptionUtils.calculateRemainingFreeTrialDays()).toBe(5);
@@ -47,7 +52,43 @@ describe('SubscriptionUtils', () => {
             });
         });
 
-        it('should return true if the Onyx keys are not set', () => {
+        it('should return false if the Onyx keys are not set', () => {
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+        });
+
+        it('should return false if the current date is before the free trial start date', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 4), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+        });
+
+        it('should return false if the current date is after the free trial end date', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 4), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
+        });
+
+        it('should return true if the current date is on the same date of free trial start date', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(new Date(), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
+            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
+        });
+
+        it('should return true if the current date is on the same date of free trial end date, but some minutes earlier', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addMinutes(new Date(), 30), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
+            });
+
             expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
         });
 
@@ -58,15 +99,6 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(SubscriptionUtils.isUserOnFreeTrial()).toBeTruthy();
-        });
-
-        it('should return false if the current date is after the free trial end date', async () => {
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 3), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
-            });
-
-            expect(SubscriptionUtils.isUserOnFreeTrial()).toBeFalsy();
         });
     });
 
@@ -191,12 +223,23 @@ describe('SubscriptionUtils', () => {
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
         });
 
-        it('should return true if the user is a workspace owner but is past due billing', async () => {
+        it("should return false if the user is a workspace owner but is past due billing but isn't owning any amount", async () => {
             const policyID = '1001';
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 8010, // owing some amount
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 0,
+            });
+
+            expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+        });
+
+        it('should return true if the user is a workspace owner but is past due billing and is owning some amount', async () => {
+            const policyID = '1001';
+
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 8010,
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();

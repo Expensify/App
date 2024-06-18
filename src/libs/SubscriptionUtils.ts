@@ -1,4 +1,4 @@
-import {differenceInCalendarDays, fromUnixTime, isAfter, isBefore, parse as parseDate} from 'date-fns';
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore, parse as parseDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -58,8 +58,10 @@ function calculateRemainingFreeTrialDays(): number {
     }
 
     const currentDate = new Date();
-    const difference = differenceInCalendarDays(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate), currentDate);
-    return difference < 0 ? 0 : difference;
+    const diffInSeconds = differenceInSeconds(parseDate(lastDayFreeTrial, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, currentDate), currentDate);
+    const diffInDays = Math.ceil(diffInSeconds / 86400);
+
+    return diffInDays < 0 ? 0 : diffInDays;
 }
 
 /**
@@ -67,7 +69,7 @@ function calculateRemainingFreeTrialDays(): number {
  */
 function isUserOnFreeTrial(): boolean {
     if (!firstDayFreeTrial || !lastDayFreeTrial) {
-        return true;
+        return false;
     }
 
     const currentDate = new Date();
@@ -123,7 +125,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
-    if (ownerBillingGraceEndPeriod && amountOwed !== undefined && isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))) {
+    if (ownerBillingGraceEndPeriod && amountOwed !== undefined && amountOwed > 0 && isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))) {
         return true;
     }
 

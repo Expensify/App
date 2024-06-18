@@ -912,6 +912,10 @@ describe('ReportUtils', () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
         });
 
+        it('should return false if the report is neither the system or concierge chat', () => {
+            expect(ReportUtils.isChatUsedForOnboarding(LHNTestUtils.getFakeReport())).toBeFalsy();
+        });
+
         it('should return true if the user account ID is odd and report is the system chat', async () => {
             const accountID = 1;
 
