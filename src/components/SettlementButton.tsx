@@ -144,7 +144,7 @@ function SettlementButton({
     const {isOffline} = useNetwork();
 
     const session = useSession();
-    // The chatReportID can be an empty string that can make the app crash if we use a nullish ?? operator
+    // The chatReportID can be an empty string that can make the app crashes if we use a nullish ?? operator
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
