@@ -1825,7 +1825,7 @@ export default {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         enterTheDateOfBirthOfTheOwner: 'What's the owner's date of birth?',
-        enterTheLast4: 'What are the last 4 digits of the owner’s Social Security Number?',
+        enterTheLast4: "What are the last 4 digits of the owner’s Social Security Number?",
         last4SSN: 'Last 4 of SSN',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         enterTheOwnersAddress: "What's the owner's address?",
