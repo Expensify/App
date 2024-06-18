@@ -25,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import isPdfFilePasswordProtected from '@libs/isPdfFilePasswordProtected';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -212,6 +213,15 @@ function IOURequestStepScan({
                     return false;
                 }
 
+                if (fileExtension === 'pdf') {
+                    return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
+                        if (isProtected) {
+                            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.protectedPDFNotSupported');
+                            return false;
+                        }
+                        return true;
+                    });
+                }
                 return true;
             })
             .catch(() => {
