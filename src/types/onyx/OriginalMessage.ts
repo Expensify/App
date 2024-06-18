@@ -593,7 +593,7 @@ type OriginalMessageMergedWithCashTransaction = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
 
     /** Content of the original message */
-    originalMessage: undefined | null; // No data is sent with this action
+    originalMessage: undefined; // No data is sent with this action
 };
 
 /** Model of `dismissed violation` report action */

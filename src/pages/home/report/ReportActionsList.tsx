@@ -603,7 +603,7 @@ function ReportActionsList({
         [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
     );
 
-    const lastReportAction: OnyxTypes.ReportAction | null = useMemo(() => sortedReportActions.at(-1) ?? null, [sortedReportActions]);
+    const lastReportAction: OnyxTypes.ReportAction | undefined = useMemo(() => sortedReportActions.at(-1) ?? undefined, [sortedReportActions]);
 
     const retryLoadOlderChatsError = useCallback(() => {
         loadOlderChats(true);
