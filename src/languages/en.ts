@@ -1767,7 +1767,7 @@ export default {
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
         legalName: 'Legal name',
-        enterYourDateOfBirth: 'What's your date of birth?',
+        enterYourDateOfBirth: "What's your date of birth?",
         enterTheLast4: 'What are the last four digits of your Social Security Number?',
         dontWorry: "Don't worry, we don't do any personal credit checks!",
         last4SSN: 'Last 4 of SSN',
