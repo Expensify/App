@@ -62,7 +62,7 @@ function SubscriptionSettings() {
             titleStyles={styles.textStrong}
             isCentralPane
         >
-            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew ?? privateSubscription?.pendingFields?.addNewUsersAutomatically}>
+            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.autoRenew}>
                 <View style={styles.mt5}>
                     <ToggleSettingOptionRow
                         title={translate('subscription.subscriptionSettings.autoRenew')}
@@ -72,6 +72,8 @@ function SubscriptionSettings() {
                     />
                     {!!autoRenewalDate && <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('subscription.subscriptionSettings.renewsOn', {date: autoRenewalDate})}</Text>}
                 </View>
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={privateSubscription?.pendingFields?.addNewUsersAutomatically}>
                 <View style={styles.mt3}>
                     <ToggleSettingOptionRow
                         customTitle={customTitle}

@@ -60,7 +60,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
             return;
         }
 
-        onSubmit(reason.key, note);
+        onSubmit(reason.key, note.trim());
     };
 
     return (
