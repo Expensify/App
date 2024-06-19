@@ -13,6 +13,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -161,7 +162,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep): OnyxData {
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -244,7 +245,7 @@ function addPersonalBankAccount(account: PlaidBankAccount) {
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: ErrorUtils.getMicroSecondOnyxError('walletPage.addBankAccountFailure'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
@@ -471,7 +472,7 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     const parameters: VerifyIdentityForBankAccountParams = {
         bankAccountID,
         onfidoData: JSON.stringify(onfidoData),
-        policyID: policyID ?? '',
+        policyID: policyID ?? '-1',
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
@@ -537,7 +538,7 @@ function validatePlaidSelection(values: FormOnyxValues<AccountFormValues>): Form
     const errorFields: FormInputErrors<AccountFormValues> = {};
 
     if (!values.selectedPlaidAccountID) {
-        errorFields.selectedPlaidAccountID = 'bankAccount.error.youNeedToSelectAnOption';
+        errorFields.selectedPlaidAccountID = Localize.translateLocal('bankAccount.error.youNeedToSelectAnOption');
     }
 
     return errorFields;

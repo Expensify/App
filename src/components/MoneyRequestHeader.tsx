@@ -51,12 +51,11 @@ type MoneyRequestHeaderProps = {
 
 function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? -1}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [holdUseExplained, holdUseExplainedResult] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED);
-    const isLoadingHoldUseExplained = isLoadingOnyxValue(holdUseExplainedResult);
-
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
+    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -76,14 +75,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '']);
+    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
     const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
-            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
             } else {
                 navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
             }
@@ -93,7 +92,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
     const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '', report.reportID);
+        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', report.reportID);
     }, [report.reportID, transaction?.transactionID]);
 
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
@@ -105,7 +104,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
-        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
@@ -132,7 +131,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
             return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
         }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
             return {
                 title: getStatusIcon(Expensicons.Hourglass),
                 description: translate('iou.pendingMatchWithCreditCardDescription'),
@@ -180,8 +179,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         if (isLoadingHoldUseExplained) {
             return;
         }
-        setShouldShowHoldMenu(isOnHold && !holdUseExplained);
-    }, [isOnHold, holdUseExplained, isLoadingHoldUseExplained]);
+        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
@@ -198,7 +197,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.setShownHoldUseExplanation();
+        IOU.dismissHoldUseExplanation();
     };
 
     if (canDeleteRequest) {

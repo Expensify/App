@@ -108,7 +108,8 @@ function getOrderedReportIDs(
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
-        const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
+        const hasErrorsOtherThanFailedReceipt =
+            doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
         const isSystemChat = ReportUtils.isSystemChat(report);
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
@@ -123,7 +124,7 @@ function getOrderedReportIDs(
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
-            currentReportId: currentReportId ?? '',
+            currentReportId: currentReportId ?? '-1',
             isInFocusMode,
             betas,
             policies: policies as OnyxCollection<Policy>,
@@ -162,10 +163,10 @@ function getOrderedReportIDs(
         };
 
         const isPinned = report?.isPinned ?? false;
-        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
+        const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
         if (isPinned || ReportUtils.requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
-        } else if (hasValidDraftComment(report?.reportID ?? '')) {
+        } else if (hasValidDraftComment(report?.reportID ?? '-1')) {
             draftReports.push(miniReport);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(miniReport);
@@ -196,7 +197,7 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '');
+    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
     return LHNReports;
 }
 
@@ -257,15 +258,8 @@ function getOptionData({
         isDeletedParentAction: false,
     };
 
-    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-    const participantAccountIDs = Object.keys(report.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
-    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-        .filter(([, participant]) => participant && !participant.hidden)
-        .map(([accountID]) => Number(accountID))
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
+    const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -297,14 +291,13 @@ function getOptionData({
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
-    result.parentReportID = report.parentReportID ?? '';
+    result.parentReportID = report.parentReportID ?? '-1';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = report.notificationPreference;
     result.isAllowedToComment = ReportUtils.canUserPerformWriteAction(report);
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
-    result.isOneOnOneChat = isOneOnOneChat;
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);

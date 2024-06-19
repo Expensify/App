@@ -105,7 +105,7 @@ function ActivatePhysicalCardPage({
         activateCardCodeInputRef.current?.blur();
 
         if (lastFourDigits.replace(CONST.MAGIC_CODE_EMPTY_CHAR, '').length !== LAST_FOUR_DIGITS_LENGTH) {
-            setFormError('activateCardPage.error.thatDidntMatch');
+            setFormError(translate('activateCardPage.error.thatDidntMatch'));
             return;
         }
         if (inactiveCard?.cardID === undefined) {
@@ -113,7 +113,7 @@ function ActivatePhysicalCardPage({
         }
 
         CardSettings.activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
-    }, [lastFourDigits, inactiveCard?.cardID]);
+    }, [lastFourDigits, inactiveCard?.cardID, translate]);
 
     if (isEmptyObject(inactiveCard)) {
         return <NotFoundPage />;
