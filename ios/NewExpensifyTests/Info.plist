@@ -15,10 +15,14 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.4.86</string>
+	<string>9.0.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
+<<<<<<< HEAD
 	<string>9.0.0.1</string>
+=======
+	<string>9.0.0.0</string>
+>>>>>>> 5b0d3e8 (Merge pull request #44045 from Expensify/andrew-hybrid-verison-9)
 </dict>
 </plist>

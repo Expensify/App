@@ -1,6 +1,10 @@
 {
   "name": "new.expensify",
+<<<<<<< HEAD
   "version": "9.0.0-1",
+=======
+  "version": "9.0.0-0",
+>>>>>>> 5b0d3e8 (Merge pull request #44045 from Expensify/andrew-hybrid-verison-9)
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
