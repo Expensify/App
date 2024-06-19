@@ -75,7 +75,7 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={styles.flex1}>
-                <View style={styles.computerIllustrationContainer}>
+                <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
                     <ImageSVG src={Computer} />
                 </View>
 

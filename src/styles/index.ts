@@ -4996,7 +4996,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         computerIllustrationContainer: {
-            width: 'auto',
+            width: 272,
             height: 188,
         },
 
