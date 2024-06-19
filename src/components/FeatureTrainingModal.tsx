@@ -172,26 +172,26 @@ function FeatureTrainingModal({
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <Modal
-                    isVisible={isModalVisible}
-                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                    onClose={closeModal}
-                    innerContainerStyle={{
-                        boxShadow: 'none',
-                        borderRadius: 16,
-                        paddingBottom: 20,
-                        paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
-                        ...(shouldUseNarrowLayout
-                            ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                              // To make it take as little space as possible.
-                              {
-                                  flex: undefined,
-                                  width: 'auto',
-                              }
-                            : {}),
-                    }}
-                >
-                    <GestureHandlerRootView>
+                <GestureHandlerRootView>
+                    <Modal
+                        isVisible={isModalVisible}
+                        type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                        onClose={closeModal}
+                        innerContainerStyle={{
+                            boxShadow: 'none',
+                            borderRadius: 16,
+                            paddingBottom: 20,
+                            paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
+                            ...(shouldUseNarrowLayout
+                                ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+                                  // To make it take as little space as possible.
+                                  {
+                                      flex: undefined,
+                                      width: 'auto',
+                                  }
+                                : {}),
+                        }}
+                    >
                         <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                             <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
                             <View style={[styles.mt5, styles.mh5]}>
@@ -227,8 +227,8 @@ function FeatureTrainingModal({
                                 />
                             </View>
                         </View>
-                    </GestureHandlerRootView>
-                </Modal>
+                    </Modal>
+                </GestureHandlerRootView>
             )}
         </SafeAreaConsumer>
     );
