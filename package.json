@@ -156,7 +156,7 @@
     "react-native-linear-gradient": "^2.8.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "2.0.50",
+    "react-native-onyx": "git+https://github.com/paultsimura/react-native-onyx#153bc7988390f7fbd8e24a1b1081458faae6368c",
     "react-native-pager-view": "6.2.3",
     "react-native-pdf": "6.7.3",
     "react-native-performance": "^5.1.0",
