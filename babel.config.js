@@ -18,6 +18,8 @@ let defaultPlugins = [
     'react-native-reanimated/plugin',
 ];
 
+// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's 
+// ignore it for desktop builds.
 if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
     defaultPlugins.push([
         '@fullstory/babel-plugin-annotate-react',
