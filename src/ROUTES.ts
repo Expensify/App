@@ -910,7 +910,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/net-suite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary/selector` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary-selector` as const,
     }
 } as const;
 
