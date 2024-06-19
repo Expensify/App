@@ -65,3 +65,4 @@ function showContextMenuForReport(
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};
+export type {ShowContextMenuContextProps};
