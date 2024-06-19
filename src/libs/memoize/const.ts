@@ -3,7 +3,7 @@ import type {Options} from './types';
 const DEFAULT_OPTIONS = {
     maxSize: Infinity,
     equality: 'shallow',
-    monitor: true,
+    monitor: false,
     cache: 'array',
 } satisfies Options;
 
