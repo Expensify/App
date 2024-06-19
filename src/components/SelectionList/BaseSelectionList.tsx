@@ -30,6 +30,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
+const getDefaultItemHeight = () => variables.optionRowHeight;
+
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
@@ -41,6 +43,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onCheckboxPress,
         onSelectAll,
         onDismissError,
+        getItemHeight = getDefaultItemHeight,
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
@@ -72,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
+        customListHeaderHeight = 0,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
@@ -126,7 +130,8 @@ function BaseSelectionList<TItem extends ListItem>(
         const disabledArrowKeyOptionsIndexes: number[] = [];
         let disabledIndex = 0;
 
-        let offset = 0;
+        // need to account that the list might have some extra content above it
+        let offset = customListHeader ? customListHeaderHeight : 0;
         const itemLayouts = [{length: 0, offset}];
 
         const selectedOptions: TItem[] = [];
@@ -156,7 +161,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 disabledIndex += 1;
 
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = variables.optionRowHeight;
+                const fullItemHeight = getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -188,7 +193,7 @@ function BaseSelectionList<TItem extends ListItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sections]);
+    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;

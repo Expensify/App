@@ -52,9 +52,6 @@ type ReportFooterProps = {
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
-    /** Height of the list which the composer is part of */
-    listHeight?: number;
-
     /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
 
@@ -77,7 +74,6 @@ function ReportFooter({
     policy,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
-    listHeight = 0,
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
@@ -215,7 +211,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            listHeight={listHeight}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                         />
                     </SwipeableView>
@@ -232,7 +227,6 @@ export default memo(
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
-        prevProps.listHeight === nextProps.listHeight &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&

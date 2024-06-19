@@ -780,9 +780,7 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                errorFields: {
-                    notFound: null,
-                },
+                errorFields: null,
             },
         },
         {
@@ -1281,10 +1279,14 @@ function handleReportChanged(report: OnyxEntry<Report>) {
     // In this case, the API will let us know by returning a preexistingReportID.
     // We should clear out the optimistically created report and re-route the user to the preexisting report.
     if (report?.reportID && report.preexistingReportID) {
-        let callback = () => {};
+        let callback = () => {
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+        };
         // Only re-route them if they are still looking at the optimistically created report
         if (Navigation.getActiveRoute().includes(`/r/${report.reportID}`)) {
+            const currCallback = callback;
             callback = () => {
+                currCallback();
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? '-1'), CONST.NAVIGATION.TYPE.UP);
             };
         }
