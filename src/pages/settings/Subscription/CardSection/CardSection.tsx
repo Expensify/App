@@ -11,8 +11,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import CardSectionUtils from './utils';
 
 function CardSection() {
     const {translate, preferredLocale} = useLocalize();
@@ -31,6 +33,13 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
+            banner={
+                <>
+                    {CardSectionUtils.shouldShowPreTrialBillingBanner() && <PreTrialBillingBanner />}
+
+                    {/** TODO: Add other billing banners here. */}
+                </>
+            }
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
