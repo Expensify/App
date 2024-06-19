@@ -561,9 +561,14 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (isTripPreview(reportAction)) {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
+
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
@@ -1238,6 +1243,13 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
     return currentUserAccountID === reportAction?.actorAccountID;
 }
 
+/**
+ * Check if the report action is the trip preview
+ */
+function isTripPreview(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1308,6 +1320,7 @@ export {
     isLinkedTransactionHeld,
     wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
+    isTripPreview,
 };
 
 export type {LastVisibleMessage};

@@ -1465,6 +1465,11 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 harvesting: {
                     enabled: true,
                 },
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
     ];
@@ -1537,6 +1542,11 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     },
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
         {
@@ -1605,7 +1615,14 @@ function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingAction: null,
+                pendingFields: {
+                    autoReporting: null,
+                    approvalMode: null,
+                    reimbursementChoice: null,
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1801,6 +1818,11 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                     },
                 },
                 chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
+                pendingFields: {
+                    autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
         {
@@ -2077,6 +2099,11 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): string | u
                 errors: {},
             },
         },
+        pendingFields: {
+            autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        },
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -2147,7 +2174,14 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): string | u
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {pendingAction: null},
+            value: {
+                pendingAction: null,
+                pendingFields: {
+                    autoReporting: null,
+                    approvalMode: null,
+                    reimbursementChoice: null,
+                },
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
