@@ -488,6 +488,7 @@ function MenuItem(
                                 ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                 !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
+                                isHovered && !pressed && styles.hoveredComponentBG
                             ] as StyleProp<ViewStyle>
                         }
                         disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
