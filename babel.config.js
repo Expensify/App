@@ -21,6 +21,7 @@ let defaultPlugins = [
 // The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
 // ignore it for desktop builds.
 if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
+    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
     defaultPlugins.push([
         '@fullstory/babel-plugin-annotate-react',
         {
@@ -132,7 +133,6 @@ module.exports = (api) => {
     console.debug('  - api.env:', api.env());
     console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
     console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
-    console.debug(' - electronenv', JSON.stringify(process.env));
 
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
