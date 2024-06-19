@@ -44,7 +44,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
         downloadFile(fileUrl, fileName)
             .then((attachment) => {
-                documentPathUri = attachment.data;
+                documentPathUri = attachment.data as string | null;
                 if (!documentPathUri) {
                     throw new Error('Error downloading video');
                 }

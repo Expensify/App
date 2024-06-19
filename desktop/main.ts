@@ -141,7 +141,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWin
 
     autoUpdater
         .checkForUpdates()
-        .catch((error) => {
+        .catch((error: Error) => {
             isSilentUpdating = false;
             return {error};
         })
