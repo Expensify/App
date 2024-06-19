@@ -2316,7 +2316,7 @@ export default {
             importedFromAccountingSoftware: 'The taxes below are imported from your',
         },
         emptyWorkspace: {
-            title: 'Create a new workspace',
+            title: 'Create a workspace',
             subtitle: 'Workspaces are where you’ll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more - all in one place.',
             createAWorkspaceCTA: 'Get Started',
             features: {

@@ -2352,7 +2352,7 @@ export default {
             importedFromAccountingSoftware: 'Impuestos importadas desde',
         },
         emptyWorkspace: {
-            title: 'Crea un nuevo espacio de trabajo',
+            title: 'Crea un espacio de trabajo',
             subtitle: 'En los espacios de trabajo podrás chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas, y mucho más - todo en un mismo lugar.',
             createAWorkspaceCTA: 'Comenzar',
             features: {
