@@ -2,7 +2,7 @@ import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@rea
 import {createNavigatorFactory, useNavigationBuilder, useRoute} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,25 +14,10 @@ import type {SplitStackNavigatorProps, SplitStackNavigatorRouterOptions} from '.
 import useHandleScreenResize from './useHandleScreenResize';
 import usePrepareSplitStackNavigatorChildren from './usePrepareSplitStackNavigatorChildren';
 
-function getStateToRender(state: StackNavigationState<ParamListBase>, isSmallScreenWidth: boolean): StackNavigationState<ParamListBase> {
-    const sidebarScreenRoute = state.routes.at(0);
-    const centralScreenRoutes = state.routes.slice(1);
-    const routes = isSmallScreenWidth ? state.routes.slice(-2) : [sidebarScreenRoute, ...centralScreenRoutes.slice(-2)];
-
-    // Routes passed to the state have to be defined
-    const definedRoutes = routes.filter((route) => route !== undefined);
-
-    return {
-        ...state,
-        routes: definedRoutes,
-        index: routes.length - 1,
-    };
-}
-
 function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackNavigatorProps<ParamList>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
 
     const children = usePrepareSplitStackNavigatorChildren(props.children, props.sidebarScreen, screenOptions.homeScreen);
@@ -58,8 +43,6 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
 
     useHandleScreenResize(navigation);
 
-    const stateToRender = useMemo(() => getStateToRender(state, isSmallScreenWidth), [state, isSmallScreenWidth]);
-
     return (
         <FocusTrapForScreens>
             <View style={styles.rootNavigatorContainerStyles(shouldUseNarrowLayout)}>
@@ -67,7 +50,7 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
                     <StackView
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        state={stateToRender}
+                        state={state}
                         descriptors={descriptors}
                         navigation={navigation}
                     />
