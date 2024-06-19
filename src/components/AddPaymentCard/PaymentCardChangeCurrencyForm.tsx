@@ -47,7 +47,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         () => ({
             sections: [
                 {
-                    data: (Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>).map((currencyItem) => ({
+                    data: (Object.keys(CONST.CURRENCY) as Array<ValueOf<typeof CONST.CURRENCY>>).map((currencyItem) => ({
                         text: currencyItem,
                         value: currencyItem,
                         keyForList: currencyItem,
@@ -63,13 +63,13 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         setIsCurrencyModalVisible(true);
     }, []);
 
-    const changeCurrency = useCallback((newCurrency: keyof typeof CONST.CURRENCY) => {
-        setCurrency(newCurrency);
+    const changeCurrency = useCallback((selectedCurrency: ValueOf<typeof CONST.CURRENCY>) => {
+        setCurrency(selectedCurrency);
         setIsCurrencyModalVisible(false);
     }, []);
 
-    const selectCurrencyInARow = useCallback(
-        (selectedCurrency: keyof typeof CONST.CURRENCY) => {
+    const selectCurrency = useCallback(
+        (selectedCurrency: ValueOf<typeof CONST.CURRENCY>) => {
             setCurrency(selectedCurrency);
             changeBillingCurrency(selectedCurrency);
         },
@@ -81,15 +81,15 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
             formID={ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM}
             validate={validate}
             isSubmitButtonVisible={!!isSecurityCodeRequired}
-            onSubmit={(formData) => changeBillingCurrency(currency, formData)}
+            onSubmit={(values) => changeBillingCurrency(currency, values)}
             submitButtonText={translate('common.save')}
             scrollContextEnabled
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.mt3]}>
+            <Text style={styles.mt3}>
                 {`${translate('billingCurrency.note')}`}{' '}
                 <TextLink
-                    style={[styles.link]}
+                    style={styles.link}
                     href={CONST.PRICING}
                 >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
                 {`${translate('billingCurrency.notDetails')}`}
@@ -120,7 +120,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
 
             <PaymentCardCurrencyModal
                 isVisible={isCurrencyModalVisible}
-                currencies={Object.keys(CONST.CURRENCY) as Array<keyof typeof CONST.CURRENCY>}
+                currencies={Object.keys(CONST.CURRENCY) as Array<ValueOf<typeof CONST.CURRENCY>>}
                 currentCurrency={currency}
                 onCurrencyChange={changeCurrency}
                 onClose={() => setIsCurrencyModalVisible(false)}
@@ -131,7 +131,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                     containerStyle={[styles.mt5, styles.mhn5]}
                     sections={sections}
                     onSelectRow={(option) => {
-                        selectCurrencyInARow(option.value);
+                        selectCurrency(option.value);
                     }}
                     showScrollIndicator
                     shouldStopPropagation
