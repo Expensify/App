@@ -609,7 +609,7 @@ type Subsidiary = {
     name: string;
 };
 
-/** NetSuite bank account type values imported by Expensify*/
+/** NetSuite bank account type values imported by Expensify */
 type AccountTypeValues = '_accountsPayable' | '_otherCurrentLiability' | '_creditCard' | '_bank' | '_otherCurrentAsset' | '_longTermLiability' | '_accountsReceivable' | '_expense';
 
 /** NetSuite Financial account (bank account, debit card, etc) */
@@ -633,7 +633,7 @@ type NetSuiteTaxAccount = {
     /** Name of the tax account */
     name: string;
 
-    /** ID assigned to the tax account in NetSuite*/
+    /** ID assigned to the tax account in NetSuite */
     externalID: string;
 
     /** Country of the tax account */
@@ -642,7 +642,7 @@ type NetSuiteTaxAccount = {
 
 /** NetSuite Vendor Model */
 type NetSuiteVendor = {
-    /** ID of the vendor in NetSuite*/
+    /** ID of the vendor in NetSuite */
     id: string;
 
     /** Name of the vendor */
