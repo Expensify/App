@@ -1,14 +1,14 @@
 import React from 'react';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInitialPage').default;
 
-const RootStack = createSplitStackNavigator<FullScreenNavigatorParamList>();
+const RootStack = createSplitStackNavigator<WorkspaceNavigatorParamList>();
 
-type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.ComponentType>>;
+type Screens = Partial<Record<keyof WorkspaceNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceProfilePage').default,
@@ -27,7 +27,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
 
-function FullScreenNavigator() {
+function WorkspaceNavigator() {
     return (
         <RootStack.Navigator
             sidebarScreen={SCREENS.WORKSPACE.INITIAL}
@@ -48,7 +48,7 @@ function FullScreenNavigator() {
     );
 }
 
-FullScreenNavigator.displayName = 'FullScreenNavigator';
+WorkspaceNavigator.displayName = 'WorkspaceNavigator';
 
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
-export default FullScreenNavigator;
+export default WorkspaceNavigator;

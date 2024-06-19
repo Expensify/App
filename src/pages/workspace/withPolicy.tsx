@@ -3,14 +3,14 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import type {AuthScreensParamList, BottomTabNavigatorParamList, FullScreenNavigatorParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
+import type {AuthScreensParamList, BottomTabNavigatorParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceNavigatorParamList} from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type NavigatorsParamList = BottomTabNavigatorParamList & AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
+type NavigatorsParamList = BottomTabNavigatorParamList & AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & WorkspaceNavigatorParamList;
 
 type PolicyRoute = RouteProp<
     NavigatorsParamList,

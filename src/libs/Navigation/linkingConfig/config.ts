@@ -1241,7 +1241,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: {
+        [NAVIGATORS.WORKSPACE_NAVIGATOR]: {
             screens: {
                 [SCREENS.WORKSPACE.INITIAL]: {
                     path: ROUTES.WORKSPACE_INITIAL.route,

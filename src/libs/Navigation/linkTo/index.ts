@@ -57,10 +57,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const isNarrowLayout = getIsNarrowLayout();
 
-    const isFullScreenOnTop = lastRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
+    const isWorkspaceScreenOnTop = lastRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR;
 
     // policyID on SCREENS.SEARCH.CENTRAL_PANE can be present only as part of SearchQuery, while on other pages it's stored in the url in the format: /w/:policyID/
-    if (policyID && !isFullScreenOnTop && !policyIDFromState) {
+    if (policyID && !isWorkspaceScreenOnTop && !policyIDFromState) {
         // The stateFromPath doesn't include proper path if there is a policy passed with /w/id.
         // We need to replace the path in the state with the proper one.
         // To avoid this hacky solution we may want to create custom getActionFromState function in the future.
@@ -126,15 +126,15 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
-            // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
-        } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
+            // If this action is navigating to ModalNavigator or WorkspaceNavigator and the last route on the root navigator is not already opened Navigator then push
+        } else if ((action.payload.name === NAVIGATORS.WORKSPACE_NAVIGATOR || isSideModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
             if (isSideModalNavigator(topRouteName)) {
                 dismissModal(navigation);
             }
 
             // If this RHP has mandatory central pane and bottom tab screens defined we need to push them.
             const {adaptedState, metainfo} = getAdaptedStateFromPath(path, linkingConfig.config);
-            if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isFullScreenNavigatorMandatory)) {
+            if (adaptedState && (metainfo.isCentralPaneAndBottomTabMandatory || metainfo.isWorkspaceNavigatorMandatory)) {
                 const diff = getPartialStateDiff(rootState, adaptedState as State<RootStackParamList>, metainfo);
                 const diffActions = getActionsFromPartialDiff(diff);
                 for (const diffAction of diffActions) {
@@ -142,7 +142,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 }
             }
             // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
-            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+            if (action.payload.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
                 return;
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;

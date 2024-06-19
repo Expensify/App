@@ -8,9 +8,9 @@ import {CENTRAL_PANE_TO_TAB_MAPPING} from './TAB_TO_CENTRAL_PANE_MAPPING';
 function getMatchingBottomTabRouteForState(state: State<RootStackParamList>, policyID?: string): NavigationPartialRoute<BottomTabName> {
     const paramsWithPolicyID = policyID ? {policyID} : undefined;
     const defaultRoute = {name: SCREENS.HOME, params: paramsWithPolicyID};
-    const isFullScreenNavigatorOpened = state.routes.some((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+    const isWorkspaceNavigatorOpened = state.routes.some((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
 
-    if (isFullScreenNavigatorOpened) {
+    if (isWorkspaceNavigatorOpened) {
         return {name: SCREENS.SETTINGS.ROOT, params: paramsWithPolicyID};
     }
 
