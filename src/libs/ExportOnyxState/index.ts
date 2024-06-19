@@ -1,13 +1,14 @@
+import CONST from '@src/CONST';
 import common from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise<Record<string, unknown>>((resolve) => {
         let db: IDBDatabase;
-        const openRequest = indexedDB.open('OnyxDB', 1);
+        const openRequest = indexedDB.open(CONST.DEFAULT_DB_NAME, 1);
         openRequest.onsuccess = () => {
             db = openRequest.result;
-            const transaction = db.transaction('keyvaluepairs');
-            const objectStore = transaction.objectStore('keyvaluepairs');
+            const transaction = db.transaction(CONST.DEFAULT_TABLE_NAME);
+            const objectStore = transaction.objectStore(CONST.DEFAULT_TABLE_NAME);
             const cursor = objectStore.openCursor();
 
             const queryResult: Record<string, unknown> = {};
@@ -28,11 +29,10 @@ const readFromOnyxDatabase = () =>
         };
     });
 
-// eslint-disable-next-line @lwc/lwc/no-async-await,@typescript-eslint/require-await
-const shareAsFile = async (value: string) => {
+const shareAsFile = (value: string) => {
     const element = document.createElement('a');
     element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(value)}`);
-    element.setAttribute('download', 'onyx-state.txt');
+    element.setAttribute('download', CONST.DEFAULT_ONYX_DUMP_FILE_NAME);
 
     element.style.display = 'none';
     document.body.appendChild(element);

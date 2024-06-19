@@ -1,12 +1,13 @@
 import RNFS from 'react-native-fs';
 import {open} from 'react-native-quick-sqlite';
 import Share from 'react-native-share';
+import CONST from '@src/CONST';
 import common from './common';
 
 const readFromOnyxDatabase = () =>
     new Promise((resolve) => {
-        const db = open({name: 'OnyxDB'});
-        const query = 'SELECT * FROM keyvaluepairs';
+        const db = open({name: CONST.DEFAULT_DB_NAME});
+        const query = `SELECT * FROM ${CONST.DEFAULT_TABLE_NAME}`;
 
         db.executeAsync(query, []).then(({rows}) => {
             // eslint-disable-next-line no-underscore-dangle
@@ -16,21 +17,20 @@ const readFromOnyxDatabase = () =>
         });
     });
 
-// eslint-disable-next-line @lwc/lwc/no-async-await
-const shareAsFile = async (value: string) => {
+const shareAsFile = (value: string) => {
     try {
         // Define new filename and path for the app info file
-        const infoFileName = `onyx-state.txt`;
+        const infoFileName = CONST.DEFAULT_ONYX_DUMP_FILE_NAME;
         const infoFilePath = `${RNFS.DocumentDirectoryPath}/${infoFileName}`;
         const actualInfoFile = `file://${infoFilePath}`;
 
-        await RNFS.writeFile(infoFilePath, value, 'utf8');
+        RNFS.writeFile(infoFilePath, value, 'utf8').then(() => {
+            const shareOptions = {
+                urls: [actualInfoFile],
+            };
 
-        const shareOptions = {
-            urls: [actualInfoFile],
-        };
-
-        Share.open(shareOptions);
+            Share.open(shareOptions);
+        });
     } catch (error) {
         console.error('Error renaming and sharing file:', error);
     }
