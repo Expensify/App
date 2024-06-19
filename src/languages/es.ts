@@ -2230,6 +2230,10 @@ export default {
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
                 subtitle: 'Añade una categoría para organizar tu gasto.',
+                memberTitle: (workspaceName: string) => `${workspaceName} no tiene ninguna categoría activada.`,
+                otherWorkspace: 'Categorice este gasto eligiendo un espacio de trabajo diferente, o ',
+                askYourAdmin: 'pida a su administrador',
+                enableForThisWorkspace: ' que habilite categorías para este espacio de trabajo.',
             },
             updateFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             createFailureMessage: 'Se ha producido un error al intentar crear la categoría. Por favor, inténtalo más tarde.',
