@@ -105,8 +105,6 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
-        '@typescript-eslint/no-unsafe-assignment': 'off',
-
         // TypeScript specific rules
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
