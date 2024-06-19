@@ -28,10 +28,6 @@ class MemoizeStats {
     }
 
     private cumulateEntry(entry: MemoizeStatsEntry) {
-        if (!this.enabled) {
-            return;
-        }
-
         this.calls++;
         this.hits += entry.didHit ? 1 : 0;
 
@@ -44,12 +40,23 @@ class MemoizeStats {
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
+        return entry.keyLength !== undefined && entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
+    }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    private saveEntry(entry: Partial<MemoizeStatsEntry>) {
+        if (this.enabled && MemoizeStats.isMemoizeStatsEntry(entry)) {
+            this.cumulateEntry(entry);
+        }
+    }
+
     createEntry() {
         // If monitoring is disabled, return a dummy object that does nothing
         if (!this.enabled) {
             return {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                registerStat: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {},
+                registerStat: () => {},
                 save: () => {},
             };
         }
@@ -60,14 +67,7 @@ class MemoizeStats {
             registerStat: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
                 entry[cacheProp] = value;
             },
-            save: () => {
-                // Check if all required stats are present
-                if (entry.keyLength === undefined || entry.didHit === undefined || entry.cacheRetrievalTime === undefined) {
-                    return;
-                }
-
-                this.cumulateEntry(entry as MemoizeStatsEntry);
-            },
+            save: () => this.saveEntry(entry),
         };
     }
 
