@@ -391,20 +391,24 @@ function ReportScreen({
             (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     const currentReportIDFormRoute = route.params?.reportID;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            (!isLoadingApp &&
-                !wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !userLeavingStatus) ||
-            shouldHideReport ||
-            (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
-        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute, isLoadingApp],
-    );
+    const shouldShowNotFoundPage = useMemo((): boolean => {
+        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+        if (isLoadingApp !== false) {
+            return false;
+        }
+
+        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            return true;
+        }
+
+        if (shouldHideReport) {
+            return true;
+        }
+
+        return !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
+    }, [isLoadingApp, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute]);
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
