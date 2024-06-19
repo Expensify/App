@@ -10,15 +10,13 @@ import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Icon from '@components/Icon';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import variables from '@styles/variables';
 import * as UserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
@@ -273,20 +271,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 </Map>
                 {interactive && (
                     <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                        <PressableWithoutFeedback
-                            accessibilityRole={CONST.ROLE.BUTTON}
+                        <Button
                             onPress={centerMap}
+                            iconFill={theme.icon}
+                            medium
+                            icon={Expensicons.Crosshair}
                             accessibilityLabel={translate('common.center')}
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                <Icon
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    src={Expensicons.Crosshair}
-                                    fill={theme.icon}
-                                />
-                            </View>
-                        </PressableWithoutFeedback>
+                        />
                     </View>
                 )}
             </View>
