@@ -3,20 +3,12 @@ require('dotenv').config();
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPlugins = [
+let defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
 
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
-
-    [
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            'react-native-web': true,
-            native: true,
-        },
-    ],
 
     // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
@@ -25,6 +17,16 @@ const defaultPlugins = [
     // Keep it last
     'react-native-reanimated/plugin',
 ];
+
+if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
+    defaultPlugins.push([
+        '@fullstory/babel-plugin-annotate-react',
+        {
+            'react-native-web': true,
+            native: true,
+        },
+    ]);
+}
 
 const webpack = {
     presets: defaultPresets,
@@ -128,6 +130,7 @@ module.exports = (api) => {
     console.debug('  - api.env:', api.env());
     console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
     console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    console.debug(' - electronenv', JSON.stringify(process.env));
 
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
