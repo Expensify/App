@@ -32,8 +32,8 @@ function WorkspaceOwnerRestrictedAction() {
                 title={translate('workspace.restrictedAction.restricted')}
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView>
-                <View style={[styles.cardSectionContainer, styles.p5, styles.mb0, styles.mt3, styles.mh5]}>
+            <ScrollView contentContainerStyle={[styles.ph5, styles.pt3]}>
+                <View style={[styles.cardSectionContainer, styles.p5, styles.mb0, styles.mh0]}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart, styles.mb3]}>
                         <Icon
                             src={Illustrations.LockClosedOrange}
