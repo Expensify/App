@@ -39,7 +39,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const isFocusedRef = useRef(true);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID ?? -1}`);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
