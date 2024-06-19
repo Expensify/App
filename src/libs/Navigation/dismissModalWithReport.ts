@@ -33,7 +33,7 @@ function dismissModalWithReport(targetReport: Report | EmptyObject, navigationRe
     const state = navigationRef.getState();
     const lastRoute = state.routes.at(-1);
     switch (lastRoute?.name) {
-        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case NAVIGATORS.WORKSPACE_NAVIGATOR:
         case NAVIGATORS.LEFT_MODAL_NAVIGATOR:
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:

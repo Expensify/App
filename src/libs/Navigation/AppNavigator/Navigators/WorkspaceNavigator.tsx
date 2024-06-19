@@ -1,13 +1,13 @@
 import React from 'react';
 import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
 const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
 
-const RootStack = createSplitStackNavigator<FullScreenNavigatorParamList>();
+const RootStack = createSplitStackNavigator<WorkspaceNavigatorParamList>();
 
-type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.ComponentType>>;
+type Screens = Partial<Record<keyof WorkspaceNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
@@ -26,7 +26,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default as React.ComponentType,
 } satisfies Screens;
 
-function FullScreenNavigator() {
+function WorkspaceNavigator() {
     return (
         <RootStack.Navigator
             sidebarScreen={SCREENS.WORKSPACE.INITIAL}
@@ -47,7 +47,7 @@ function FullScreenNavigator() {
     );
 }
 
-FullScreenNavigator.displayName = 'FullScreenNavigator';
+WorkspaceNavigator.displayName = 'WorkspaceNavigator';
 
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
-export default FullScreenNavigator;
+export default WorkspaceNavigator;

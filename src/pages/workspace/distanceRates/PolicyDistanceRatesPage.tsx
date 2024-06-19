@@ -24,7 +24,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
+import type {WorkspaceNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as DistanceRate from '@userActions/Policy/DistanceRate';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
@@ -42,7 +42,7 @@ type PolicyDistanceRatesPageOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
+type PolicyDistanceRatesPageProps = PolicyDistanceRatesPageOnyxProps & StackScreenProps<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES>;
 
 function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();

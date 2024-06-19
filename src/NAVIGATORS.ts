@@ -10,5 +10,5 @@ export default {
     ONBOARDING_MODAL_NAVIGATOR: 'OnboardingModalNavigator',
     FEATURE_TRANING_MODAL_NAVIGATOR: 'FeatureTrainingModalNavigator',
     WELCOME_VIDEO_MODAL_NAVIGATOR: 'WelcomeVideoModalNavigator',
-    FULL_SCREEN_NAVIGATOR: 'FullScreenNavigator',
+    WORKSPACE_NAVIGATOR: 'WorkspaceNavigator',
 } as const;
