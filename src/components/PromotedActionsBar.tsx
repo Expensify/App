@@ -38,9 +38,10 @@ const PromotedActions = {
         key: 'join',
         icon: Expensicons.ChatBubbles,
         text: Localize.translateLocal('common.join'),
-        onSelected: () => {
-            Session.checkIfActionIsAllowed(() => ReportActions.joinRoom(report));
-        },
+        onSelected: Session.checkIfActionIsAllowed(() => {
+            Navigation.dismissModal();
+            ReportActions.joinRoom(report);
+        }),
     }),
     message: ({accountID, login}) => ({
         key: 'message',

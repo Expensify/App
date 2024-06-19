@@ -442,8 +442,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowHoldAction = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
 
+    const canJoin = !isExpenseReport && ReportUtils.canJoinChat(report, parentReportAction, policy);
+
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
+
+        if (canJoin) {
+            result.push(PromotedActions.join(report));
+        }
 
         if (isExpenseReport && shouldShowHoldAction) {
             result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: parentReportAction}));
@@ -508,7 +514,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             errorRowStyles={[styles.ph5]}
             onClose={() => Report.clearPolicyRoomNameErrors(report?.reportID)}
         >
-            <View style={[styles.flex1, !shouldDisableRename && styles.mt3, isGroupChat && styles.mb5]}>
+            <View style={[styles.flex1, !shouldDisableRename && styles.mt3]}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
