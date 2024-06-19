@@ -45,10 +45,16 @@ type OnyxData = {
 
 // For all write requests, we'll send the lastUpdateID that is applied to this client. This will
 // allow us to calculate previousUpdateID faster.
-let lastUpdateIDAppliedToClient = 0;
+let lastUpdateIDAppliedToClient = -1;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
+    callback: (value) => {
+        if (value) {
+            lastUpdateIDAppliedToClient = value;
+        } else {
+            lastUpdateIDAppliedToClient = -1;
+        }
+    },
 });
 
 /**

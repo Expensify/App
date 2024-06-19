@@ -1,5 +1,5 @@
 import {ExpensiMark} from 'expensify-common';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
@@ -232,13 +232,13 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
-    const successMembersState: OnyxCollection<PolicyEmployee> = {};
-    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     emailList.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
-        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
+        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove')};
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -247,8 +247,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: policyKey,
             value: {employeeList: optimisticMembersState},
         },
-        ...announceRoomMembers.onyxOptimisticData,
     ];
+    optimisticData.push(...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -256,8 +256,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: policyKey,
             value: {employeeList: successMembersState},
         },
-        ...announceRoomMembers.onyxSuccessData,
     ];
+    successData.push(...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -265,8 +265,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: policyKey,
             value: {employeeList: failureMembersState},
         },
-        ...announceRoomMembers.onyxFailureData,
     ];
+    failureData.push(...announceRoomMembers.onyxFailureData);
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -414,7 +414,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: previousEmployeeList,
-                errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
             },
         },
     ];
@@ -530,14 +530,14 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
-    const successMembersState: OnyxCollection<PolicyEmployee> = {};
-    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     logins.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         };
     });
 
@@ -551,10 +551,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: optimisticMembersState,
             },
         },
-        ...newPersonalDetailsOnyxData.optimisticData,
-        ...membersChats.onyxOptimisticData,
-        ...announceRoomMembers.onyxOptimisticData,
     ];
+    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData, ...membersChats.onyxOptimisticData, ...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -564,10 +562,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: successMembersState,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
-        ...membersChats.onyxSuccessData,
-        ...announceRoomMembers.onyxSuccessData,
     ];
+    successData.push(...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -580,9 +576,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: failureMembersState,
             },
         },
-        ...membersChats.onyxFailureData,
-        ...announceRoomMembers.onyxFailureData,
     ];
+    failureData.push(...membersChats.onyxFailureData, ...announceRoomMembers.onyxFailureData);
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
@@ -617,7 +612,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
-            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxError('common.genericEditFailureMessage')},
+            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
         },
     ];
 

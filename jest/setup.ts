@@ -70,3 +70,6 @@ jest.mock('react-native-reanimated', () => ({
     createAnimatedPropAdapter: jest.fn,
     useReducedMotion: jest.fn,
 }));
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('react-native-keyboard-controller', () => require('react-native-keyboard-controller/jest'));
