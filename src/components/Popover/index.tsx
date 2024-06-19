@@ -4,6 +4,7 @@ import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type {PopoverProps} from './types';
 
@@ -52,6 +53,7 @@ function Popover(props: PopoverProps) {
         if (popover && 'current' in anchorRef) {
             close(anchorRef);
         }
+        TooltipRefManager.hideTooltip();
         onClose();
     };
 

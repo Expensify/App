@@ -4,9 +4,8 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Icon from '@components/Icon';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserLocation from '@libs/actions/UserLocation';
@@ -14,7 +13,6 @@ import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -238,20 +236,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <PressableWithoutFeedback
-                        accessibilityRole={CONST.ROLE.BUTTON}
+                    <Button
                         onPress={centerMap}
+                        iconFill={theme.icon}
+                        medium
+                        icon={Expensicons.Crosshair}
                         accessibilityLabel={translate('common.center')}
-                    >
-                        <View style={styles.primaryMediumIcon}>
-                            <Icon
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                                src={Expensicons.Crosshair}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </PressableWithoutFeedback>
+                    />
                 </View>
             </View>
         ) : (
