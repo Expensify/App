@@ -205,12 +205,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         }
     }
 
-    // When we navigate from the ReportScreen opened in RHP, this page shouldn't be removed from the navigation state to allow users to go back to it.
-    if (isReportInRhpOpened) {
-        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
-    }
-
     if (action !== undefined) {
+        // When we navigate from the ReportScreen opened in RHP, this page shouldn't be removed from the navigation state to allow users to go back to it.
+        if (isReportInRhpOpened) {
+            action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+        }
+
         root.dispatch(action);
     } else {
         root.reset(stateFromPath);
