@@ -31,7 +31,6 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
-import {PressableWithoutFeedback} from './Pressable';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
@@ -261,10 +260,6 @@ type MenuItemBaseProps = {
     /** Text to display under the main item */
     furtherDetails?: string;
 
-    furtherDetailsPressable?: boolean;
-
-    furtherDetailsPressableAction?: () => void;
-
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
@@ -340,8 +335,6 @@ function MenuItem(
         iconRight = Expensicons.ArrowRight,
         furtherDetailsIcon,
         furtherDetails,
-        furtherDetailsPressable = false,
-        furtherDetailsPressableAction,
         description,
         helperText,
         helperTextStyle,
@@ -678,24 +671,12 @@ function MenuItem(
                                                                         inline
                                                                     />
                                                                 )}
-                                                                {furtherDetailsPressable ? (
-                                                                    <PressableWithoutFeedback
-                                                                        style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
-                                                                        onPress={furtherDetailsPressableAction}
-                                                                        role={CONST.ROLE.BUTTON}
-                                                                        accessibilityLabel={furtherDetails ?? ''}
-                                                                        accessible
-                                                                    >
-                                                                        {furtherDetails}
-                                                                    </PressableWithoutFeedback>
-                                                                ) : (
-                                                                    <Text
-                                                                        style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
-                                                                        numberOfLines={2}
-                                                                    >
-                                                                        {furtherDetails}
-                                                                    </Text>
-                                                                )}
+                                                                <Text
+                                                                    style={furtherDetailsIcon ? [styles.furtherDetailsText, styles.ph2, styles.pt1] : styles.textLabelSupporting}
+                                                                    numberOfLines={2}
+                                                                >
+                                                                    {furtherDetails}
+                                                                </Text>
                                                             </View>
                                                         )}
                                                         {titleComponent}

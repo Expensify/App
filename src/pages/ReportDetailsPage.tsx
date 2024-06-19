@@ -517,10 +517,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     shouldCheckActionAllowedOnPress={false}
                     description={!shouldDisableRename ? roomDescription : ''}
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                    furtherDetailsPressable={isPolicyAdmin}
-                    furtherDetailsPressableAction={() => {
-                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
-                    }}
                     onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
                 />
             </View>
