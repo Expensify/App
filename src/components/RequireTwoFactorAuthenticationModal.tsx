@@ -1,9 +1,9 @@
-import type {ReactNode} from 'react';
 import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {type StyleProp, type TextStyle, View, type ViewStyle} from 'react-native';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -60,7 +60,9 @@ function RequireTwoFactorAuthenticationModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
 
+    
     return (
         <Modal
             onSubmit={onConfirm}
@@ -70,13 +72,15 @@ function RequireTwoFactorAuthenticationModal({
             // innerContainerStyle={innerContainerStyle}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
         >
-            <Lottie
-                source={LottieAnimations.Safe}
-                style={styles.h100}
-                webStyle={styles.h100}
-                autoPlay
-                loop
-            />
+            <View style={[styles.w100, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
+                <Lottie
+                    source={LottieAnimations.Safe}
+                    style={styles.h100}
+                    webStyle={styles.h100}
+                    autoPlay
+                    loop
+                />
+            </View>
             <Button
                 large
                 success
