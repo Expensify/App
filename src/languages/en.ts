@@ -1927,6 +1927,7 @@ export default {
         hotel: 'Hotel',
         car: 'Car',
         viewTrip: 'View trip',
+        viewTripDetails: 'View trip details',
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
@@ -2786,6 +2787,7 @@ export default {
             search: 'Open search dialog',
             newChat: 'New chat screen',
             copy: 'Copy comment',
+            openDebug: 'Open testing preferences dialog',
         },
     },
     guides: {
@@ -3291,8 +3293,8 @@ export default {
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
-            whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
-            renewsOn: ({date}) => `Renews on ${date}`,
+            whatsMainReason: "What's the main reason you're disabling auto-renew?",
+            renewsOn: ({date}) => `Renews on ${date}.`,
         },
     },
     feedbackSurvey: {
@@ -3300,5 +3302,7 @@ export default {
         tooExpensive: 'Too expensive',
         inadequateSupport: 'Inadequate customer support',
         businessClosing: 'Company closing, downsizing, or acquired',
+        additionalInfoTitle: 'What software are you moving to and why?',
+        additionalInfoInputLabel: 'Your response',
     },
 } satisfies TranslationBase;
