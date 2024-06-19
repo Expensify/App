@@ -39,7 +39,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             waypoints,
             mapPadding,
             accessToken,
-            userLocation: cachedUserLocation,
+            userLocation,
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
             interactive = true,
@@ -55,7 +55,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
+        const currentPosition = userLocation ?? initialLocation;
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
@@ -73,7 +73,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition(initialLocation);
             },
             [initialLocation],
         );
@@ -97,7 +96,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
                     UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
