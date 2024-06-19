@@ -94,18 +94,22 @@ function IOURequestStepDescription({
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM> => {
+            const errors = {};
 
-        if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'moneyRequestComment', [
-                'common.error.characterLimitExceedCounter',
-                {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT},
-            ]);
-        }
+            if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'moneyRequestComment',
+                    translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
+                );
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
