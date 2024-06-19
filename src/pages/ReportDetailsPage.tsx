@@ -324,7 +324,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     icon: Expensicons.Checkmark,
                     translationKey: 'task.markAsIncomplete',
                     isAnonymousAction: false,
-                    action: Session.checkIfActionIsAllowed(() => Task.reopenTask(report)),
+                    action: Session.checkIfActionIsAllowed(() => {
+                        Navigation.dismissModal();
+                        Task.reopenTask(report);
+                    }),
                 });
             }
         }
