@@ -16,7 +16,6 @@ import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
-import switchPolicyID from './switchPolicyID';
 import type {RootStackParamList, StackNavigationAction, State} from './types';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
