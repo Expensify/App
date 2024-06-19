@@ -15,6 +15,7 @@ import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -109,6 +110,7 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -155,7 +157,7 @@ function ReportPreview({
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
-        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '', transactionViolations));
+        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '-1', transactionViolations));
 
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
@@ -421,7 +423,8 @@ function ReportPreview({
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                         }}
-                                        isDisabled={!canAllowSettlement}
+                                        isDisabled={isOffline && !canAllowSettlement}
+                                        isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

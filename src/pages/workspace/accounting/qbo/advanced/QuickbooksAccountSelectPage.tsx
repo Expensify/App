@@ -27,7 +27,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {reimbursementAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
     const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);

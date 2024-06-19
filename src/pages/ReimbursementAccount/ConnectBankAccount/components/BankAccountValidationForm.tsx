@@ -59,7 +59,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
     const {translate, toLocaleDigit} = useLocalize();
     const styles = useThemeStyles();
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const decimalSeparator = toLocaleDigit('.');
     const permittedDecimalSeparator = getPermittedDecimalSeparator(decimalSeparator);
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -74,7 +74,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             if (ValidationUtils.isRequiredFulfilled(filteredValue.toString())) {
                 return;
             }
-            errors[key as keyof AmountValues] = 'common.error.invalidAmount';
+            errors[key as keyof AmountValues] = translate('common.error.invalidAmount');
         });
 
         return errors;
@@ -89,7 +89,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             const validateCode = [amount1, amount2, amount3].join(',');
 
             // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-            const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+            const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
             if (bankAccountID) {
                 BankAccounts.validateBankAccount(bankAccountID, validateCode, policyID);
             }
