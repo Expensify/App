@@ -10,7 +10,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Text from '@components/Text';
+import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -61,36 +61,52 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const emptyLHNSubtitle = useMemo(
         () => (
-            <View>
-                <Text
-                    color={theme.placeholderText}
-                    style={[styles.textAlignCenter]}
-                >
-                    {translate('common.emptyLHN.subtitleText1')}
-                    <Icon
-                        src={Expensicons.MagnifyingGlass}
-                        width={variables.emptyLHNIconWidth}
-                        height={variables.emptyLHNIconHeight}
-                        small
-                        inline
-                        fill={theme.icon}
-                        additionalStyles={styles.alignItemsCenter}
-                    />
-                    {translate('common.emptyLHN.subtitleText2')}
-                    <Icon
-                        src={Expensicons.Plus}
-                        width={variables.emptyLHNIconWidth}
-                        height={variables.emptyLHNIconHeight}
-                        small
-                        inline
-                        fill={theme.icon}
-                        additionalStyles={styles.alignItemsCenter}
-                    />
-                    {translate('common.emptyLHN.subtitleText3')}
-                </Text>
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
+                <TextBlock
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText1')}
+                />
+                <Icon
+                    src={Expensicons.MagnifyingGlass}
+                    width={variables.emptyLHNIconWidth}
+                    height={variables.emptyLHNIconHeight}
+                    fill={theme.icon}
+                    small
+                    additionalStyles={styles.mh1}
+                />
+                <TextBlock
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText2')}
+                />
+                <Icon
+                    src={Expensicons.Plus}
+                    width={variables.emptyLHNIconWidth}
+                    height={variables.emptyLHNIconHeight}
+                    fill={theme.icon}
+                    small
+                    additionalStyles={styles.mh1}
+                />
+                <TextBlock
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText3')}
+                />
             </View>
         ),
-        [theme, styles.alignItemsCenter, styles.textAlignCenter, translate],
+        [
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentCenter,
+            styles.flexWrap,
+            styles.textAlignCenter,
+            styles.mh1,
+            theme.icon,
+            theme.textSupporting,
+            styles.textNormal,
+            translate,
+        ],
     );
 
     /**
