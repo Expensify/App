@@ -116,12 +116,6 @@ function getOrderedReportIDs(
             return false;
         }
 
-        const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
-
-        if (currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) && isSystemChat) {
-            return true;
-        }
-
         return ReportUtils.shouldReportBeInOptionList({
             report,
             currentReportId: currentReportId ?? '-1',
