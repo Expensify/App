@@ -16,7 +16,6 @@ import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScre
 import variables from '@src/styles/variables';
 import createRandomReportAction from '../utils/collections/reportActions';
 import * as LHNTestUtilsModule from '../utils/LHNTestUtils';
-import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -66,26 +65,17 @@ beforeAll(() =>
     }),
 );
 
-afterAll(() => {
-    jest.clearAllMocks();
-});
-
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
-// Initialize the network key for OfflineWithFeedback
-beforeEach(() => {
-    PusherHelper.setup();
-    wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-});
 
-// Clear out Onyx after each test so that each test starts with a clean slate
-afterEach(() => {
-    Onyx.clear();
-    PusherHelper.teardown();
+beforeEach(() => {
+    // Initialize the network key for OfflineWithFeedback
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    wrapOnyxWithWaitForBatchedUpdates(Onyx);
+    Onyx.clear().then(waitForBatchedUpdates);
 });
 
 function ReportActionsListWrapper() {
@@ -113,24 +103,35 @@ function ReportActionsListWrapper() {
     );
 }
 
-test.skip('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', () => {
+test('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', async () => {
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
+    };
+    await waitForBatchedUpdates();
+
+    Onyx.multiSet({
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
+    });
+
+    await measurePerformance(<ReportActionsListWrapper />, {scenario});
+});
+
+test('[ReportActionsList] shpuld render list items', async () => {
+    const scenario = async () => {
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
-        // Ensure that the list of items is rendered
         await screen.findAllByLabelText(hintText);
     };
 
-    return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-            }),
-        )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
+    await waitForBatchedUpdates();
+
+    Onyx.multiSet({
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
+    });
+
+    await measurePerformance(<ReportActionsListWrapper />, {scenario});
 });
 
-test.skip('[ReportActionsList] should scroll and click some of the reports', () => {
+test('[ReportActionsList] should scroll through list of items', async () => {
     const eventData = {
         nativeEvent: {
             contentOffset: {
@@ -152,18 +153,12 @@ test.skip('[ReportActionsList] should scroll and click some of the reports', () 
     const scenario = async () => {
         const reportActionsList = await screen.findByTestId('report-actions-list');
         fireEvent.scroll(reportActionsList, eventData);
-
-        const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
-        const reportItems = await screen.findAllByLabelText(hintText);
-
-        fireEvent.press(reportItems[0], 'onLongPress');
     };
+    await waitForBatchedUpdates();
 
-    return waitForBatchedUpdates()
-        .then(() =>
-            Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
-            }),
-        )
-        .then(() => measurePerformance(<ReportActionsListWrapper />, {scenario}));
+    Onyx.multiSet({
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtilsModule.fakePersonalDetails,
+    });
+
+    await measurePerformance(<ReportActionsListWrapper />, {scenario});
 });
