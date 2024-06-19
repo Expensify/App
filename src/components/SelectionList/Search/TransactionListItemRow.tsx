@@ -198,7 +198,7 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
             text={TransactionUtils.getTagForDisplay(transactionItem)}
-            textStyle={[styles.textMicro]}
+            textStyle={[styles.textMicro, styles.minHeight0]}
         />
     );
 }
@@ -271,7 +271,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                             isLargeScreenWidth={isLargeScreenWidth}
                             isChildListItem={isChildListItem}
                         />
-                        <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
+                        <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <TypeCell
                                 transactionItem={item}
                                 isLargeScreenWidth={isLargeScreenWidth}

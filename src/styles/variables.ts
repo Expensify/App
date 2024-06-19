@@ -245,6 +245,7 @@ export default {
     w36: 36,
     w40: 40,
     w44: 44,
+    w50: 50,
     w80: 80,
     w96: 96,
 } as const;
