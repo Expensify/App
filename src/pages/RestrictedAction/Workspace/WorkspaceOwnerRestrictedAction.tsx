@@ -33,7 +33,7 @@ function WorkspaceOwnerRestrictedAction() {
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView>
-                <View style={[styles.cardSectionContainer, styles.p5]}>
+                <View style={[styles.cardSectionContainer, styles.p5, styles.mb0, styles.mt3, styles.mh5]}>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart, styles.mb3]}>
                         <Icon
                             src={Illustrations.LockClosedOrange}
@@ -53,6 +53,7 @@ function WorkspaceOwnerRestrictedAction() {
                         text={translate('workspace.restrictedAction.addPaymentCard')}
                         onPress={addPaymentCard}
                         success
+                        large
                     />
                 </View>
             </ScrollView>

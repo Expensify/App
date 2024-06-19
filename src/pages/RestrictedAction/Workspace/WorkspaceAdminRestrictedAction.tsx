@@ -62,6 +62,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
                     text={translate('workspace.restrictedAction.chatInAdmins')}
                     onPress={openAdminsReport}
                     success
+                    large
                 />
             </ScrollView>
         </ScreenWrapper>
