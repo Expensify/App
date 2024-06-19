@@ -266,10 +266,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             justifyContent: 'center',
+            overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
-            position: 'absolute',
-            left: 0,
-            right: 0,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
 
@@ -3859,6 +3857,22 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        quickActionTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+        },
+
+        quickActionTooltipTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeLabel,
+            color: theme.tooltipHighlightText,
+        },
+
+        quickActionTooltipSubtitle: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textDark,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
@@ -4049,6 +4063,11 @@ const styles = (theme: ThemeColors) =>
         formSpaceVertical: {
             height: 20,
             width: 1,
+        },
+
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
         },
 
         taskCheckbox: {
@@ -5020,15 +5039,6 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
-        },
-
-        tripReservationIconContainer: {
-            width: variables.avatarSizeNormal,
-            height: variables.avatarSizeNormal,
-            backgroundColor: theme.border,
-            borderRadius: variables.componentBorderRadiusXLarge,
-            alignItems: 'center',
-            justifyContent: 'center',
         },
 
         textLineThrough: {
