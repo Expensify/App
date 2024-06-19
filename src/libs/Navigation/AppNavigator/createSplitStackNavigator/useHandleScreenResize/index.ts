@@ -1,8 +1,11 @@
 import type {NavigationHelpers, ParamListBase} from '@react-navigation/native';
 import {useEffect} from 'react';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import navigationRef from '@libs/Navigation/navigationRef';
 
-export default function useNavigationReset(navigation: NavigationHelpers<ParamListBase>, isSmallScreenWidth: boolean) {
+export default function useHandleScreenResize(navigation: NavigationHelpers<ParamListBase>) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     useEffect(() => {
         if (!navigationRef.isReady()) {
             return;

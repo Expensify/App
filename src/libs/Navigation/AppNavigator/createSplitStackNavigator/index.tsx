@@ -11,7 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
 import SplitStackRouter from './SplitStackRouter';
 import type {SplitStackNavigatorProps, SplitStackNavigatorRouterOptions} from './types';
-import useNavigationReset from './useNavigationReset';
+import useHandleScreenResize from './useHandleScreenResize';
 import usePrepareSplitStackNavigatorChildren from './usePrepareSplitStackNavigatorChildren';
 
 function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackNavigatorProps<ParamList>) {
@@ -36,7 +36,7 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
         initialCentralPaneScreen: props.initialCentralPaneScreen,
     });
 
-    useNavigationReset(navigation, isSmallScreenWidth);
+    useHandleScreenResize(navigation);
 
     return (
         <FocusTrapForScreens>
