@@ -21,7 +21,7 @@ import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFr
 import getMatchingBottomTabRouteForState from '@navigation/linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from '@navigation/linkingConfig/getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from '@navigation/linkingConfig/replacePathInNestedState';
-import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
+import type {NavigationPartialRoute, NavigationRoot, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -51,10 +51,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
     const policyID = extractedPolicyID ?? policyIDFromState ?? policyIDs;
+    const lastRoute = rootState?.routes?.at(-1);
 
     const isNarrowLayout = getIsNarrowLayout();
 
-    const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
+    const isFullScreenOnTop = lastRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
     // policyIDs is present only on SCREENS.SEARCH.CENTRAL_PANE and it's displayed in the url as a query param, on the other pages this parameter is called policyID and it's shown in the url in the format: /w/:policyID
     if (policyID && !isFullScreenOnTop && !policyIDs) {
@@ -68,7 +69,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        const topRouteName = rootState?.routes?.at(-1)?.name;
+        const topRouteName = lastRoute?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
         const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== action.payload.params?.screen);
@@ -90,6 +91,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const isNewPolicyID =
                 ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
                 ((matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '');
+            const isReportInRhpOpened =
+                lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.includes((route: NavigationPartialRoute) => route?.name === SCREENS.SEARCH.REPORT_RHP);
 
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID || isOpeningSearch)) {
                 root.dispatch({
@@ -98,7 +101,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 });
             }
 
-            if (type === CONST.NAVIGATION.TYPE.UP) {
+            // When we navigate from the ReportScreen opened in RHP, this page shouldn't be removed from the navigation state to allow users to go back.
+            if (type === CONST.NAVIGATION.TYPE.UP && !isReportInRhpOpened) {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
             } else {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
