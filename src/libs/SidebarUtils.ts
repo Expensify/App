@@ -290,7 +290,15 @@ function getOptionData({
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
+
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions);
+    const isOneTransactionReport = oneTransactionThreadReportID !== null;
+    if (isOneTransactionReport) {
+        const allTransactionErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
+        const hasTransactionErrors = Object.keys(allTransactionErrors ?? {}).length !== 0;
+        result.brickRoadIndicator = hasTransactionErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    }
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
