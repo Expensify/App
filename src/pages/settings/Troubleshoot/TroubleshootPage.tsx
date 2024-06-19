@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -54,13 +54,13 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
 
-    const exportOnyxState = () => {
+    const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
             const maskedData = ExportOnyxState.maskFragileData(value);
 
             ExportOnyxState.shareAsFile(JSON.stringify(maskedData));
         });
-    };
+    }, []);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
