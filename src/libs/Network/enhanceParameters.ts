@@ -1,7 +1,7 @@
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
-import {version as pkgVersion} from '../../../package.json';
+import pkg from '../../../package.json';
 import * as NetworkStore from './NetworkStore';
 
 /**
@@ -37,7 +37,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     finalParameters.isFromDevEnv = Environment.isDevelopment();
 
-    finalParameters.appversion = pkgVersion;
+    finalParameters.appversion = pkg.version;
 
     return finalParameters;
 }

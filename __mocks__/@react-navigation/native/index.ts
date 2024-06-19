@@ -1,27 +1,29 @@
+const isJestEnv = process.env.NODE_ENV === 'test';
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-const realReactNavigation = jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native');
+const realReactNavigation = isJestEnv ? jest.requireActual<typeof import('@react-navigation/native')>('@react-navigation/native') : require('@react-navigation/native');
 
-// We only want these mocked for storybook, not jest
-const useIsFocused = process.env.NODE_ENV === 'test' ? realReactNavigation.useIsFocused : () => true;
-
-const useTheme = process.env.NODE_ENV === 'test' ? realReactNavigation.useTheme : () => ({});
+const useIsFocused = isJestEnv ? realReactNavigation.useIsFocused : () => true;
+const useTheme = isJestEnv ? realReactNavigation.useTheme : () => ({});
 
 type Listener = () => void;
-
 const transitionEndListeners: Listener[] = [];
+const triggerTransitionEnd = isJestEnv
+    ? () => {
+          transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
+      }
+    : realReactNavigation.triggerTransitionEnd;
 
-const triggerTransitionEnd = () => {
-    transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-};
-
-const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
-    if (listener === 'transitionEnd') {
-        transitionEndListeners.push(callback);
-    }
-    return () => {
-        transitionEndListeners.filter((cb) => cb !== callback);
-    };
-});
+const addListener = isJestEnv
+    ? jest.fn().mockImplementation((listener, callback: Listener) => {
+          if (listener === 'transitionEnd') {
+              transitionEndListeners.push(callback);
+          }
+          return () => {
+              transitionEndListeners.filter((cb) => cb !== callback);
+          };
+      })
+    : realReactNavigation.addListener;
 
 const useNavigation = () => ({
     navigate: jest.fn(),
@@ -32,10 +34,5 @@ const useNavigation = () => ({
     addListener,
 });
 
-module.exports = {
-    ...realReactNavigation,
-    useIsFocused,
-    useTheme,
-    useNavigation,
-    triggerTransitionEnd,
-};
+export * from '@react-navigation/core';
+export {useIsFocused, useTheme, useNavigation, triggerTransitionEnd};
