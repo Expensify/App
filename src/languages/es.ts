@@ -331,6 +331,7 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        disable: 'Deshabilitar',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1020,7 +1021,6 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
-        disable: 'Deshabilitar',
     },
     recoveryCodeForm: {
         error: {
@@ -2302,6 +2302,9 @@ export default {
                 subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
             },
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
+            // TODO: Verify translations
+            disableReportFields: 'Desactivar campos de informe',
+            disableReportFieldsConfirmation: '¿Está seguro? Se eliminarán los campos de texto y fecha, y se desactivarán las listas.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
