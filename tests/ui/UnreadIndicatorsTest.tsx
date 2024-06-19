@@ -478,7 +478,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('3');
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();
