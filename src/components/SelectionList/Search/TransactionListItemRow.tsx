@@ -115,7 +115,7 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description}
-            style={[isLargeScreenWidth && styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
 }
@@ -264,7 +264,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                             />
                         </View>
                     </View>
-                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1]}>
+                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}
