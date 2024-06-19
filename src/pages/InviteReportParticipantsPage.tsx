@@ -52,7 +52,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     // Any existing participants and Expensify emails should not be eligible for invitation
     const excludedUsers = useMemo(
-        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '', true)), ...CONST.EXPENSIFY_EMAILS],
+        () => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantsAccountIDsForDisplay(report, false, true)), ...CONST.EXPENSIFY_EMAILS],
         [report],
     );
 
@@ -152,7 +152,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const reportID = report.reportID;
     const backRoute = useMemo(() => ROUTES.REPORT_PARTICIPANTS.getRoute(reportID), [reportID]);
-    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report?.reportID ?? ''), [report]);
+    const reportName = useMemo(() => ReportUtils.getGroupChatName(undefined, true, report), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
             return;
