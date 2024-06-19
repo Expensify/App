@@ -1020,6 +1020,7 @@ export default {
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
         disable: 'Deshabilitar',
+        enableTwoFactorAuth: 'Enable two-factor authentication',
     },
     recoveryCodeForm: {
         error: {

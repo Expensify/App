@@ -1023,6 +1023,7 @@ export default {
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
         disable: 'Disable',
+        enableTwoFactorAuth: 'Enable two-factor authentication',
     },
     recoveryCodeForm: {
         error: {

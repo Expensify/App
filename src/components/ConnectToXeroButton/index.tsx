@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -62,11 +63,10 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                 />
             )}
             {isRequire2FAModalOpen && (
-                <ConfirmModal
+                <RequireTwoFactorAuthenticationModal
                     onConfirm={() => setIsRequire2FAModalOpen(false)}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible
-                    shouldShowCancelButton={false}
                 />
             )}
         </>
