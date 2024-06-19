@@ -66,6 +66,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
+    const confirmModalPrompt = useMemo(() => {
+        const isApproval = Member.isApproval(policy, accountID);
+        if (!isApproval) {
+            translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+        }
+        return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policy?.owner ?? ''});
+    }, [accountID, policy, displayName, translate]);
+
     const roleItems: ListItemType[] = useMemo(
         () => [
             {
@@ -188,7 +196,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}
                             onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            prompt={confirmModalPrompt}
                             confirmText={translate('common.remove')}
                             cancelText={translate('common.cancel')}
                         />

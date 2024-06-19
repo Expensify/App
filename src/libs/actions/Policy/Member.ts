@@ -101,6 +101,13 @@ Onyx.connect({
     },
 });
 
+function isApproval(policy: OnyxEntry<Policy>, employeeAccountID: number) {
+    const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
+    return Object.values(policy?.employeeList ?? {}).some(
+        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
+    );
+}
+
 /**
  * Returns the policy of the report
  */
@@ -239,6 +246,42 @@ function removeMembers(accountIDs: number[], policyID: string) {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         successMembersState[email] = null;
         failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericRemove')};
+    });
+
+    Object.keys(policy?.employeeList ?? {}).forEach((employeeEmail) => {
+        const employee = policy?.employeeList?.[employeeEmail];
+        optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
+        failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
+        if (employee?.submitsTo && emailList.includes(employee?.submitsTo)) {
+            optimisticMembersState[employeeEmail] = {
+                ...optimisticMembersState[employeeEmail],
+                submitsTo: policy.owner,
+            };
+            failureMembersState[employeeEmail] = {
+                ...failureMembersState[employeeEmail],
+                submitsTo: employee?.submitsTo,
+            };
+        }
+        if (employee?.forwardsTo && emailList.includes(employee?.forwardsTo)) {
+            optimisticMembersState[employeeEmail] = {
+                ...optimisticMembersState[employeeEmail],
+                forwardsTo: policy.owner,
+            };
+            failureMembersState[employeeEmail] = {
+                ...failureMembersState[employeeEmail],
+                forwardsTo: employee?.forwardsTo,
+            };
+        }
+        if (employee?.overLimitForwardsTo && emailList.includes(employee?.overLimitForwardsTo)) {
+            optimisticMembersState[employeeEmail] = {
+                ...optimisticMembersState[employeeEmail],
+                overLimitForwardsTo: policy.owner,
+            };
+            failureMembersState[employeeEmail] = {
+                ...failureMembersState[employeeEmail],
+                overLimitForwardsTo: employee?.overLimitForwardsTo,
+            };
+        }
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -804,6 +847,7 @@ export {
     inviteMemberToWorkspace,
     acceptJoinRequest,
     declineJoinRequest,
+    isApproval,
 };
 
 export type {NewCustomUnit};
