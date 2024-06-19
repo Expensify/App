@@ -9,6 +9,7 @@ type Cache<K, V> = {
         keys: () => K[];
         values: () => V[];
         cache: () => Array<[K, V]>;
+        size: number;
     };
 };
 

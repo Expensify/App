@@ -3,6 +3,7 @@ type MemoizeStatsEntry = {
     didHit: boolean;
     cacheRetrievalTime: number;
     fnTime?: number;
+    cacheSize: number;
 };
 
 class MemoizeStats {
@@ -15,6 +16,8 @@ class MemoizeStats {
     private avgCacheRetrievalTime = 0;
 
     private avgFnTime = 0;
+
+    private cacheSize = 0;
 
     enabled = false;
 
@@ -30,6 +33,8 @@ class MemoizeStats {
     private cumulateEntry(entry: MemoizeStatsEntry) {
         this.calls++;
         this.hits += entry.didHit ? 1 : 0;
+
+        this.cacheSize = entry.cacheSize;
 
         this.avgKeyLength = this.calculateCumulativeAvg(this.avgKeyLength, this.calls, entry.keyLength);
 
@@ -78,6 +83,7 @@ class MemoizeStats {
         this.avgKeyLength = 0;
         this.avgCacheRetrievalTime = 0;
         this.avgFnTime = 0;
+        this.cacheSize = 0;
     }
 
     stopMonitoring() {
@@ -89,6 +95,7 @@ class MemoizeStats {
             avgKeyLength: this.avgKeyLength,
             avgCacheRetrievalTime: this.avgCacheRetrievalTime,
             avgFnTime: this.avgFnTime,
+            cacheSize: this.cacheSize,
         };
     }
 }

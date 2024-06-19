@@ -66,6 +66,7 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
             cache() {
                 return [...cache];
             },
+            size: cache.length,
         },
     };
 }

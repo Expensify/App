@@ -35,6 +35,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions) {
             cache.set(key, result as ReturnType<Fn>);
         }
 
+        statsEntry.track('cacheSize', cache.snapshot.size);
         statsEntry.save();
 
         return cached.value;
