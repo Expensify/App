@@ -23,6 +23,7 @@ const readFromOnyxDatabase = () =>
                     queryResult[result.primaryKey as string] = result.value;
                     result.continue();
                 } else {
+                    // no results mean the cursor has reached the end of the data
                     resolve(queryResult);
                 }
             };
