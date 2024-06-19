@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
@@ -9,6 +10,7 @@ import {removePolicyConnection} from '@libs/actions/connections';
 import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToXeroButtonProps} from './types';
 
 function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
@@ -17,12 +19,21 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const is2FAEnabled = account?.requiresTwoFactorAuth;
+
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+    const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     return (
         <>
             <Button
                 onPress={() => {
+                    if (!is2FAEnabled) {
+                        setIsRequire2FAModalOpen(true);
+                        return;
+                    }
+
                     if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
@@ -48,6 +59,13 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
+                />
+            )}
+            {isRequire2FAModalOpen && (
+                <ConfirmModal
+                    onConfirm={() => setIsRequire2FAModalOpen(false)}
+                    isVisible
+                    shouldShowCancelButton={false}
                 />
             )}
         </>
