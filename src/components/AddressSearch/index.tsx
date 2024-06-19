@@ -438,8 +438,8 @@ function AddressSearch(
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
-                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.borderLeft, styles.borderRight, styles.flexGrow0, !isFocused && styles.h0],
-                            row: [styles.pv4, styles.ph3, styles.overflowAuto],
+                            listView: [StyleUtils.getGoogleListViewStyle(displayListViewBorder), styles.borderLeft, styles.borderRight, !isFocused && styles.h0],
+                            row: [styles.pv4, styles.ph3],
                             description: [styles.googleSearchText],
                             separator: [styles.googleSearchSeparator],
                             container: [styles.mh100],
