@@ -56,7 +56,7 @@ class MemoizeStats {
         // If monitoring is disabled, return a dummy object that does nothing
         if (!this.enabled) {
             return {
-                registerStat: () => {},
+                track: () => {},
                 save: () => {},
             };
         }
@@ -64,7 +64,7 @@ class MemoizeStats {
         const entry: Partial<MemoizeStatsEntry> = {};
 
         return {
-            registerStat: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
+            track: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
                 entry[cacheProp] = value;
             },
             save: () => this.saveEntry(entry),

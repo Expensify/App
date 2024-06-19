@@ -19,17 +19,17 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions) {
 
     const memoized = function memoized(...key: Parameters<Fn>): ReturnType<Fn> {
         const statsEntry = stats.createEntry();
-        statsEntry.registerStat('keyLength', key.length);
+        statsEntry.track('keyLength', key.length);
 
         const retrievalTimeStart = performance.now();
         let cached = cache.get(key);
-        statsEntry.registerStat('cacheRetrievalTime', performance.now() - retrievalTimeStart);
-        statsEntry.registerStat('didHit', !!cached);
+        statsEntry.track('cacheRetrievalTime', performance.now() - retrievalTimeStart);
+        statsEntry.track('didHit', !!cached);
 
         if (!cached) {
             const fnTimeStart = performance.now();
             const result = fn(...key);
-            statsEntry.registerStat('fnTime', performance.now() - fnTimeStart);
+            statsEntry.track('fnTime', performance.now() - fnTimeStart);
 
             cached = {value: result};
             cache.set(key, result as ReturnType<Fn>);
