@@ -25,7 +25,7 @@ import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
 
-type ReportActionItemProps = {
+type ReportActionItemContentCreatedProps = {
     /**  The context value containing the report and action data, along with the show context menu props */
     contextValue: ShowContextMenuContextProps & {
         report: OnyxTypes.Report;
@@ -45,7 +45,7 @@ type ReportActionItemProps = {
     shouldHideThreadDividerLine: boolean;
 };
 
-function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemProps) {
+function ReportActionItemContentCreated({contextValue, parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
