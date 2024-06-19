@@ -62,7 +62,8 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.TAXES
         | typeof SCREENS.WORKSPACE.MORE_FEATURES
         | typeof SCREENS.WORKSPACE.PROFILE
-        | typeof SCREENS.WORKSPACE.MEMBERS;
+        | typeof SCREENS.WORKSPACE.MEMBERS
+        | typeof SCREENS.WORKSPACE.REPORT_FIELDS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -107,6 +108,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_REPORTFIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -266,6 +268,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORTFIELDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.reportFields',
+            icon: Expensicons.Pencil,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
         });
     }
 

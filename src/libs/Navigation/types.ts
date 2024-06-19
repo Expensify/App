@@ -827,6 +827,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
