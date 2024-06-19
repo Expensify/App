@@ -1987,13 +1987,8 @@ export default {
             classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
-            accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
-            classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
-            customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
-            locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
-            taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
             locationsAdditionalDescription:
                 'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
             outOfPocketLocationEnabledDescription:
@@ -2012,7 +2007,6 @@ export default {
             deepDiveExpensifyCardIntegration: 'our integration.',
             exportDate: {
                 label: 'Export date',
-                description: 'Use this date when exporting reports to QuickBooks Online.',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -2030,26 +2024,22 @@ export default {
             },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
-            exportInvoicesDescription: 'Invoices will export to this account in QuickBooks Online.',
-            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
-            exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
                 "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
             account: 'Account',
-            accountDescription: 'Choose where to post journal entry offsets.',
+            accountDescription: 'Choose where to post journal entries.',
             accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
-            optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -2100,16 +2090,13 @@ export default {
             organization: 'Xero organization',
             organizationDescription: "Choose the Xero organization that you'd like to import data from.",
             importDescription: 'Choose which coding configurations to import from Xero to Expensify.',
-            accountsDescription: 'Your Xero chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
-            trackingCategoriesDescription: 'Choose how to handle Xero tracking categories in Expensify.',
             mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
             mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
-            taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
             notImported: 'Not imported',
             trackingCategoriesOptions: {
                 default: 'Xero contact default',
@@ -2122,7 +2109,6 @@ export default {
             exportDeepDiveCompanyCard: 'Each exported expense posts as a bank transaction to the Xero bank account below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
-            xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
             preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
@@ -2144,7 +2130,6 @@ export default {
             },
             exportDate: {
                 label: 'Export date',
-                description: 'Use this date when exporting reports to Xero.',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -2162,7 +2147,6 @@ export default {
             },
             invoiceStatus: {
                 label: 'Purchase bill status',
-                description: 'Choose a status for purchase bills exported to Xero.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
