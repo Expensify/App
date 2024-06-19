@@ -95,7 +95,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [shouldStoreLogs, translate, waitForNavigate, styles.sectionMenuItemTopDescription]);
+    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription]);
 
     return (
         <ScreenWrapper
