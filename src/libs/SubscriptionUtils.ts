@@ -90,6 +90,30 @@ Onyx.connect({
     },
 });
 
+let billingStatusFailed: OnyxValues[typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED];
+Onyx.connect({
+    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+
+        billingStatusFailed = value;
+    },
+});
+
+let billingStatusSuccessful: OnyxValues[typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL];
+Onyx.connect({
+    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+
+        billingStatusSuccessful = value;
+    },
+});
+
 function getOverdueGracePeriodDate(): string {
     return billingGracePeriod ?? '';
 }
@@ -139,6 +163,13 @@ function hasCardExpiringSoon(): boolean {
 }
 
 // hasRetryBillingError - based on request response
+function hasRetryBillingError(): boolean {
+    return !!billingStatusFailed;
+}
+
+function isRetryBillingSuccessful(): boolean {
+    return !!billingStatusSuccessful;
+}
 
 // hasCardExpiredSoon - based on card
 
@@ -229,6 +260,23 @@ function getSubscriptionStatus(): SubscriptionStatus {
     }
 
     // 10. Retry billing success
+    if (isRetryBillingSuccessful()) {
+        return {
+            status: PAYMENT_STATUSES.RETRY_BILLING_SUCCESS,
+            isError: false,
+        };
+    }
+
+    // 11. Retry billing error
+    if (hasRetryBillingError()) {
+        return {
+            status: PAYMENT_STATUSES.RETRY_BILLING_ERROR,
+            isError: true,
+            shouldShowRedDotIndicator: true,
+        };
+    }
+
+    // 12. Generic API error
     if (false) {
         return {
             status: PAYMENT_STATUSES.GENERIC_API_ERROR,
@@ -255,5 +303,6 @@ export default {
     getOverdueGracePeriodDate,
     getCardForSubscriptionBilling,
     hasSubscriptionGreenDotInfo,
+    hasRetryBillingError,
     PAYMENT_STATUSES,
 };

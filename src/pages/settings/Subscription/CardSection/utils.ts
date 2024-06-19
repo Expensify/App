@@ -107,7 +107,7 @@ function getBillingStatus(
             return {
                 title: translate('subscription.billingBanner.cardExpiringSoon'),
                 subtitle: translate('subscription.billingBanner.cardWillExpireAtTheEndOfMonth'),
-                isError: false,
+                isError: true,
                 shouldShowGreenDotIndicator: status.shouldShowGreenDotIndicator,
             };
 
@@ -116,6 +116,14 @@ function getBillingStatus(
                 title: translate('subscription.billingBanner.succeeded'),
                 subtitle: translate('subscription.billingBanner.billedSuccessfully'),
                 isError: false,
+                shouldShowRedDotIndicator: status.shouldShowRedDotIndicator,
+            };
+
+        case SubscriptionUtils.PAYMENT_STATUSES.RETRY_BILLING_ERROR:
+            return {
+                title: translate('subscription.billingBanner.cardCouldNotBeCharged'),
+                subtitle: translate('subscription.billingBanner.retryMessage'),
+                isError: true,
                 shouldShowRedDotIndicator: status.shouldShowRedDotIndicator,
             };
 
