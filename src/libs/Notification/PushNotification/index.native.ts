@@ -1,4 +1,4 @@
-import type {PushPayload} from '@ua/react-native-airship';
+import type {JsonValue, PushPayload} from '@ua/react-native-airship';
 import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -31,7 +31,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
 
     // On Android, some notification payloads are sent as a JSON string rather than an object
     if (typeof payload === 'string') {
-        payload = JSON.parse(payload);
+        payload = JSON.parse(payload) as JsonValue;
     }
 
     const data = payload as PushNotificationData;
