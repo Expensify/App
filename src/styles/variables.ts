@@ -207,6 +207,7 @@ export default {
     oldDotWireframeIconWidth: 263.38,
     oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
+    restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     welcomeVideoDelay: 1000,
