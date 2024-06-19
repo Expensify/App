@@ -845,7 +845,7 @@ type GetBaseAutoCompleteSuggestionContainerStyleParams = {
  */
 function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetBaseAutoCompleteSuggestionContainerStyleParams): ViewStyle {
     return {
-        ...positioning.pFixed,
+        position: 'absolute',
         bottom,
         left,
         width,
@@ -863,11 +863,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
 
-    // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
-    // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
-        overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -1554,14 +1550,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getSearchTableColumnStyles: (columnName: string): ViewStyle => {
+    getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(variables.w44);
+                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w80 : variables.w44);
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
@@ -1681,6 +1677,15 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
         ...StyleSheet.flatten(descriptionTextStyle),
         opacity: styles.opacitySemiTransparent.opacity,
+    }),
+
+    getTripReservationIconContainer: (isSmallIcon: boolean): StyleProp<ViewStyle> => ({
+        width: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
+        height: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
+        borderRadius: isSmallIcon ? variables.avatarSizeSmallNormal : variables.componentBorderRadiusXLarge,
+        backgroundColor: theme.border,
+        alignItems: 'center',
+        justifyContent: 'center',
     }),
 });
 

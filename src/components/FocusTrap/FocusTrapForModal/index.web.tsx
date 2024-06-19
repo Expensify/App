@@ -10,6 +10,7 @@ function FocusTrapForModal({children, active}: FocusTrapForModalProps) {
             focusTrapOptions={{
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
+                initialFocus: false,
                 fallbackFocus: document.body,
             }}
         >

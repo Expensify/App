@@ -7,6 +7,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -15,7 +16,6 @@ import type {Policy, PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags, Rep
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import {navigateWhenEnableFeature} from './Policy';
 
 type NewCustomUnit = {
     customUnitID: string;
@@ -160,7 +160,7 @@ function createPolicyTag(policyID: string, tagName: string) {
                     [policyTag.name]: {
                         tags: {
                             [newTagName]: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                                 pendingAction: null,
                             },
                         },
@@ -195,6 +195,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
+                                        ...policyTag.tags[key].pendingFields,
                                         enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
                                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -220,6 +221,7 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                     ...tagsToUpdate[key],
                                     errors: null,
                                     pendingFields: {
+                                        ...policyTag.tags[key].pendingFields,
                                         enabled: null,
                                     },
                                     pendingAction: null,
@@ -243,8 +245,9 @@ function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {
                                 acc[key] = {
                                     ...policyTag.tags[key],
                                     ...tagsToUpdate[key],
-                                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                                     pendingFields: {
+                                        ...policyTag.tags[key].pendingFields,
                                         enabled: null,
                                     },
                                     pendingAction: null,
@@ -312,7 +315,7 @@ function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
                     [policyTag.name]: {
                         tags: {
                             ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
-                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.deleteFailureMessage')};
+                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.deleteFailureMessage')};
                                 return acc;
                             }, {}),
                         },
@@ -395,6 +398,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 name: newTagName,
                                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
+                                    ...tag.pendingFields,
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 previousTagName: oldTagName,
@@ -415,6 +419,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                             [newTagName]: {
                                 pendingAction: null,
                                 pendingFields: {
+                                    ...tag.pendingFields,
                                     name: null,
                                 },
                             },
@@ -435,9 +440,10 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 ...tag,
                                 pendingAction: null,
                                 pendingFields: {
+                                    ...tag.pendingFields,
                                     name: null,
                                 },
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                             },
                         },
                     },
@@ -557,7 +563,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 value: {
                     errors: {
                         [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                        [newName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                     },
                     [newName]: null,
                     [oldName]: oldPolicyTags,
@@ -610,7 +616,7 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     requiresTag: !requiresTag,
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                     pendingFields: {
                         requiresTag: null,
                     },
@@ -668,7 +674,7 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
                         required: policyTag.required,
                         pendingFields: {required: null},
                         errorFields: {
-                            required: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            required: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                         },
                     },
                 },

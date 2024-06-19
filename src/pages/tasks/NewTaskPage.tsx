@@ -99,23 +99,23 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     // the response
     const onSubmit = () => {
         if (!task?.title && !task?.shareDestination) {
-            setErrorMessage('newTaskPage.confirmError');
+            setErrorMessage(translate('newTaskPage.confirmError'));
             return;
         }
 
         if (!task.title) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskName');
+            setErrorMessage(translate('newTaskPage.pleaseEnterTaskName'));
             return;
         }
 
         if (!task.shareDestination) {
-            setErrorMessage('newTaskPage.pleaseEnterTaskDestination');
+            setErrorMessage(translate('newTaskPage.pleaseEnterTaskDestination'));
             return;
         }
 
         playSound(SOUNDS.DONE);
         TaskActions.createTaskAndNavigate(
-            parentReport?.reportID ?? '',
+            parentReport?.reportID ?? '-1',
             task.title,
             task?.description ?? '',
             task?.assignee ?? '',
