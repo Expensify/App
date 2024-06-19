@@ -21,7 +21,7 @@ import getAdaptedStateFromPath from '@navigation/linkingConfig/getAdaptedStateFr
 import getMatchingBottomTabRouteForState from '@navigation/linkingConfig/getMatchingBottomTabRouteForState';
 import getMatchingCentralPaneRouteForState from '@navigation/linkingConfig/getMatchingCentralPaneRouteForState';
 import replacePathInNestedState from '@navigation/linkingConfig/replacePathInNestedState';
-import type {NavigationPartialRoute, NavigationRoot, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
+import type {NavigationRoot, RootStackParamList, StackNavigationAction, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
@@ -67,8 +67,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
-    const isReportInRhpOpened =
-        lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.some((route: NavigationPartialRoute) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+    const isReportInRhpOpened = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.some((route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
