@@ -9,8 +9,10 @@
  *
  * 1. When creating a new deployment in our github actions, we upload the source map for android and iOS as artifacts.
  * 2. The profiles created by the app on the user's device have the app version encoded in the filename.
- * 3. This script takes in a .cpuprofile file, reads the app version from the filename, and downloads the corresponding source map from the artifacts.
+ * 3. This script takes in a .cpuprofile file, reads the app version from the filename, and downloads the corresponding source map from the artifacts using github's API.
  * 4. It then uses the source map to symbolicate the .cpuprofile file using the `react-native-release-profiler` cli.
+ * 
+ * @note For downloading an artefact a github token is required.
  */
 import {Octokit} from '@octokit/core';
 import {execSync} from 'child_process';
@@ -73,82 +75,20 @@ const octokit = new Octokit({auth: githubToken});
 const OWNER = 'Expensify';
 const REPO = 'App';
 
-function getWorkflowId() {
-    // Step 1: Find the workflow id
-    // Note: we could hard code it, but this way its simpler if the job changes in the future
-    const workflowFile = '.github/workflows/platformDeploy.yml';
-    Logger.info(`Fetching workflow id for the source map job from ${workflowFile}`);
-
+function getWorkflowRunArtifact() {
+    const artefactName = `${argsMap.platform}-sourcemap-${appVersion}`;
+    Logger.info(`Fetching sourcemap artifact with name "${artefactName}"`);
     return octokit
-        .request('GET /repos/{owner}/{repo}/actions/workflows', {
+        .request('GET /repos/{owner}/{repo}/actions/artifacts', {
             owner: OWNER,
             repo: REPO,
-            per_page: 100,
-        })
-        .then((workflowsResponse) => {
-            const workflow = workflowsResponse.data.workflows.find(({path: workflowPath}) => workflowPath === workflowFile);
-            if (workflow === undefined) {
-                throw new Error(`Could not find the workflow file ${workflowFile} in results! Has it been renamed?`);
-            }
-            return workflow.id;
-        })
-        .catch((error) => {
-            Logger.error('Failed to fetch workflows to get the id for the source map job');
-            Logger.error(error);
-            throw error;
-        });
-}
-
-function getWorkflowRun(workflowId: number) {
-    Logger.info(`Fetching workflow runs for workflow id ${workflowId} for branch ${appVersion}`);
-    return octokit
-        .request('GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs', {
-            owner: OWNER,
-            repo: REPO,
-            workflow_id: workflowId,
-            // For each app version a new branch is created, so we can filter by branch.
-            branch: appVersion,
-            // There should only be one successful deploy job for a given app version
             per_page: 1,
-            // Note: the workflow run could fail for different jobs. If its completed its possible the sourcemaps have been uploaded.
-            // If the source map is not present, we will fail on the next step.
-            status: 'completed',
-        })
-        .then((runsResponse) => {
-            if (runsResponse.data.total_count === 0) {
-                throw new Error(`No successful runs found for the app version ${appVersion}!\nAre you sure the job the upload source map job run successfully (or at all yet)?`);
-            }
-
-            const run = runsResponse.data.workflow_runs[0];
-            if (run.status !== 'success') {
-                Logger.warn(`The run ${Logger.formatLink(run.id, run.html_url)} was not successful. The source map _might_ not be uploaded.`);
-            } else {
-                Logger.success(`Found successful run ${Logger.formatLink(run.id, run.html_url)} for app version ${appVersion}`);
-            }
-
-            return run.id;
-        })
-        .catch((error) => {
-            Logger.error('Failed to fetch workflow runs for the app version');
-            Logger.error(error);
-            throw error;
-        });
-}
-
-function getWorkflowRunArtifact(runId: number, platform: 'ios' | 'android') {
-    const artefactName = `${platform}-sourcemap`;
-    Logger.info(`Fetching sourcemap artifact for run id ${runId} with name "${artefactName}"`);
-    return octokit
-        .request('GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts', {
-            owner: OWNER,
-            repo: REPO,
-            run_id: runId,
             name: artefactName,
         })
         .then((artifactsResponse) => {
-            const artifact = artifactsResponse.data.artifacts.find(({name}) => name === artefactName);
+            const artifact = artifactsResponse.data.artifacts[0]
             if (artifact === undefined) {
-                throw new Error(`Could not find the artifact ${artefactName} in results!`);
+                throw new Error(`Could not find the artifact ${artefactName}!`);
             }
             return artifact.id;
         })
@@ -199,7 +139,7 @@ function downloadFile(url: string) {
         fs.mkdirSync(sourcemapDir);
     }
 
-    const destination = path.join(sourcemapDir, `${argsMap.platform}-${appVersion}-sourcemap.zip`);
+    const destination = path.join(sourcemapDir, `${argsMap.platform}-sourcemap-${appVersion}.zip`);
     const file = fs.createWriteStream(destination);
     return new Promise<string>((resolve, reject) => {
         https
@@ -259,9 +199,7 @@ if (fs.existsSync(localSourceMapPath)) {
     symbolicateProfile();
 } else {
     // Step: Download the source map for the app version:
-    getWorkflowId()
-        .then((workflowId) => getWorkflowRun(workflowId))
-        .then((runId) => getWorkflowRunArtifact(runId, argsMap.platform as 'ios' | 'android'))
+    getWorkflowRunArtifact()
         .then((artifactId) => getDownloadUrl(artifactId))
         .then((downloadUrl) => downloadFile(downloadUrl))
         .then((zipPath) => unpackZipFile(zipPath))
