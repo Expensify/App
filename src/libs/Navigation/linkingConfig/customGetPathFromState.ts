@@ -18,6 +18,7 @@ const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
 };
 
 const customGetPathFromState: typeof getPathFromState = (state, options) => {
+    console.log('state', state);
     // For the Home and Settings pages we should remove policyID from the params, because on small screens it's displayed twice in the URL
     const stateWithoutPolicyID = removePolicyIDParamFromState(state as State<RootStackParamList>);
     const path = getPathFromState(stateWithoutPolicyID, options);
