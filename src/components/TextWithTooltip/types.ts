@@ -12,6 +12,9 @@ type TextWithTooltipProps = {
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;
+
+    /** Emoji font size */
+    emojiFontSize?: number;
 };
 
 export default TextWithTooltipProps;

@@ -212,6 +212,7 @@ export default {
 
     // Emoji related variables
     emojiSize: 20,
+    emojiSizeSmall: 12,
     emojiLineHeight: 28,
     fontSizeOnlyEmojis: 30,
     fontSizeOnlyEmojisHeight: 35,
