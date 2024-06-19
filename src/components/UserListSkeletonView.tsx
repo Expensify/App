@@ -11,29 +11,27 @@ function UserListSkeletonView({shouldAnimate = true}: SkeletonViewProps) {
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             itemContainerStyle={{backgroundColor: theme.highlightBG, marginBottom: 12, marginHorizontal: 20, borderRadius: 8}}
-            renderSkeletonItem={() => {
-                return (
-                    <>
-                        <Circle
-                            cx="40"
-                            cy="32"
-                            r="20"
-                        />
-                        <Rect
-                            x="72"
-                            y="18"
-                            width="20%"
-                            height="8"
-                        />
-                        <Rect
-                            x="72"
-                            y="38"
-                            width={'10%'}
-                            height="8"
-                        />
-                    </>
-                );
-            }}
+            renderSkeletonItem={() => (
+                <>
+                    <Circle
+                        cx="40"
+                        cy="32"
+                        r="20"
+                    />
+                    <Rect
+                        x="72"
+                        y="18"
+                        width="20%"
+                        height="8"
+                    />
+                    <Rect
+                        x="72"
+                        y="38"
+                        width="10%"
+                        height="8"
+                    />
+                </>
+            )}
         />
     );
 }

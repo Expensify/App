@@ -1,7 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {StyleProp} from 'react-native';
-import {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +37,7 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, itemContainerStyle]);
 
     return (
         <View
