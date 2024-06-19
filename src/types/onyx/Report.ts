@@ -6,40 +6,66 @@ import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type {PolicyReportField} from './Policy';
 
+/** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
+/** Defines who's able to write messages in the chat */
 type WriteCapability = ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 
+/** Defines which users have access to the chat */
 type RoomVisibility = ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
+/** Model of report private note */
 type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Content of the note */
     note: string;
+
+    /** Collection of errors to show to the user */
     errors?: OnyxCommon.Errors;
 }>;
 
 /** The pending member of report */
 type PendingChatMember = {
+    /** Account ID of the pending member */
     accountID: string;
+
+    /** Action to be applied to the pending member of report */
     pendingAction: OnyxCommon.PendingAction;
+
+    /** Collection of errors to show to the user */
+    errors?: OnyxCommon.Errors;
 };
 
+/** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Whether the participant is visible in the report */
     hidden?: boolean;
+
+    /** What is the role of the participant in the report */
     role?: 'admin' | 'member';
 }>;
 
+/** Types of invoice receivers in a report */
 type InvoiceReceiver =
     | {
+          /** An individual */
           type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+
+          /** Account ID of the user */
           accountID: number;
       }
     | {
+          /** A business */
           type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+
+          /** ID of the policy */
           policyID: string;
       };
 
+/** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
 
+/** Model of report data */
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The URL of the Group Chat report custom avatar */
@@ -141,27 +167,58 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
+        /** Translation key of the last message in the report */
         lastMessageTranslationKey?: string;
+
+        /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
+
+        /** ID of the parent report action of the current report, if it exists */
         parentReportActionID?: string;
+
+        /** Whether the current report is optimistic */
         isOptimisticReport?: boolean;
+
+        /** Account ID of the report manager */
         managerID?: number;
+
+        /** When was the last visible action last modified */
         lastVisibleActionLastModified?: string;
+
+        /** Display name of the report, shown in options and mentions */
         displayName?: string;
+
+        /** HTML content of the last message in the report */
         lastMessageHtml?: string;
+
+        /** Account ID of the user that sent the last message */
         lastActorAccountID?: number;
 
-        // The type of the last action
+        /** The type of the last action */
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
+
+        /** Account ID of the report owner */
         ownerAccountID?: number;
+
+        /** E-mail of the report owner */
         ownerEmail?: string;
+
+        /** Collection of report participants, indexed by their accountID */
         participants?: Participants;
+
+        /** For expense reports, this is the total amount approved */
         total?: number;
+
+        /** For expense reports, this is the total amount requested */
         unheldTotal?: number;
+
+        /** For expense reports, this is the currency of the expense */
         currency?: string;
+
+        /** Collection of errors to be shown to the user */
         errors?: OnyxCommon.Errors;
-        managerEmail?: string;
-        parentReportActionIDs?: number[];
+
+        /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 
         /** Whether the report is waiting on a bank account */
@@ -184,13 +241,26 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
         nonReimbursableTotal?: number;
+
+        /** Whether the report is hidden from options list */
         isHidden?: boolean;
+
+        /** Whether the report is a chat room */
         isChatRoom?: boolean;
+
+        /** Collection of participants personal details */
         participantsList?: PersonalDetails[];
+
+        /** Text to be displayed in options list, which matches reportName by default */
         text?: string;
-        updateReportInLHN?: boolean;
+
+        /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
+
+        /** Whether participants private notes are being currently loaded */
         isLoadingPrivateNotes?: boolean;
+
+        /** Whether the report is currently selected in the options list */
         selected?: boolean;
 
         /** Pending members of the report */
@@ -199,13 +269,28 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The ID of the single transaction thread report associated with this report, if one exists */
         transactionThreadReportID?: string;
 
+        /** Collection of policy report fields, indexed by their fieldID */
         fieldList?: Record<string, PolicyReportField>;
 
+        /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
+
+        /** The trip data for a trip room */
+        tripData?: {
+            /** The start date of a trip */
+            startDate: string;
+
+            /** The end date of a trip */
+            endDate: string;
+
+            /** The trip ID in spotnana */
+            tripID: string;
+        };
     },
     PolicyReportField['fieldID']
 >;
 
+/** Collection of reports, indexed by report_{reportID} */
 type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT>;
 
 export default Report;

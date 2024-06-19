@@ -3,7 +3,8 @@ import {createPortal} from 'react-dom';
 import Modal from '@components/Modal';
 import {PopoverContext} from '@components/PopoverProvider';
 import PopoverWithoutOverlay from '@components/PopoverWithoutOverlay';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import TooltipRefManager from '@libs/TooltipRefManager';
 import CONST from '@src/CONST';
 import type {PopoverProps} from './types';
 
@@ -28,7 +29,7 @@ function Popover(props: PopoverProps) {
         animationOut = 'fadeOut',
     } = props;
 
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const withoutOverlayRef = useRef(null);
     const {close, popover} = React.useContext(PopoverContext);
 
@@ -52,6 +53,7 @@ function Popover(props: PopoverProps) {
         if (popover && 'current' in anchorRef) {
             close(anchorRef);
         }
+        TooltipRefManager.hideTooltip();
         onClose();
     };
 

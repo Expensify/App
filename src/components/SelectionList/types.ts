@@ -1,17 +1,17 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
+import type ReportListItem from './Search/ReportListItem';
+import type TransactionListItem from './Search/TransactionListItem';
 import type TableListItem from './TableListItem';
-import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -125,6 +125,12 @@ type ListItem = {
 
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
+
+    /** Element to render below the ListItem */
+    footerContent?: ReactNode;
+
+    /** Whether item pressable wrapper should be focusable */
+    tabIndex?: 0 | -1;
 };
 
 type TransactionListItemType = ListItem &
@@ -134,6 +140,21 @@ type TransactionListItemType = ListItem &
 
         /** The personal details of the user paying the request */
         to: SearchAccountDetails;
+
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final and formatted "to" value used for displaying and sorting */
+        formattedTo: string;
+
+        /** final and formatted "total" value used for displaying and sorting */
+        formattedTotal: number;
+
+        /** final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant: string;
+
+        /** final "date" value used for sorting */
+        date: string;
 
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
@@ -146,6 +167,16 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+
+        /** Whether we should show the transaction year.
+         * This is true if at least one transaction in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
+    };
+
+type ReportListItemType = ListItem &
+    SearchReport & {
+        transactions: TransactionListItemType[];
     };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -206,7 +237,9 @@ type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem | typeof ReportListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -240,11 +273,20 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when a row is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Whether to debounce `onRowSelect` */
+    shouldDebounceRowSelect?: boolean;
+
     /** Optional callback function triggered upon pressing a checkbox. If undefined and the list displays checkboxes, checkbox interactions are managed by onSelectRow, allowing for pressing anywhere on the list. */
     onCheckboxPress?: (item: TItem) => void;
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
+
+    /**
+     * Callback that should return height of the specific item
+     * Only use this if we're handling some non-standard items, most of the time the default value is correct
+     */
+    getItemHeight?: (item: TItem) => number;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -256,7 +298,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: MaybePhraseKey;
+    textInputHint?: string;
 
     /** Value for the text input */
     textInputValue?: string;
@@ -321,11 +363,17 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the header */
     headerContent?: ReactNode;
 
+    /** Custom content to display in the header of list component. */
+    listHeaderContent?: React.JSX.Element | null;
+
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
+
+    /** Content to display if the list is empty */
+    listEmptyContent?: React.JSX.Element | null;
 
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
@@ -348,6 +396,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom header to show right above list */
     customListHeader?: ReactNode;
 
+    /** When customListHeader is provided, this should be its height needed for correct list scrolling */
+    customListHeaderHeight?: number;
+
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -359,6 +410,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /** This may improve scroll performance for large lists */
+    removeClippedSubviews?: boolean;
 
     /**
      * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
@@ -376,10 +430,23 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * within half the visible length of the list.
      */
     onEndReachedThreshold?: number;
+
+    /**
+     * While maxToRenderPerBatch tells the amount of items rendered per batch, setting updateCellsBatchingPeriod tells your VirtualizedList the delay in milliseconds between batch renders (how frequently your component will be rendering the windowed items).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#updatecellsbatchingperiod
+     */
+    updateCellsBatchingPeriod?: number;
+
+    /**
+     * The number passed here is a measurement unit where 1 is equivalent to your viewport height. The default value is 21 (10 viewports above, 10 below, and one in between).
+     * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
+     */
+    windowSize?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
+    clearInputAfterSelect?: () => void;
 };
 
 type ItemLayout = {
@@ -391,6 +458,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     allOptions: TItem[];
     selectedOptions: TItem[];
     disabledOptionsIndexes: number[];
+    disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
 };
@@ -414,6 +482,8 @@ export type {
     ListItem,
     ListItemProps,
     RadioListItemProps,
+    ReportListItemProps,
+    ReportListItemType,
     Section,
     SectionListDataType,
     SectionWithIndexOffset,

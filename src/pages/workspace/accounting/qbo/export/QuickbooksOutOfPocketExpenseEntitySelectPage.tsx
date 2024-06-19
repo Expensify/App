@@ -18,6 +18,22 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
+function Footer({isTaxEnabled, isLocationsEnabled}: {isTaxEnabled: boolean; isLocationsEnabled: boolean}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    if (!isTaxEnabled && !isLocationsEnabled) {
+        return null;
+    }
+
+    return (
+        <View style={[styles.gap2, styles.mt2]}>
+            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+            {isLocationsEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
+        </View>
+    );
+}
+
 type CardListItem = ListItem & {
     value: QBOReimbursableExportAccountType;
     isShown: boolean;
@@ -30,9 +46,9 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const styles = useThemeStyles();
     const {reimbursableExpensesExportDestination, reimbursableExpensesAccount, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = Boolean(syncTax);
-    const policyID = policy?.id ?? '';
+    const isLocationsEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isTaxesEnabled = !!syncTax;
+    const policyID = policy?.id ?? '-1';
 
     const data: CardListItem[] = useMemo(
         () => [
@@ -105,8 +121,14 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportEntity}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                        footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+                        footerContent={
+                            <Footer
+                                isTaxEnabled={isTaxesEnabled}
+                                isLocationsEnabled={isLocationsEnabled}
+                            />
+                        }
                     />
                 </View>
             </ScreenWrapper>

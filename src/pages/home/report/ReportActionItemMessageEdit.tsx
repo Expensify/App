@@ -1,8 +1,7 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
@@ -27,6 +26,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -65,6 +65,9 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
+
+// video source -> video attributes
+const draftMessageVideoAttributeCache = new Map<string, string>();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
@@ -105,13 +108,12 @@ function ReportActionItemMessageEdit(
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        const parser = new ExpensiMark();
-        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
-        if (
-            ReportActionsUtils.isDeletedAction(action) ||
-            Boolean(action.message && draftMessage === originalMessage) ||
-            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
-        ) {
+        draftMessageVideoAttributeCache.clear();
+
+        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '', undefined, undefined, (videoSource, attrs) => {
+            draftMessageVideoAttributeCache.set(videoSource, attrs);
+        });
+        if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
         setDraft(draftMessage);
@@ -130,7 +132,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setModal(modalArg);
@@ -140,7 +142,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxFocused = onyxSubscribe({
             key: ONYXKEYS.INPUT_FOCUSED,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setOnyxFocused(modalArg);
@@ -301,7 +303,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -406,7 +408,11 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                reportScrollManager.scrollToIndex(index, true);
+                                InteractionManager.runAfterInteractions(() => {
+                                    requestAnimationFrame(() => {
+                                        reportScrollManager.scrollToIndex(index, true);
+                                    });
+                                });
                                 setShouldShowComposeInputKeyboardAware(false);
 
                                 // Clear active report action when another action gets focused

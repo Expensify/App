@@ -2,6 +2,7 @@ import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, 
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
+import type {TupleToUnion} from 'type-fest';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
 import Shutter from '@assets/images/shutter.svg';
@@ -24,10 +25,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import isPdfFilePasswordProtected from '@libs/isPdfFilePasswordProtected';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -78,6 +81,10 @@ function IOURequestStepScan({
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
     const tabIndex = 1;
     const isTabActive = useTabNavigatorFocus({tabIndex});
+
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -189,7 +196,7 @@ function IOURequestStepScan({
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
                     !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
                     )
                 ) {
                     setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
@@ -206,10 +213,19 @@ function IOURequestStepScan({
                     return false;
                 }
 
+                if (fileExtension === 'pdf') {
+                    return isPdfFilePasswordProtected(file).then((isProtected: boolean) => {
+                        if (isProtected) {
+                            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.protectedPDFNotSupported');
+                            return false;
+                        }
+                        return true;
+                    });
+                }
                 return true;
             })
             .catch(() => {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedImage');
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
                 return false;
             });
     }
@@ -261,7 +277,7 @@ function IOURequestStepScan({
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
@@ -273,14 +289,16 @@ function IOURequestStepScan({
                     IOU.startSplitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? 0,
+                        currentUserAccountID: currentUserPersonalDetails?.accountID ?? -1,
                         comment: '',
                         receipt,
-                        existingSplitChatReportID: reportID ?? 0,
+                        existingSplitChatReportID: reportID ?? -1,
                         billable: false,
                         category: '',
                         tag: '',
                         currency: transaction?.currency ?? 'USD',
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                     return;
                 }
@@ -391,6 +409,8 @@ function IOURequestStepScan({
             navigateToConfirmationPage,
             navigateToParticipantPage,
             policy,
+            transactionTaxCode,
+            transactionTaxAmount,
         ],
     );
 
@@ -646,7 +666,7 @@ function IOURequestStepScan({
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
             onBackButtonPress={navigateBack}
-            shouldShowWrapper={Boolean(backTo)}
+            shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
             {(isDraggingOverWrapper) => (
@@ -681,14 +701,14 @@ IOURequestStepScan.displayName = 'IOURequestStepScan';
 
 const IOURequestStepScanWithOnyx = withOnyx<Omit<IOURequestStepScanProps, 'user'>, Omit<IOURequestStepOnyxProps, 'user'>>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

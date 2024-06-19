@@ -39,10 +39,10 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const handleOnfidoSuccess = useCallback(
         (onfidoData: OnfidoData) => {
-            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
+            BankAccounts.verifyIdentityForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '-1'), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
             BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
         },
         [reimbursementAccount, onfidoApplicantID, policyID],
@@ -66,7 +66,7 @@ function VerifyIdentity({reimbursementAccount, onBackButtonPress, onfidoApplican
                 title={translate('onfidoStep.verifyIdentity')}
                 onBackButtonPress={onBackButtonPress}
             />
-            <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={2}
                     stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}

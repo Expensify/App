@@ -115,11 +115,6 @@ function CustomStatusBarAndBackground({isNested = false}: CustomStatusBarAndBack
     );
 
     useEffect(() => {
-        updateStatusBarAppearance({backgroundColor: theme.appBG});
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on first render
-    }, []);
-
-    useEffect(() => {
         didForceUpdateStatusBarRef.current = false;
     }, [isRootStatusBarEnabled]);
 

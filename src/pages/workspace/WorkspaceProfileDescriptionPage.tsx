@@ -1,4 +1,4 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,9 +12,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -29,7 +30,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [description, setDescription] = useState(() =>
-        parser.htmlToMarkdown(
+        parseHtmlToMarkdown(
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.description ||
@@ -45,15 +46,18 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
-        const errors = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+            const errors = {};
 
-        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'description', ['common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}]);
-        }
+            if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+                ErrorUtils.addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: values.description.length, limit: CONST.DESCRIPTION_LIMIT}));
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
@@ -70,7 +74,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
 
     return (
         <AccessOrNotFoundWrapper
-            policyID={policy?.id ?? ''}
+            policyID={policy?.id ?? '-1'}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper

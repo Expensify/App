@@ -19,14 +19,13 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Policy from '@userActions/Policy';
+import * as Member from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -60,7 +59,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const member = policy?.employeeList?.[memberLogin];
     const prevMember = usePrevious(member);
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isSelectedMemberOwner = policy?.owner === details.login;
@@ -87,18 +85,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     useEffect(() => {
-        if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
-            return;
-        }
-
-        const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
-
-        if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-        }
-    }, [accountID, policy?.errorFields?.changeOwner, policy?.isChangeOwnerSuccessful, policyID]);
-
-    useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
@@ -110,7 +96,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     };
 
     const removeUser = useCallback(() => {
-        Policy.removeMembers([accountID], policyID);
+        Member.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
     }, [accountID, policyID]);
 
@@ -125,14 +111,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const changeRole = useCallback(
         ({value}: ListItemType) => {
             setIsRoleSelectionModalVisible(false);
-            Policy.updateWorkspaceMembersRole(policyID, [accountID], value);
+            Member.updateWorkspaceMembersRole(policyID, [accountID], value);
         },
         [accountID, policyID],
     );
 
     const startChangeOwnershipFlow = useCallback(() => {
-        Policy.clearWorkspaceOwnerChangeFlow(policyID);
-        Policy.requestWorkspaceOwnerChange(policyID);
+        Member.clearWorkspaceOwnerChangeFlow(policyID);
+        Member.requestWorkspaceOwnerChange(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
     }, [accountID, policyID]);
 
@@ -160,12 +146,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <Avatar
                                 containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                                 imageStyles={[styles.avatarXLarge]}
-                                source={UserUtils.getAvatar(avatar, accountID)}
+                                source={details.avatar}
+                                avatarID={accountID}
+                                type={CONST.ICON_TYPE_AVATAR}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 fallbackIcon={fallbackIcon}
                             />
                         </OfflineWithFeedback>
-                        {Boolean(details.displayName ?? '') && (
+                        {!!(details.displayName ?? '') && (
                             <Text
                                 style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                 numberOfLines={1}

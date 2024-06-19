@@ -166,7 +166,7 @@ function IOURequestStepDistance({
             if (transactionWasSaved.current) {
                 return;
             }
-            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '', action === CONST.IOU.ACTION.CREATE);
+            TransactionEdit.restoreOriginalTransactionFromBackup(transaction?.transactionID ?? '-1', action === CONST.IOU.ACTION.CREATE);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -226,7 +226,7 @@ function IOURequestStepDistance({
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? 0;
+                const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             if (shouldSkipConfirmation) {
@@ -326,7 +326,7 @@ function IOURequestStepDistance({
             return {duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage')} as Errors;
         }
         if (atLeastTwoDifferentWaypointsError) {
-            return {atLeastTwoDifferentWaypointsError: 'iou.error.atLeastTwoDifferentWaypoints'} as Errors;
+            return {atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints')} as Errors;
         }
         return {};
     };
@@ -377,11 +377,18 @@ function IOURequestStepDistance({
             const oldWaypoints = transactionBackup?.comment.waypoints ?? {};
             const oldAddresses = Object.fromEntries(Object.entries(oldWaypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
             const addresses = Object.fromEntries(Object.entries(waypoints).map(([key, waypoint]) => [key, 'address' in waypoint ? waypoint.address : {}]));
+            const hasRouteChanged = !isEqual(transactionBackup?.routes, transaction?.routes);
             if (isEqual(oldAddresses, addresses)) {
                 Navigation.dismissModal();
                 return;
             }
-            IOU.updateMoneyRequestDistance({transactionID: transaction?.transactionID ?? '', transactionThreadReportID: report?.reportID ?? '', waypoints});
+            IOU.updateMoneyRequestDistance({
+                transactionID: transaction?.transactionID ?? '-1',
+                transactionThreadReportID: report?.reportID ?? '-1',
+                waypoints,
+                ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+                policy,
+            });
             Navigation.dismissModal();
             return;
         }
@@ -399,7 +406,9 @@ function IOURequestStepDistance({
         transactionBackup,
         waypoints,
         transaction?.transactionID,
+        transaction?.routes,
         report?.reportID,
+        policy,
     ]);
 
     const renderItem = useCallback(
@@ -428,7 +437,7 @@ function IOURequestStepDistance({
                 <View style={styles.flex1}>
                     <DraggableList
                         data={waypointsList}
-                        keyExtractor={(item) => item}
+                        keyExtractor={(item) => (waypoints[item]?.keyForList ?? waypoints[item]?.address ?? '') + item}
                         shouldUsePortal
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
@@ -472,19 +481,19 @@ IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
     transactionBackup: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '-1'}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
+            const transactionID = route.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },
