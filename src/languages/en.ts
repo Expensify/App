@@ -627,6 +627,10 @@ export default {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',

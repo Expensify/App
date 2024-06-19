@@ -242,6 +242,10 @@ function PopoverMenu({
                             onFocus={() => setFocusedIndex(menuIndex)}
                             success={item.success}
                             containerStyle={item.containerStyle}
+                            shouldRenderTooltip={item.shouldRenderTooltip}
+                            shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
+                            tooltipWrapperStyle={item.tooltipWrapperStyle}
+                            renderTooltipContent={item.renderTooltipContent}
                         />
                     ))}
                 </View>
