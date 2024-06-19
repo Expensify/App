@@ -12,7 +12,6 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Illustrations from '@components/Icon/Illustrations';
-import MenuItemGroup from '@components/MenuItemGroup';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -659,92 +658,90 @@ function ReportScreen({
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
-                <MenuItemGroup>
-                    <ScreenWrapper
-                        navigation={navigation}
-                        style={screenWrapperStyle}
-                        shouldEnableKeyboardAvoidingView={isTopMostReportId || isReportOpenInRHP}
-                        testID={ReportScreen.displayName}
+                <ScreenWrapper
+                    navigation={navigation}
+                    style={screenWrapperStyle}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId || isReportOpenInRHP}
+                    testID={ReportScreen.displayName}
+                >
+                    <FullPageNotFoundView
+                        shouldShow={shouldShowNotFoundPage}
+                        subtitleKey="notFound.noAccess"
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        onBackButtonPress={Navigation.goBack}
+                        shouldShowLink={false}
                     >
-                        <FullPageNotFoundView
-                            shouldShow={shouldShowNotFoundPage}
-                            subtitleKey="notFound.noAccess"
-                            shouldShowBackButton={shouldUseNarrowLayout}
-                            onBackButtonPress={Navigation.goBack}
-                            shouldShowLink={false}
+                        <OfflineWithFeedback
+                            pendingAction={reportPendingAction}
+                            errors={reportErrors}
+                            shouldShowErrorMessages={false}
+                            needsOffscreenAlphaCompositing
                         >
-                            <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
-                                errors={reportErrors}
-                                shouldShowErrorMessages={false}
-                                needsOffscreenAlphaCompositing
-                            >
-                                {headerView}
-                                {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
-                                    <View style={[styles.borderBottom]}>
-                                        <View style={[styles.appBG, styles.pl0]}>
-                                            <View style={[styles.ph5, styles.pb3]}>
-                                                <TaskHeaderActionButton report={report} />
-                                            </View>
+                            {headerView}
+                            {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                                <View style={[styles.borderBottom]}>
+                                    <View style={[styles.appBG, styles.pl0]}>
+                                        <View style={[styles.ph5, styles.pb3]}>
+                                            <TaskHeaderActionButton report={report} />
                                         </View>
                                     </View>
-                                )}
-                            </OfflineWithFeedback>
-                            {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
-                                <Banner
-                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                    textStyles={[styles.colorReversed]}
-                                    text={translate('reportActionsView.chatWithAccountManager')}
-                                    onClose={dismissBanner}
-                                    onPress={chatWithAccountManager}
-                                    shouldShowCloseButton
-                                />
-                            )}
-                            <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
-                                <View
-                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                    onLayout={onListLayout}
-                                >
-                                    {shouldShowReportActionList && (
-                                        <ReportActionsView
-                                            reportActions={reportActions}
-                                            report={report}
-                                            parentReportAction={parentReportAction}
-                                            isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                            isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
-                                            hasLoadingNewerReportActionsError={reportMetadata?.hasLoadingNewerReportActionsError}
-                                            isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
-                                            hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
-                                            isReadyForCommentLinking={!shouldShowSkeleton}
-                                            transactionThreadReportID={transactionThreadReportID}
-                                        />
-                                    )}
-
-                                    {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                                    If we prevent rendering the report while they are loading then
-                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                    {shouldShowSkeleton && <ReportActionsSkeletonView />}
-
-                                    {isCurrentReportLoadedFromOnyx ? (
-                                        <ReportFooter
-                                            onComposerFocus={() => setIsComposerFocus(true)}
-                                            onComposerBlur={() => setIsComposerFocus(false)}
-                                            report={report}
-                                            reportMetadata={reportMetadata}
-                                            reportNameValuePairs={reportNameValuePairs}
-                                            policy={policy}
-                                            pendingAction={reportPendingAction}
-                                            isComposerFullSize={!!isComposerFullSize}
-                                            isEmptyChat={isEmptyChat}
-                                            lastReportAction={lastReportAction}
-                                        />
-                                    ) : null}
                                 </View>
-                                <PortalHost name="suggestions" />
-                            </DragAndDropProvider>
-                        </FullPageNotFoundView>
-                    </ScreenWrapper>
-                </MenuItemGroup>
+                            )}
+                        </OfflineWithFeedback>
+                        {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
+                            <Banner
+                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                textStyles={[styles.colorReversed]}
+                                text={translate('reportActionsView.chatWithAccountManager')}
+                                onClose={dismissBanner}
+                                onPress={chatWithAccountManager}
+                                shouldShowCloseButton
+                            />
+                        )}
+                        <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
+                            <View
+                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                onLayout={onListLayout}
+                            >
+                                {shouldShowReportActionList && (
+                                    <ReportActionsView
+                                        reportActions={reportActions}
+                                        report={report}
+                                        parentReportAction={parentReportAction}
+                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                        isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
+                                        hasLoadingNewerReportActionsError={reportMetadata?.hasLoadingNewerReportActionsError}
+                                        isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
+                                        hasLoadingOlderReportActionsError={reportMetadata?.hasLoadingOlderReportActionsError}
+                                        isReadyForCommentLinking={!shouldShowSkeleton}
+                                        transactionThreadReportID={transactionThreadReportID}
+                                    />
+                                )}
+
+                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
+                                If we prevent rendering the report while they are loading then
+                                we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
+
+                                {isCurrentReportLoadedFromOnyx ? (
+                                    <ReportFooter
+                                        onComposerFocus={() => setIsComposerFocus(true)}
+                                        onComposerBlur={() => setIsComposerFocus(false)}
+                                        report={report}
+                                        reportMetadata={reportMetadata}
+                                        reportNameValuePairs={reportNameValuePairs}
+                                        policy={policy}
+                                        pendingAction={reportPendingAction}
+                                        isComposerFullSize={!!isComposerFullSize}
+                                        isEmptyChat={isEmptyChat}
+                                        lastReportAction={lastReportAction}
+                                    />
+                                ) : null}
+                            </View>
+                            <PortalHost name="suggestions" />
+                        </DragAndDropProvider>
+                    </FullPageNotFoundView>
+                </ScreenWrapper>
             </ReactionListContext.Provider>
         </ActionListContext.Provider>
     );

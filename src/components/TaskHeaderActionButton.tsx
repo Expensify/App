@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -10,7 +10,6 @@ import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
-import {MenuItemGroupContext} from './MenuItemGroup';
 
 type TaskHeaderActionButtonOnyxProps = {
     /** Current user session */
@@ -25,16 +24,6 @@ type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
 function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {singleExecution} = useContext(MenuItemGroupContext) ?? {};
-
-    const onPressAction = () => {
-        const onPress = () => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report));
-        if (!singleExecution) {
-            onPress();
-            return;
-        }
-        singleExecution(onPress)();
-    };
 
     if (!ReportUtils.canWriteInReport(report)) {
         return null;
@@ -47,7 +36,7 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
                 isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1)}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(onPressAction)}
+                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
                 style={styles.flex1}
             />
         </View>
