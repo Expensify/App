@@ -4,6 +4,7 @@
     "compilerOptions": {
         "module": "commonjs",
         "types": ["react-native", "jest"],
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "isolatedModules": true,
         "strict": true,
         "allowSyntheticDefaultImports": true,

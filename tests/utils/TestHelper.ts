@@ -2,6 +2,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import CONFIG from '@src/CONFIG';
@@ -14,18 +15,20 @@ import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
+console.debug = () => {};
+
 type MockFetch = ReturnType<typeof jest.fn> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
     resume: () => Promise<void>;
-    mockAPICommand: (command: string, response: OnyxResponse['onyxData']) => void;
+    mockAPICommand: <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse['onyxData']) => void;
 };
 
 type QueueItem = {
     resolve: (value: Partial<Response> | PromiseLike<Partial<Response>>) => void;
     input: RequestInfo;
-    init?: RequestInit;
+    options?: RequestInit;
 };
 
 type FormData = {
@@ -186,11 +189,12 @@ function signOutTestUser() {
  */
 function getGlobalFetchMock(): typeof fetch {
     let queue: QueueItem[] = [];
-    let responses = new Map<string, unknown>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let responses = new Map<string, (params: any) => OnyxResponse['onyxData']>();
     let isPaused = false;
     let shouldFail = false;
 
-    const getResponse = (input: RequestInfo): Partial<Response> =>
+    const getResponse = (input: RequestInfo, options?: RequestInit): Partial<Response> =>
         shouldFail
             ? {
                   ok: true,
@@ -202,20 +206,22 @@ function getGlobalFetchMock(): typeof fetch {
                       const commandMatch = typeof input === 'string' ? input.match(/https:\/\/www.expensify.com.dev\/api\/(\w+)\?/) : null;
                       const command = commandMatch ? commandMatch[1] : null;
 
-                      if (command && responses.has(command)) {
-                          return Promise.resolve({jsonCode: 200, onyxData: responses.get(command)});
+                      const responseHandler = command ? responses.get(command) : null;
+                      if (responseHandler) {
+                          const requestData = options?.body instanceof FormData ? Object.fromEntries(options.body) : {};
+                          return Promise.resolve({jsonCode: 200, onyxData: responseHandler(requestData)});
                       }
 
                       return Promise.resolve({jsonCode: 200});
                   },
               };
 
-    const mockFetch = jest.fn().mockImplementation((input: RequestInfo) => {
+    const mockFetch = jest.fn().mockImplementation((input: RequestInfo, options?: RequestInit) => {
         if (!isPaused) {
-            return Promise.resolve(getResponse(input));
+            return Promise.resolve(getResponse(input, options));
         }
         return new Promise((resolve) => {
-            queue.push({resolve, input});
+            queue.push({resolve, input, options});
         });
     }) as MockFetch;
 
@@ -237,8 +243,8 @@ function getGlobalFetchMock(): typeof fetch {
     };
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
-    mockFetch.mockAPICommand = (command: string, response: OnyxResponse['onyxData']) => {
-        responses.set(command, response);
+    mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse['onyxData']): void => {
+        responses.set(command, responseHandler);
     };
     return mockFetch as typeof fetch;
 }
@@ -254,6 +260,28 @@ function setupGlobalFetchMock(): MockFetch {
     });
 
     return mockFetch as MockFetch;
+}
+
+function getFetchMockCalls(commandName: ApiCommand) {
+    return (global.fetch as MockFetch).mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`);
+}
+
+/**
+ * Assertion helper to validate that a command has been called a specific number of times.
+ */
+function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls: number) {
+    expect(getFetchMockCalls(commandName)).toHaveLength(expectedCalls);
+}
+
+/**
+ * Assertion helper to validate that a command has been called with specific parameters.
+ */
+function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(commandName: TCommand, callIndex: number, expectedParams: ApiRequestCommandParameters[TCommand]) {
+    const call = getFetchMockCalls(commandName).at(callIndex);
+    expect(call).toBeTruthy();
+    const body = call?.at(1)?.body;
+    const params = body instanceof FormData ? Object.fromEntries(body) : {};
+    expect(params).toEqual(expect.objectContaining(expectedParams));
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -292,6 +320,8 @@ export {
     getGlobalFetchMock,
     setupApp,
     setupGlobalFetchMock,
+    expectAPICommandToHaveBeenCalled,
+    expectAPICommandToHaveBeenCalledWith,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,

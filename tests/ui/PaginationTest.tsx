@@ -4,7 +4,6 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type {ApiCommand} from '@libs/API/types';
 import * as Localize from '@libs/Localize';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
@@ -88,14 +87,17 @@ const USER_A_EMAIL = 'user_a@test.com';
 const USER_B_ACCOUNT_ID = 2;
 const USER_B_EMAIL = 'user_b@test.com';
 
-function mockOpenReport(messageCount: number, includeCreatedAction: boolean) {
+function buildReportComments(count: number, initialID: string, reverse = false) {
+    let currentID = parseInt(initialID, 10);
     const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-    const actions = Object.fromEntries(
-        Array.from({length: messageCount}).map((_, index) => {
-            const created = format(addSeconds(TEN_MINUTES_AGO, 10 * index), CONST.DATE.FNS_DB_FORMAT_STRING);
+    return Object.fromEntries(
+        Array.from({length: Math.min(count, currentID)}).map(() => {
+            const created = format(addSeconds(TEN_MINUTES_AGO, 10 * currentID), CONST.DATE.FNS_DB_FORMAT_STRING);
+            const id = currentID;
+            currentID += reverse ? 1 : -1;
             return [
-                `${index + 1}`,
-                index === 0 && includeCreatedAction
+                `${id}`,
+                id === 1
                     ? {
                           reportActionID: '1',
                           actionName: 'CREATED' as const,
@@ -107,22 +109,43 @@ function mockOpenReport(messageCount: number, includeCreatedAction: boolean) {
                               },
                           ],
                       }
-                    : TestHelper.buildTestReportComment(created, USER_B_ACCOUNT_ID, `${index + 1}`),
+                    : TestHelper.buildTestReportComment(created, USER_B_ACCOUNT_ID, `${id}`),
             ];
         }),
     );
-    fetchMock.mockAPICommand('OpenReport', [
+}
+
+function mockOpenReport(messageCount: number, initialID: string) {
+    fetchMock.mockAPICommand('OpenReport', () => [
         {
             onyxMethod: 'merge',
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            value: actions,
+            value: buildReportComments(messageCount, initialID),
         },
     ]);
 }
 
-function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls: number) {
-    expect(fetchMock.mock.calls.filter((c) => c[0] === `https://www.expensify.com.dev/api/${commandName}?`)).toHaveLength(expectedCalls);
+function mockGetOlderActions(messageCount: number) {
+    fetchMock.mockAPICommand('GetOlderActions', ({reportActionID}) => [
+        {
+            onyxMethod: 'merge',
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+            // The API also returns the action that was requested with the reportActionID.
+            value: buildReportComments(messageCount + 1, reportActionID),
+        },
+    ]);
 }
+
+// function mockGetNewerActions(messageCount: number) {
+//     fetchMock.mockAPICommand('GetNewerActions', ({reportActionID}) => [
+//         {
+//             onyxMethod: 'merge',
+//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+//             // The API also returns the action that was requested with the reportActionID.
+//             value: buildReportComments(messageCount + 1, reportActionID, true),
+//         },
+//     ]);
+// }
 
 /**
  * Sets up a test with a logged in user. Returns the <App/> test instance.
@@ -182,15 +205,16 @@ describe('Pagination', () => {
     });
 
     it('opens a chat and load initial messages', async () => {
-        mockOpenReport(5, true);
+        mockOpenReport(5, '5');
 
         await signInAndGetApp();
         await navigateToSidebarOption(0);
 
         expect(getReportActions()).toHaveLength(5);
-        expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID, reportActionID: ''});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
         // Scrolling here should not trigger a new network request.
         scrollToOffset(LIST_CONTENT_SIZE.height);
@@ -198,28 +222,31 @@ describe('Pagination', () => {
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
     });
 
     it('opens a chat and load older messages', async () => {
-        mockOpenReport(5, false);
+        mockOpenReport(5, '8');
+        mockGetOlderActions(5);
 
         await signInAndGetApp();
         await navigateToSidebarOption(0);
 
         expect(getReportActions()).toHaveLength(5);
-        expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 0, {reportID: REPORT_ID, reportActionID: ''});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
 
         // Scrolling here should trigger a new network request.
         scrollToOffset(LIST_CONTENT_SIZE.height);
         await waitForBatchedUpdatesWithAct();
 
-        expectAPICommandToHaveBeenCalled('OpenReport', 1);
-        expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
-        expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
     });
 });
