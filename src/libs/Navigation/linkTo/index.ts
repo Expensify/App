@@ -67,6 +67,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
+    const isReportInRhpOpened =
+        lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.some((route: NavigationPartialRoute) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const topRouteName = lastRoute?.name;
@@ -91,8 +94,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             const isNewPolicyID =
                 ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
                 ((matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '');
-            const isReportInRhpOpened =
-                lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.includes((route: NavigationPartialRoute) => route?.name === SCREENS.SEARCH.REPORT_RHP);
 
             if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID || isOpeningSearch)) {
                 root.dispatch({
@@ -101,8 +102,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                 });
             }
 
-            // When we navigate from the ReportScreen opened in RHP, this page shouldn't be removed from the navigation state to allow users to go back to it.
-            if (type === CONST.NAVIGATION.TYPE.UP && !isReportInRhpOpened) {
+            if (type === CONST.NAVIGATION.TYPE.UP) {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
             } else {
                 action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -203,6 +203,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             root.dispatch(minimalAction);
             return;
         }
+    }
+
+    // When we navigate from the ReportScreen opened in RHP, this page shouldn't be removed from the navigation state to allow users to go back to it.
+    if (isReportInRhpOpened) {
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
     if (action !== undefined) {
