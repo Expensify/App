@@ -124,7 +124,7 @@ function WorkspaceReportFieldsPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORTFIELDS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -134,7 +134,7 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.Tag}
+                    icon={Illustrations.Pencil}
                     title={translate('workspace.common.reportFields')}
                     shouldShowBackButton={isSmallScreenWidth}
                 >
