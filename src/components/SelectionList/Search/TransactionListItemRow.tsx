@@ -1,27 +1,23 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Badge from '@components/Badge';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import * as SearchUtils from '@libs/SearchUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type {SearchTransactionAction, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
@@ -36,10 +32,6 @@ type CellProps = {
 type TransactionCellProps = {
     transactionItem: TransactionListItemType;
 } & CellProps;
-
-type ActionCellProps = {
-    goToItem: () => void;
-} & TransactionCellProps;
 
 type TotalCellProps = {
     isChildListItem: boolean;
@@ -65,18 +57,6 @@ const getTypeIcon = (type?: SearchTransactionType) => {
         default:
             return Expensicons.Cash;
     }
-};
-
-const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
-    view: 'common.view',
-    // Todo add translation for Review
-    review: 'common.view',
-    done: 'common.done',
-    paid: 'iou.settledExpensify',
-    approve: 'iou.approve',
-    pay: 'iou.pay',
-    submit: 'common.submit',
-    hold: 'iou.hold',
 };
 
 function ReceiptCell({transactionItem}: TransactionCellProps) {
@@ -163,54 +143,6 @@ function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     );
 }
 
-function ActionCell({transactionItem, goToItem}: ActionCellProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    const {action, amount} = transactionItem;
-
-    const text = translate(actionTranslationsMap[action]);
-
-    if (['done', 'paid'].includes(action)) {
-        return (
-            <Badge
-                success
-                text={text}
-                icon={Expensicons.Checkmark}
-                badgeStyles={[styles.badgeBordered]}
-                textStyles={[{fontWeight: '700'}]}
-            />
-        );
-    }
-
-    if (['view', 'review'].includes(action)) {
-        return (
-            <Button
-                text={translate('common.view')}
-                onPress={goToItem}
-                small
-                pressOnEnter
-                style={[styles.w100]}
-            />
-        );
-    }
-
-    const command = SearchUtils.getTransactionActionCommand(action);
-    const reportsAndAmounts = {[transactionItem.reportID ?? -1]: amount};
-
-    return (
-        <Button
-            text={text}
-            onPress={() => {
-                command('', reportsAndAmounts);
-            }}
-            small
-            pressOnEnter
-            style={[styles.p0]}
-        />
-    );
-}
-
 function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
     return isLargeScreenWidth ? (
@@ -263,7 +195,6 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
 
 function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
@@ -272,11 +203,11 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
             <View style={containerStyle}>
                 {showItemHeaderOnNarrowLayout && (
                     <ExpenseItemHeaderNarrow
+                        transactionItem={item}
                         participantFrom={item.from}
                         participantFromDisplayName={item.formattedFrom}
                         participantTo={item.to}
                         participantToDisplayName={item.formattedTo}
-                        buttonText={translate('common.view')}
                         onButtonPress={onButtonPress}
                     />
                 )}
@@ -414,8 +345,6 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <ActionCell
                         transactionItem={item}
                         goToItem={onButtonPress}
-                        showTooltip={false}
-                        isLargeScreenWidth={false}
                     />
                 </View>
             </View>

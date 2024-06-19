@@ -146,11 +146,11 @@ function ReportListItem<TItem extends ListItem>({
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (
                     <ExpenseItemHeaderNarrow
+                        transactionItem={{action: 'view'}}
                         participantFrom={participantFrom}
                         participantFromDisplayName={participantFromDisplayName}
                         participantTo={participantTo}
                         participantToDisplayName={participantToDisplayName}
-                        buttonText={translate('common.view')}
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
