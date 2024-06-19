@@ -31,7 +31,7 @@ function FullScreenNavigator() {
     return (
         <RootStack.Navigator
             sidebarScreen={SCREENS.WORKSPACE.INITIAL}
-            initialCentralPaneScreen={SCREENS.WORKSPACE.PROFILE}
+            defaultCentralScreen={SCREENS.WORKSPACE.PROFILE}
         >
             <RootStack.Screen
                 name={SCREENS.WORKSPACE.INITIAL}

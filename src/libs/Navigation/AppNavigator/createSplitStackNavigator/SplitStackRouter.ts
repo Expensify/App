@@ -7,7 +7,7 @@ type StackState = StackNavigationState<ParamListBase> | PartialState<StackNaviga
 
 const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
-function adaptStateIfNecessary(state: StackState, sidebarScreen: string, initialCentralPaneScreen: string) {
+function adaptStateIfNecessary(state: StackState, sidebarScreen: string, defaultCentralScreen: string) {
     const isNarrowLayout = getIsNarrowLayout();
     const workspaceCentralPane = state.routes.at(-1);
     // There should always be sidebarScreen screen in the state to make sure go back works properly if we deeplinkg to a subpage of settings.
@@ -28,7 +28,7 @@ function adaptStateIfNecessary(state: StackState, sidebarScreen: string, initial
 
     // If the screen is wide, there should be at least two screens inside:
     // - sidebarScreen to cover left pane.
-    // - initialCentralPaneScreen to cover central pane.
+    // - defaultCentralScreen to cover central pane.
     if (!isNarrowLayout) {
         if (state.routes.length === 1 && state.routes[0].name === sidebarScreen) {
             // @ts-expect-error Updating read only property
@@ -37,7 +37,7 @@ function adaptStateIfNecessary(state: StackState, sidebarScreen: string, initial
             // Push the default settings central pane screen.
             if (state.stale === true) {
                 state.routes.push({
-                    name: initialCentralPaneScreen,
+                    name: defaultCentralScreen,
                     params: state.routes.at(0)?.params,
                 });
             }
@@ -53,7 +53,7 @@ function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
         ...stackRouter,
         getInitialState({routeNames, routeParamList, routeGetIdList}: RouterConfigOptions) {
             const initialState = stackRouter.getInitialState({routeNames, routeParamList, routeGetIdList});
-            adaptStateIfNecessary(initialState, options.sidebarScreen, options.initialCentralPaneScreen);
+            adaptStateIfNecessary(initialState, options.sidebarScreen, options.defaultCentralScreen);
 
             // If we needed to modify the state we need to rehydrate it to get keys for new routes.
             if (initialState.stale) {
@@ -63,7 +63,7 @@ function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
             return initialState;
         },
         getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
-            adaptStateIfNecessary(partialState, options.sidebarScreen, options.initialCentralPaneScreen);
+            adaptStateIfNecessary(partialState, options.sidebarScreen, options.defaultCentralScreen);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;
         },

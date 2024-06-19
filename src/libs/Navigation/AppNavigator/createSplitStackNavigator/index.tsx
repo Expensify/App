@@ -33,7 +33,7 @@ function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackN
         screenOptions: screenOptions.centralPaneNavigator,
         initialRouteName: props.initialRouteName,
         sidebarScreen: props.sidebarScreen,
-        initialCentralPaneScreen: props.initialCentralPaneScreen,
+        defaultCentralScreen: props.defaultCentralScreen,
     });
 
     useHandleScreenResize(navigation);
