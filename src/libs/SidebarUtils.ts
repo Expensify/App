@@ -99,7 +99,7 @@ function getOrderedReportIDs(
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
+        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID) as OnyxEntry<ReportAction>;
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
             !!parentReportAction &&
@@ -111,7 +111,8 @@ function getOrderedReportIDs(
         const hasErrorsOtherThanFailedReceipt =
             doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
         const isSystemChat = ReportUtils.isSystemChat(report);
-        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
+        const requiresAttentionFromCurrentUser = ReportUtils.requiresAttentionFromCurrentUser(report, parentReportAction);
+        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || requiresAttentionFromCurrentUser || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
