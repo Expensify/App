@@ -515,11 +515,20 @@ const enEmojis: EmojisList = {
     '🤏': {
         keywords: [],
     },
+    '🫳': {
+        keywords: ['hand', 'palm down', 'gesture'],
+    },
+    '🫴': {
+        keywords: ['hand', 'palm up', 'gesture'],
+    },
     '✌️': {
         keywords: ['victory', 'peace'],
     },
     '🤞': {
         keywords: ['luck', 'hopeful', 'cross', 'finger', 'hand'],
+    },
+    '🫰': {
+        keywords: ['hand', 'finger', 'thumb', 'crossed', 'gesture'],
     },
     '🤟': {
         keywords: [],
@@ -529,6 +538,12 @@ const enEmojis: EmojisList = {
     },
     '🤙': {
         keywords: ['call', 'hand', 'shaka'],
+    },
+    '🫱': {
+        keywords: ['hand', 'right', 'pointing', 'gesture'],
+    },
+    '🫲': {
+        keywords: ['hand', 'left', 'pointing', 'gesture'],
     },
     '👈': {
         keywords: ['backhand', 'body', 'finger', 'hand', 'index', 'point'],

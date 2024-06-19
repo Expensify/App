@@ -686,6 +686,14 @@ const esEmojis: EmojisList = {
         name: 'mano_pellizcando',
         keywords: ['pellizco', 'poco', 'poquito', 'mano pellizcando'],
     },
+    '🫳': {
+        name: 'mano_con_palma_hacia_abajo',
+        keywords: ['mano', 'palma abajo', 'gesto'],
+    },
+    '🫴': {
+        name: 'mano_con_palma_hacia_arriba',
+        keywords: ['mano', 'palma arriba', 'gesto'],
+    },
     '✌️': {
         name: 'v',
         keywords: ['mano', 'señal de victoria', 'victoria', 'mano con señal de victoria'],
@@ -693,6 +701,10 @@ const esEmojis: EmojisList = {
     '🤞': {
         name: 'dedos_cruzados',
         keywords: ['cruzar', 'dedos', 'mano', 'suerte', 'dedos cruzados'],
+    },
+    '🫰': {
+        name: 'mano_con_dedos_cruzados',
+        keywords: ['mano', 'dedo', 'pulgar', 'cruzado', 'gesto'],
     },
     '🤟': {
         name: 'te_amo_en_lenguaje_de_señas',
@@ -705,6 +717,14 @@ const esEmojis: EmojisList = {
     '🤙': {
         name: 'mano_llámame',
         keywords: ['llamar', 'mano', 'meñique', 'pulgar', 'mano haciendo el gesto de llamar'],
+    },
+    '🫱': {
+        name: 'mano_derecha',
+        keywords: ['mano', 'derecha', 'apuntar', 'gesto'],
+    },
+    '🫲': {
+        name: 'mano_izquierda',
+        keywords: ['mano', 'izquierda', 'apuntar', 'gesto'],
     },
     '👈': {
         name: 'apuntando_hacia_la_izquierda',

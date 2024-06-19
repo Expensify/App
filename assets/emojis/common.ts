@@ -735,6 +735,16 @@ const emojis: PickerEmojis = [
         types: ['🤏🏿', '🤏🏾', '🤏🏽', '🤏🏼', '🤏🏻'],
     },
     {
+        name: 'palm_down_hand',
+        code: '🫳',
+        types: ['🫳🏿', '🫳🏾', '🫳🏽', '🫳🏼', '🫳🏻'],
+    },
+    {
+        name: 'palm_up_hand',
+        code: '🫴',
+        types: ['🫴🏿', '🫴🏾', '🫴🏽', '🫴🏼', '🫴🏻'],
+    },
+    {
         name: 'v',
         code: '✌️',
         types: ['✌🏿', '✌🏾', '✌🏽', '✌🏼', '✌🏻'],
@@ -743,6 +753,11 @@ const emojis: PickerEmojis = [
         name: 'crossed_fingers',
         code: '🤞',
         types: ['🤞🏿', '🤞🏾', '🤞🏽', '🤞🏼', '🤞🏻'],
+    },
+    {
+        name: 'hand_with_index_finger_and_thumb_crossed',
+        code: '🫰',
+        types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
     },
     {
         name: 'love_you_gesture',
@@ -758,6 +773,16 @@ const emojis: PickerEmojis = [
         name: 'call_me_hand',
         code: '🤙',
         types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
+    },
+    {
+        name: 'rightwards_hand',
+        code: '🫱',
+        types: ['🫱🏿', '🫱🏾', '🫱🏽', '🫱🏼', '🫱🏻'],
+    },
+    {
+        name: 'leftwards_hand',
+        code: '🫲',
+        types: ['🫲🏿', '🫲🏾', '🫲🏽', '🫲🏼', '🫲🏻'],
     },
     {
         name: 'point_left',
