@@ -629,9 +629,7 @@ function BaseSelectionList<TItem extends ListItem>(
         },
     );
 
-    const getSkeletonView = useCallback(() => {
-        return SkeletonView ? <SkeletonView shouldAnimate /> : <OptionsListSkeletonView shouldAnimate />;
-    }, [SkeletonView]);
+    const getSkeletonView = useCallback(() => (SkeletonView ? <SkeletonView shouldAnimate /> : <OptionsListSkeletonView shouldAnimate />), [SkeletonView]);
 
     return (
         <SafeAreaConsumer>
