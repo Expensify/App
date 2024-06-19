@@ -1303,6 +1303,25 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-keyboard-controller (1.12.2):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-launch-arguments (4.0.2):
     - React
   - react-native-netinfo (11.2.1):
@@ -1852,7 +1871,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.84):
+  - RNLiveMarkdown (0.1.85):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1870,9 +1889,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.84)
+    - RNLiveMarkdown/common (= 0.1.85)
     - Yoga
-  - RNLiveMarkdown/common (0.1.84):
+  - RNLiveMarkdown/common (0.1.85):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2137,6 +2156,7 @@ DEPENDENCIES:
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
+  - react-native-keyboard-controller (from `../node_modules/react-native-keyboard-controller`)
   - react-native-launch-arguments (from `../node_modules/react-native-launch-arguments`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
@@ -2335,6 +2355,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-key-command:
     :path: "../node_modules/react-native-key-command"
+  react-native-keyboard-controller:
+    :path: "../node_modules/react-native-keyboard-controller"
   react-native-launch-arguments:
     :path: "../node_modules/react-native-launch-arguments"
   react-native-netinfo:
@@ -2541,6 +2563,7 @@ SPEC CHECKSUMS:
   react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 28ccfa09520e7d7e30739480dea4df003493bfe8
+  react-native-keyboard-controller: 47c01b0741ae5fc84e53cf282e61cfa5c2edb19b
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 02d31de0e08ab043d48f2a1a8baade109d7b6ca5
   react-native-pager-view: ccd4bbf9fc7effaf8f91f8dae43389844d9ef9fa
@@ -2589,7 +2612,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: bf516c02a4549a059829a3fbb8f51c2e0a3110e7
+  RNLiveMarkdown: fff70dc755ed8199a449f61e76cbadec7cd20440
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
