@@ -2029,7 +2029,7 @@ export default {
             exportCompany: 'Exportar tarjetas de empresa como',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
             preferredExporter: 'Exportador preferido',
-            date: 'Fecha',
+            date: 'Fecha de exportación',
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
             deepDiveExpensifyCardIntegration: 'nuestra integración.',
             exportExpensifyCard: 'Exportar las transacciones de las tarjetas Expensify como',
