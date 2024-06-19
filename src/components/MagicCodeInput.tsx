@@ -298,7 +298,7 @@ function MagicCodeInput(
 
             // Fill the array with empty characters if there are no inputs.
             if (focusedIndex === 0 && !hasInputs) {
-                numbers = Array(maxLength).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
+                numbers = Array<string>(maxLength).fill(CONST.MAGIC_CODE_EMPTY_CHAR);
 
                 // Deletes the value of the previous input and focuses on it.
             } else if (focusedIndex && focusedIndex !== 0) {

@@ -64,9 +64,8 @@ type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
  * Inverts an object, equivalent of _.invert
  */
 function invertObject(object: Record<string, string>): Record<string, string> {
-    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key]);
-    const inverted: Record<string, string> = Object.fromEntries(invertedEntries);
-    return inverted;
+    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key] as const);
+    return Object.fromEntries(invertedEntries);
 }
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
