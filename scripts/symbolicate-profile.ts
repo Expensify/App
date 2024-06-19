@@ -11,7 +11,7 @@
  * 2. The profiles created by the app on the user's device have the app version encoded in the filename.
  * 3. This script takes in a .cpuprofile file, reads the app version from the filename, and downloads the corresponding source map from the artifacts using github's API.
  * 4. It then uses the source map to symbolicate the .cpuprofile file using the `react-native-release-profiler` cli.
- * 
+ *
  * @note For downloading an artefact a github token is required.
  */
 import {Octokit} from '@octokit/core';
@@ -86,7 +86,7 @@ function getWorkflowRunArtifact() {
             name: artefactName,
         })
         .then((artifactsResponse) => {
-            const artifact = artifactsResponse.data.artifacts[0]
+            const artifact = artifactsResponse.data.artifacts[0];
             if (artifact === undefined) {
                 throw new Error(`Could not find the artifact ${artefactName}!`);
             }
