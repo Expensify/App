@@ -217,7 +217,7 @@ function PopoverMenu({
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
-                            key={item.text}
+                            key={`${item.text}_${menuIndex}`}
                             icon={item.icon}
                             iconWidth={item.iconWidth}
                             iconHeight={item.iconHeight}
