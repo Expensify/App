@@ -922,7 +922,7 @@ type NetSuiteConnection = {
     config: {
         /** NetSuite auto synchronization configs */
         autoSync: {
-            /** Whether data should be automatically synched between the app and Xero */
+            /** Whether data should be automatically synched between the app and NetSuite */
             enabled: boolean;
 
             /** The bedrock job associated with the NetSuite Auto Sync job */
