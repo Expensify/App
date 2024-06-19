@@ -14,14 +14,17 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
+import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
+import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
 import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
-import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -224,16 +227,40 @@ function goBack(fallbackRoute?: Route, shouldEnforceFallback = false, shouldPopT
     const isCentralPaneFocused = findFocusedRoute(navigationRef.current.getState())?.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR;
     const distanceFromPathInRootNavigator = getDistanceFromPathInRootNavigator(fallbackRoute ?? '');
 
-    // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
-    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator === -1) {
-        navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
-        return;
+    if (isCentralPaneFocused && fallbackRoute) {
+        // Allow CentralPane to use UP with fallback route if the path is not found in root navigator.
+        if (distanceFromPathInRootNavigator === -1) {
+            navigate(fallbackRoute, CONST.NAVIGATION.TYPE.UP);
+            return;
+        }
+
+        // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
+        if (distanceFromPathInRootNavigator > 0) {
+            navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
+            return;
+        }
     }
 
-    // Add possibility to go back more than one screen in root navigator if that screen is on the stack.
-    if (isCentralPaneFocused && fallbackRoute && distanceFromPathInRootNavigator > 0) {
-        navigationRef.current.dispatch(StackActions.pop(distanceFromPathInRootNavigator));
-        return;
+    // If the central pane is focused, it's possible that we navigated from other central pane with different matching bottom tab.
+    if (isCentralPaneFocused) {
+        const rootState = navigationRef.getRootState();
+        const stateAfterPop = {routes: rootState.routes.slice(0, -1)} as State<RootStackParamList>;
+        const topmostCentralPaneRouteAfterPop = getTopmostCentralPaneRoute(stateAfterPop);
+
+        const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState as State<RootStackParamList>);
+        const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateAfterPop);
+
+        // If the central pane is defined after the pop action, we need to check if it's synced with the bottom tab screen.
+        // If not, we need to pop to the bottom tab screen/screens to sync it with the new central pane.
+        if (topmostCentralPaneRouteAfterPop && topmostBottomTabRoute?.name !== matchingBottomTabRoute.name) {
+            const bottomTabNavigator = rootState.routes.find((item: NavigationStateRoute) => item.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR)?.state;
+
+            if (bottomTabNavigator && bottomTabNavigator.index) {
+                const matchingIndex = bottomTabNavigator.routes.findLastIndex((item) => item.name === matchingBottomTabRoute.name);
+                const indexToPop = matchingIndex !== -1 ? bottomTabNavigator.index - matchingIndex : undefined;
+                navigationRef.current.dispatch({...StackActions.pop(indexToPop), target: bottomTabNavigator?.key});
+            }
+        }
     }
 
     navigationRef.current.goBack();
