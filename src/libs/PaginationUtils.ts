@@ -124,7 +124,7 @@ function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages,
         const prevPage = sortedPages[i - 1];
 
         // Current page is inside the previous page, skip
-        if (page.lastIndex <= prevPage.lastIndex) {
+        if (page.lastIndex <= prevPage.lastIndex && page.lastID !== CONST.PAGINATION_END_ID) {
             // eslint-disable-next-line no-continue
             continue;
         }

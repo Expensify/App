@@ -18,6 +18,7 @@ type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends O
     pageCollectionKey: TPageKey;
     sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never>;
     getItemID: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => string;
+    isLastItem: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => boolean;
 };
 
 type PaginationConfigMapValue = Omit<PaginationConfig<OnyxCollectionKey, OnyxPagesKey>, 'initialCommand' | 'previousCommand' | 'nextCommand'> & {
@@ -79,7 +80,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         return requestResponse;
     }
 
-    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
+    const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, isLastItem, type} = paginationConfig;
     const {resourceID, cursorID} = request;
     return requestResponse.then((response) => {
         if (!response?.onyxData) {
@@ -104,6 +105,9 @@ const Pagination: Middleware = (requestResponse, request) => {
         // For previous requests we check that no new data is returned. Ideally the server would return that info.
         if ((type === 'initial' && !cursorID) || (type === 'next' && newPage.length === 1 && newPage[0] === cursorID)) {
             newPage.unshift(CONST.PAGINATION_START_ID);
+        }
+        if (isLastItem(sortedPageItems[sortedPageItems.length - 1])) {
+            newPage.push(CONST.PAGINATION_END_ID);
         }
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
