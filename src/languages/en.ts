@@ -273,7 +273,6 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
-        weMightHaveProblem: 'We might have a problem. Check out ',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
         areYouSure: 'Are you sure?',
