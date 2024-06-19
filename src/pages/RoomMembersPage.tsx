@@ -169,9 +169,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
+        const participants = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
 
-        participants.forEach((accountID) => {
+        participants?.forEach((accountID) => {
             const details = personalDetails[accountID];
 
             if (!details) {

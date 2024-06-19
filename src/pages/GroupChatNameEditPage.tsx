@@ -45,11 +45,14 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
     const {inputCallbackRef} = useAutoFocusInput();
 
     // We will try to get the chatName from the report or draft depending on what flow we are in
-    const draftParticipantAccountIDs = useMemo(() => (groupChatDraft?.participants ?? []).map((participant) => participant.accountID), [groupChatDraft?.participants]);
-    const existingReportName = useMemo(
-        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(draftParticipantAccountIDs)),
-        [draftParticipantAccountIDs, report],
-    );
+    const participantAccountIDs = useMemo(() => {
+        if (reportID) {
+            return ReportUtils.getParticipantAccountIDs(reportID);
+        }
+
+        return (groupChatDraft?.participants ?? []).map((participant) => participant.accountID);
+    }, [groupChatDraft, reportID]);
+    const existingReportName = useMemo(() => ReportUtils.getGroupChatName(participantAccountIDs, false, reportID), [participantAccountIDs, reportID]);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 

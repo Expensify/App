@@ -90,8 +90,14 @@ function HeaderView({
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
 
-    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report).slice(0, 5);
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const participants = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat))
+        .slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);

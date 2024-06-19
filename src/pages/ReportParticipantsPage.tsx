@@ -69,8 +69,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
-        const shouldExcludeHiddenParticipants = !isGroupChat;
-        const chatParticipants = ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
+        const chatParticipants = isGroupChat ? ReportUtils.getParticipantAccountIDs(report.reportID) : ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
         chatParticipants.forEach((accountID) => {
             const role = report.participants?.[accountID].role;
             const details = personalDetails?.[accountID];

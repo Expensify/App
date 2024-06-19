@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,13 +33,17 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
 function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
-    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
+    const participantAccountIDs = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat));
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report);
