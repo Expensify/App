@@ -64,5 +64,3 @@ function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleS
 BillingBanner.displayName = 'BillingBanner';
 
 export default BillingBanner;
-
-export type {BillingBannerProps};
