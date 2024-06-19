@@ -13,7 +13,7 @@ To connect a bank account in New Expensify, you must first enable the Make or Tr
 
 ![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_1_Light.png){:width="100%"}
 
-![Insert alt text for accessibility here]({{site.url}}/assets/images/ExensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
 
 # Step 2: Connect bank account
 1. Click Connect bank account
