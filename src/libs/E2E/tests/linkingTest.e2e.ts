@@ -43,7 +43,7 @@ const test = (config: NativeConfig) => {
                 appearMessageResolve();
                 subscription.remove();
             } else {
-                console.debug('[E2E] Message verification failed');
+                console.debug(`[E2E] Provided message id '${res?.[0]?.item?.reportActionID}' doesn't match to an expected '${linkedReportActionID}'. Waiting for a next one…`);
             }
         });
 
