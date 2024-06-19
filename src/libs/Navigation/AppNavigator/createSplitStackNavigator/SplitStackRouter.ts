@@ -1,7 +1,7 @@
 import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {SplitNavigatorRouterOptions} from './types';
+import type {SplitStackNavigatorRouterOptions} from './types';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
 
@@ -47,7 +47,7 @@ function adaptStateIfNecessary(state: StackState, sidebarScreen: string, initial
     }
 }
 
-function SplitRouter(options: SplitNavigatorRouterOptions) {
+function SplitStackRouter(options: SplitStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
     return {
         ...stackRouter,
@@ -70,4 +70,4 @@ function SplitRouter(options: SplitNavigatorRouterOptions) {
     };
 }
 
-export default SplitRouter;
+export default SplitStackRouter;

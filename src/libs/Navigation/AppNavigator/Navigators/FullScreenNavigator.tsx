@@ -1,12 +1,12 @@
 import React from 'react';
-import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
+import createSplitStackNavigator from '@libs/Navigation/AppNavigator/createSplitStackNavigator';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInitialPage').default;
 
-const RootStack = createSplitNavigator<FullScreenNavigatorParamList>();
+const RootStack = createSplitStackNavigator<FullScreenNavigatorParamList>();
 
 type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.ComponentType>>;
 
