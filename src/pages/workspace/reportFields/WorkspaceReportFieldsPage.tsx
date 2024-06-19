@@ -5,11 +5,11 @@ import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -75,15 +75,10 @@ function WorkspaceReportFieldsPage({
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
-            text: policy.name,
-            rightElement: (
-                <View style={styles.flexRow}>
-                    <Text>{reportField.type}</Text>
-                    <Icon src={Expensicons.ArrowRight} />
-                </View>
-            ),
+            text: reportField.name,
+            rightElement: <ListItemRightCaretWithLabel labelText={reportField.type} />,
         }));
-    }, [filteredPolicyFieldList, policy, selectedReportFields, styles.flexRow]);
+    }, [filteredPolicyFieldList, policy, selectedReportFields]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
@@ -93,6 +88,7 @@ function WorkspaceReportFieldsPage({
     };
 
     const isLoading = !isOffline && reportFieldsList === undefined;
+    const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
 
     const getHeaderButtons = () => (
         <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
@@ -149,14 +145,14 @@ function WorkspaceReportFieldsPage({
                         color={theme.spinner}
                     />
                 )}
-                {!isLoading && (
+                {shouldShowEmptyState && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.reportFields.emptyReportFields.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
                     />
                 )}
-                {Object.values(filteredPolicyFieldList).length > 0 && (
+                {!shouldShowEmptyState && !isLoading && (
                     <SelectionList
                         canSelectMultiple
                         sections={[{data: reportFieldsList, isDisabled: false}]}
