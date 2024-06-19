@@ -12,8 +12,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import ROUTES from '@src/ROUTES';
 import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 
 function WorkspaceOwnerRestrictedAction() {
     const {translate} = useLocalize();
@@ -21,7 +21,7 @@ function WorkspaceOwnerRestrictedAction() {
 
     const addPaymentCard = () => {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
-    }
+    };
 
     return (
         <ScreenWrapper

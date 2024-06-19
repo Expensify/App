@@ -2690,15 +2690,16 @@ export default {
         restrictedAction: {
             restricted: 'Restricted',
             actionsAreCurrentlyRestricted: ({workspaceName}) => `Actions on the ${workspaceName} workspace are currently restricted`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) => `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
-            youWillNeedToAddOrUpdatePaymentCard: 'You\'ll need to add or update the payment card on file to unlock new workspace activity.',
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+                `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
+            youWillNeedToAddOrUpdatePaymentCard: "You'll need to add or update the payment card on file to unlock new workspace activity.",
             addPaymentCardToUnlock: 'Add a payment card to unlock!',
             addPaymentCardToContinueUsingWorkspace: 'Add a payment card to continue using this workspace',
             pleaseReachOutToYourWorkspaceAdmin: 'Please reach out to your workspace admin for any questions.',
             chatWithYourAdmin: 'Chat with your admin',
             chatInAdmins: 'Chat in #admins',
             addPaymentCard: 'Add payment card',
-        }
+        },
     },
     getAssistancePage: {
         title: 'Get assistance',

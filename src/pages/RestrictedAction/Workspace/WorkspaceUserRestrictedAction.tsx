@@ -13,9 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import variables from '@styles/variables';
 
 type WorkspaceUserRestrictedActionProps = {
     policyID: string;

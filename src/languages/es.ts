@@ -2727,16 +2727,17 @@ export default {
         },
         restrictedAction: {
             restricted: 'Restringido',
-            actionsAreCurrentlyRestricted: ({ workspaceName }) => `Los gastos para ${workspaceName} están actualmente restringidos`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) => `El propietario del espacio de trabajo, ${workspaceOwnerName} tendrá que añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.`,
+            actionsAreCurrentlyRestricted: ({workspaceName}) => `Los gastos para ${workspaceName} están actualmente restringidos`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+                `El propietario del espacio de trabajo, ${workspaceOwnerName} tendrá que añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.`,
             youWillNeedToAddOrUpdatePaymentCard: 'Debes añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.',
             addPaymentCardToUnlock: 'Añade una tarjeta de pago para desbloquearlo!',
             addPaymentCardToContinueUsingWorkspace: 'Añade una tarjeta de pago para seguir utilizando este espacio de trabajo',
             pleaseReachOutToYourWorkspaceAdmin: 'Si tienes alguna pregunta, ponte en contacto con el administrador de su espacio de trabajo.',
             chatWithYourAdmin: 'Chatea con tu administrador',
             chatInAdmins: 'Chatea en #admins',
-            addPaymentCard: 'Agregar tarjeta de pago'
-        }
+            addPaymentCard: 'Agregar tarjeta de pago',
+        },
     },
     getAssistancePage: {
         title: 'Obtener ayuda',

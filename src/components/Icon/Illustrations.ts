@@ -61,6 +61,7 @@ import House from '@assets/images/simple-illustrations/simple-illustration__hous
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
+import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -94,7 +95,6 @@ import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
-import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg'
 
 export {
     Abracadabra,
