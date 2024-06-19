@@ -116,6 +116,7 @@
     "expo-av": "~13.10.4",
     "expo-image": "1.11.0",
     "expo-image-manipulator": "11.8.0",
+    "fast-equals": "^4.0.3",
     "focus-trap-react": "^10.2.3",
     "htmlparser2": "^7.2.0",
     "idb-keyval": "^6.2.1",
