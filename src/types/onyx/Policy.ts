@@ -591,6 +591,148 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
+/**
+ * Connection data for Sage Intacct
+ */
+type SageIntacctConnectionData = {
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
+
+    /** Collection of entities */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    entities: SageIntacctDataElementWithValue[];
+
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+
+    /** Collection of journals */
+    journals: SageIntacctDataElementWithValue[];
+
+    /** Collection of items */
+    items: SageIntacctDataElement[];
+
+    /** Collection of tax solutions IDs */
+    taxSolutionIDs: string[];
+};
+
+/**
+ * Sage Intacct credentials
+ */
+type SageIntacctCredentials = {
+    /** Sage Intacct companyID */
+    companyID: string;
+
+    /** Sage Intacct password */
+    password: string;
+
+    /** Sage Intacct userID */
+    userID: string;
+};
+
+/**
+ * Sage Intacct tax
+ */
+type SageIntacctTax = {
+    /** Sage Intacct tax solution ID */
+    taxSolutionID: string;
+};
+
+/**
+ * Connection config for Sage Intacct
+ */
+type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Whether employees should be imported from Sage Intacct */
+    importEmployees: boolean;
+
+    /** Whether Sage Intacct is configured */
+    isConfigured: boolean;
+
+    /** Sage Intacct approval mode */
+    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Whether auto sync is enabled */
+    isAutoSyncEnabled: boolean;
+
+    /** Sage Intacct credentials */
+    credentials: {
+        /** Sage Intacct companyID */
+        companyID: string;
+
+        /** Sage Intacct password */
+        password: string;
+
+        /** Sage Intacct userID */
+        userID: string;
+    };
+
+    /** Sage Intacct tax */
+    tax: {
+        /** Sage Intacct tax solution ID */
+        taxSolutionID: string;
+    };
+
+    /** Configuration of automatic synchronization from Sage Intacct to the app */
+    autoSync: {
+        /** ID of sync job */
+        jobID: string;
+
+        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
+        enabled: boolean;
+    };
+
+    /** Sage Intacct sync */
+    sync: {
+        /** ID of the bank account for Sage Intacct bill payment account */
+        reimbursementAccountID: string;
+
+        /** Whether the reimbursed reports should be synched */
+        syncReimbursedReports: boolean;
+    };
+
+    /** Sage Intacct export configs */
+    export: {
+        // NOT COMPLETE!
+        /** Current export status */
+        exportDate: BillDateValues;
+
+        /** The e-mail of the exporter */
+        exporter: string;
+
+        /** TODO: Will be handled in another issue */
+        nonReimbursable: ExpenseTypesValues;
+
+        /** TODO: Will be handled in another issue */
+        nonReimbursableAccount: string;
+
+        /** TODO: Will be handled in another issue */
+        reimbursable: ExpenseTypesValues;
+    };
+
+    /** Collection of Sage Intacct config errors */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -610,6 +752,9 @@ type Connections = {
 
     /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+
+    /** Sage Intacct integration connection */
+    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectiosConfig>;
 };
 
 /** Names of integration connections */
