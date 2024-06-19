@@ -34,6 +34,8 @@ type ObjectMethodData<T> = {
     data: T;
 };
 
+type OctokitCreateIssue = InternalOctokit['rest']['issues']['create'];
+
 const asMutable = <T>(value: T): Writable<T> => value as Writable<T>;
 
 beforeAll(() => {
@@ -44,7 +46,7 @@ beforeAll(() => {
     const moctokit = {
         rest: {
             issues: {
-                create: jest.fn().mockImplementation((arg) =>
+                create: jest.fn().mockImplementation((arg: Parameters<OctokitCreateIssue>[0]) =>
                     Promise.resolve({
                         data: {
                             ...arg,
