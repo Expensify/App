@@ -26,6 +26,13 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
+    let BillingBanner: React.ReactNode | undefined;
+    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+        BillingBanner = <PreTrialBillingBanner />;
+    } else {
+        // TODO: Add other billing banners here.
+    }
+
     return (
         <Section
             title={translate('subscription.cardSection.title')}
@@ -33,13 +40,7 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={
-                <>
-                    {CardSectionUtils.shouldShowPreTrialBillingBanner() && <PreTrialBillingBanner />}
-
-                    {/** TODO: Add other billing banners here. */}
-                </>
-            }
+            banner={BillingBanner}
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (

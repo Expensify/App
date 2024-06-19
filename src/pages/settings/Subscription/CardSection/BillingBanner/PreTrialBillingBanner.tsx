@@ -8,7 +8,7 @@ import * as Report from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
-import BillingBanner from '.';
+import BillingBanner from './BillingBanner';
 
 function PreTrialBillingBanner() {
     const {translate} = useLocalize();
