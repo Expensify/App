@@ -610,6 +610,9 @@ type Connections = {
 
     /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+
+    /** NetSuite integration connection */
+    netsuite: Connection<unknown, unknown>;
 };
 
 /** Names of integration connections */

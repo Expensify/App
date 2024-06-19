@@ -2399,6 +2399,7 @@ export default {
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            netsuite: 'Net Suite',
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
