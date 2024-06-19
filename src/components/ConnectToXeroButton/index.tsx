@@ -64,6 +64,7 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
             {isRequire2FAModalOpen && (
                 <ConfirmModal
                     onConfirm={() => setIsRequire2FAModalOpen(false)}
+                    onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible
                     shouldShowCancelButton={false}
                 />
