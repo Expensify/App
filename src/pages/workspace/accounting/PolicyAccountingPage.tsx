@@ -264,11 +264,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
                           shouldShowDescriptionOnTop: true,
                           onPress: () => {
-                              console.log(netSuiteSelectedSubsidiary.length);
                               if (!(netSuiteSubsidiaryList.length > 1)) {
                                   return;
                               }
-                              console.log('NAV', ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
                           },
                       },
