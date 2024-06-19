@@ -387,7 +387,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NET_SUITE_SUBSIDIARY_SELECTOR]: {
         policyID: string;
-        subsidiaryName: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

@@ -21,20 +21,17 @@ import type SCREENS from '@src/SCREENS';
 type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NET_SUITE_SUBSIDIARY_SELECTOR>;
 function NetSuiteSubsidiarySelector({
     policy,
-    route: {
-        params: {subsidiaryName},
-    },
 }: NetSuiteSubsidiarySelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
-    const netsuiteConfig = policy?.connections?.netsuite?.options?.config ?? {};
+    const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const policyID = policy?.id ?? '';
 
     const sections = subsidiaryList.map((subsidiary) => ({
             text: subsidiary.name,
             keyForList: subsidiary.name,
-            isSelected: subsidiary.name === subsidiaryName,
+            isSelected: subsidiary.name === netsuiteConfig?.subsidiary ?? '',
         })) ?? [];
 
     const saveSelection = ({keyForList}: ListItem) => {
@@ -67,7 +64,7 @@ function NetSuiteSubsidiarySelector({
                     onSelectRow={saveSelection}
                     shouldDebounceRowSelect
                     sections={[{data: sections}]}
-                    initiallyFocusedOptionKey={subsidiaryName}
+                    initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? ''}
                 />
             </OfflineWithFeedback>
         </ConnectionLayout>
