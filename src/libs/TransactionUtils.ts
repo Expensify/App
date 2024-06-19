@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -12,6 +12,7 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
+import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -48,6 +49,12 @@ Onyx.connect({
         currentUserEmail = val?.email ?? '';
         currentUserAccountID = val?.accountID ?? -1;
     },
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -158,7 +165,7 @@ function hasEReceipt(transaction: Transaction | undefined | null): boolean {
     return !!transaction?.hasEReceipt;
 }
 
-function hasReceipt(transaction: OnyxEntry<Transaction> | undefined): boolean {
+function hasReceipt(transaction: OnyxInputOrEntry<Transaction> | undefined): boolean {
     return !!transaction?.receipt?.state || hasEReceipt(transaction);
 }
 
@@ -284,7 +291,7 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
  * Return the comment field (referred to as description in the App) from the transaction.
  * The comment does not have its modifiedComment counterpart.
  */
-function getDescription(transaction: OnyxEntry<Transaction>): string {
+function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
     // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
     return transaction?.comment?.comment?.toString() ?? '';
 }
@@ -292,7 +299,7 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
+function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport || isFromTrackedExpense) {
         const amount = transaction?.modifiedAmount ?? 0;
@@ -318,7 +325,7 @@ function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = fa
 /**
  * Return the tax amount field from the transaction.
  */
-function getTaxAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: boolean): number {
+function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         return Math.abs(transaction?.taxAmount ?? 0);
@@ -332,14 +339,14 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport: 
 /**
  * Return the tax code from the transaction.
  */
-function getTaxCode(transaction: OnyxEntry<Transaction>): string {
+function getTaxCode(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.taxCode ?? '';
 }
 
 /**
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
-function getCurrency(transaction: OnyxEntry<Transaction>): string {
+function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
     const currency = transaction?.modifiedCurrency ?? '';
     if (currency) {
         return currency;
@@ -372,11 +379,11 @@ function isFetchingWaypointsFromServer(transaction: OnyxEntry<Transaction>): boo
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: OnyxEntry<Transaction>): string {
+function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: Transaction | null): number {
+function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
     return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
@@ -397,7 +404,7 @@ function getWaypoints(transaction: OnyxEntry<Transaction>): WaypointCollection |
 /**
  * Return the category from the transaction. This "category" field has no "modified" complement.
  */
-function getCategory(transaction: OnyxEntry<Transaction>): string {
+function getCategory(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.category ?? '';
 }
 
@@ -405,13 +412,13 @@ function getCategory(transaction: OnyxEntry<Transaction>): string {
  * Return the cardID from the transaction.
  */
 function getCardID(transaction: Transaction): number {
-    return transaction?.cardID ?? 0;
+    return transaction?.cardID ?? -1;
 }
 
 /**
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
-function getBillable(transaction: OnyxEntry<Transaction>): boolean {
+function getBillable(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.billable ?? false;
 }
 
@@ -446,7 +453,7 @@ function getTagArrayFromName(tagName: string): string[] {
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
-function getTag(transaction: OnyxEntry<Transaction>, tagIndex?: number): string {
+function getTag(transaction: OnyxInputOrEntry<Transaction>, tagIndex?: number): string {
     if (tagIndex !== undefined) {
         const tagsArray = getTagArrayFromName(transaction?.tag ?? '');
         return tagsArray[tagIndex] ?? '';
@@ -459,13 +466,16 @@ function getTagForDisplay(transaction: OnyxEntry<Transaction>, tagIndex?: number
     return getCleanedTagName(getTag(transaction, tagIndex));
 }
 
+function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
+}
+
 /**
  * Return the created field from the transaction, return the modifiedCreated if present.
  */
-function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const created = transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
-
+function getFormattedCreated(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
+    const created = getCreated(transaction);
     return DateUtils.formatWithUTCTimeZone(created, dateFormat);
 }
 
@@ -483,7 +493,7 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  * Determine whether a transaction is made with a card (Expensify or Company Card).
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    const cardID = transaction?.cardID ?? 0;
+    const cardID = transaction?.cardID ?? -1;
     return isCorporateCard(cardID);
 }
 
@@ -507,7 +517,7 @@ function isPosted(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
-function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
+function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
@@ -518,7 +528,7 @@ function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
-function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean {
+function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
@@ -637,6 +647,10 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
 function isDuplicate(transactionID: string, checkDismissed = false): boolean {
+    if (!Permissions.canUseDupeDetection(allBetas ?? [])) {
+        return false;
+    }
+
     const hasDuplicatedViolation = !!allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
@@ -667,7 +681,7 @@ function isOnHoldByTransactionID(transactionID: string): boolean {
         return false;
     }
 
-    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]);
 }
 
 /**
@@ -690,6 +704,10 @@ function hasNoticeTypeViolation(transactionID: string, transactionViolations: On
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    if (!Permissions.canUseDupeDetection(allBetas ?? [])) {
+        return false;
+    }
+
     return !!transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING);
 }
 
@@ -711,7 +729,7 @@ function getEnabledTaxRateCount(options: TaxRates) {
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
-function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
+function isCustomUnitRateIDForP2P(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 }
 
@@ -722,7 +740,7 @@ function hasReservationList(transaction: Transaction | undefined | null): boolea
 /**
  * Get rate ID from the transaction object
  */
-function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
+function getRateID(transaction: OnyxInputOrEntry<Transaction>): string | undefined {
     return transaction?.comment?.customUnit?.customUnitRateID?.toString();
 }
 
@@ -813,6 +831,7 @@ export {
     getMerchant,
     getMCCGroup,
     getCreated,
+    getFormattedCreated,
     getCategory,
     getBillable,
     getTag,
