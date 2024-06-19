@@ -385,6 +385,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.NET_SUITE_SUBSIDIARY_SELECTOR]: {
+        policyID: string;
+        subsidiaryName: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
