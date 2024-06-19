@@ -310,6 +310,8 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
+type Listener = () => void;
+
 /**
  * This is a helper function to create a mock for the addListener function of the react-navigation library.
  * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate

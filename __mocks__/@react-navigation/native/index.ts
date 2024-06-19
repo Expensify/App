@@ -1,3 +1,5 @@
+import {createAddListenerMock} from '../../../tests/utils/TestHelper';
+
 const isJestEnv = process.env.NODE_ENV === 'test';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -6,24 +8,12 @@ const realReactNavigation = isJestEnv ? jest.requireActual<typeof import('@react
 const useIsFocused = isJestEnv ? realReactNavigation.useIsFocused : () => true;
 const useTheme = isJestEnv ? realReactNavigation.useTheme : () => ({});
 
-type Listener = () => void;
-const transitionEndListeners: Listener[] = [];
-const triggerTransitionEnd = isJestEnv
-    ? () => {
-          transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-      }
-    : realReactNavigation.triggerTransitionEnd;
-
-const addListener = isJestEnv
-    ? jest.fn().mockImplementation((listener, callback: Listener) => {
-          if (listener === 'transitionEnd') {
-              transitionEndListeners.push(callback);
-          }
-          return () => {
-              transitionEndListeners.filter((cb) => cb !== callback);
-          };
-      })
-    : realReactNavigation.addListener;
+const {triggerTransitionEnd, addListener} = isJestEnv
+    ? createAddListenerMock()
+    : {
+          triggerTransitionEnd: realReactNavigation.triggerTransitionEnd,
+          addListener: realReactNavigation.addListener,
+      };
 
 const useNavigation = () => ({
     navigate: jest.fn(),
