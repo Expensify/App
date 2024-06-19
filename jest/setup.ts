@@ -53,3 +53,6 @@ jest.mock('react-native-sound', () => {
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('react-native-keyboard-controller', () => require('react-native-keyboard-controller/jest'));
