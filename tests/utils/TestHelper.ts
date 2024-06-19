@@ -15,8 +15,6 @@ import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
-console.debug = () => {};
-
 type MockFetch = ReturnType<typeof jest.fn> & {
     pause: () => void;
     fail: () => void;
