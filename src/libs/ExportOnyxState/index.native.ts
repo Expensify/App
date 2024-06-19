@@ -1,23 +1,23 @@
+import RNFS from 'react-native-fs';
 import {open} from 'react-native-quick-sqlite';
-import RNFS from "react-native-fs";
-import Share from "react-native-share";
-import * as main from './index';
+import Share from 'react-native-share';
+import common from './common';
 
-const readFromIndexedDB = () => new Promise((resolve) => {
-    const db = open({name: 'OnyxDB'});
-    const query = 'SELECT * FROM keyvaluepairs';
+const readFromOnyxDatabase = () =>
+    new Promise((resolve) => {
+        const db = open({name: 'OnyxDB'});
+        const query = 'SELECT * FROM keyvaluepairs';
 
-    db.executeAsync(query, []).then(({rows}) => {
-        // eslint-disable-next-line no-underscore-dangle
-        const result = rows?._array.map((row) => ({[row.record_key]: JSON.parse(row.valueJSON as string)}));
+        db.executeAsync(query, []).then(({rows}) => {
+            // eslint-disable-next-line no-underscore-dangle
+            const result = rows?._array.map((row) => ({[row.record_key]: JSON.parse(row.valueJSON as string)}));
 
-        resolve(result);
-        db.close();
+            resolve(result);
+        });
     });
 
-});
-
-const shareAsFile = (value: string) => {
+// eslint-disable-next-line @lwc/lwc/no-async-await
+const shareAsFile = async (value: string) => {
     try {
         // Define new filename and path for the app info file
         const infoFileName = `onyx-state.txt`;
@@ -34,10 +34,10 @@ const shareAsFile = (value: string) => {
     } catch (error) {
         console.error('Error renaming and sharing file:', error);
     }
-}
+};
 
 export default {
-    maskFragileData: main.default.maskFragileData,
-    readFromIndexedDB,
+    maskFragileData: common.maskFragileData,
+    readFromOnyxDatabase,
     shareAsFile,
-}
+};
