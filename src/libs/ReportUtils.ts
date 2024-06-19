@@ -1429,7 +1429,7 @@ function isOneTransactionReport(reportID: string): boolean {
 function isOneTransactionThread(reportID: string, parentReportID: string): boolean {
     const parentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? ([] as ReportAction[]);
     const transactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(parentReportID, parentReportActions);
-    return reportID?.toString() === transactionThreadReportID?.toString();
+    return reportID === transactionThreadReportID;
 }
 
 /**
