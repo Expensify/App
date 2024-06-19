@@ -15,6 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import variables from '@styles/variables';
 
 type WorkspaceUserRestrictedActionProps = {
     policyID: string;
@@ -47,8 +48,8 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.mb15]}>
                     <ImageSVG
                         src={Illustrations.LockClosedOrange}
-                        width={136}
-                        height={136}
+                        width={variables.restrictedActionIllustrationHeight}
+                        height={variables.restrictedActionIllustrationHeight}
                     />
                     <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
                         {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name})}

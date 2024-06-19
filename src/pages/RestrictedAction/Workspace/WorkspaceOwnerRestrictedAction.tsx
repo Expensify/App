@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import variables from '@styles/variables';
 
 function WorkspaceOwnerRestrictedAction() {
     const {translate} = useLocalize();
@@ -36,8 +37,8 @@ function WorkspaceOwnerRestrictedAction() {
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart, styles.mb3]}>
                         <Icon
                             src={Illustrations.LockClosedOrange}
-                            height={48}
-                            width={48}
+                            height={variables.iconHeader}
+                            width={variables.iconHeader}
                         />
                         <Badge
                             icon={Expensicons.Unlock}
