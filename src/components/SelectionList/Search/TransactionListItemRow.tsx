@@ -110,12 +110,18 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: Transactio
 
 function MerchantCell({transactionItem, showTooltip}: TransactionCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const description = TransactionUtils.getDescription(transactionItem);
+    let merchant = transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description;
+
+    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem)) {
+        merchant = translate('iou.receiptStatusTitle');
+    }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description}
+            text={merchant}
             style={[styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
