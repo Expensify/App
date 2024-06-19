@@ -123,12 +123,18 @@ function MerchantCell({transactionItem, showTooltip}: TransactionCellProps) {
 
 function TotalCell({showTooltip, isLargeScreenWidth, transactionItem, isChildListItem}: TotalCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const currency = TransactionUtils.getCurrency(transactionItem);
+    let amount = CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency);
+
+    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem)) {
+        amount = translate('iou.receiptStatusTitle');
+    }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
+            text={amount}
             style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight, isChildListItem ? styles.label : undefined]}
         />
     );
