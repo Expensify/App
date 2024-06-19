@@ -5554,7 +5554,24 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
         return deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
     }
 
-    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(chatReportID, transactionID, reportAction);
+    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+    const whisperAction = Object.values(chatReportActions).find(
+        (action: OnyxTypes.ReportAction) =>
+            action?.originalMessage &&
+            action?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER &&
+            action.originalMessage.transactionID === transactionID &&
+            ReportActionsUtils.isActionableTrackExpense(action),
+    );
+    const actionableWhisperReportActionID = whisperAction?.reportActionID;
+    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
+        chatReportID,
+        transactionID,
+        reportAction,
+        undefined,
+        undefined,
+        actionableWhisperReportActionID,
+        CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+    );
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
