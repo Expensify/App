@@ -1,8 +1,5 @@
 import {Str} from 'expensify-common';
 
-const ONYX_DB_KEY = 'OnyxDB';
-const DEFAULT_FILE_NAME = 'onyx-state.txt';
-
 const maskFragileData = (data: Record<string, unknown>): Record<string, unknown> => {
     const maskedData: Record<string, unknown> = {};
 
@@ -24,6 +21,4 @@ const maskFragileData = (data: Record<string, unknown>): Record<string, unknown>
 
 export default {
     maskFragileData,
-    ONYX_DB_KEY,
-    DEFAULT_FILE_NAME,
 };
