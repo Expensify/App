@@ -8,7 +8,7 @@ if (!semverLevel || !Object.values<string>(versionUpdater.SEMANTIC_VERSION_LEVEL
     core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
 }
 
-const {version: currentVersion}: PackageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
+const {version: currentVersion} = JSON.parse(readFileSync('./package.json', 'utf8')) as PackageJson;
 if (!currentVersion) {
     core.setFailed('Error: Could not read package.json');
 }
