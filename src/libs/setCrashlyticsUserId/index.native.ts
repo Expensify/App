@@ -1,5 +1,5 @@
 import crashlytics from '@react-native-firebase/crashlytics';
-import type UseCrashlyticsProps from "./types";
+import type UseCrashlyticsProps from './types';
 
 const setCrashlyticsUserId = ({isAuthenticated, accountID}: UseCrashlyticsProps) => {
     if (!isAuthenticated) {

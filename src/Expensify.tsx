@@ -4,7 +4,6 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import setCrashlyticsUserId from "./libs/setCrashlyticsUserId";
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -29,6 +28,7 @@ import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
 import Performance from './libs/Performance';
+import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
@@ -218,8 +218,8 @@ function Expensify({
     }, []);
 
     useEffect(() => {
-        setCrashlyticsUserId({isAuthenticated, accountID: session?.accountID})
-    }, [isAuthenticated, session?.accountID])
+        setCrashlyticsUserId({isAuthenticated, accountID: session?.accountID});
+    }, [isAuthenticated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {

@@ -1,8 +1,8 @@
 import React from 'react';
+import Button from '@components/Button';
+import TestToolRow from '@components/TestToolRow';
+import useLocalize from '@hooks/useLocalize';
 import testCrash from '@libs/testCrash';
-import Button from "@components/Button";
-import TestToolRow from "@components/TestToolRow";
-import useLocalize from "@hooks/useLocalize";
 import BaseTestToolMenu from './BaseTestToolMenu';
 
 function TestToolMenu() {

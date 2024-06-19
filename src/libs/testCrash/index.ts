@@ -1,2 +1,2 @@
-const testCrash = () => {}
+const testCrash = () => {};
 export default testCrash;
