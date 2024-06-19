@@ -5,7 +5,7 @@ import type {ReportAction} from '@src/types/onyx';
 import type {ActionName} from '@src/types/onyx/OriginalMessage';
 import type DeepRecord from '@src/types/utils/DeepRecord';
 
-const flattenActionNamesValues = (actionNames: DeepRecord<string, ActionName>) => {
+const flattenActionNamesValues = (actionNames: DeepRecord<string, ActionName>): ActionName[] => {
     let result: ActionName[] = [];
     Object.values(actionNames).forEach((value) => {
         if (typeof value === 'object') {
@@ -35,9 +35,10 @@ const deprecatedReportActions: ActionName[] = [
 
 export default function createRandomReportAction(index: number): ReportAction {
     return {
-        // we need to add any here because of the way we are generating random values
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ActionName) => !deprecatedReportActions.includes(actionType))) as any,
+        // We need to assert the type of actionName so that rest of the properties are inferred correctly
+        actionName: rand(
+            flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ActionName) => !deprecatedReportActions.includes(actionType)),
+        ) as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportActionID: index.toString(),
         previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         actorAccountID: index,
