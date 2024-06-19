@@ -153,28 +153,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         setIsDeleteModalVisible(false);
     }, [canDeleteRequest]);
 
-    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(report)];
-    if (canHoldOrUnholdRequest) {
-        const isRequestIOU = parentReport?.type === 'iou';
-        const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
-        const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
-        const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-        if (isOnHold && !isDuplicate && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Stopwatch,
-                text: translate('iou.unholdExpense'),
-                onSelected: () => changeMoneyRequestStatus(),
-            });
-        }
-        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
-            threeDotsMenuItems.push({
-                icon: Expensicons.Stopwatch,
-                text: translate('iou.hold'),
-                onSelected: () => changeMoneyRequestStatus(),
-            });
-        }
-    }
-
     useEffect(() => {
         if (isLoadingHoldUseExplained) {
             return;
@@ -200,14 +178,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         IOU.dismissHoldUseExplanation();
     };
 
-    if (canDeleteRequest) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-            onSelected: () => setIsDeleteModalVisible(true),
-        });
-    }
-
     return (
         <>
             <View style={[styles.pl0]}>
@@ -216,9 +186,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                     shouldShowReportAvatarWithDisplay
                     shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     report={{
                         ...report,
                         ownerAccountID: parentReport?.ownerAccountID,

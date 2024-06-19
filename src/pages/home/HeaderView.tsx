@@ -129,45 +129,10 @@ function HeaderView({
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const threeDotMenuItems: ThreeDotsMenuItem[] = [];
-    if (isTaskReport && !isCanceledTaskReport) {
-        const canModifyTask = Task.canModifyTask(report, session?.accountID ?? -1);
-
-        // Task is marked as completed
-        if (ReportUtils.isCompletedTaskReport(report) && canModifyTask) {
-            threeDotMenuItems.push({
-                icon: Expensicons.Checkmark,
-                text: translate('task.markAsIncomplete'),
-                onSelected: Session.checkIfActionIsAllowed(() => Task.reopenTask(report)),
-            });
-        }
-
-        // Task is not closed
-        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !ReportUtils.isClosedReport(report) && canModifyTask) {
-            threeDotMenuItems.push({
-                icon: Expensicons.Trashcan,
-                text: translate('common.delete'),
-                onSelected: Session.checkIfActionIsAllowed(() => setIsDeleteTaskConfirmModalVisible(true)),
-            });
-        }
-    }
 
     const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
     const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
-    if (canJoin) {
-        threeDotMenuItems.push({
-            icon: Expensicons.ChatBubbles,
-            text: translate('common.join'),
-            onSelected: join,
-        });
-    } else if (ReportUtils.canLeaveChat(report, policy)) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
-        threeDotMenuItems.push({
-            icon: Expensicons.ChatBubbles,
-            text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
-        });
-    }
 
     const joinButton = (
         <Button
@@ -189,8 +154,6 @@ function HeaderView({
             </>
         );
     };
-
-    threeDotMenuItems.push(HeaderUtils.getPinMenuItem(report));
 
     if (isConcierge && guideCalendarLink) {
         threeDotMenuItems.push({

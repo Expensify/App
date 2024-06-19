@@ -178,24 +178,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const threeDotsMenuItems = [HeaderUtils.getPinMenuItem(moneyRequestReport)];
-    if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('iou.cancelPayment'),
-            onSelected: () => setIsConfirmModalVisible(true),
-        });
-    }
-
-    // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    if (canDeleteRequest && !isEmptyObject(transactionThreadReport)) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction}),
-            onSelected: () => setIsDeleteRequestModalVisible(true),
-        });
-    }
-
     useEffect(() => {
         if (canDeleteRequest) {
             return;
@@ -216,9 +198,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!isMoreContentShown && !allHavePendingRTERViolation}
-                shouldShowThreeDotsButton
-                threeDotsMenuItems={threeDotsMenuItems}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             >
                 {shouldShowSettlementButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
