@@ -9,26 +9,26 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRootNavigatorScreenOptions';
-import SplitRouter from './SplitRouter';
-import type {SplitNavigatorProps, SplitNavigatorRouterOptions} from './types';
+import SplitStackRouter from './SplitStackRouter';
+import type {SplitStackNavigatorProps, SplitStackNavigatorRouterOptions} from './types';
 import useNavigationReset from './useNavigationReset';
-import usePrepareSplitNavigatorChildren from './usePrepareSplitNavigatorChildren';
+import usePrepareSplitStackNavigatorChildren from './usePrepareSplitStackNavigatorChildren';
 
-function SplitNavigator<ParamList extends ParamListBase>(props: SplitNavigatorProps<ParamList>) {
+function SplitStackNavigator<ParamList extends ParamListBase>(props: SplitStackNavigatorProps<ParamList>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const screenOptions = getRootNavigatorScreenOptions(shouldUseNarrowLayout, styles, StyleUtils);
 
-    const children = usePrepareSplitNavigatorChildren(props.children, props.sidebarScreen, screenOptions.homeScreen);
+    const children = usePrepareSplitStackNavigatorChildren(props.children, props.sidebarScreen, screenOptions.homeScreen);
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
-        SplitNavigatorRouterOptions,
+        SplitStackNavigatorRouterOptions,
         StackActionHelpers<ParamListBase>,
         StackNavigationOptions,
         StackNavigationEventMap
-    >(SplitRouter, {
+    >(SplitStackRouter, {
         children,
         screenOptions: screenOptions.centralPaneNavigator,
         initialRouteName: props.initialRouteName,
@@ -55,10 +55,10 @@ function SplitNavigator<ParamList extends ParamListBase>(props: SplitNavigatorPr
     );
 }
 
-SplitNavigator.displayName = 'SplitNavigator';
+SplitStackNavigator.displayName = 'SplitStackNavigator';
 
 export default function <ParamList extends ParamListBase>() {
-    return createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, React.ComponentType<SplitNavigatorProps<ParamList>>>(
-        SplitNavigator,
+    return createNavigatorFactory<StackNavigationState<ParamList>, StackNavigationOptions, StackNavigationEventMap, React.ComponentType<SplitStackNavigatorProps<ParamList>>>(
+        SplitStackNavigator,
     )<ParamList>();
 }

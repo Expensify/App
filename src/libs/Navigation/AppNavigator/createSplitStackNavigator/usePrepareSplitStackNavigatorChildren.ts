@@ -2,7 +2,7 @@ import type {StackNavigationOptions} from '@react-navigation/stack';
 import {Children, isValidElement, useMemo} from 'react';
 import type {ReactNode} from 'react';
 
-export default function usePrepareSplitNavigatorChildren(screensNode: ReactNode, sidebarScreenName: string, sidebarScreenOptions: StackNavigationOptions) {
+export default function usePrepareSplitStackNavigatorChildren(screensNode: ReactNode, sidebarScreenName: string, sidebarScreenOptions: StackNavigationOptions) {
     return useMemo(
         () =>
             Children.toArray(screensNode).map((screen: ReactNode) => {
