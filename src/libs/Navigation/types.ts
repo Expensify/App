@@ -266,6 +266,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;
