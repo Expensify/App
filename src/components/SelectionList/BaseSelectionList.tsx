@@ -629,6 +629,10 @@ function BaseSelectionList<TItem extends ListItem>(
         },
     );
 
+    const getSkeletonView = useCallback(() => {
+        return SkeletonView ? <SkeletonView shouldAnimate /> : <OptionsListSkeletonView shouldAnimate />;
+    }, [SkeletonView]);
+
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
@@ -681,11 +685,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        SkeletonView ? (
-                            <SkeletonView shouldAnimate />
-                        ) : (
-                            <OptionsListSkeletonView shouldAnimate />
-                        )
+                        getSkeletonView()
                     ) : (
                         <>
                             {!listHeaderContent && header()}
