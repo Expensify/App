@@ -2175,6 +2175,10 @@ export default {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
+        netsuite: {
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: 'Choose the subsidiary in NetSuite that you\'d like to import data from.',
+        },
         type: {
             free: 'Free',
             control: 'Control',

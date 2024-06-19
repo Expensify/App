@@ -591,6 +591,49 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** NetSuite Subsidiary */
+type NetSuiteSubsidiary = {
+    /** Name of the subsidiary */
+    name: string;
+}
+
+/**
+ * Data imported from NetSuite
+ * 
+ * This is only partial type
+ */
+type NetSuiteConnectionData = {
+    /** List of subsidiaries */
+    subsidiaryList: NetSuiteSubsidiary[];
+}
+
+/**
+ * Config imported from NetSuite
+ * 
+ * This is only partial type
+ */
+type NetSuiteConnectionConfig = {
+    /** Name of the selected subsidiary */
+    subsidiary: string;
+}
+
+/**
+ * NetSuite Connection Type
+ * 
+ * This is only partial type
+ */
+type NetSuiteConnection = {
+    /** NetSuite connection data and config */
+    options: {
+        /** Data imported from NetSuite */
+        data: NetSuiteConnectionData
+
+        /** Config imported from NetSuite */
+        config: NetSuiteConnectionConfig
+    }
+}
+
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -612,7 +655,7 @@ type Connections = {
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 
     /** NetSuite integration connection */
-    netsuite: Connection<unknown, unknown>;
+    netsuite: NetSuiteConnection;
 };
 
 /** Names of integration connections */
@@ -956,4 +999,5 @@ export type {
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,
+    NetSuiteSubsidiary
 };

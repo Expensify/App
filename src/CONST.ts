@@ -1345,6 +1345,10 @@ const CONST = {
         },
     },
 
+    NET_SUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
