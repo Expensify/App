@@ -51,7 +51,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
     const styles = useThemeStyles();
     const fieldKey = ReportUtils.getReportFieldKey(route.params.fieldID);
     const reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField ?? null, policy);
+    const isDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate} = useLocalize();
 
@@ -86,6 +86,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
+        setIsDeleteModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     };
 
@@ -148,7 +149,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
             {reportField.type === 'dropdown' && (
                 <EditReportFieldDropdown
-                    policyID={report.policyID ?? ''}
+                    policyID={report.policyID ?? '-1'}
                     fieldKey={fieldKey}
                     fieldValue={fieldValue}
                     fieldOptions={reportField.values.filter((_value: string, index: number) => !reportField.disabledOptions[index])}

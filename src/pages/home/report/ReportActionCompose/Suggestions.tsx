@@ -1,17 +1,14 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
+import type {TextSelection} from '@components/Composer/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
-
-type Selection = {
-    start: number;
-    end: number;
-};
 
 type SuggestionProps = {
     /** The current input value */
@@ -21,19 +18,16 @@ type SuggestionProps = {
     setValue: (newValue: string) => void;
 
     /** The current selection value */
-    selection: Selection;
+    selection: TextSelection;
 
     /** Callback to update the current selection */
-    setSelection: (newSelection: Selection) => void;
+    setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
     updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
 
-    /** Meaures the parent container's position and dimensions. */
-    measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
-
-    /** Whether the composer is expanded */
-    isComposerFullSize: boolean;
+    /** Measures the parent container's position and dimensions. Also add cursor coordinates */
+    measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
 
     /** Report composer focus state */
     isComposerFocused?: boolean;
@@ -61,15 +55,13 @@ type SuggestionProps = {
  */
 function Suggestions(
     {
-        isComposerFullSize,
         value,
         setValue,
         selection,
         setSelection,
         updateComment,
-        composerHeight,
         resetKeyboardInput,
-        measureParentContainer,
+        measureParentContainerAndReportCursor,
         isAutoSuggestionPickerLarge = true,
         isComposerFocused,
         isGroupPolicyReport,
@@ -119,6 +111,7 @@ function Suggestions(
 
     const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
+        suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;
     }, []);
 
@@ -157,11 +150,9 @@ function Suggestions(
         setValue,
         setSelection,
         selection,
-        isComposerFullSize,
         updateComment,
-        composerHeight,
         isAutoSuggestionPickerLarge,
-        measureParentContainer,
+        measureParentContainerAndReportCursor,
         isComposerFocused,
         isGroupPolicyReport,
         policyID,

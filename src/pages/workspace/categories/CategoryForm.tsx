@@ -40,19 +40,23 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             const newCategoryName = values.categoryName.trim();
 
             if (!ValidationUtils.isRequiredFulfilled(newCategoryName)) {
-                errors.categoryName = 'workspace.categories.categoryRequiredError';
+                errors.categoryName = translate('workspace.categories.categoryRequiredError');
             } else if (policyCategories?.[newCategoryName]) {
-                errors.categoryName = 'workspace.categories.existingCategoryError';
+                errors.categoryName = translate('workspace.categories.existingCategoryError');
             } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME) {
-                errors.categoryName = 'workspace.categories.invalidCategoryName';
+                errors.categoryName = translate('workspace.categories.invalidCategoryName');
             } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(errors, 'categoryName', ['common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}]);
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'categoryName',
+                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}),
+                );
             }
 
             return errors;
         },
-        [policyCategories],
+        [policyCategories, translate],
     );
 
     const submit = useCallback(
