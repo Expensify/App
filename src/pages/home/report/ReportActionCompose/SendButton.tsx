@@ -6,9 +6,9 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 
 type SendButtonProps = {
@@ -23,7 +23,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap().onEnd(() => {
         handleSendMessage();
     });
@@ -37,7 +37,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
             <GestureDetector
                 // A new GestureDetector instance must be created when switching from a large screen to a small screen
                 // if not, the GestureDetector may not function correctly.
-                key={`${isSmallScreenWidth ? 0 : 1}`}
+                key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}`}
                 gesture={Tap}
             >
                 <Tooltip text={translate('common.send')}>
