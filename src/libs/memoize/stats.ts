@@ -1,7 +1,8 @@
 type MemoizeStatsEntry = {
     keyLength: number;
     didHit: boolean;
-    processingTime: number;
+    cacheRetrievalTime: number;
+    fnTime?: number;
 };
 
 class MemoizeStats {
@@ -36,10 +37,10 @@ class MemoizeStats {
 
         this.avgKeyLength = this.calculateCumulativeAvg(this.avgKeyLength, this.calls, entry.keyLength);
 
-        if (entry.didHit) {
-            this.avgCacheRetrievalTime = this.calculateCumulativeAvg(this.avgCacheRetrievalTime, this.hits, entry.processingTime);
-        } else {
-            this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.processingTime);
+        this.avgCacheRetrievalTime = this.calculateCumulativeAvg(this.avgCacheRetrievalTime, this.hits, entry.cacheRetrievalTime);
+
+        if (entry.fnTime !== undefined) {
+            this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.fnTime);
         }
     }
 
@@ -61,7 +62,7 @@ class MemoizeStats {
             },
             save: () => {
                 // Check if all required stats are present
-                if (entry.keyLength === undefined || entry.didHit === undefined || entry.processingTime === undefined) {
+                if (entry.keyLength === undefined || entry.didHit === undefined || entry.cacheRetrievalTime === undefined) {
                     return;
                 }
 

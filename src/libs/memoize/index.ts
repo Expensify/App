@@ -22,29 +22,22 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions) {
         statsEntry.registerStat('keyLength', key.length);
 
         const retrievalTimeStart = performance.now();
-        const cached = cache.get(key);
+        let cached = cache.get(key);
+        statsEntry.registerStat('cacheRetrievalTime', performance.now() - retrievalTimeStart);
+        statsEntry.registerStat('didHit', !!cached);
 
-        // If cached value is there, return it
-        if (cached) {
-            statsEntry.registerStat('didHit', true);
-            statsEntry.registerStat('processingTime', performance.now() - retrievalTimeStart);
+        if (!cached) {
+            const fnTimeStart = performance.now();
+            const result = fn(...key);
+            statsEntry.registerStat('fnTime', performance.now() - fnTimeStart);
 
-            statsEntry.save();
-
-            return cached.value;
+            cached = {value: result};
+            cache.set(key, result as ReturnType<Fn>);
         }
-
-        // If no cached value, calculate it and store it
-        statsEntry.registerStat('didHit', false);
-        const fnTimeStart = performance.now();
-        const result = fn(...key);
-        statsEntry.registerStat('processingTime', performance.now() - fnTimeStart);
-
-        cache.set(key, result as ReturnType<Fn>);
 
         statsEntry.save();
 
-        return result;
+        return cached.value;
     };
 
     memoized.cache = cache;
