@@ -91,7 +91,6 @@ function IOURequestStepCategory({
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
-
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
 
@@ -177,7 +176,13 @@ function IOURequestStepCategory({
                     ) : (
                         <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>
                             {translate('workspace.categories.emptyCategories.otherWorkspace')}
-                            <TextLink onPress={() => {}}>{translate('workspace.categories.emptyCategories.askYourAdmin')}</TextLink>
+                            <TextLink
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'));
+                                }}
+                            >
+                                {translate('workspace.categories.emptyCategories.askYourAdmin')}
+                            </TextLink>
                             {translate('workspace.categories.emptyCategories.enableForThisWorkspace')}
                         </Text>
                     )}
