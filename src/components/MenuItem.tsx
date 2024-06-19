@@ -14,7 +14,6 @@ import ControlSelection from '@libs/ControlSelection';
 import convertToLTR from '@libs/convertToLTR';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
@@ -154,13 +153,13 @@ type MenuItemBaseProps = {
     shouldShowDescriptionOnTop?: boolean;
 
     /** Error to display at the bottom of the component */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Any additional styles to pass to error text. */
     errorTextStyle?: StyleProp<ViewStyle>;
 
     /** Hint to display at the bottom of the component */
-    hintText?: MaybePhraseKey;
+    hintText?: string;
 
     /** Should the error text red dot indicator be shown */
     shouldShowRedDotIndicator?: boolean;
@@ -207,7 +206,7 @@ type MenuItemBaseProps = {
     shouldStackHorizontally?: boolean;
 
     /** Prop to represent the size of the avatar images to be shown */
-    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** Avatars to show on the right of the menu item */
     floatRightAvatars?: IconType[];
@@ -280,6 +279,9 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
+
+    /** Handles what to do when the item loose focus */
+    onBlur?: () => void;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
     avatarID?: number | string;
@@ -365,6 +367,7 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
+        onBlur,
         avatarID,
     }: MenuItemProps,
     ref: PressableRef,
@@ -462,7 +465,7 @@ function MenuItem(
     };
 
     return (
-        <View>
+        <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
                 <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
@@ -561,6 +564,7 @@ function MenuItem(
                                                             avatarID={avatarID}
                                                             fallbackIcon={fallbackIcon}
                                                             size={avatarSize}
+                                                            type={CONST.ICON_TYPE_AVATAR}
                                                         />
                                                     )}
                                                 </View>

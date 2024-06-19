@@ -4,7 +4,6 @@ import type {ForwardedRef} from 'react';
 import type {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -13,7 +12,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type CountrySelectorProps = {
     /** Form error text. e.g when no country is selected */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Callback called when the country changes. */
     onInputChange?: (value?: string) => void;
