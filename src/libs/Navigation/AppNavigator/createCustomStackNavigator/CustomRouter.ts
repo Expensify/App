@@ -46,7 +46,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 
     // This solutions is heuristics and will work for our cases. We may need to improve it in the future if we will have more cases to handle.
     if (topmostBottomTabRoute && !isNarrowLayout) {
-        const fullScreenRoute = state.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+        const fullScreenRoute = state.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
 
         // If there is fullScreenRoute we don't need to add anything.
         if (fullScreenRoute) {
@@ -62,7 +62,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
             return;
         }
 
-        const templateFullScreenRoute = templateState.routes.find((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR);
+        const templateFullScreenRoute = templateState.routes.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
 
         // If templateFullScreenRoute is defined, and full screen route is not in the state, we need to add it.
         if (templateFullScreenRoute) {

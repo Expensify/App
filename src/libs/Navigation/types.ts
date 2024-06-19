@@ -1099,7 +1099,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
 };
 
-type FullScreenNavigatorParamList = {
+type WorkspaceNavigatorParamList = {
     [SCREENS.WORKSPACE.INITIAL]: {
         policyID: string;
     };
@@ -1274,7 +1274,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
-        [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
+        [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
@@ -1307,7 +1307,7 @@ type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftMo
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
-type FullScreenName = keyof FullScreenNavigatorParamList;
+type WorkspaceScreenName = keyof WorkspaceNavigatorParamList;
 
 type CentralPaneName = keyof CentralPaneScreensParamList;
 
@@ -1333,8 +1333,8 @@ export type {
     EnablePaymentsNavigatorParamList,
     ExplanationModalNavigatorParamList,
     FlagCommentNavigatorParamList,
-    FullScreenName,
-    FullScreenNavigatorParamList,
+    WorkspaceScreenName,
+    WorkspaceNavigatorParamList,
     LeftModalNavigatorParamList,
     MoneyRequestNavigatorParamList,
     NavigationPartialRoute,

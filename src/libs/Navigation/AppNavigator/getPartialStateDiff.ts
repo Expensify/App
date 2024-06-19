@@ -9,7 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 type GetPartialStateDiffReturnType = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]?: NavigationPartialRoute;
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]?: NavigationPartialRoute;
-    [NAVIGATORS.FULL_SCREEN_NAVIGATOR]?: NavigationPartialRoute;
+    [NAVIGATORS.WORKSPACE_NAVIGATOR]?: NavigationPartialRoute;
 };
 
 /**
@@ -62,10 +62,10 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
 
     // This one is heuristic and may need to be improved if we will be able to navigate from modal screen with full screen in background to another modal screen with full screen in background.
     // For now this simple check is enough.
-    if (metainfo.isFullScreenNavigatorMandatory) {
+    if (metainfo.isWorkspaceNavigatorMandatory) {
         const stateTopmostFullScreen = getTopmostFullScreenRoute(state);
         const templateStateTopmostFullScreen = getTopmostFullScreenRoute(templateState);
-        const fullScreenDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1) as NavigationPartialRoute;
+        const fullScreenDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR).at(-1) as NavigationPartialRoute;
 
         if (
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -75,7 +75,7 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
                 (stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name ||
                     !shallowCompare(stateTopmostFullScreen.params as Record<string, unknown> | undefined, templateStateTopmostFullScreen.params as Record<string, unknown> | undefined)))
         ) {
-            diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = fullScreenDiff;
+            diff[NAVIGATORS.WORKSPACE_NAVIGATOR] = fullScreenDiff;
         }
     }
 
