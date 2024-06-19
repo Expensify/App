@@ -1,6 +1,5 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type TextProps = Exclude<BaseTextInputProps, 'value' | 'onInputChange'>;
 
@@ -30,7 +29,7 @@ type TextPickerProps = {
     placeholder?: string;
 
     /** Form Error description */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
