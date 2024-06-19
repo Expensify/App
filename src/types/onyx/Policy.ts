@@ -893,6 +893,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The account to use for Invoices export to NetSuite */
     collectionAccount: string;
+    
+    /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
+    suiteTaxEnabled: boolean;
 }>;
 
 /** NetSuite connection model */
