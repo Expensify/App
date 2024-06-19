@@ -37,8 +37,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(source.uri);
-        fileDownload(sourceURI);
+        fileDownload(source.uri);
     }, [videoPopoverMenuPlayerRef]);
 
     const menuItems = useMemo(() => {
