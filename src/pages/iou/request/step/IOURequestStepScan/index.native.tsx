@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, AppState, InteractionManager, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -16,6 +17,7 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
+import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -64,6 +66,8 @@ function IOURequestStepScan({
     const [flash, setFlash] = useState(false);
     const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
     const [didCapturePhoto, setDidCapturePhoto] = useState(false);
+
+    const [pdfFile, setPdfFile] = useState<null | FileObject>(null);
 
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
@@ -379,8 +383,13 @@ function IOURequestStepScan({
     /**
      * Sets the Receipt objects and navigates the user to the next page
      */
-    const setReceiptAndNavigate = (file: FileObject) => {
+    const setReceiptAndNavigate = (file: FileObject, isPdfValidated?: boolean) => {
         if (!validateReceipt(file)) {
+            return;
+        }
+
+        if (Str.isPDF(file.name ?? '') && !isPdfValidated) {
+            setPdfFile(file);
             return;
         }
 
@@ -454,6 +463,35 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
+            {pdfFile && (
+                <View style={{position: 'absolute', opacity: 0}}>
+                    <PDFThumbnail
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        previewSourceURL={pdfFile.uri ?? ''}
+                        // We don't support scanning password protected PDF receipt
+                        // enabled={!isAttachmentInvalid}
+                        onLoadSuccess={() => {
+                            setPdfFile(null);
+                            setReceiptAndNavigate(pdfFile, true);
+                        }}
+                        onPassword={() => {
+                            // setIsAttachmentInvalid(true);
+                            // setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
+                            // setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
+                        onLoadError={() => {
+                            // setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            // setIsAttachmentInvalid(true);
+                            // setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                            console.log('EeROR');
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                        }}
+                    />
+                </View>
+            )}
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <ImageSVG
