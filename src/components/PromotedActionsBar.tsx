@@ -5,6 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -61,6 +62,7 @@ const PromotedActions = {
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
         onSelected: () => {
+            Navigation.dismissModal();
             ReportUtils.changeMoneyRequestHoldStatus(reportAction);
         },
     }),

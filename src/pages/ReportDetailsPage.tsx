@@ -436,11 +436,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const iouTransactionID = requestParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction?.originalMessage?.IOUTransactionID ?? '' : '';
 
+    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
+    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+
+    const shouldShowHoldAction = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
+    const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
 
-        const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
-        if (ReportUtils.canEditReportAction(parentReportAction) && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest)) {
+        if (isExpenseReport && shouldShowHoldAction) {
             result.push(PromotedActions.hold({isTextHold: canHoldUnholdReportAction.canHoldRequest, reportAction: parentReportAction}));
         }
 
@@ -451,7 +456,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, parentReportAction]);
+    }, [report, parentReportAction, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
