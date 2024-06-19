@@ -2182,7 +2182,7 @@ export default {
             createNewConnection: 'Create new connection',
             reuseExitingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
-            sageIntacctLastSync: ({formattedDate}) => `Sage Intacct - Last synced ${formattedDate}`,
+            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
         },
         type: {
             free: 'Free',

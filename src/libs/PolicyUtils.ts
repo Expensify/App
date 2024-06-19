@@ -462,7 +462,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
 }
 
 function getPoliciesConnectedToSageIntacct(policies: OnyxCollection<Policy>): Policy[] {
-    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => policy !== null && !!policy && !!policy?.connections?.intacct);
+    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
 }
 
 /**

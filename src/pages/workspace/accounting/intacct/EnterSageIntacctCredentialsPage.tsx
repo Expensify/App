@@ -16,6 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
@@ -59,7 +60,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
         >
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID))}
             />
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
@@ -73,16 +74,19 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
             >
                 <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
                 {formItems.map((formItem) => (
-                    <View style={styles.mb4}>
+                    <View
+                        style={styles.mb4}
+                        key={formItem}
+                    >
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={formItem}
-                            name="companyID"
                             label={translate(`common.${formItem}`)}
                             aria-label={translate(`common.${formItem}`)}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={sageIntacctCredentialsDraft?.[formItem]}
                             spellCheck={false}
+                            secureTextEntry={formItem === INPUT_IDS.PASSWORD}
                         />
                     </View>
                 ))}

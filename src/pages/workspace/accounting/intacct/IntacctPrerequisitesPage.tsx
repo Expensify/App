@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -38,9 +39,8 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                 icon: Expensicons.Download,
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
-                action: () => {
-                    Link.openExternalLink(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT);
-                    return Promise.resolve();
+                onPress: () => {
+                    fileDownload('https://www.expensify.com/tools/integrations/downloadPackage', 'ExpensifyPackageForSageIntacct');
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, popoverAnchor.current),
@@ -52,9 +52,8 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                 icon: Expensicons.Task,
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
-                action: () => {
+                onPress: () => {
                     Link.openExternalLink(CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT);
-                    return Promise.resolve();
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT, popoverAnchor.current),
@@ -75,8 +74,8 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.flex1]}>
-                <View style={{width: 'auto', height: 188}}>
+            <View style={styles.flex1}>
+                <View style={styles.computerIllustrationContainer}>
                     <ImageSVG src={Computer} />
                 </View>
 

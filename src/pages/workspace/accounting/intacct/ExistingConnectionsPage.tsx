@@ -13,6 +13,7 @@ import {getPoliciesConnectedToSageIntacct} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
@@ -46,7 +47,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             <HeaderWithBackButton
                 title={translate('workspace.intacct.existingConnections')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID))}
             />
             <View style={[styles.flex1]}>
                 <MenuItemList

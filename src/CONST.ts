@@ -591,7 +591,7 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
-    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: `${USE_EXPENSIFY_URL}/tools/integrations/downloadPackage`,
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: `https://www.expensify.com/tools/integrations/downloadPackage`,
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number

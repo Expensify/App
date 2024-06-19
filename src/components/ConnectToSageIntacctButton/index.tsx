@@ -34,7 +34,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct(policies);
+    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct(policies).length;
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});

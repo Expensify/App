@@ -4995,6 +4995,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        computerIllustrationContainer: {
+            width: 'auto',
+            height: 188,
+        },
+
         tripReservationIconContainer: {
             width: variables.avatarSizeNormal,
             height: variables.avatarSizeNormal,
