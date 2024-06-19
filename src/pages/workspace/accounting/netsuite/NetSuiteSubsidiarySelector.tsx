@@ -19,16 +19,15 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NET_SUITE_SUBSIDIARY_SELECTOR>;
-function NetSuiteSubsidiarySelector({
-    policy,
-}: NetSuiteSubsidiarySelectorProps) {
+function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const policyID = policy?.id ?? '';
 
-    const sections = subsidiaryList.map((subsidiary) => ({
+    const sections =
+        subsidiaryList.map((subsidiary) => ({
             text: subsidiary.name,
             keyForList: subsidiary.name,
             isSelected: subsidiary.name === netsuiteConfig?.subsidiary ?? '',

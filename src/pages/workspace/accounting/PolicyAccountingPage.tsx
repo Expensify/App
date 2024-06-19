@@ -101,20 +101,20 @@ function accountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.NET_SUITE:
-                return {
-                    title: translate('workspace.accounting.netsuite'),
-                    icon: Expensicons.Apple,
-                    setupConnectionButton: (
-                        <ConnectToXeroButton
-                            policyID={policyID}
-                            shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                            integrationToDisconnect={integrationToDisconnect}
-                        />
-                    ),
-                    onImportPagePress: () => {},
-                    onExportPagePress: () => {},
-                    onAdvancedPagePress: () => {},
-                };
+            return {
+                title: translate('workspace.accounting.netsuite'),
+                icon: Expensicons.Apple,
+                setupConnectionButton: (
+                    <ConnectToXeroButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onAdvancedPagePress: () => {},
+            };
         default:
             return undefined;
     }
@@ -151,10 +151,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);
-    
+
     const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
     const netSuiteSelectedSubsidiary = policy?.connections?.netsuite?.options?.config?.subsidiary ?? '';
-    
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -254,27 +253,27 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]
                 : []),
-                ...(policyConnectedToNetSuite && !shouldShowSynchronizationError
-                    ? [
-                          {
-                              description: translate('workspace.netsuite.subsidiary'),
-                              iconRight: Expensicons.ArrowRight,
-                              title: netSuiteSelectedSubsidiary,
-                              wrapperStyle: [styles.sectionMenuItemTopDescription],
-                              titleStyle: styles.fontWeightNormal,
-                              shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
-                              shouldShowDescriptionOnTop: true,
-                              onPress: () => {
-                                console.log(netSuiteSelectedSubsidiary.length);
-                                  if (!(netSuiteSubsidiaryList.length > 1)) {
-                                      return;
-                                  }
-                                  console.log("NAV", ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
-                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
-                              },
+            ...(policyConnectedToNetSuite && !shouldShowSynchronizationError
+                ? [
+                      {
+                          description: translate('workspace.netsuite.subsidiary'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: netSuiteSelectedSubsidiary,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          onPress: () => {
+                              console.log(netSuiteSelectedSubsidiary.length);
+                              if (!(netSuiteSubsidiaryList.length > 1)) {
+                                  return;
+                              }
+                              console.log('NAV', ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
                           },
-                      ]
-                    : []),
+                      },
+                  ]
+                : []),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
@@ -304,7 +303,31 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]),
         ];
-    }, [policy, isSyncInProgress, connectedIntegration, policyID, translate, styles.sectionMenuItemTopDescription, styles.pb0, styles.mt5, styles.popoverMenuIcon, styles.fontWeightNormal, connectionSyncProgress?.stageInProgress, datetimeToRelative, theme.spinner, overflowMenu, threeDotsMenuPosition, policyConnectedToXero, currentXeroOrganizationName, tenants.length, policyConnectedToNetSuite, netSuiteSelectedSubsidiary, netSuiteSubsidiaryList.length, accountingIntegrations, currentXeroOrganization?.id]);
+    }, [
+        policy,
+        isSyncInProgress,
+        connectedIntegration,
+        policyID,
+        translate,
+        styles.sectionMenuItemTopDescription,
+        styles.pb0,
+        styles.mt5,
+        styles.popoverMenuIcon,
+        styles.fontWeightNormal,
+        connectionSyncProgress?.stageInProgress,
+        datetimeToRelative,
+        theme.spinner,
+        overflowMenu,
+        threeDotsMenuPosition,
+        policyConnectedToXero,
+        currentXeroOrganizationName,
+        tenants.length,
+        policyConnectedToNetSuite,
+        netSuiteSelectedSubsidiary,
+        netSuiteSubsidiaryList.length,
+        accountingIntegrations,
+        currentXeroOrganization?.id,
+    ]);
 
     const otherIntegrationsItems = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
