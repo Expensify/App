@@ -137,7 +137,7 @@ const lightTheme = {
         },
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
             backgroundColor: colors.blue700,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,
