@@ -50,6 +50,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import HeaderView from './HeaderView';
+import getInitialPaginationSize from './report/getInitialPaginationSize';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
@@ -284,10 +285,18 @@ function ReportScreen({
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
     const isEmptyChat = useMemo(() => ReportUtils.isEmptyReport(report), [report]);
     const isOptimisticDelete = report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
-    const isLinkedMessageAvailable = useMemo(
-        (): boolean => sortedAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) > -1,
+    const indexOfLinkedMessage = useMemo(
+        (): number => sortedAllReportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
         [sortedAllReportActions, reportActionIDFromRoute],
     );
+    const isCreatedActionExist = ReportActionsUtils.isCreatedAction(reportActions.at(-1));
+    const isLinkedMessageAvailable = useMemo(() => indexOfLinkedMessage > -1, [indexOfLinkedMessage]);
+    const paginationSize = getInitialPaginationSize;
+
+    // The linked report actions should have at least minimum amount (15) messages (count as 1 page) above it, to fill the screen.
+    // If it is too much (same as web pagination size/50) and there is no cached messages on the report,
+    // the OpenReport will be called each time user scroll up report a bit, click on reportpreview then go back
+    const isLinkedMessagePageReady = isLinkedMessageAvailable && (sortedAllReportActions.length - indexOfLinkedMessage > 15 || isCreatedActionExist);
 
     // If there's a non-404 error for the report we should show it instead of blocking the screen
     const hasHelpfulErrors = Object.keys(report?.errorFields ?? {}).some((key) => key !== 'notFound');
@@ -379,13 +388,11 @@ function ReportScreen({
 
     const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
-        !isLinkedMessageAvailable &&
-        (isLinkingToMessage ||
-            !isCurrentReportLoadedFromOnyx ||
-            (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
-            isLoading ||
-            (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
-    const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
+        (isLinkingToMessage && !isLinkedMessagePageReady) ||
+        !isCurrentReportLoadedFromOnyx ||
+        (reportActions.length < paginationSize && !isCreatedActionExist && !!reportMetadata?.isLoadingInitialReportActions) ||
+        isLoading;
+
     const currentReportIDFormRoute = route.params?.reportID;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -481,6 +488,18 @@ function ReportScreen({
         fetchReportIfNeeded();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingReportOnyx]);
+
+    useEffect(() => {
+        if (isLoadingReportOnyx || !reportActionIDFromRoute || isLinkedMessagePageReady) {
+            return;
+        }
+
+        // This function is triggered when a user clicks on a link to navigate to a report.
+        // For each link click, we retrieve the report data again, even though it may already be cached.
+        // There should be only one openReport execution per page start or navigating
+        fetchReportIfNeeded();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, isLinkedMessagePageReady]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
@@ -703,7 +722,7 @@ function ReportScreen({
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
                             >
-                                {shouldShowReportActionList && (
+                                {!shouldShowSkeleton && (
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
