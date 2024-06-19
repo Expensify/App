@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react';
+import React, {memo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -23,7 +23,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -40,9 +39,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type HeaderViewOnyxProps = {
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink: OnyxEntry<string>;
-
-    /** Current user session */
-    session: OnyxEntry<OnyxTypes.Session>;
 
     /** Personal details of all the users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -77,7 +73,6 @@ function HeaderView({
     parentReport,
     parentReportAction,
     policy,
-    session,
     reportID,
     guideCalendarLink,
     onNavigationMenuButtonClicked,
@@ -107,8 +102,6 @@ function HeaderView({
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.isConciergeChatReport(report);
-    const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
-    const isPolicyEmployee = useMemo(() => !isEmptyObject(policy), [policy]);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
@@ -353,9 +346,6 @@ export default memo(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
         policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,

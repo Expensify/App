@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -62,19 +61,15 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const moneyRequestReport = parentReport;
-    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const navigateBackToAfterDelete = useRef<Route>();
 
     // Only the requestor can take delete the request, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
-    const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
     const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
 
@@ -98,21 +93,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
-    const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
-
-    const changeMoneyRequestStatus = () => {
-        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
-
-        if (isOnHold) {
-            IOU.unholdRequest(iouTransactionID, report?.reportID);
-        } else {
-            const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, report?.reportID, activeRoute));
-        }
-    };
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
