@@ -118,4 +118,4 @@ target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.49.0-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.48.0-xcframework.tar.gz'
