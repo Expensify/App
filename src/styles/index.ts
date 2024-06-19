@@ -3830,6 +3830,22 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        quickActionTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+        },
+
+        quickActionTooltipTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeLabel,
+            color: theme.tooltipHighlightText,
+        },
+
+        quickActionTooltipSubtitle: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textDark,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
@@ -4020,6 +4036,11 @@ const styles = (theme: ThemeColors) =>
         formSpaceVertical: {
             height: 20,
             width: 1,
+        },
+
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
         },
 
         taskCheckbox: {

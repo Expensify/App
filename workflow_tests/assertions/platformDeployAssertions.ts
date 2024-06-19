@@ -64,7 +64,7 @@ function assertAndroidJobExecuted(workflowResult: Step[], didExecute = true, isP
     steps.push(
         createStepAssertion('Archive Android sourcemaps', true, null, 'ANDROID', 'Archiving Android sourcemaps', [
             {key: 'name', value: 'android-sourcemap'},
-            {key: 'path', value: 'android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map'},
+            {key: 'path', value: 'android/app/build/generated/sourcemaps/react/release/*.map'},
         ]),
     );
     if (!isProduction) {
