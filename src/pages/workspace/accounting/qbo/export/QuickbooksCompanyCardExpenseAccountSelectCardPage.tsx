@@ -26,7 +26,7 @@ type AccountListItem = ListItem & {
 function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount, syncLocations, nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {creditCards, bankAccounts, accountPayable, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const isLocationEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);

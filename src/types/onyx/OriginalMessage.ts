@@ -44,13 +44,13 @@ type OriginalMessageApproved = {
 
     /** Content of the original message */
     originalMessage: {
-        /** Approved expense amount */
+        /** Approved expense report amount */
         amount: number;
 
-        /** Currency of the approved expense amount */
+        /** Currency of the approved expense report amount */
         currency: string;
 
-        /** Report ID of the expense */
+        /** Report ID of the expense report */
         expenseReportID: string;
     };
 };
@@ -91,7 +91,7 @@ type IOUDetails = {
     amount: number;
 
     /** Optional comment */
-    comment?: string;
+    comment: string;
 
     /** Currency of the money sent */
     currency: string;
@@ -179,7 +179,7 @@ type Decision = {
     /** Name of the decision */
     decision: DecisionName;
 
-    /** When was the decision name */
+    /** When was the decision made */
     timestamp?: string;
 };
 
@@ -283,13 +283,13 @@ type OriginalMessageSubmitted = {
 
     /** Content of the original message */
     originalMessage: {
-        /** Approved expense amount */
+        /** Approved expense report amount */
         amount: number;
 
-        /** Currency of the approved expense amount */
+        /** Currency of the approved expense report amount */
         currency: string;
 
-        /** Report ID of the expense */
+        /** Report ID of the expense report */
         expenseReportID: string;
     };
 };
