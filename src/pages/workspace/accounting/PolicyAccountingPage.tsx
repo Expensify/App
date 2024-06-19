@@ -100,6 +100,21 @@ function accountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: // I use some of the Xero things but I'll change it when https://github.com/Expensify/App/pull/43661 is merged
+            return {
+                title: translate('workspace.accounting.intacct'),
+                icon: Expensicons.XeroSquare,
+                setupConnectionButton: (
+                    <ConnectToXeroButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => {},
+                onAdvancedPagePress: () => {},
+            };
         default:
             return undefined;
     }

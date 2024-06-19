@@ -1985,13 +1985,11 @@ export default {
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
-            classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
             accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
-            classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
@@ -2396,6 +2394,19 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            intacct: 'Sage Intacct',
+            integrationName: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default:
+                        return 'Integration';
+                }
+            },
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -2428,6 +2439,8 @@ export default {
             },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
+            classes: 'Classes',
+            classesDescription: (integration: string) => `Choose how to handle ${integration} classes in Expensify.`,
             imported: 'Imported',
             notImported: 'Not imported',
             importAsCategory: 'Imported, displayed as categories',
