@@ -21,6 +21,9 @@ type State<P> = {
 
 type StateMachine = Record<string, Record<string, string>>;
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
+const client = Log.client;
+
 /**
  * A hook that creates a state machine that can be used with Reanimated Worklets.
  * You can transition state from worklet or from the JS thread.
@@ -83,7 +86,7 @@ function useWorkletStateMachine<P>(stateMachine: StateMachine, initialState: Sta
         }
 
         // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/restrict-template-expressions
-        runOnJS(Log.client)(`[StateMachine] ${message}. Params: ${params}`);
+        runOnJS(client)(`[StateMachine] ${message}. Params: ${JSON.stringify(params)}`);
     }, []);
 
     const transitionWorklet = useCallback(

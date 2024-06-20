@@ -1,0 +1,79 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp b/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp
+index b34579d..87513aa 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.cpp
+@@ -418,6 +418,24 @@ bool NativeReanimatedModule::isThereAnyLayoutProp(
+   return false;
+ }
+ 
++jsi::Object NativeReanimatedModule::getUIProps(
++    jsi::Runtime &rt,
++    const jsi::Object &props) {
++  jsi::Object res = jsi::Object(rt);
++  const jsi::Array propNames = props.getPropertyNames(rt);
++  for (size_t i = 0; i < propNames.size(rt); ++i) {
++    const std::string propName =
++        propNames.getValueAtIndex(rt, i).asString(rt).utf8(rt);
++    bool isLayoutProp =
++        nativePropNames_.find(propName) != nativePropNames_.end();
++    if (!isLayoutProp) {
++      const jsi::Value &propValue = props.getProperty(rt, propName.c_str());
++      res.setProperty(rt, propName.c_str(), propValue);
++    }
++  }
++  return res;
++}
++
+ jsi::Value NativeReanimatedModule::filterNonAnimatableProps(
+     jsi::Runtime &rt,
+     const jsi::Value &props) {
+@@ -565,13 +583,15 @@ void NativeReanimatedModule::performOperations() {
+     }
+   }
+ 
++  // If there's no layout props to be updated, we can apply the updates
++  // directly onto the components and skip the commit.
++  for (const auto &[shadowNode, props] : copiedOperationsQueue) {
++    Tag tag = shadowNode->getTag();
++    jsi::Object uiProps = getUIProps(rt, props->asObject(rt));
++    synchronouslyUpdateUIPropsFunction_(rt, tag, uiProps);
++  }
++    
+   if (!hasLayoutUpdates) {
+-    // If there's no layout props to be updated, we can apply the updates
+-    // directly onto the components and skip the commit.
+-    for (const auto &[shadowNode, props] : copiedOperationsQueue) {
+-      Tag tag = shadowNode->getTag();
+-      synchronouslyUpdateUIPropsFunction_(rt, tag, props->asObject(rt));
+-    }
+     return;
+   }
+ 
+diff --git a/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.h b/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.h
+index 9f8c32d..cb31205 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.h
++++ b/node_modules/react-native-reanimated/Common/cpp/NativeModules/NativeReanimatedModule.h
+@@ -163,6 +163,7 @@ class NativeReanimatedModule : public NativeReanimatedModuleSpec {
+ 
+ #ifdef RCT_NEW_ARCH_ENABLED
+   bool isThereAnyLayoutProp(jsi::Runtime &rt, const jsi::Object &props);
++  jsi::Object getUIProps(jsi::Runtime &rt, const jsi::Object &props);
+   jsi::Value filterNonAnimatableProps(
+       jsi::Runtime &rt,
+       const jsi::Value &props);
+diff --git a/node_modules/react-native-reanimated/apple/REANodesManager.mm b/node_modules/react-native-reanimated/apple/REANodesManager.mm
+index ed36c99..0c64925 100644
+--- a/node_modules/react-native-reanimated/apple/REANodesManager.mm
++++ b/node_modules/react-native-reanimated/apple/REANodesManager.mm
+@@ -432,9 +432,9 @@ - (void)synchronouslyUpdateViewOnUIThread:(nonnull NSNumber *)viewTag props:(non
+   REAUIView<RCTComponentViewProtocol> *componentView =
+       [componentViewRegistry findComponentViewWithTag:[viewTag integerValue]];
+ 
+-  NSSet<NSString *> *propKeysManagedByAnimated = [componentView propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN];
++  // NSSet<NSString *> *propKeysManagedByAnimated = [componentView propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN];
+   [surfacePresenter synchronouslyUpdateViewOnUIThread:viewTag props:uiProps];
+-  [componentView setPropKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN:propKeysManagedByAnimated];
++  // [componentView setPropKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN:propKeysManagedByAnimated];
+ 
+   // `synchronouslyUpdateViewOnUIThread` does not flush props like `backgroundColor` etc.
+   // so that's why we need to call `finalizeUpdates` here.
