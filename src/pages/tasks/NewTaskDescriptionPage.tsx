@@ -17,6 +17,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import * as TaskActions from '@userActions/Task';
@@ -48,13 +49,9 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
-
+        const taskDescriptionLength = ReportUtils.getCommentLength(values.taskDescription);
         if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(
-                errors,
-                'taskDescription',
-                translate('common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}),
-            );
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
         }
 
         return errors;
