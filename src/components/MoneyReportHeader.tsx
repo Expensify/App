@@ -80,8 +80,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
-    const canDeleteRequest =
-        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
