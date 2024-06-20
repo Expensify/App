@@ -167,6 +167,7 @@ async function runAsyncScript() {
         }
     }
 
+    // Finally, symbolicate the profile
     symbolicateProfile();
 }
 
