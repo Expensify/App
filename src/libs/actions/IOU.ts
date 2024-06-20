@@ -1558,6 +1558,8 @@ function getDeleteTrackExpenseInformation(
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
+    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+    const actionableWhisperReportAction = Object.values(chatReportActions).find((action) => action?.reportActionID === actionableWhisperReportActionID);
     let transactionThread = null;
     if (transactionThreadID) {
         transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
@@ -1684,14 +1686,14 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
-    if (actionableWhisperReportActionID) {
+    if (actionableWhisperReportActionID && actionableWhisperReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [actionableWhisperReportActionID]: {
                     originalMessage: {
-                        resolution: null,
+                        resolution: actionableWhisperReportAction?.originalMessage?.resolution,
                     },
                 },
             },
@@ -5554,14 +5556,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
         return deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
     }
 
-    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
-    const whisperAction = Object.values(chatReportActions).find(
-        (action: OnyxTypes.ReportAction) =>
-            action?.originalMessage &&
-            action?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER &&
-            action.originalMessage.transactionID === transactionID &&
-            ReportActionsUtils.isActionableTrackExpense(action),
-    );
+    const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(transactionID, chatReportID);
     const actionableWhisperReportActionID = whisperAction?.reportActionID;
     const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
         chatReportID,

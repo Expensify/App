@@ -1251,6 +1251,20 @@ function isTripPreview(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
 }
 
+/**
+ * Get the track expense actionable whisper of the corresponding track expense
+ */
+function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: string) {
+    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+    return Object.values(chatReportActions).find(
+        (action: ReportAction) =>
+            action?.originalMessage &&
+            action?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER &&
+            action.originalMessage.transactionID === transactionID &&
+            isActionableTrackExpense(action),
+    );
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1307,6 +1321,7 @@ export {
     isMemberChangeAction,
     getMemberChangeMessageFragment,
     isOldDotReportAction,
+    getTrackExpenseActionableWhisper,
     getMessageOfOldDotReportAction,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
