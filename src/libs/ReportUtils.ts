@@ -58,6 +58,7 @@ import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@sr
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
@@ -5334,8 +5335,6 @@ function shouldReportBeInOptionList({
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -5348,6 +5347,10 @@ function shouldReportBeInOptionList({
             !isGroupChat(report) &&
             !isInvoiceRoom(report))
     ) {
+        return false;
+    }
+
+    if (participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
         return false;
     }
 
