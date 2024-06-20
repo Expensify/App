@@ -3,6 +3,7 @@ import type AccountData from './AccountData';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
@@ -28,6 +29,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -111,6 +113,7 @@ export type {
     MapboxAccessToken,
     Modal,
     Network,
+    OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     PersonalBankAccount,
@@ -185,4 +188,5 @@ export type {
     CapturedLogs,
     SearchResults,
     PrivateSubscription,
+    BillingGraceEndPeriod,
 };

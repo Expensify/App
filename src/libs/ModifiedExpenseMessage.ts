@@ -2,11 +2,10 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagList, ReportAction} from '@src/types/onyx';
+import type {PolicyTagList, Report, ReportAction} from '@src/types/onyx';
 import type {ModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import getReportPolicyID from './getReportPolicyID';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -22,6 +21,13 @@ Onyx.connect({
         }
         allPolicyTags = value;
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -110,7 +116,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         return '';
     }
     const reportActionOriginalMessage = reportAction?.originalMessage as ModifiedExpense | undefined;
-    const policyID = getReportPolicyID(reportID) ?? '';
+    const policyID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     const removalFragments: string[] = [];
     const setFragments: string[] = [];
