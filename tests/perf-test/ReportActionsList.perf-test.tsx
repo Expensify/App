@@ -70,7 +70,6 @@ const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
 const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
 
-
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
@@ -116,7 +115,7 @@ test('[ReportActionsList] should render ReportActionsList with 500 reportActions
     await measurePerformance(<ReportActionsListWrapper />, {scenario});
 });
 
-test('[ReportActionsList] shpuld render list items', async () => {
+test('[ReportActionsList] should render list items', async () => {
     const scenario = async () => {
         const hintText = Localize.translateLocal('accessibilityHints.chatMessage');
         await screen.findAllByLabelText(hintText);
