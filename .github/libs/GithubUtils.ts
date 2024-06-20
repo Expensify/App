@@ -522,11 +522,12 @@ class GithubUtils {
     }
 
     static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+        return this.octokit.actions.listArtifactsForRepo({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
-            per_page: 100,
-        }).then((artifacts: OctokitArtifact[]) => artifacts.find((artifact) => artifact.name === artefactName));
+            per_page: 1,
+            name: artefactName,
+        }).then((response) => response.data.artifacts[0]);
     }
 }
 
