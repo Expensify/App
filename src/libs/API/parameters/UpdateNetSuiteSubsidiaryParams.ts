@@ -1,6 +1,6 @@
 type UpdateNetSuiteSubsidiaryParams = {
     policyID: string;
-    subsidiaryName: string;
+    subsidiary: string;
 };
 
 export default UpdateNetSuiteSubsidiaryParams;

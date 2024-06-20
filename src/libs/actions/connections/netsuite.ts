@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldSubsidiaryName: string) {
+function updateNetSuiteSubsidiary(policyID: string, subsidiary: string, oldSubsidiary: string) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -17,7 +17,7 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
                         netsuite: {
                             options: {
                                 config: {
-                                    subsidiary: subsidiaryName,
+                                    subsidiary,
                                     pendingFields: {
                                         subsidiary: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     },
@@ -40,7 +40,7 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
                         netsuite: {
                             options: {
                                 config: {
-                                    subsidiary: subsidiaryName,
+                                    subsidiary,
                                     errorFields: {
                                         subsidiary: null,
                                     },
@@ -63,7 +63,7 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
                         netsuite: {
                             options: {
                                 config: {
-                                    subsidiary: oldSubsidiaryName,
+                                    subsidiary: oldSubsidiary,
                                     errorFields: {
                                         subsidiary: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                     },
@@ -81,7 +81,7 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
 
     const params = {
         policyID,
-        subsidiaryName,
+        subsidiary,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
