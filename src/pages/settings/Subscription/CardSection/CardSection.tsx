@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import MenuItem from '@components/MenuItem';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 
@@ -58,6 +59,15 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
+            <MenuItem
+                        shouldShowRightIcon
+                        icon={Expensicons.History}
+                        iconStyles={[]}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={translate('subscription.cardSection.viewPaymentHistory')}
+                        titleStyle={styles.textStrong}
+                    />
         </Section>
     );
 }
