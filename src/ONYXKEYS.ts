@@ -169,6 +169,21 @@ const ONYXKEYS = {
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
 
+    /** The start date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
+    NVP_FIRST_DAY_FREE_TRIAL: 'nvp_private_firstDayFreeTrial',
+
+    /** The end date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
+    NVP_LAST_DAY_FREE_TRIAL: 'nvp_private_lastDayFreeTrial',
+
+    /** ID associated with the payment card added by the user. */
+    NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
+
+    /** The amount owed by the workspace’s owner. */
+    NVP_PRIVATE_AMOUNT_OWNED: 'nvp_private_amountOwed',
+
+    /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
+    NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
+
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
 
@@ -379,6 +394,10 @@ const ONYXKEYS = {
 
         // Search Page related
         SNAPSHOT: 'snapshot_',
+
+        // Shared NVPs
+        /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
+        SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
     },
 
     /** List of Form ids */
@@ -592,6 +611,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
 };
 
 type OnyxValuesMapping = {
@@ -703,6 +723,11 @@ type OnyxValuesMapping = {
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
+    [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
+    [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
+    [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: number;
+    [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;
