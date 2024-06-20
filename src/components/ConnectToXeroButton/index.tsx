@@ -9,9 +9,11 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getXeroSetupLink} from '@libs/actions/connections/ConnectToXero';
+import Navigation from '@libs/Navigation/Navigation';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ConnectToXeroButtonProps} from './types';
 
 function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
@@ -64,7 +66,10 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
             )}
             {isRequire2FAModalOpen && (
                 <RequireTwoFactorAuthenticationModal
-                    onConfirm={() => setIsRequire2FAModalOpen(false)}
+                    onSubmit={() => {
+                        setIsRequire2FAModalOpen(false);
+                        Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
+                    }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible
                     description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescriptionXero')}

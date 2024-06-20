@@ -5,8 +5,10 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ConfirmContent from './ConfirmContent';
@@ -17,7 +19,7 @@ import Text from './Text';
 
 type RequireTwoFactorAuthenticationModalProps = {
     /** A callback to call when the form has been submitted */
-    onConfirm: () => void;
+    onSubmit: () => void;
 
     /** A callback to call when the form has been closed */
     onCancel?: () => void;
@@ -35,7 +37,7 @@ type RequireTwoFactorAuthenticationModalProps = {
     shouldEnableNewFocusManagement?: boolean;
 };
 
-function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, isVisible, onConfirm, shouldEnableNewFocusManagement}: RequireTwoFactorAuthenticationModalProps) {
+function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, isVisible, onSubmit, shouldEnableNewFocusManagement}: RequireTwoFactorAuthenticationModalProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,7 +45,6 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
 
     return (
         <Modal
-            onSubmit={onConfirm}
             onClose={onCancel}
             isVisible={isVisible}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
@@ -68,7 +69,7 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                     large
                     success
                     pressOnEnter
-                    onPress={() => {}}
+                    onPress={onSubmit}
                     text={translate('twoFactorAuth.enableTwoFactorAuth')}
                 />
             </View>
