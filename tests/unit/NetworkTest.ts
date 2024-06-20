@@ -53,12 +53,12 @@ describe('NetworkTests', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        let isOffline: boolean | undefined;
+        let isOffline: boolean;
 
         Onyx.connect({
             key: ONYXKEYS.NETWORK,
             callback: (val) => {
-                isOffline = val && val.isOffline;
+                isOffline = !!val?.isOffline;
             },
         });
 
