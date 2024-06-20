@@ -12,6 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 
@@ -67,6 +70,7 @@ function CardSection() {
                 style={styles.mt5}
                 title={translate('subscription.cardSection.viewPaymentHistory')}
                 titleStyle={styles.textStrong}
+                onPress={() =>  Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL))}
             />
         </Section>
     );
