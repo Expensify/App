@@ -2129,7 +2129,7 @@ export default {
                 xeroBillPaymentAccountDescription: "Choose a bank account for reimbursements and we'll create the payment in Xero.",
             },
             exportDate: {
-                label: 'Export date',
+                label: 'Purchase bill date',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
