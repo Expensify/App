@@ -12,7 +12,7 @@
  * 3. This script takes in a .cpuprofile file, reads the app version from the filename, and downloads the corresponding source map from the artifacts using github's API.
  * 4. It then uses the source map to symbolicate the .cpuprofile file using the `react-native-release-profiler` cli.
  *
- * @note For downloading an artefact a github token is required.
+ * @note For downloading an artifact a github token is required.
  */
 import {Octokit} from '@octokit/core';
 import {execSync} from 'child_process';
@@ -76,19 +76,19 @@ const OWNER = 'Expensify';
 const REPO = 'App';
 
 function getWorkflowRunArtifact() {
-    const artefactName = `${argsMap.platform}-sourcemap-${appVersion}`;
-    Logger.info(`Fetching sourcemap artifact with name "${artefactName}"`);
+    const artifactName = `${argsMap.platform}-sourcemap-${appVersion}`;
+    Logger.info(`Fetching sourcemap artifact with name "${artifactName}"`);
     return octokit
         .request('GET /repos/{owner}/{repo}/actions/artifacts', {
             owner: OWNER,
             repo: REPO,
             per_page: 1,
-            name: artefactName,
+            name: artifactName,
         })
         .then((artifactsResponse) => {
             const artifact = artifactsResponse.data.artifacts[0];
             if (artifact === undefined) {
-                throw new Error(`Could not find the artifact ${artefactName}!`);
+                throw new Error(`Could not find the artifact ${artifactName}!`);
             }
             return artifact.id;
         })
