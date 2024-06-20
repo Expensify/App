@@ -3225,7 +3225,7 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
-            viewPaymentHistory: 'View payment history'
+            viewPaymentHistory: 'View payment history',
         },
         yourPlan: {
             title: 'Your plan',

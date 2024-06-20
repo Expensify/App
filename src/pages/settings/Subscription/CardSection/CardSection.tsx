@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -11,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import MenuItem from '@components/MenuItem';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 
@@ -60,14 +60,14 @@ function CardSection() {
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
             <MenuItem
-                        shouldShowRightIcon
-                        icon={Expensicons.History}
-                        iconStyles={[]}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        style={styles.mt5}
-                        title={translate('subscription.cardSection.viewPaymentHistory')}
-                        titleStyle={styles.textStrong}
-                    />
+                shouldShowRightIcon
+                icon={Expensicons.History}
+                iconStyles={[]}
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+                style={styles.mt5}
+                title={translate('subscription.cardSection.viewPaymentHistory')}
+                titleStyle={styles.textStrong}
+            />
         </Section>
     );
 }
