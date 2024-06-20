@@ -1,20 +1,14 @@
 import React from 'react';
-import {type StyleProp, type TextStyle, View, type ViewStyle} from 'react-native';
-import LottieAnimations from '@components/LottieAnimations';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
-import ConfirmContent from './ConfirmContent';
 import Lottie from './Lottie';
+import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
-import type BaseModalProps from './Modal/types';
 import Text from './Text';
 
 type RequireTwoFactorAuthenticationModalProps = {
