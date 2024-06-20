@@ -9,6 +9,7 @@ import Button from './Button';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
+import SafeAreaConsumer from './SafeAreaConsumer';
 import Text from './Text';
 
 type RequireTwoFactorAuthenticationModalProps = {
@@ -38,36 +39,49 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     const StyleUtils = useStyleUtils();
 
     return (
-        <Modal
-            onClose={onCancel}
-            isVisible={isVisible}
-            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            innerContainerStyle={{...styles.pb5, ...styles.pt3, ...styles.boxShadowNone}}
-            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-        >
-            <View style={[styles.mh3, styles.br3, styles.flex1, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
-                <Lottie
-                    source={LottieAnimations.Safe}
-                    style={styles.h100}
-                    webStyle={styles.h100}
-                    autoPlay
-                    loop
-                />
-            </View>
-            <View style={[styles.mt5, styles.mh5]}>
-                <View style={[styles.gap2, styles.mb10]}>
-                    <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
-                    <Text style={styles.textSupporting}>{description}</Text>
-                </View>
-                <Button
-                    large
-                    success
-                    pressOnEnter
-                    onPress={onSubmit}
-                    text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                />
-            </View>
-        </Modal>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <Modal
+                    onClose={onCancel}
+                    isVisible={isVisible}
+                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+                    innerContainerStyle={{...styles.pb5, ...styles.pt3, ...styles.boxShadowNone}}
+                    shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+                >
+                    <View
+                        style={[
+                            styles.mh3,
+                            styles.br3,
+                            styles.flex1,
+                            styles.alignItemsCenter,
+                            StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor),
+                            safeAreaPaddingBottomStyle,
+                        ]}
+                    >
+                        <Lottie
+                            source={LottieAnimations.Safe}
+                            style={styles.h100}
+                            webStyle={styles.h100}
+                            autoPlay
+                            loop
+                        />
+                    </View>
+                    <View style={[styles.mt5, styles.mh5]}>
+                        <View style={[styles.gap2, styles.mb10]}>
+                            <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
+                            <Text style={styles.textSupporting}>{description}</Text>
+                        </View>
+                        <Button
+                            large
+                            success
+                            pressOnEnter
+                            onPress={onSubmit}
+                            text={translate('twoFactorAuth.enableTwoFactorAuth')}
+                        />
+                    </View>
+                </Modal>
+            )}
+        </SafeAreaConsumer>
     );
 }
 
