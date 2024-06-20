@@ -11,23 +11,9 @@ import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 /**
  * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
  */
-function getUrlWithBackToParam<TUrl extends string>(
-    url: TUrl,
-    backTo?: string,
-    forwardTo?: string,
-):
-    | `${TUrl}`
-    | `${TUrl}?backTo=${string}`
-    | `${TUrl}&backTo=${string}`
-    | `${TUrl}?backTo=${string}?forwardTo=${string}`
-    | `${TUrl}?backTo=${string}&forwardTo=${string}`
-    | `${TUrl}&backTo=${string}?forwardTo=${string}`
-    | `${TUrl}&backTo=${string}&forwardTo=${string}`
-    | `${TUrl}?forwardTo=${string}`
-    | `${TUrl}&forwardTo=${string}` {
+function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string): `${TUrl}` | `${TUrl}?backTo=${string}` | `${TUrl}&backTo=${string}` {
     const backToParam = backTo ? (`${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` as const) : '';
-    const forwardToParam = forwardTo ? (`${url.includes('?') || backToParam ? '&' : '?'}forwardTo=${encodeURIComponent(forwardTo)}` as const) : '';
-    return `${url}${backToParam}${forwardToParam}` as const;
+    return `${url}${backToParam}` as const;
 }
 
 const PUBLIC_SCREENS_ROUTES = {
@@ -203,7 +189,7 @@ const ROUTES = {
     },
     SETTINGS_2FA: {
         route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string, forwardTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo, forwardTo),
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/security/two-factor-auth', backTo),
     },
     SETTINGS_STATUS: 'settings/profile/status',
 
