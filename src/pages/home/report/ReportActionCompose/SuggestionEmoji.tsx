@@ -1,5 +1,6 @@
 import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -54,7 +55,7 @@ function SuggestionEmoji(
         updateComment,
         isAutoSuggestionPickerLarge,
         resetKeyboardInput,
-        measureParentContainerAndReportCursor,
+        measureParentContainer,
         isComposerFocused,
     }: SuggestionEmojiProps,
     ref: ForwardedRef<SuggestionsRef>,
@@ -149,8 +150,8 @@ function SuggestionEmoji(
      * Calculates and cares about the content of an Emoji Suggester
      */
     const calculateEmojiSuggestion = useCallback(
-        (selectionEnd?: number) => {
-            if (!selectionEnd || shouldBlockCalc.current || !value) {
+        (selectionEnd: number) => {
+            if (shouldBlockCalc.current || !value) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -184,6 +185,18 @@ function SuggestionEmoji(
         calculateEmojiSuggestion(selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
+    const onSelectionChange = useCallback(
+        (e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            /**
+             * we pass here e.nativeEvent.selection.end directly to calculateEmojiSuggestion
+             * because in other case calculateEmojiSuggestion will have an old calculation value
+             * of suggestion instead of current one
+             */
+            calculateEmojiSuggestion(e.nativeEvent.selection.end);
+        },
+        [calculateEmojiSuggestion],
+    );
+
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
             shouldBlockCalc.current = shouldBlockSuggestionCalc;
@@ -197,12 +210,13 @@ function SuggestionEmoji(
         ref,
         () => ({
             resetSuggestions,
+            onSelectionChange,
             triggerHotkeyActions,
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
@@ -217,7 +231,7 @@ function SuggestionEmoji(
             onSelect={insertSelectedEmoji}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            measureParentContainer={measureParentContainer}
         />
     );
 }

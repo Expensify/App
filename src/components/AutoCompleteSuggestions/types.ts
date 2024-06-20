@@ -1,15 +1,6 @@
 import type {ReactElement} from 'react';
 
-type MeasureParentContainerAndCursor = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    scrollValue: number;
-    cursorCoordinates: {x: number; y: number};
-};
-
-type MeasureParentContainerAndCursorCallback = (props: MeasureParentContainerAndCursor) => void;
+type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
 type RenderSuggestionMenuItemProps<TSuggestion> = {
     item: TSuggestion;
@@ -40,8 +31,8 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
     /** create accessibility label for each item */
     accessibilityLabelExtractor: (item: TSuggestion, index: number) => string;
 
-    /** Measures the parent container's position and dimensions. Also add a cursor coordinates */
-    measureParentContainerAndReportCursor?: (props: MeasureParentContainerAndCursorCallback) => void;
+    /** Meaures the parent container's position and dimensions. */
+    measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
 };
 
-export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps, MeasureParentContainerAndCursorCallback, MeasureParentContainerAndCursor};
+export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps};

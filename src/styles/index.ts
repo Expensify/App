@@ -266,8 +266,10 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             justifyContent: 'center',
-            overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
+            position: 'absolute',
+            left: 0,
+            right: 0,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
 

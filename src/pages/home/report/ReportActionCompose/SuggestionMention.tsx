@@ -57,7 +57,7 @@ type SuggestionPersonalDetailsList = Record<
 >;
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -317,8 +317,8 @@ function SuggestionMention(
     );
 
     const calculateMentionSuggestion = useCallback(
-        (selectionEnd?: number) => {
-            if (!selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
+        (selectionEnd: number) => {
+            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -432,7 +432,7 @@ function SuggestionMention(
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            measureParentContainer={measureParentContainer}
         />
     );
 }
