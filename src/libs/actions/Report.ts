@@ -3728,6 +3728,21 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
+function exportToIntegration(reportID: string, connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
+    API.write('Report_Export', {
+        reportIDList: reportID,
+        connectionName,
+        type: 'MANUAL',
+    });
+}
+
+function markAsManuallyExported(reportID: string) {
+    API.write('MarkAsExported', {
+        reportIDList: reportID,
+        markedManually: true,
+    });
+}
+
 export {
     searchInServer,
     addComment,
@@ -3812,4 +3827,6 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    exportToIntegration,
+    markAsManuallyExported,
 };
