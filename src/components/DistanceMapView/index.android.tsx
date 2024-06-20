@@ -3,18 +3,21 @@ import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MapView from '@components/MapView';
+import PendingMapView from '@components/MapView/PendingMapView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type DistanceMapViewProps from './types';
 
-function DistanceMapView({overlayStyle, pendingMapContent, ...rest}: DistanceMapViewProps) {
+function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: DistanceMapViewProps) {
     const styles = useThemeStyles();
     const [isMapReady, setIsMapReady] = useState(false);
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     return (
         <>
@@ -27,10 +30,12 @@ function DistanceMapView({overlayStyle, pendingMapContent, ...rest}: DistanceMap
                     }
                     setIsMapReady(true);
                 }}
+                style={!isMapReady && {opacity: 0}}
             />
             {!isMapReady && (
                 <View style={[styles.mapViewOverlay, overlayStyle]}>
-                    {!pendingMapContent ? (
+                    {/* We  */}
+                    {!requireRouteToDisplayMap ? (
                         <BlockingView
                             icon={Expensicons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
@@ -39,7 +44,10 @@ function DistanceMapView({overlayStyle, pendingMapContent, ...rest}: DistanceMap
                             iconColor={theme.border}
                         />
                     ) : (
-                        pendingMapContent
+                        <PendingMapView
+                            isSmallerIcon
+                            style={StyleUtils.getBorderRadiusStyle(0)}
+                        />
                     )}
                 </View>
             )}
