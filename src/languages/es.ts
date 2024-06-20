@@ -2086,7 +2086,7 @@ export default {
             advancedConfig: {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
-                autoSyncDescription: 'Sincroniza QuickBooks Online y Expensify automáticamente, todos los días.',
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
                 inviteEmployees: 'Invitar empleados',
                 inviteEmployeesDescription: 'Importe los registros de los empleados de Quickbooks Online e invítelos a este espacio de trabajo.',
                 createEntities: 'Crear entidades automáticamente',
@@ -2168,7 +2168,7 @@ export default {
             advancedConfig: {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
-                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente, todos los días.',
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con Xero todos los días.',
                 purchaseBillStatusTitle: 'Estado de la factura de compra',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
