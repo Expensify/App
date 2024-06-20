@@ -24,7 +24,8 @@ import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
 const argsMap = parseCommandLineArguments();
 
-// #region Input validation
+/* ============== INPUT VALIDATION ============== */
+
 if (Object.keys(argsMap).length === 0 || argsMap.help !== undefined) {
     Logger.log('Symbolicates a .cpuprofile file obtained from a specific app version by downloading the source map from the github action runs.');
     Logger.log('Usage: npm run symbolicate-profile -- --profile=<filename> --platform=<ios|android>');
@@ -57,9 +58,8 @@ if (githubToken === undefined) {
 }
 
 GithubUtils.initOctokitWithToken(githubToken);
-// #endregion
 
-// #region Get the app version
+/* ============= EXTRACT APP VERSION ============= */
 
 // Formatted as "Profile_trace_for_1.4.81-9.cpuprofile"
 const appVersionRegex = /\d+\.\d+\.\d+(-\d+)?/;
@@ -69,9 +69,9 @@ if (appVersion === undefined) {
     process.exit(1);
 }
 Logger.info(`Found app version ${appVersion} in the profile filename`);
-// #endregion
 
-// #region Utility functions
+/* ============== UTILITY FUNCTIONS ============== */
+
 async function getWorkflowRunArtifact() {
     const artifactName = `${argsMap.platform}-sourcemap-${appVersion}`;
     Logger.info(`Fetching sourcemap artifact with name "${artifactName}"`);
@@ -150,7 +150,8 @@ async function fetchAndProcessArtifact() {
     await unpackZipFile(zipPath);
     renameDownloadedSourcemapFile();
 }
-// #endregion
+
+/* ============== MAIN SCRIPT ============== */
 
 async function runAsyncScript() {
     // Step: check if source map locally already exists (if so we can skip the download)
