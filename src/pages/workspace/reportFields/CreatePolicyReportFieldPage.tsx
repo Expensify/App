@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
@@ -24,6 +24,8 @@ import TypeSelector from './TypeSelector';
 
 type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
+const defaultDate = DateUtils.extractDate(new Date().toString());
+
 function CreatePolicyReportFieldPage({
     // policy,
     route: {
@@ -32,6 +34,7 @@ function CreatePolicyReportFieldPage({
 }: CreatePolicyReportFieldPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const formRef = useRef<FormRef>(null);
 
     const submitForm = useCallback(({name, type, initialValue}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
         // eslint-disable-next-line no-console
@@ -66,6 +69,7 @@ function CreatePolicyReportFieldPage({
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
+                    ref={formRef}
                     style={[styles.mh5, styles.flex1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     onSubmit={submitForm}
@@ -93,6 +97,7 @@ function CreatePolicyReportFieldPage({
                                 inputID={INPUT_IDS.TYPE}
                                 label={translate('common.type')}
                                 rightLabel={translate('common.required')}
+                                onTypeSelected={(type) => formRef.current?.resetForm({...inputValues, type, initialValue: type === CONST.REPORT_FIELD_TYPES.DATE ? defaultDate : ''})}
                             />
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT && (
@@ -112,7 +117,7 @@ function CreatePolicyReportFieldPage({
                                 <InputWrapper
                                     InputComponent={DateSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
-                                    defaultValue={DateUtils.extractDate(new Date().toString())}
+                                    defaultValue={defaultDate}
                                     label={translate('common.date')}
                                 />
                             )}

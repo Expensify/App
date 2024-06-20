@@ -11,14 +11,17 @@ import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
 type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
+    /** Currently selected type */
+    value?: string;
+
     /** Function to call when the user selects a type */
     onInputChange?: (value: string) => void;
 
-    /** Currently selected type */
-    value?: string;
+    /** Function to call when the user selects a type */
+    onTypeSelected?: (reportFieldType: PolicyReportFieldType) => void;
 };
 
-function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
+function TypeSelector({value, label, rightLabel, onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -33,6 +36,7 @@ function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorPro
 
     const updateTypeInput = (reportField: ReportFieldItemType) => {
         onInputChange?.(reportField.value);
+        onTypeSelected?.(reportField.value);
         hidePickerModal();
     };
 
