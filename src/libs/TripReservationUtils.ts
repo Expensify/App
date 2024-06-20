@@ -41,7 +41,7 @@ function getTripEReceiptData(transaction?: Transaction): TripEReceiptData {
         case CONST.RESERVATION_TYPE.CAR:
             return {tripIcon: Expensicons.Plane, tripBGColor: CONST.ERECEIPT_COLORS.PINK};
         case CONST.RESERVATION_TYPE.HOTEL:
-            return {tripIcon: Expensicons.Plane, tripBGColor: CONST.ERECEIPT_COLORS.YELLOW};
+            return {tripIcon: Expensicons.Bed, tripBGColor: CONST.ERECEIPT_COLORS.YELLOW};
         default:
             return {};
     }
