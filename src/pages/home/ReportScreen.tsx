@@ -534,8 +534,7 @@ function ReportScreen({
             }
             if (prevReport.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                const parentReport = ReportUtils.getReport(prevReport.parentReportID);
-                if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
+                if (ReportUtils.isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
@@ -707,7 +706,7 @@ function ReportScreen({
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
-                                testID="report-actions-view-container"
+                                testID="report-actions-view-wrapper"
                             >
                                 {shouldShowReportActionList && (
                                     <ReportActionsView
