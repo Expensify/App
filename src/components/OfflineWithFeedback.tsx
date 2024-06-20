@@ -1,6 +1,6 @@
 import {mapValues} from 'lodash';
 import React, {useCallback} from 'react';
-import type {ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -59,7 +59,7 @@ type OfflineWithFeedbackProps = ChildrenProps & {
     canDismissError?: boolean;
 };
 
-type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
+type StrikethroughProps = Partial<ChildrenProps> & {style: AllStyles[]};
 
 function OfflineWithFeedback({
     pendingAction,
@@ -106,9 +106,9 @@ function OfflineWithFeedback({
                     return child;
                 }
 
-                const childProps = child.props as {children: React.ReactNode | undefined; style: AllStyles};
+                const childProps = child.props as {children?: React.ReactNode; style?: AllStyles};
                 const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(childProps.style, styles.offlineFeedback.deleted, styles.userSelectNone),
+                    style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
 
                 if (childProps.children) {
