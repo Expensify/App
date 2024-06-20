@@ -48,6 +48,10 @@ function canUseXeroIntegration(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.XERO_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
+function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -67,4 +71,5 @@ export default {
     canUseSpotnanaTravel,
     canUseAccountingIntegrations,
     canUseXeroIntegration,
+    canUseNetSuiteIntegration,
 };

@@ -363,6 +363,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
         XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
+        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1798,6 +1799,7 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
+                NETSUITE: 'netsuite',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
