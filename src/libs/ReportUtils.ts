@@ -5596,9 +5596,7 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
  * @returns The comment's total length as seen from the backend
  */
 function getCommentLength(textComment: string, parsingDetails?: ParsingDetails): number {
-    return getParsedComment(textComment, parsingDetails)
-        .replace(/[^ -~]/g, '\\u????')
-        .length;
+    return getParsedComment(textComment, parsingDetails).replace(/[^ -~]/g, '\\u????').length;
 }
 
 function getRouteFromLink(url: string | null): string {
