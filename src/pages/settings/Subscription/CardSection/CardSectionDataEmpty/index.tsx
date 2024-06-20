@@ -16,7 +16,7 @@ function CardSectionDataEmpty() {
     return (
         <Button
             text={translate('subscription.cardSection.addCardButton')}
-            onPress={openAddPaymentCardScreen} // TODO: update with navigation to "add card" screen (https://github.com/Expensify/App/issues/38621)
+            onPress={openAddPaymentCardScreen}
             style={styles.w100}
             success
             large

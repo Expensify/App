@@ -26,9 +26,15 @@ type CurrencySelectorProps = {
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
+
+    /** object to get route details from */
+    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY | typeof ROUTES.SETTINGS_CHANGE_CURRENCY;
 };
 
-function CurrencySelector({errorText = '', value: currency, onInputChange = () => {}, onBlur}: CurrencySelectorProps, ref: ForwardedRef<View>) {
+function CurrencySelector(
+    {errorText = '', value: currency, onInputChange = () => {}, onBlur, currencySelectorRoute = ROUTES.SETTINGS_CHANGE_CURRENCY}: CurrencySelectorProps,
+    ref: ForwardedRef<View>,
+) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -61,7 +67,7 @@ function CurrencySelector({errorText = '', value: currency, onInputChange = () =
             errorText={errorText}
             onPress={() => {
                 didOpenCurrencySelector.current = true;
-                Navigation.navigate(ROUTES.SETTINGS_CHANGE_CURRENCY);
+                Navigation.navigate(currencySelectorRoute);
             }}
         />
     );
