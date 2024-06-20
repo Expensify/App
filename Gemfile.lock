@@ -293,7 +293,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (>= 6.1.7.3, < 7.1.0)
-  cocoapods (~> 1.14)
+  cocoapods (= 1.15.2)
   fastlane (~> 2)
   fastlane-plugin-aws_s3
   xcpretty (~> 0)
