@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type {SearchQuery, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -47,6 +47,7 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
+    const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -151,6 +152,18 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
+    const toggleAllItems = () => {
+        if (selectedItems.length === data.length) {
+            setSelectedItems([]);
+        } else {
+            setSelectedItems([...data]);
+        }
+    };
+
+    const toggleListItem = (listItem: TransactionListItemType | ReportListItemType) => {
+        console.log(listItem);
+    };
+
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
             customListHeader={
@@ -163,6 +176,9 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     shouldShowYear={shouldShowYear}
                 />
             }
+            canSelectMultiple={isLargeScreenWidth}
+            onSelectAll={toggleAllItems}
+            onCheckboxPress={toggleListItem}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.

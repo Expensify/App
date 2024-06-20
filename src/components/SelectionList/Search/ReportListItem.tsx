@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -154,10 +155,20 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, isLargeScreenWidth && styles.mr4]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            <View style={[styles.flexShrink1]}>
+                            {canSelectMultiple && (
+                                <Checkbox
+                                    onPress={() => {}}
+                                    isChecked={item.isSelected}
+                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                                    disabled={!!isDisabled || item.isDisabledCheckbox}
+                                    accessibilityLabel={item.text ?? ''}
+                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                                />
+                            )}
+                            <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
                                 <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
                                 <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                             </View>
@@ -195,6 +206,8 @@ function ReportListItem<TItem extends ListItem>({
                         showItemHeaderOnNarrowLayout={false}
                         containerStyle={styles.mt3}
                         isChildListItem
+                        isDisabled={!!isDisabled}
+                        canSelectMultiple={!!canSelectMultiple}
                     />
                 ))}
             </View>

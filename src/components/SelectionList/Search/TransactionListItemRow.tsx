@@ -2,6 +2,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
@@ -49,6 +50,8 @@ type TransactionListItemRowProps = {
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     isChildListItem?: boolean;
+    isDisabled: boolean;
+    canSelectMultiple: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -213,7 +216,16 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
     );
 }
 
-function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
+function TransactionListItemRow({
+    item,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onButtonPress,
+    showItemHeaderOnNarrowLayout = true,
+    containerStyle,
+    isChildListItem = false,
+}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -285,7 +297,14 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            {canSelectMultiple && (
+                <Checkbox
+                    onPress={() => {}}
+                    accessibilityLabel={item.text ?? ''}
+                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                />
+            )}
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}

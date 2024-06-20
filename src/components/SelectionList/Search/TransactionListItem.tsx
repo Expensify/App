@@ -54,6 +54,8 @@ function TransactionListItem<TItem extends ListItem>({
                 onButtonPress={() => {
                     onSelectRow(item);
                 }}
+                isDisabled={!!isDisabled}
+                canSelectMultiple={!!canSelectMultiple}
             />
         </BaseListItem>
     );
