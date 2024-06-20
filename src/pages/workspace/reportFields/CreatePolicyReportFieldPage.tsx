@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import DateSelector from './DateSelector';
 import TypeSelector from './TypeSelector';
 
 type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
@@ -73,35 +74,61 @@ function CreatePolicyReportFieldPage({
                     shouldValidateOnBlur={false}
                     disablePressOnEnter={false}
                 >
-                    <View style={styles.mhn5}>
-                        <InputWrapper
-                            InputComponent={TextPicker}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('common.name')}
-                            description={translate('common.name')}
-                            rightLabel={translate('common.required')}
-                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                            maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
-                            multiline={false}
-                            role={CONST.ROLE.PRESENTATION}
-                        />
-                        <InputWrapper
-                            InputComponent={TypeSelector}
-                            inputID={INPUT_IDS.TYPE}
-                            label={translate('common.type')}
-                            rightLabel={translate('common.required')}
-                        />
-                        <InputWrapper
-                            InputComponent={TextPicker}
-                            inputID={INPUT_IDS.INITIAL_VALUE}
-                            label={translate('common.initialValue')}
-                            description={translate('common.initialValue')}
-                            accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
-                            maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
-                            multiline={false}
-                            role={CONST.ROLE.PRESENTATION}
-                        />
-                    </View>
+                    {({inputValues}) => (
+                        <View style={styles.mhn5}>
+                            <InputWrapper
+                                InputComponent={TextPicker}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('common.name')}
+                                description={translate('common.name')}
+                                rightLabel={translate('common.required')}
+                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
+                                multiline={false}
+                                role={CONST.ROLE.PRESENTATION}
+                            />
+                            <InputWrapper
+                                InputComponent={TypeSelector}
+                                inputID={INPUT_IDS.TYPE}
+                                label={translate('common.type')}
+                                rightLabel={translate('common.required')}
+                            />
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.TEXT && (
+                                <InputWrapper
+                                    InputComponent={TextPicker}
+                                    inputID={INPUT_IDS.INITIAL_VALUE}
+                                    label={translate('common.initialValue')}
+                                    description={translate('common.initialValue')}
+                                    accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
+                                    maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
+                                    multiline={false}
+                                    role={CONST.ROLE.PRESENTATION}
+                                />
+                            )}
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
+                                <InputWrapper
+                                    InputComponent={DateSelector}
+                                    inputID={INPUT_IDS.INITIAL_VALUE}
+                                    label={translate('common.date')}
+                                />
+                            )}
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DROPDOWN && (
+                                <InputWrapper
+                                    InputComponent={TextPicker}
+                                    inputID={INPUT_IDS.INITIAL_VALUE}
+                                    label={translate('common.initialValue')}
+                                    description={translate('common.initialValue')}
+                                    accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
+                                    maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
+                                    multiline={false}
+                                    role={CONST.ROLE.PRESENTATION}
+                                />
+                            )}
+                        </View>
+                    )}
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
