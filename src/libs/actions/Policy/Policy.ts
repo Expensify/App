@@ -17,11 +17,8 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
-<<<<<<< HEAD
     OpenPolicyDistanceRatesPageParams,
     OpenPolicyInitialPageParams,
-=======
->>>>>>> main
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyProfilePageParams,
     OpenPolicyTaxesPageParams,
