@@ -13,28 +13,31 @@ const INDEX_DECIMAL = 10;
 const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
-const getLocaleDigits = memoize((locale: Locale): string[] => {
-    const localeDigits = [...STANDARD_DIGITS];
-    for (let i = 0; i <= 9; i++) {
-        localeDigits[i] = NumberFormatUtils.format(locale, i);
-    }
-    NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
-        switch (part.type) {
-            case 'decimal':
-                localeDigits[INDEX_DECIMAL] = part.value;
-                break;
-            case 'minusSign':
-                localeDigits[INDEX_MINUS_SIGN] = part.value;
-                break;
-            case 'group':
-                localeDigits[INDEX_GROUP] = part.value;
-                break;
-            default:
-                break;
+const getLocaleDigits = memoize(
+    (locale: Locale): string[] => {
+        const localeDigits = [...STANDARD_DIGITS];
+        for (let i = 0; i <= 9; i++) {
+            localeDigits[i] = NumberFormatUtils.format(locale, i);
         }
-    });
-    return localeDigits;
-});
+        NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
+            switch (part.type) {
+                case 'decimal':
+                    localeDigits[INDEX_DECIMAL] = part.value;
+                    break;
+                case 'minusSign':
+                    localeDigits[INDEX_MINUS_SIGN] = part.value;
+                    break;
+                case 'group':
+                    localeDigits[INDEX_GROUP] = part.value;
+                    break;
+                default:
+                    break;
+            }
+        });
+        return localeDigits;
+    },
+    {monitoringName: 'getLocaleDigits'},
+);
 
 /**
  * Gets the locale digit corresponding to a standard digit.
