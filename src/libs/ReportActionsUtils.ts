@@ -21,7 +21,7 @@ import type {
     OriginalMessageReimbursementDequeued,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
+import type {Message, OldDotReportAction, ReportActionBase, ReportActionMessageJSON, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -32,7 +32,6 @@ import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import {getOriginalMessageModifiedField} from './ReportUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -508,16 +507,16 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         return true;
     }
 
-    const deprecatedOldDotReportActions: ActionName[] = [
-        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
-        CONST.REPORT.ACTIONS.TYPE.DONATION,
-    ];
-    if (deprecatedOldDotReportActions.includes(reportAction.actionName as ActionName)) {
-        Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
-        return true;
-    }
+    // const deprecatedOldDotReportActions: ActionName[] = [
+    //     CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+    //     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+    //     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
+    //     CONST.REPORT.ACTIONS.TYPE.DONATION,
+    // ];
+    // if (deprecatedOldDotReportActions.includes(reportAction.actionName as ActionName)) {
+    //     Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
+    //     return true;
+    // }
 
     return false;
 }
@@ -1063,7 +1062,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
     };
 }
 
-function isOldDotReportAction(action: ReportAction): boolean {
+function isOldDotReportAction(action: ReportAction | OldDotReportAction): action is OldDotReportAction {
     return [
         CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
         CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
@@ -1071,7 +1070,6 @@ function isOldDotReportAction(action: ReportAction): boolean {
         CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
-        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.FORWARDED,
         CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
         CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
@@ -1089,14 +1087,13 @@ function isOldDotReportAction(action: ReportAction): boolean {
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
-    ].some((oldDotActionName) => oldDotActionName === action);
+    ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
 
 /**
  * Helper method to format message of OldDot Actions.
- * For now, we just concat all of the text elements of the message to create the full message.
  */
-function getMessageOfOldDotReportAction(originalMessage: OldDotOriginalMessage, actionName: ActionName): string {
+function getMessageOfOldDotReportAction({originalMessage, actionName}: OldDotOriginalMessage): string {
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
@@ -1107,34 +1104,20 @@ function getMessageOfOldDotReportAction(originalMessage: OldDotOriginalMessage, 
             const {fromPolicy, toPolicy} = originalMessage;
             return Localize.translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
         }
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE: {
-            const {newType} = originalMessage;
-            return Localize.translateLocal('report.actions.type.changeType', {oldType: '', newType});
-        }
         case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
-            const {delegateUser, awayUser} = originalMessage;
-            return Localize.translateLocal('report.actions.type.delegateSubmit', {delegateUser, awayUser});
+            const {delegateUser, originalManager} = originalMessage;
+            return Localize.translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
         }
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return Localize.translateLocal('report.actions.type.exportedToCSV');
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
-            return Localize.translateLocal('report.actions.type.exportedToIntegration');
-        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS:
-            return Localize.translateLocal('report.actions.type.exportedToQuickBooks');
-        case CONST.REPORT.ACTIONS.TYPE.FORWARDED: {
-            const {amount, currency} = originalMessage;
-            return Localize.translateLocal('report.actions.type.forwarded', {amount, currency});
-        }
+            return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE:
             return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage: originalMessage.errorMessage});
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return Localize.translateLocal('report.actions.type.managerAttachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
             return Localize.translateLocal('report.actions.type.managerDetachReceipt');
-        case CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED: {
-            const {amount, currency} = originalMessage;
-            return Localize.translateLocal('report.actions.type.markedReimbursed', {amount, currency});
-        }
         case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
             const {amount, currency} = originalMessage;
             return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
@@ -1152,19 +1135,11 @@ function getMessageOfOldDotReportAction(originalMessage: OldDotOriginalMessage, 
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
-            return Localize.translateLocal('report.actions.type.share', {user: originalMessage.invitedUser});
+            return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
-            return Localize.translateLocal('report.actions.type.unshare', {user: originalMessage.removedUser});
-        case CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID: {
-            const {amount, currency} = originalMessage;
-            return Localize.translateLocal('report.actions.type.stripePaid', {amount, currency});
-        }
+            return Localize.translateLocal('report.actions.type.unshare', {to: originalMessage.to});
         case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
             return Localize.translateLocal('report.actions.type.takeControl');
-        case CONST.REPORT.ACTIONS.TYPE.UNAPPROVED: {
-            const {amount, currency} = originalMessage;
-            return Localize.translateLocal('report.actions.type.unapproved', {amount, currency});
-        }
         default:
             return '';
     }

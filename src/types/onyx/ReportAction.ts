@@ -5,6 +5,7 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type OldDotOriginalMessage from './OldDotOriginalMessage';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
@@ -233,6 +234,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
+type OldDotReportAction = ReportActionBase & OldDotOriginalMessage;
 type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
 type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
 
@@ -241,4 +243,15 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};
+export type {
+    ReportActions,
+    OldDotReportAction,
+    ReportActionBase,
+    Message,
+    LinkMetadata,
+    OriginalMessage,
+    ReportActionsCollectionDataSet,
+    ReportPreviewAction,
+    ModifiedExpenseAction,
+    ReportActionMessageJSON,
+};

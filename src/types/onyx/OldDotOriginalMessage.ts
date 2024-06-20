@@ -42,7 +42,7 @@ type OldDotOriginalMessageActionName =
 
 type OriginalMessageChangeField = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD;
-    originalMessage: ChangeFieldParams & Record<string, unknown>;
+    originalMessage: Record<string, unknown> & ChangeFieldParams;
 };
 
 type OriginalMessageChangePolicy = {
@@ -72,7 +72,7 @@ type OriginalMessageExportedToIntegration = {
 };
 
 // verify
-type OriginalMessageForwarded = {
+type OriginalMessagePolicyTask = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
     originalMessage: ForwardedParams & Record<string, unknown>;
 };
@@ -163,7 +163,6 @@ type OriginalMessageUnapproved = {
 type OldDotOriginalMessage =
     | OriginalMessageChangeField
     | OriginalMessageChangePolicy
-    | OldDotOriginalMessageActionName
     | OriginalMessageDelegateSubmit
     | OriginalMessageExportedToCSV
     | OriginalMessageExportedToIntegration

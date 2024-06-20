@@ -369,8 +369,8 @@ type OriginalMessage =
     | OriginalMessageMarkedReimbursed
     | OriginalMessageActionableTrackedExpenseWhisper
     | OriginalMessageMergedWithCashTransaction
-    | OriginalMessageDismissedViolation;
-// | OldDotOriginalMessage;
+    | OriginalMessageDismissedViolation
+    | OldDotOriginalMessage;
 
 export default OriginalMessage;
 export type {
