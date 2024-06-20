@@ -95,7 +95,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableBillDefaultVendor}>
                                     <MenuItemWithTopDescription
                                         title={nonReimbursableBillDefaultVendorObject?.name}
-                                        description={translate('workspace.qbo.vendor')}
+                                        description={translate('workspace.qbo.defaultVendor')}
                                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
                                         brickRoadIndicator={errorFields?.nonReimbursableBillDefaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         shouldShowRightIcon
