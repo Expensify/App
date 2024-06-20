@@ -3,7 +3,7 @@ import getNextBillingDate from '@src/pages/settings/Subscription/CardSection/uti
 describe('getNextBillingDate', () => {
     beforeAll(() => {
         jest.useFakeTimers();
-        // Month is zero-indexed
+        // Month is zero indexed, so this is July 5th 2024
         jest.setSystemTime(new Date(2024, 6, 5));
     });
 
