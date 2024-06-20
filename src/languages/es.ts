@@ -2213,8 +2213,8 @@ export default {
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión.',
         },
         netsuite: {
-            subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
+            subsidiary: 'Subsidiaria',
+            subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
         },
         type: {
             free: 'Gratis',

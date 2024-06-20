@@ -103,7 +103,7 @@ function accountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.NET_SUITE:
             return {
                 title: translate('workspace.accounting.netsuite'),
-                icon: Expensicons.Apple,
+                icon: Expensicons.NetSuiteSquare,
                 setupConnectionButton: (
                     <ConnectToXeroButton
                         policyID={policyID}

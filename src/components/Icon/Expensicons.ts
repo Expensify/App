@@ -121,6 +121,7 @@ import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
+import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -366,4 +367,5 @@ export {
     Clear,
     CheckCircle,
     CheckmarkCircle,
+    NetSuiteSquare
 };
