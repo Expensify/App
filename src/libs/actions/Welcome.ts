@@ -1,10 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
-import type OnyxPolicy from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
 let isLoadingReportData = true;
@@ -96,23 +93,6 @@ Onyx.connect({
     callback: (value) => {
         isLoadingReportData = value ?? false;
         checkServerDataReady();
-    },
-});
-
-const allPolicies: OnyxCollection<OnyxPolicy> | EmptyObject = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-
-        if (val === null || val === undefined) {
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
 

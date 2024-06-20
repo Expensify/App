@@ -51,6 +51,7 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
+import getAllPolicies from './PolicyConnection';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
@@ -253,18 +254,6 @@ Onyx.connect({
             return;
         }
         preferredLocale = value;
-    },
-});
-
-const policies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy, key) => {
-        if (!policy || !key || !policy.name) {
-            return;
-        }
-
-        policies[key] = policy;
     },
 });
 
@@ -1807,7 +1796,7 @@ function getOptions(
             report,
             currentReportId: topmostReportId,
             betas,
-            policies,
+            policies: getAllPolicies(),
             doesReportHaveViolations,
             isInFocusMode: false,
             excludeEmptyChats: false,
@@ -1931,7 +1920,10 @@ function getOptions(
                 reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             const shouldShowInvoiceRoom =
-                includeInvoiceRooms && ReportUtils.isInvoiceRoom(reportOption.item) && ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) && !reportOption.isArchivedRoom;
+                includeInvoiceRooms &&
+                ReportUtils.isInvoiceRoom(reportOption.item) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', getAllPolicies()) &&
+                !reportOption.isArchivedRoom;
 
             /**
                 Exclude the report option if it doesn't meet any of the following conditions:
