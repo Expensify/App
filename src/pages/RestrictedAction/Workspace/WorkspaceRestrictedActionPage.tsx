@@ -2,10 +2,10 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
+import * as Policy from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import * as Policy from '@libs/PolicyUtils'
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
 import WorkspaceOwnerRestrictedAction from './WorkspaceOwnerRestrictedAction';
 import WorkspaceUserRestrictedAction from './WorkspaceUserRestrictedAction';
