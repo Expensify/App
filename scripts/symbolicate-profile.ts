@@ -82,8 +82,7 @@ async function getWorkflowRunArtifact() {
     return artifact.id;
 }
 
-const dirName = '.sourcemaps';
-const sourcemapDir = path.join(process.cwd(), dirName);
+const sourcemapDir = path.resolve(__dirname, '../.sourcemaps');
 
 function downloadFile(url: string) {
     Logger.log(`Downloading file from URL: ${url}`);
