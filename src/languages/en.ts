@@ -1024,6 +1024,8 @@ export default {
         copy: 'Copy',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
+        pleaseEnableTwoFactorAuth: 'Please enable Two-factor authentication.',
+        twoFactorAuthIsRequiredDescriptionXero: 'Two-factor authentication is required for connecting to Xero, please enable Two-factor authentication to continue.'
     },
     recoveryCodeForm: {
         error: {

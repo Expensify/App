@@ -13,11 +13,9 @@ import ConfirmContent from './ConfirmContent';
 import Lottie from './Lottie';
 import Modal from './Modal';
 import type BaseModalProps from './Modal/types';
+import Text from './Text';
 
 type RequireTwoFactorAuthenticationModalProps = {
-    /** Title of the modal */
-    title?: string;
-
     /** A callback to call when the form has been submitted */
     onConfirm: () => void;
 
@@ -27,17 +25,8 @@ type RequireTwoFactorAuthenticationModalProps = {
     /** Modal visibility */
     isVisible: boolean;
 
-    /** Confirm button text */
-    confirmText?: string;
-
-    /** Styles for title */
-    titleStyles?: StyleProp<TextStyle>;
-
-    /** Styles for prompt */
-    promptStyles?: StyleProp<TextStyle>;
-
-    /** Styles for icon */
-    iconAdditionalStyles?: StyleProp<ViewStyle>;
+    /** Describe what is showing */
+    description: string;
 
     /**
      * Whether the modal should enable the new focus manager.
@@ -46,30 +35,19 @@ type RequireTwoFactorAuthenticationModalProps = {
     shouldEnableNewFocusManagement?: boolean;
 };
 
-function RequireTwoFactorAuthenticationModal({
-    confirmText = '',
-    onCancel = () => {},
-    title = '',
-    titleStyles,
-    iconAdditionalStyles,
-    promptStyles,
-    isVisible,
-    onConfirm,
-    shouldEnableNewFocusManagement,
-}: RequireTwoFactorAuthenticationModalProps) {
-    const {isSmallScreenWidth} = useResponsiveLayout();
+function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, isVisible, onConfirm, shouldEnableNewFocusManagement}: RequireTwoFactorAuthenticationModalProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
 
-    
     return (
         <Modal
             onSubmit={onConfirm}
             onClose={onCancel}
             isVisible={isVisible}
-            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-            // innerContainerStyle={innerContainerStyle}
+            type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            innerContainerStyle={{...styles.pt2, ...styles.pb5, ...styles.br4, ...styles.boxShadowNone}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
         >
             <View style={[styles.w100, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
@@ -81,32 +59,19 @@ function RequireTwoFactorAuthenticationModal({
                     loop
                 />
             </View>
-            <Button
-                large
-                success
-                pressOnEnter
-                onPress={() => {}}
-                text={translate('twoFactorAuth.enableTwoFactorAuth')}
-            />
-            {/* <ConfirmContent
-                title={title}
-               
-                onConfirm={() => (isVisible ? onConfirm() : null)}
-                onCancel={onCancel}
-                confirmText={confirmText}
-                prompt={prompt}
-                success={success}
-                danger={danger}
-                shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
-                shouldShowCancelButton={shouldShowCancelButton}
-                shouldCenterContent={shouldCenterContent}
-                iconSource={iconSource}
-                iconAdditionalStyles={iconAdditionalStyles}
-                titleStyles={titleStyles}
-                promptStyles={promptStyles}
-                shouldStackButtons={shouldStackButtons}
-                image={image}
-            /> */}
+            <View style={[styles.mt5, styles.mh5]}>
+                <View style={[shouldUseNarrowLayout ? [styles.gap2, styles.mb8] : [styles.mb10]]}>
+                    <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
+                    <Text style={styles.textSupporting}>{description}</Text>
+                </View>
+                <Button
+                    large
+                    success
+                    pressOnEnter
+                    onPress={() => {}}
+                    text={translate('twoFactorAuth.enableTwoFactorAuth')}
+                />
+            </View>
         </Modal>
     );
 }
