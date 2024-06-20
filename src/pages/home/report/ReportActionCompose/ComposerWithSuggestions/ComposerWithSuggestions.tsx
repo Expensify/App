@@ -476,8 +476,8 @@ function ComposerWithSuggestions(
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {
-        const trimmedComment = commentRef.current.trim();
-        const commentLength = ReportUtils.getCommentLength(trimmedComment, {reportID});
+        const comment = commentRef.current;
+        const commentLength = ReportUtils.getCommentLength(comment, {reportID});
 
         // Don't submit empty comments or comments that exceed the character limit
         if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
@@ -497,7 +497,7 @@ function ComposerWithSuggestions(
             Report.setIsComposerFullSize(reportID, false);
         }
         setIsFullComposerAvailable(false);
-        return trimmedComment;
+        return comment;
     }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
