@@ -7,16 +7,16 @@ import {withOnyx} from 'react-native-onyx';
 import type {
     BottomTabNavigatorParamList,
     CentralPaneNavigatorParamList,
-    FullScreenNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     SettingsNavigatorParamList,
+    WorkspaceNavigatorParamList,
 } from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
+type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & WorkspaceNavigatorParamList;
 
 type PolicyRoute = RouteProp<
     NavigatorsParamList,

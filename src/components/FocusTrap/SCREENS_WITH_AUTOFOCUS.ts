@@ -1,4 +1,4 @@
-import {CENTRAL_PANE_WORKSPACE_SCREENS} from '@libs/Navigation/AppNavigator/Navigators/FullScreenNavigator';
+import {CENTRAL_PANE_WORKSPACE_SCREENS} from '@libs/Navigation/AppNavigator/Navigators/WorkspaceNavigator';
 import SCREENS from '@src/SCREENS';
 
 const SCREENS_WITH_AUTOFOCUS: string[] = [
