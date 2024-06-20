@@ -498,6 +498,9 @@ function ReportActionItem({
         [shouldHideThreadDividerLine, styles.reportHorizontalRule, report.reportID],
     );
 
+    console.log('transaction ', transaction);
+    console.log('report ', report);
+
     /**
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered

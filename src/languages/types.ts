@@ -298,9 +298,7 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
-type ModifyExpenseParams = {oldValue: string; newValue: string};
-
-type ChangeFieldParams = ModifyExpenseParams & {fieldName: string};
+type ChangeFieldParams = {oldValue: string; newValue: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
 
@@ -316,7 +314,11 @@ type IntegrationsMessageParams = {errorMessage: string};
 
 type MarkedReimbursedParams = {amount: string; currency: string};
 
-type ShareParams = {user: string};
+type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
+
+type ShareParams = {to: string};
+
+type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
 
@@ -426,7 +428,6 @@ export type {
     HeldRequestParams,
     PaySomeoneParams,
     ReimbursementRateParams,
-    ModifyExpenseParams,
     ChangeFieldParams,
     ChangePolicyParams,
     ChangeTypeParams,
@@ -435,7 +436,9 @@ export type {
     ForwardedParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
+    MarkReimbursedFromIntegrationParams,
     ShareParams,
+    UnshareParams,
     StripePaidParams,
     UnapprovedParams,
 };

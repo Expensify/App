@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type OldDotOriginalMessage from './OldDotOriginalMessage';
 
 type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE | typeof CONST.WALLET.TRANSFER_METHOD_TYPE>;
 
@@ -369,6 +370,7 @@ type OriginalMessage =
     | OriginalMessageActionableTrackedExpenseWhisper
     | OriginalMessageMergedWithCashTransaction
     | OriginalMessageDismissedViolation;
+// | OldDotOriginalMessage;
 
 export default OriginalMessage;
 export type {

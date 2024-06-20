@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type OldDotOriginalMessage from '@src/types/onyx/OldDotOriginalMessage';
 import type {
     ActionName,
     ChangeLog,
@@ -1088,14 +1089,14 @@ function isOldDotReportAction(action: ReportAction): boolean {
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
-    ].some((oldDotActionName) => oldDotActionName === action.actionName);
+    ].some((oldDotActionName) => oldDotActionName === action);
 }
 
 /**
  * Helper method to format message of OldDot Actions.
  * For now, we just concat all of the text elements of the message to create the full message.
  */
-function getMessageOfOldDotReportAction({originalMessage}: ReportAction, actionName: ActionName): string {
+function getMessageOfOldDotReportAction(originalMessage: OldDotOriginalMessage, actionName: ActionName): string {
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
@@ -1107,8 +1108,8 @@ function getMessageOfOldDotReportAction({originalMessage}: ReportAction, actionN
             return Localize.translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
         }
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE: {
-            const {value, oldValue} = originalMessage;
-            return Localize.translateLocal('report.actions.type.changeType', {value, oldValue});
+            const {newType} = originalMessage;
+            return Localize.translateLocal('report.actions.type.changeType', {oldType: '', newType});
         }
         case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
             const {delegateUser, awayUser} = originalMessage;
