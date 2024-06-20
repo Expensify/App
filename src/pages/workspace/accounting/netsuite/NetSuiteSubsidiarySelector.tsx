@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateNetSuiteSubsidiary} from '@libs/actions/connections/netsuite';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -19,25 +20,28 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
+
 function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
+    const currentSubsidiaryName = netsuiteConfig?.subsidiary ?? '';
     const policyID = policy?.id ?? '';
 
     const sections =
         subsidiaryList.map((subsidiary) => ({
             text: subsidiary.name,
             keyForList: subsidiary.name,
-            isSelected: subsidiary.name === netsuiteConfig?.subsidiary ?? '',
+            isSelected: subsidiary.name === currentSubsidiaryName,
         })) ?? [];
 
     const saveSelection = ({keyForList}: ListItem) => {
-        if (!keyForList) {
+        if (!keyForList || keyForList === currentSubsidiaryName) {
             return;
         }
 
+        updateNetSuiteSubsidiary(policyID, keyForList, currentSubsidiaryName);
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
     };
 
