@@ -62,16 +62,18 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
-            <MenuItem
-                shouldShowRightIcon
-                icon={Expensicons.History}
-                iconStyles={[]}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-                style={styles.mt5}
-                title={translate('subscription.cardSection.viewPaymentHistory')}
-                titleStyle={styles.textStrong}
-                onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL))}
-            />
+            {!isEmptyObject(defaultCard?.accountData) && (
+                <MenuItem
+                    shouldShowRightIcon
+                    icon={Expensicons.History}
+                    iconStyles={[]}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mt5}
+                    title={translate('subscription.cardSection.viewPaymentHistory')}
+                    titleStyle={styles.textStrong}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL))}
+                />
+            )}
         </Section>
     );
 }
