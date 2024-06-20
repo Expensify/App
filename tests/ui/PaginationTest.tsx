@@ -49,7 +49,7 @@ function scrollToOffset(offset: number) {
 }
 
 function triggerListLayout() {
-    fireEvent(screen.getByTestId('report-actions-view-container'), 'onLayout', {
+    fireEvent(screen.getByTestId('report-actions-view-wrapper'), 'onLayout', {
         nativeEvent: {
             layout: {
                 x: 0,

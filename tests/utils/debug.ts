@@ -100,7 +100,7 @@ function formatNode(node: ReactTestInstance, options: Options) {
 /**
  * Log a subtree of the app for debugging purposes.
  *
- * @example debug(screen.getByTestId('report-actions-view-container'));
+ * @example debug(screen.getByTestId('report-actions-view-wrapper'));
  */
 export default function debug(node: ReactTestInstance | ReactTestInstance[] | null, {includeProps = true, maxDepth = Infinity}: Options = {}): void {
     const options = {includeProps, maxDepth};
