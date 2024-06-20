@@ -160,6 +160,10 @@ function isCreatedTaskReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!getOriginalMessage(reportAction)?.taskReportID;
 }
 
+function isTripPreview(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW);
+}
+
 function isActionOfType<T extends ReportActionName[]>(
     action: OnyxInputOrEntry<ReportAction>,
     ...actionNames: T
@@ -632,9 +636,14 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
+    if (isTripPreview(reportAction)) {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !!reportAction.pendingAction;
+
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
@@ -1422,6 +1431,7 @@ export {
     isAddCommentAction,
     isPolicyChangeLogAction,
     getTextFromHtml,
+    isTripPreview,
 };
 
 export type {LastVisibleMessage};

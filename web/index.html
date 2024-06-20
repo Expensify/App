@@ -130,7 +130,7 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging)) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->

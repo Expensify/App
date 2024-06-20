@@ -3,6 +3,7 @@ import type AccountData from './AccountData';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
@@ -186,4 +187,5 @@ export type {
     CapturedLogs,
     SearchResults,
     PrivateSubscription,
+    BillingGraceEndPeriod,
 };

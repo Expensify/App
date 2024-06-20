@@ -19,6 +19,7 @@ import type {
     RequestMoneyParams,
     SendInvoiceParams,
     SendMoneyParams,
+    SetNameValuePairParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -6687,8 +6688,23 @@ function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | nul
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
 }
 
-function setShownHoldUseExplanation() {
-    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
+function dismissHoldUseExplanation() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
 }
 
 /**
@@ -6987,7 +7003,8 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setShownHoldUseExplanation,
+    dismissHoldUseExplanation,
+    updateMoneyRequestDate,
     setSplitShares,
     resetSplitShares,
     setIndividualShare,
@@ -7003,7 +7020,6 @@ export {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
-    updateMoneyRequestDate,
     updateMoneyRequestDescription,
     updateMoneyRequestDistance,
     updateMoneyRequestMerchant,

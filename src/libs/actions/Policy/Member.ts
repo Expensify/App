@@ -248,8 +248,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: policyKey,
             value: {employeeList: optimisticMembersState},
         },
-        ...announceRoomMembers.onyxOptimisticData,
     ];
+    optimisticData.push(...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -257,8 +257,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: policyKey,
             value: {employeeList: successMembersState},
         },
-        ...announceRoomMembers.onyxSuccessData,
     ];
+    successData.push(...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -266,8 +266,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
             key: policyKey,
             value: {employeeList: failureMembersState},
         },
-        ...announceRoomMembers.onyxFailureData,
     ];
+    failureData.push(...announceRoomMembers.onyxFailureData);
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -552,10 +552,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: optimisticMembersState,
             },
         },
-        ...newPersonalDetailsOnyxData.optimisticData,
-        ...membersChats.onyxOptimisticData,
-        ...announceRoomMembers.onyxOptimisticData,
     ];
+    optimisticData.push(...newPersonalDetailsOnyxData.optimisticData, ...membersChats.onyxOptimisticData, ...announceRoomMembers.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -565,10 +563,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: successMembersState,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
-        ...membersChats.onyxSuccessData,
-        ...announceRoomMembers.onyxSuccessData,
     ];
+    successData.push(...newPersonalDetailsOnyxData.finallyData, ...membersChats.onyxSuccessData, ...announceRoomMembers.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -581,9 +577,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
                 employeeList: failureMembersState,
             },
         },
-        ...membersChats.onyxFailureData,
-        ...announceRoomMembers.onyxFailureData,
     ];
+    failureData.push(...membersChats.onyxFailureData, ...announceRoomMembers.onyxFailureData);
 
     const params: AddMembersToWorkspaceParams = {
         employees: JSON.stringify(logins.map((login) => ({email: login}))),
