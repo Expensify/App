@@ -16,7 +16,6 @@ import CustomStatusBarAndBackgroundContextProvider from './components/CustomStat
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
-import KeyboardHandlerProvider from './components/KeyboardHandlerProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -82,7 +81,6 @@ function App({url}: AppProps) {
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
-                        KeyboardHandlerProvider,
                         ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
                         ReportIDsContextProvider,
                         PlaybackContextProvider,
