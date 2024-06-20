@@ -782,7 +782,9 @@ function ReportActionItem({
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread) ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : '-1';
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread)
+            ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID
+            : '-1';
 
         return (
             <ReportActionItemContentCreated

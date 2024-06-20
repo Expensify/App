@@ -18,6 +18,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportActionText} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -28,7 +29,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
-import { getReportActionText } from '@libs/ReportActionsUtils';
 
 type TripRoomPreviewProps = {
     /** All the data of the action */
