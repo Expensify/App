@@ -105,10 +105,9 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
+        // TypeScript specific rules
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
-
-        // TypeScript specific rules
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',
@@ -257,6 +256,7 @@ module.exports = {
         // Remove once no JS files are left
         {
             files: ['*.js', '*.jsx'],
+            extends: ['plugin:@typescript-eslint/disable-type-checked'],
             rules: {
                 '@typescript-eslint/prefer-nullish-coalescing': 'off',
                 '@typescript-eslint/no-unsafe-return': 'off',
