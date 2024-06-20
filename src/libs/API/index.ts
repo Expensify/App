@@ -167,7 +167,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
 
     // Return a promise containing the response from HTTPS
-    return processRequest(request, CONST.API_REQUEST_TYPE.WRITE);
+    return processRequest(request, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS);
 }
 
 /**
