@@ -394,7 +394,7 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isExecuting, singleExecution} = useContext(MenuItemGroupContext) ?? {};
+    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -469,11 +469,15 @@ function MenuItem(
         }
 
         if (onPress && event) {
-            if (!singleExecution) {
+            if (!singleExecution || !waitForNavigate) {
                 onPress(event);
                 return;
             }
-            singleExecution(onPress)(event);
+            singleExecution(
+                waitForNavigate(() => {
+                    onPress(event);
+                }),
+            )();
         }
     };
 

@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -135,55 +136,57 @@ function ProfilePage({
                 icon={Illustrations.Profile}
             />
             <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('profilePage.publicSection.title')}
-                        subtitle={translate('profilePage.publicSection.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={styles.pt5}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    >
-                        {publicOptions.map((detail, index) => (
-                            <MenuItemWithTopDescription
-                                // eslint-disable-next-line react/no-array-index-key
-                                key={`${detail.title}_${index}`}
-                                shouldShowRightIcon
-                                title={detail.title}
-                                description={detail.description}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                onPress={() => Navigation.navigate(detail.pageRoute)}
-                                brickRoadIndicator={detail.brickRoadIndicator}
-                            />
-                        ))}
-                    </Section>
-                    <Section
-                        title={translate('profilePage.privateSection.title')}
-                        subtitle={translate('profilePage.privateSection.subtitle')}
-                        isCentralPane
-                        subtitleMuted
-                        childrenStyles={styles.pt3}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                    >
-                        {isLoadingApp ? (
-                            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
-                        ) : (
-                            <>
-                                {privateOptions.map((detail, index) => (
-                                    <MenuItemWithTopDescription
-                                        // eslint-disable-next-line react/no-array-index-key
-                                        key={`${detail.title}_${index}`}
-                                        shouldShowRightIcon
-                                        title={detail.title}
-                                        description={detail.description}
-                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                        onPress={() => Navigation.navigate(detail.pageRoute)}
-                                    />
-                                ))}
-                            </>
-                        )}
-                    </Section>
-                </View>
+                <MenuItemGroup>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={translate('profilePage.publicSection.title')}
+                            subtitle={translate('profilePage.publicSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt5}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {publicOptions.map((detail, index) => (
+                                <MenuItemWithTopDescription
+                                    // eslint-disable-next-line react/no-array-index-key
+                                    key={`${detail.title}_${index}`}
+                                    shouldShowRightIcon
+                                    title={detail.title}
+                                    description={detail.description}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    onPress={() => Navigation.navigate(detail.pageRoute)}
+                                    brickRoadIndicator={detail.brickRoadIndicator}
+                                />
+                            ))}
+                        </Section>
+                        <Section
+                            title={translate('profilePage.privateSection.title')}
+                            subtitle={translate('profilePage.privateSection.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            childrenStyles={styles.pt3}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            {isLoadingApp ? (
+                                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                            ) : (
+                                <>
+                                    {privateOptions.map((detail, index) => (
+                                        <MenuItemWithTopDescription
+                                            // eslint-disable-next-line react/no-array-index-key
+                                            key={`${detail.title}_${index}`}
+                                            shouldShowRightIcon
+                                            title={detail.title}
+                                            description={detail.description}
+                                            wrapperStyle={styles.sectionMenuItemTopDescription}
+                                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                                        />
+                                    ))}
+                                </>
+                            )}
+                        </Section>
+                    </View>
+                </MenuItemGroup>
             </ScrollView>
         </ScreenWrapper>
     );
