@@ -2241,8 +2241,9 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
                 },
             },
         },
-        ...employeeWorkspaceChat.onyxSuccessData,
     ];
+
+    successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
