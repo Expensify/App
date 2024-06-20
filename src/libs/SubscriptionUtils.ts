@@ -1,10 +1,10 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxValues} from '@src/ONYXKEYS';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {differenceInSeconds, fromUnixTime, isAfter, isBefore, parse as parseDate} from 'date-fns';
+import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {BillingGraceEndPeriod, Policy, Fund} from '@src/types/onyx';
+import type {OnyxValues} from '@src/ONYXKEYS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod, Fund, Policy} from '@src/types/onyx';
 
 const PAYMENT_STATUSES = {
     POLICY_OWNER_WITH_AMOUNT_OWED: 'policy_owner_with_amount_owed',
@@ -20,7 +20,6 @@ const PAYMENT_STATUSES = {
     RETRY_BILLING_ERROR: 'retry_billing_error',
     GENERIC_API_ERROR: 'generic_api_error',
 };
-
 
 let amountOwed: OnyxValues[typeof ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED];
 Onyx.connect({
@@ -415,11 +414,18 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-export {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, hasUserFreeTrialEnded, isUserOnFreeTrial, shouldRestrictUserBillableActions,     getSubscriptionStatus,
+export {
+    calculateRemainingFreeTrialDays,
+    doesUserHavePaymentCardAdded,
+    hasUserFreeTrialEnded,
+    isUserOnFreeTrial,
+    shouldRestrictUserBillableActions,
+    getSubscriptionStatus,
     hasSubscriptionRedDotError,
     getAmountOwed,
     getOverdueGracePeriodDate,
     getCardForSubscriptionBilling,
     hasSubscriptionGreenDotInfo,
     hasRetryBillingError,
-    PAYMENT_STATUSES,};
+    PAYMENT_STATUSES,
+};

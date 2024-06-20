@@ -1,3 +1,4 @@
+import {fromUnixTime} from 'date-fns';
 import DateUtils from '@libs/DateUtils';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -5,7 +6,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Fund} from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
-import { fromUnixTime } from 'date-fns';
 
 type BillingStatusResult = {
     title?: string;
