@@ -217,6 +217,7 @@ function PopoverMenu({
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
+                            // eslint-disable-next-line react/no-array-index-key 
                             key={`${item.text}_${menuIndex}`}
                             icon={item.icon}
                             iconWidth={item.iconWidth}
