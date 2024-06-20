@@ -102,7 +102,6 @@ function IOURequestStartPage({
         }, [transaction, policy, iouType, reportID, isFromGlobalCreate]),
     );
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
     const shouldDisplayDistanceRequest = (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate) && iouType !== CONST.IOU.TYPE.SPLIT;
