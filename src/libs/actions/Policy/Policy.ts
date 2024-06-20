@@ -1357,7 +1357,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     const username = emailParts[0];
     const domain = emailParts[1];
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(sessionEmail);
-    const displayName = userDetails?.firstName + (userDetails?.lastName ? ' ' + userDetails?.lastName : '');
+    const displayName = `${userDetails?.firstName ?? ''}${userDetails?.lastName ? ` ${userDetails.lastName}` : ''}`;
 
     if (!PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         defaultWorkspaceName = `${Str.UCFirst(domain.split('.')[0])}'s Workspace`;
