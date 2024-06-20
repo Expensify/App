@@ -96,12 +96,12 @@ class GithubUtils {
 
     /**
      * Default initialize method assuming running in CI, getting the token from an input.
-     * 
+     *
      * @private
      */
     static initOctokit() {
         const token = core.getInput('GITHUB_TOKEN', {required: true});
-        this.initOctokitWithToken(token)
+        this.initOctokitWithToken(token);
     }
 
     /**
@@ -533,12 +533,14 @@ class GithubUtils {
      * Returns a single artifact by name. If none is found, it returns undefined.
      */
     static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
-        return this.octokit.actions.listArtifactsForRepo({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            per_page: 1,
-            name: artefactName,
-        }).then((response) => response.data.artifacts[0]);
+        return this.octokit.actions
+            .listArtifactsForRepo({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                per_page: 1,
+                name: artefactName,
+            })
+            .then((response) => response.data.artifacts[0]);
     }
 
     static getArtifactDownloadURL(artifactId: number): Promise<string> {
@@ -549,7 +551,7 @@ class GithubUtils {
                 artifact_id: artifactId,
                 archive_format: 'zip',
             })
-            .then((response) => response.url)
+            .then((response) => response.url);
     }
 }
 
