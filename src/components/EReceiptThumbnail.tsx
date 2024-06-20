@@ -9,6 +9,7 @@ import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as TripReservationUtils from '@libs/TripReservationUtils';
 import type {Transaction} from '@src/types/onyx';
 import Icon from './Icon';
 import * as eReceiptBGs from './Icon/EReceiptBGs';
@@ -56,7 +57,8 @@ const backgroundImages = {
 function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
+    const {tripIcon, tripBGColor} = TripReservationUtils.getTripEReceiptData(transaction);
+    const colorCode = tripBGColor ?? (isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction));
 
     const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 
@@ -136,6 +138,14 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                     {MCCIcon && !isReceiptThumbnail ? (
                         <Icon
                             src={MCCIcon}
+                            height={receiptMCCSize}
+                            width={receiptMCCSize}
+                            fill={primaryColor}
+                        />
+                    ) : null}
+                    {tripIcon && isReceiptThumbnail ? (
+                        <Icon
+                            src={tripIcon}
                             height={receiptMCCSize}
                             width={receiptMCCSize}
                             fill={primaryColor}

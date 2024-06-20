@@ -95,6 +95,8 @@ function ReportActionItemImage({
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
 
+    const shouldUseTripEReceiptThumbnail = transaction?.receipt?.reservationList?.length !== 0;
+
     let propsObj: ReceiptImageProps;
 
     if (isEReceipt) {
@@ -110,6 +112,16 @@ function ReportActionItemImage({
         };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
+    } else if (shouldUseTripEReceiptThumbnail) {
+        propsObj = {
+            isThumbnail,
+            transactionID: transaction?.transactionID,
+            ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
+            shouldUseThumbnailImage: true,
+            isAuthTokenRequired: false,
+            source: thumbnail ?? image ?? '',
+            shouldUseInitialObjectPosition: isDistanceRequest,
+        };
     } else {
         propsObj = {
             isThumbnail,
