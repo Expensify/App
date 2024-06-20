@@ -161,6 +161,7 @@ function ReportActionCompose({
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
+        Log.info('[ReportActionCompose] Initializing state `isCommentEmpty` with value that depends on draftComment', true, {draftComment});
         return !draftComment || !!draftComment.match(/^(\s)*$/);
     });
 

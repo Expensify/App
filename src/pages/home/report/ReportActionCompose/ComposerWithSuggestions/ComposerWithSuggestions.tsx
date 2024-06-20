@@ -278,6 +278,7 @@ function ComposerWithSuggestions(
     const tag = useSharedValue(-1);
     const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValue] = useState(() => {
+        Log.info('[ComposerWithSuggestions] Initializing state `value` with draftComment', true, {draftComment});
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
