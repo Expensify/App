@@ -60,7 +60,7 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                 />
             </View>
             <View style={[styles.mt5, styles.mh5]}>
-                <View style={[shouldUseNarrowLayout ? [styles.gap2, styles.mb8] : [styles.mb10]]}>
+                <View style={[styles.gap2, styles.mb10]}>
                     <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
                     <Text style={styles.textSupporting}>{description}</Text>
                 </View>
