@@ -51,7 +51,6 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
-import getAllPolicies from './PolicyConnection';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
@@ -254,6 +253,18 @@ Onyx.connect({
             return;
         }
         preferredLocale = value;
+    },
+});
+
+const policies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policy, key) => {
+        if (!policy || !key || !policy.name) {
+            return;
+        }
+
+        policies[key] = policy;
     },
 });
 
@@ -1796,7 +1807,7 @@ function getOptions(
             report,
             currentReportId: topmostReportId,
             betas,
-            policies: getAllPolicies(),
+            policies,
             doesReportHaveViolations,
             isInFocusMode: false,
             excludeEmptyChats: false,
@@ -1922,7 +1933,7 @@ function getOptions(
             const shouldShowInvoiceRoom =
                 includeInvoiceRooms &&
                 ReportUtils.isInvoiceRoom(reportOption.item) &&
-                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', getAllPolicies()) &&
+                ReportUtils.isPolicyAdmin(reportOption.policyID ?? '', policies) &&
                 !reportOption.isArchivedRoom;
 
             /**

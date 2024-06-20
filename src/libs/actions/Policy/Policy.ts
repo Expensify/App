@@ -1,7 +1,7 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
@@ -42,7 +42,6 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getAllPolicies from '@libs/PolicyConnection';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -88,6 +87,39 @@ type NewCustomUnit = {
     attributes: Attributes;
     rates: Rate;
 };
+
+const allPolicies: OnyxCollection<Policy> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (val, key) => {
+        if (!key) {
+            return;
+        }
+        if (val === null || val === undefined) {
+            // If we are deleting a policy, we have to check every report linked to that policy
+            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
+            // More info: https://github.com/Expensify/App/issues/14260
+            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
+            const policyReports = ReportUtils.getAllPolicyReports(policyID);
+            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
+            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
+            policyReports.forEach((policyReport) => {
+                if (!policyReport) {
+                    return;
+                }
+                const {reportID} = policyReport;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
+                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
+            });
+            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
+            Onyx.multiSet(cleanUpSetQueries);
+            delete allPolicies[key];
+            return;
+        }
+
+        allPolicies[key] = val;
+    },
+});
 
 let lastAccessedWorkspacePolicyID: OnyxEntry<string>;
 Onyx.connect({
@@ -136,7 +168,6 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
  * Returns the policy of the report
  */
 function getPolicy(policyID: string | undefined): Policy | EmptyObject {
-    const allPolicies = getAllPolicies();
     if (!allPolicies || !policyID) {
         return {};
     }
@@ -147,7 +178,6 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
  * Returns a primary policy for the user
  */
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
-    const allPolicies = getAllPolicies();
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
     const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? '-1'];
 
@@ -190,7 +220,6 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
  * Delete the workspace
  */
 function deleteWorkspace(policyID: string, policyName: string) {
-    const allPolicies = getAllPolicies();
     if (!allPolicies) {
         return;
     }
@@ -231,7 +260,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                oldPolicyName: getAllPolicies()?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
                 policyName: '',
             },
         });
@@ -593,7 +622,7 @@ function clearWorkspaceReimbursementErrors(policyID: string) {
 }
 
 function leaveWorkspace(policyID: string) {
-    const policy = getAllPolicies()?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
 
     const optimisticData: OnyxUpdate[] = [
@@ -885,7 +914,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                avatarURL: getAllPolicies()?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatarURL,
+                avatarURL: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatarURL,
             },
         },
     ];
@@ -964,7 +993,7 @@ function clearAvatarErrors(policyID: string) {
  * If the response fails set a general error message. Clear the error message when updating.
  */
 function updateGeneralSettings(policyID: string, name: string, currencyValue?: string) {
-    const policy = getAllPolicies()?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     if (!policy) {
         return;
     }
@@ -1146,7 +1175,7 @@ function clearWorkspaceGeneralSettingsErrors(policyID: string) {
 }
 
 function setWorkspaceErrors(policyID: string, errors: Errors) {
-    if (!getAllPolicies()?.[policyID]) {
+    if (!allPolicies?.[policyID]) {
         return;
     }
 
@@ -1172,7 +1201,7 @@ function clearCustomUnitErrors(policyID: string, customUnitID: string, customUni
 }
 
 function hideWorkspaceAlertMessage(policyID: string) {
-    if (!getAllPolicies()?.[policyID]) {
+    if (!allPolicies?.[policyID]) {
         return;
     }
 
@@ -1331,7 +1360,6 @@ function generateDefaultWorkspaceName(email = ''): string {
         defaultWorkspaceName = 'My Group Workspace';
     }
 
-    const allPolicies = getAllPolicies();
     if (isEmptyObject(allPolicies)) {
         return defaultWorkspaceName;
     }
