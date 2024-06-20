@@ -312,13 +312,13 @@ function getSubscriptionStatus(): SubscriptionStatus {
     }
 
     // 12. Generic API error
-    if (false) {
-        return {
-            status: PAYMENT_STATUSES.GENERIC_API_ERROR,
-            isError: true,
-            shouldShowRedDotIndicator: true,
-        };
-    }
+    // if (false) {
+    //     return {
+    //         status: PAYMENT_STATUSES.GENERIC_API_ERROR,
+    //         isError: true,
+    //         shouldShowRedDotIndicator: true,
+    //     };
+    // }
 
     return {};
 }
