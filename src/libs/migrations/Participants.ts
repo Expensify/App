@@ -12,7 +12,7 @@ type OldReportCollection = Record<ReportKey, NullishDeep<OldReport>>;
 
 function getReports(): Promise<OnyxCollection<OldReport>> {
     return new Promise((resolve) => {
-        return resolve(getAllReports());
+        resolve(getAllReports());
     });
 }
 
