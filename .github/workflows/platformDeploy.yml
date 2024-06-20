@@ -372,11 +372,11 @@ jobs:
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name == 'push' }}
     steps:
-      - name: Get version
-        run: echo "VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: 'Deploy HybridApp'
-        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true -f build_version=${{ env.VERSION }}
+        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true -f build_version=$(npm run print-version --silent)
         env:
             GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
