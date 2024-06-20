@@ -52,4 +52,5 @@ export type {WalletAdditionalDetailsForm} from './WalletAdditionalDetailsForm';
 export type {NewChatNameForm} from './NewChatNameForm';
 export type {WorkForm} from './WorkForm';
 export type {SubscriptionSizeForm} from './SubscriptionSizeForm';
+export type {WorkspaceReportFieldsForm} from './WorkspaceReportFieldsForm';
 export type {default as Form} from './Form';
