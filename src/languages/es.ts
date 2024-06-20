@@ -330,6 +330,7 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        disable: 'Deshabilitar',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1019,7 +1020,6 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
-        disable: 'Deshabilitar',
     },
     recoveryCodeForm: {
         error: {
@@ -2296,6 +2296,8 @@ export default {
         reportFields: {
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
+            disableReportFields: 'Desactivar campos de informe',
+            disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

@@ -48,6 +48,10 @@ function canUseXeroIntegration(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.XERO_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
+function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -67,4 +71,5 @@ export default {
     canUseSpotnanaTravel,
     canUseAccountingIntegrations,
     canUseXeroIntegration,
+    canUseReportFieldsFeature,
 };

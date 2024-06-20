@@ -339,6 +339,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        disable: 'Disable',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1022,7 +1023,6 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
-        disable: 'Disable',
     },
     recoveryCodeForm: {
         error: {
@@ -2260,6 +2260,8 @@ export default {
         reportFields: {
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            disableReportFields: 'Disable report fields',
+            disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
         tags: {
             tagName: 'Tag name',
