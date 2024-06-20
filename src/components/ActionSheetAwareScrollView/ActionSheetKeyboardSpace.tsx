@@ -155,10 +155,12 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     return Math.max(keyboard.heightWhenOpened.value - keyboard.height.value - safeArea.bottom, 0) + Math.max(elementOffset, 0);
                 }
 
+                console.log(111, 0);
                 return withSpring(0, config);
             }
 
             case States.POPOVER_CLOSED: {
+                console.log(112, 0);
                 return withSpring(0, config, () => {
                     transition({
                         type: Actions.END_TRANSITION,
@@ -171,12 +173,15 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
             case States.POPOVER_OPEN: {
                 if (popoverHeight) {
                     if (previousElementOffset !== 0 || elementOffset > previousElementOffset) {
+                        console.log(113, elementOffset < 0 ? 0 : elementOffset, elementOffset);
                         return withSpring(elementOffset < 0 ? 0 : elementOffset, config);
                     }
 
+                    console.log(114, Math.max(previousElementOffset, 0), previousElementOffset);
                     return withSpring(Math.max(previousElementOffset, 0), config);
                 }
 
+                console.log(115, 0);
                 return 0;
             }
 
@@ -185,6 +190,7 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 // when item is higher than keyboard and bottom sheet
                 // we should just stay in place
                 if (elementOffset < 0) {
+                    console.log(116, invertedKeyboardHeight);
                     return invertedKeyboardHeight;
                 }
 
@@ -193,65 +199,93 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                     const previousOffset = invertedKeyboardHeight + previousElementOffset;
 
                     if (previousElementOffset === 0 || nextOffset > previousOffset) {
+                        console.log(117, nextOffset);
                         return withSpring(nextOffset, config);
                     }
 
+                    console.log(118, previousOffset);
                     return previousOffset;
                 }
-
+                console.log(119, nextOffset);
                 return nextOffset;
             }
 
             case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_CLOSED:
             case States.ATTACHMENTS_POPOVER_WITH_KEYBOARD_OPEN: {
+                // this transition is extremely slow and we may not have `popoverHeight` when keyboard is hiding
+                // so we run two fold animation:
+                // - when keyboard is hiding -> we return `0` and thus the content is sticky to composer
+                // - when keyboard is closed and we have `popoverHeight` (i. e. popup was measured) -> we run spring animation
+                if (keyboard.state.value === KeyboardState.CLOSING) {
+                    console.log(1200, 0);
+                    return 0;
+                }
+                if (keyboard.progress.value === 0) {
+                    console.log(1201, keyboard.progress.value, interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]), popoverHeight, composerHeight);
+                    return withSpring(popoverHeight - composerHeight, config);
+                }
+
+                // when keyboard appears -> we already have all values so we do interpolation based on keyboard position
+                console.log(1202, keyboard.progress.value, interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]), popoverHeight, composerHeight);
                 return interpolate(keyboard.progress.value, [0, 1], [popoverHeight - composerHeight, 0]);
             }
             case States.CALL_POPOVER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.height.value > 0) {
+                    console.log(121, 0);
                     return 0;
                 }
-
+                console.log(122, lastKeyboardHeight, popoverHeight - composerHeight);
                 return setInitialValueAndRunAnimation(lastKeyboardHeight, withSpring(popoverHeight - composerHeight, config));
             }
             case States.CALL_POPOVER_WITH_KEYBOARD_CLOSED: {
                 // keyboard is opened
                 if (keyboard.height.value > 0) {
+                    console.log(123, 0);
                     return 0;
                 }
 
+                console.log(124, lastKeyboardHeight);
                 return withSpring(lastKeyboardHeight, config);
             }
             case States.EMOJI_PICKER_WITH_KEYBOARD_OPEN: {
                 if (keyboard.state.value === KeyboardState.CLOSED) {
+                    console.log(125, popoverHeight - composerHeight);
                     return popoverHeight - composerHeight;
                 }
 
+                console.log(126, 0);
                 return 0;
             }
 
             case States.KEYBOARD_POPOVER_CLOSED: {
                 if (keyboard.heightWhenOpened.value === keyboard.height.value) {
+                    console.log(127, 0);
                     return 0;
                 }
 
+                console.log(128, popoverHeight - composerHeight);
                 return popoverHeight - composerHeight;
             }
 
             case States.KEYBOARD_POPOVER_OPEN: {
                 if (keyboard.state.value === KeyboardState.OPEN) {
+                    console.log(129, 0);
                     return 0;
                 }
 
                 const nextOffset = elementOffset + lastKeyboardHeight;
 
                 if (keyboard.state.value === KeyboardState.CLOSED && nextOffset > invertedKeyboardHeight) {
+                    console.log(130, nextOffset < 0 ? 0 : nextOffset, nextOffset);
                     return withSpring(nextOffset < 0 ? 0 : nextOffset, config);
                 }
 
                 if (elementOffset < 0) {
+                    console.log(131, lastKeyboardHeight - keyboardHeight);
                     return lastKeyboardHeight - keyboardHeight;
                 }
 
+                console.log(132, lastKeyboardHeight);
                 return lastKeyboardHeight;
             }
 
@@ -259,26 +293,32 @@ function ActionSheetKeyboardSpace(props: ViewProps) {
                 if (elementOffset < 0) {
                     transition({type: Actions.END_TRANSITION});
 
+                    console.log(133, 0);
                     return 0;
                 }
 
                 if (keyboard.state.value === KeyboardState.CLOSED) {
+                    console.log(134, elementOffset + lastKeyboardHeight);
                     return elementOffset + lastKeyboardHeight;
                 }
 
                 if (keyboard.height.value > 0) {
+                    console.log(135, keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset);
                     return keyboard.heightWhenOpened.value - keyboard.height.value + elementOffset;
                 }
 
+                console.log(136, elementOffset + lastKeyboardHeight);
                 return withTiming(elementOffset + lastKeyboardHeight, {
                     duration: 0,
                 });
             }
             case States.EDIT_MESSAGE: {
+                console.log(137, 0);
                 return 0;
             }
 
             default:
+                console.log(138, 0);
                 return 0;
         }
     }, []);
