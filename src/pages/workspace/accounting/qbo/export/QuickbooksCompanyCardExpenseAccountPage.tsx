@@ -40,7 +40,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                     <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesExportDestination}>
                         <MenuItemWithTopDescription
                             title={nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined}
-                            description={translate('workspace.qbo.exportCompany')}
+                            description={translate('workspace.qbo.exportAs')}
                             errorText={errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
                             brickRoadIndicator={errorFields?.nonReimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
