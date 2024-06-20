@@ -12049,12 +12049,14 @@ class GithubUtils {
      * Returns a single artifact by name. If none is found, it returns undefined.
      */
     static getArtifactByName(artefactName) {
-        return this.octokit.actions.listArtifactsForRepo({
+        return this.octokit.actions
+            .listArtifactsForRepo({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
             per_page: 1,
             name: artefactName,
-        }).then((response) => response.data.artifacts[0]);
+        })
+            .then((response) => response.data.artifacts[0]);
     }
     static getArtifactDownloadURL(artifactId) {
         return this.octokit.actions
