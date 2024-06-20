@@ -1802,7 +1802,7 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
-                NET_SUITE: 'netsuite'
+                NET_SUITE: 'netsuite',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',

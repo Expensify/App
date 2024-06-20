@@ -575,7 +575,7 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearConnectionErrorField(policyID: string, connectionName: ConnectionName , fieldName: string) {
+function clearConnectionErrorField(policyID: string, connectionName: ConnectionName, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {[connectionName]: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -3044,7 +3044,7 @@ export {
     createDraftWorkspace,
     buildPolicyData,
     createPolicyExpenseChats,
-    clearConnectionErrorField
+    clearConnectionErrorField,
 };
 
 export type {NewCustomUnit};

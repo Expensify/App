@@ -2213,7 +2213,7 @@ export default {
         },
         netsuite: {
             subsidiary: 'Subsidiary',
-            subsidiarySelectDescription: 'Choose the subsidiary in NetSuite that you\'d like to import data from.',
+            subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
         },
         type: {
             free: 'Gratis',
