@@ -886,9 +886,14 @@ function isPolicyExpenseChat(report: OnyxInputOrEntry<Report> | Participant | Em
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || (report?.isPolicyExpenseChat ?? false);
 }
 
-function isInvoiceRoom(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+function isInvoiceRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
+}
+
+function isInvoiceRoomWithID(reportID?: string): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
+    return isInvoiceRoom(report);
 }
 
 /**
@@ -1232,13 +1237,21 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs> | EmptyObject): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+function isArchivedRoom(report: OnyxInputOrEntry<Report> | EmptyObject, reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs> | EmptyObject): boolean {
     if (reportNameValuePairs) {
         return reportNameValuePairs.isArchived;
     }
 
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+}
+
+/**
+ * Whether the report with the provided reportID is an archived room
+ */
+function isArchivedRoomWithID(reportID?: string) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
+    return isArchivedRoom(report);
 }
 
 /**
@@ -5526,10 +5539,15 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(reportOrID: OnyxInputOrEntry<Report> | EmptyObject | string): boolean {
-    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
+function chatIncludesChronos(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
     return participantAccountIDs.includes(CONST.ACCOUNT_ID.CHRONOS);
+}
+
+function chatIncludesChronosWithID(reportID?: string): boolean {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`];
+    return chatIncludesChronos(report);
 }
 
 /**
@@ -7025,6 +7043,7 @@ export {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronos,
+    chatIncludesChronosWithID,
     chatIncludesConcierge,
     createDraftTransactionAndNavigateToParticipantSelector,
     doesReportBelongToWorkspace,
@@ -7130,6 +7149,7 @@ export {
     isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedRoom,
+    isArchivedRoomWithID,
     isClosedReport,
     isCanceledTaskReport,
     isChatReport,
@@ -7201,6 +7221,7 @@ export {
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteTask,
     isInvoiceRoom,
+    isInvoiceRoomWithID,
     isInvoiceReport,
     isOpenInvoiceReport,
     canWriteInReport,

@@ -342,8 +342,8 @@ function ReportActionItem({
                 draftMessage ?? '',
                 () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(originalReportID),
-                ReportUtils.chatIncludesChronos(originalReportID),
+                ReportUtils.isArchivedRoomWithID(originalReportID),
+                ReportUtils.chatIncludesChronosWithID(originalReportID),
                 false,
                 false,
                 [],
@@ -868,7 +868,7 @@ function ReportActionItem({
                             disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
                             isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(originalReportID)}
+                            isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />

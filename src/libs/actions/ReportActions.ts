@@ -14,12 +14,7 @@ let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-        allReportActions = actions;
-    },
+    callback: (value) => (allReportActions = value),
 });
 
 let allReports: OnyxCollection<OnyxReportType>;

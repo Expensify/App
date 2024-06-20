@@ -218,8 +218,8 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoom(originalReportID),
-            ReportUtils.chatIncludesChronos(originalReportID),
+            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
             filteredContextMenuActions,
