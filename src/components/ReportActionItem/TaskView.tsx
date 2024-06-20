@@ -96,6 +96,12 @@ function TaskView({report, ...props}: TaskViewProps) {
                                     <View style={[styles.flexRow, styles.flex1]}>
                                         <Checkbox
                                             onPress={Session.checkIfActionIsAllowed(() => {
+                                                if (
+                                                    Navigation.isActiveRoute(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID)) ||
+                                                    Navigation.isActiveRoute(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))
+                                                ) {
+                                                    return;
+                                                }
                                                 if (isCompleted) {
                                                     Task.reopenTask(report);
                                                 } else {
