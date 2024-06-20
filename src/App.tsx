@@ -31,6 +31,7 @@ import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import {ReportIDsContextProvider} from './hooks/useReportIDs';
@@ -52,15 +53,14 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
-const USE_STRICT_MODE = true;
-const Wrapper = USE_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
-        <Wrapper>
+        <StrictModeWrapper>
             <InitialURLContextProvider url={url}>
                 <GestureHandlerRootView style={fill}>
                     <ComposeProviders
@@ -102,7 +102,7 @@ function App({url}: AppProps) {
                     </ComposeProviders>
                 </GestureHandlerRootView>
             </InitialURLContextProvider>
-        </Wrapper>
+        </StrictModeWrapper>
     );
 }
 
