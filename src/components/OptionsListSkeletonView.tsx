@@ -17,12 +17,14 @@ function getLinedWidth(index: number): string {
 
 type OptionsListSkeletonViewProps = {
     shouldAnimate?: boolean;
+    gradientOpacity?: boolean;
 };
 
-function OptionsListSkeletonView({shouldAnimate = true}: OptionsListSkeletonViewProps) {
+function OptionsListSkeletonView({shouldAnimate = true, gradientOpacity = false}: OptionsListSkeletonViewProps) {
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
+            gradientOpacity={gradientOpacity}
             renderSkeletonItem={({itemIndex}) => {
                 const lineWidth = getLinedWidth(itemIndex);
 

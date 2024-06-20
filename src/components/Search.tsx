@@ -14,7 +14,6 @@ import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
-import EmptySearchView from '@pages/Search/EmptySearchView';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,10 +22,12 @@ import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import EmptyStateComponent from './EmptyStateComponent';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
-import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
+import SearchRowSkeleton from './Skeletons/SearchRowSkeleton';
+import TableRowSkeleton from './Skeletons/TableRowSkeleton';
 
 type SearchProps = {
     query: SearchQuery;
@@ -97,11 +98,21 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingItems) {
-        return <TableListItemSkeleton shouldAnimate />;
+        return <SearchRowSkeleton shouldAnimate />;
     }
 
     if (shouldShowEmptyState) {
-        return <EmptySearchView />;
+        return (
+            <EmptyStateComponent
+                SkeletonComponent={SearchRowSkeleton}
+                headerMediaType="video"
+                headerMedia="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
+                titleText="Issue and manage your Expensify Cards"
+                subtitleText="Start by issuing your first virtual or physical card."
+                buttonAction={() => Navigation.navigate(ROUTES.CONCIERGE)}
+                buttonText="Go to Workspaces"
+            />
+        );
     }
 
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
@@ -188,7 +199,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             onEndReached={fetchMoreResults}
             listFooterContent={
                 isLoadingMoreItems ? (
-                    <TableListItemSkeleton
+                    <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
                     />

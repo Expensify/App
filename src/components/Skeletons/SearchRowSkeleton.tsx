@@ -1,21 +1,27 @@
 import React from 'react';
 import {Rect} from 'react-native-svg';
+import useThemeStyles from '@hooks/useThemeStyles';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
-type TableListItemSkeletonProps = {
+type SearchRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
+    gradientOpacity?: boolean;
 };
 
 const barHeight = '10';
 const shortBarWidth = '40';
 const longBarWidth = '120';
 
-function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListItemSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity = false}: SearchRowSkeletonProps) {
+    const styles = useThemeStyles();
+
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
+            gradientOpacity={gradientOpacity}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
             renderSkeletonItem={() => (
                 <>
                     <Rect
@@ -62,6 +68,6 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
     );
 }
 
-TableListItemSkeleton.displayName = 'TableListItemSkeleton';
+SearchRowSkeleton.displayName = 'SearchRowSkeleton';
 
-export default TableListItemSkeleton;
+export default SearchRowSkeleton;

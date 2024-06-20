@@ -4,12 +4,14 @@ import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
 type AccountingListSkeletonViewProps = {
     shouldAnimate?: boolean;
+    gradientOpacity?: boolean;
 };
 
-function AccountingListSkeletonView({shouldAnimate = true}: AccountingListSkeletonViewProps) {
+function AccountingListSkeletonView({shouldAnimate = true, gradientOpacity = false}: AccountingListSkeletonViewProps) {
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
+            gradientOpacity={gradientOpacity}
             renderSkeletonItem={() => (
                 <>
                     <Circle

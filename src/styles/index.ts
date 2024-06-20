@@ -1663,6 +1663,7 @@ const styles = (theme: ThemeColors) =>
 
         welcomeVideoNarrowLayout: {
             width: variables.onboardingModalWidth,
+            height: 500,
         },
 
         onlyEmojisText: {
@@ -5033,6 +5034,28 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
         },
+
+        skeletonBackground: {
+            flex: 1,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+        },
+
+        emptyStateForeground: (isSmallScreenWidth: boolean) => ({
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+            padding: isSmallScreenWidth ? 24 : 0,
+        }),
+
+        emptyStateContent: (isSmallScreenWidth: boolean) => ({
+            width: isSmallScreenWidth ? '100%' : 400,
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+        }),
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
