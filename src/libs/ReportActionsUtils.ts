@@ -1251,6 +1251,16 @@ function isTripPreview(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW;
 }
 
+/**
+ * Get IOU action for a reportID and transactionID
+ */
+function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportActions = getAllReportActions(report?.reportID ?? '');
+    const action = Object.values(reportActions ?? {})?.find((reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === transactionID);
+    return action;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1322,6 +1332,7 @@ export {
     wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
     isTripPreview,
+    getIOUActionForReportID,
 };
 
 export type {LastVisibleMessage};

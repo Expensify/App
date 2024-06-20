@@ -292,14 +292,7 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
 function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => {
-        const report = ReportUtils.getReport(transaction?.reportID ?? '');
-        const reportActions = ReportActionsUtils.getAllReportActions(report?.reportID ?? '');
-        const action = Object.values(reportActions ?? {})?.find(
-            (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === transaction?.transactionID,
-        );
-        return action;
-    });
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
     const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() =>
         buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}),
     );
