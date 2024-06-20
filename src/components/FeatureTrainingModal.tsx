@@ -130,15 +130,17 @@ function FeatureTrainingModal({
                 ]}
             >
                 {videoStatus === 'video' ? (
-                    <VideoPlayer
-                        url={videoURL}
-                        videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
-                        onVideoLoaded={setAspectRatio}
-                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
-                        shouldUseControlsBottomMargin={false}
-                        shouldPlay
-                        isLooping
-                    />
+                    <GestureHandlerRootView>
+                        <VideoPlayer
+                            url={videoURL}
+                            videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
+                            onVideoLoaded={setAspectRatio}
+                            controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
+                            shouldUseControlsBottomMargin={false}
+                            shouldPlay
+                            isLooping
+                        />
+                    </GestureHandlerRootView>
                 ) : (
                     <View style={[styles.flex1, styles.alignItemsCenter, {aspectRatio}]}>
                         <Lottie
@@ -172,63 +174,61 @@ function FeatureTrainingModal({
     return (
         <SafeAreaConsumer>
             {({safeAreaPaddingBottomStyle}) => (
-                <GestureHandlerRootView>
-                    <Modal
-                        isVisible={isModalVisible}
-                        type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                        onClose={closeModal}
-                        innerContainerStyle={{
-                            boxShadow: 'none',
-                            borderRadius: 16,
-                            paddingBottom: 20,
-                            paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
-                            ...(shouldUseNarrowLayout
-                                ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                                  // To make it take as little space as possible.
-                                  {
-                                      flex: undefined,
-                                      width: 'auto',
-                                  }
-                                : {}),
-                        }}
-                    >
-                        <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                            <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                            <View style={[styles.mt5, styles.mh5]}>
-                                {title && description && (
-                                    <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                        <Text style={[styles.textHeadlineH1]}>{title}</Text>
-                                        <Text style={styles.textSupporting}>{description}</Text>
-                                    </View>
-                                )}
-                                {shouldShowDismissModalOption && (
-                                    <CheckboxWithLabel
-                                        label={translate('featureTraining.doNotShowAgain')}
-                                        accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                        style={[styles.mb5]}
-                                        isChecked={!willShowAgain}
-                                        onInputChange={toggleWillShowAgain}
-                                    />
-                                )}
-                                {helpText && (
-                                    <Button
-                                        large
-                                        style={[styles.mb3]}
-                                        onPress={onHelp}
-                                        text={helpText}
-                                    />
-                                )}
+                <Modal
+                    isVisible={isModalVisible}
+                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    onClose={closeModal}
+                    innerContainerStyle={{
+                        boxShadow: 'none',
+                        borderRadius: 16,
+                        paddingBottom: 20,
+                        paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
+                        ...(shouldUseNarrowLayout
+                            ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+                              // To make it take as little space as possible.
+                              {
+                                  flex: undefined,
+                                  width: 'auto',
+                              }
+                            : {}),
+                    }}
+                >
+                    <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
+                        <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
+                        <View style={[styles.mt5, styles.mh5]}>
+                            {title && description && (
+                                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
+                                    <Text style={[styles.textHeadlineH1]}>{title}</Text>
+                                    <Text style={styles.textSupporting}>{description}</Text>
+                                </View>
+                            )}
+                            {shouldShowDismissModalOption && (
+                                <CheckboxWithLabel
+                                    label={translate('featureTraining.doNotShowAgain')}
+                                    accessibilityLabel={translate('featureTraining.doNotShowAgain')}
+                                    style={[styles.mb5]}
+                                    isChecked={!willShowAgain}
+                                    onInputChange={toggleWillShowAgain}
+                                />
+                            )}
+                            {helpText && (
                                 <Button
                                     large
-                                    success
-                                    pressOnEnter
-                                    onPress={closeAndConfirmModal}
-                                    text={confirmText}
+                                    style={[styles.mb3]}
+                                    onPress={onHelp}
+                                    text={helpText}
                                 />
-                            </View>
+                            )}
+                            <Button
+                                large
+                                success
+                                pressOnEnter
+                                onPress={closeAndConfirmModal}
+                                text={confirmText}
+                            />
                         </View>
-                    </Modal>
-                </GestureHandlerRootView>
+                    </View>
+                </Modal>
             )}
         </SafeAreaConsumer>
     );
