@@ -2123,6 +2123,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        EXPORT: 'export',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',

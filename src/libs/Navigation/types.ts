@@ -446,6 +446,11 @@ type ReportDetailsNavigatorParamList = {
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: {
         reportID: string;
     };
+    [SCREENS.REPORT_DETAILS.EXPORT]: {
+        reportID: string;
+        policyID: string;
+        integrationName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    };
 };
 
 type ReportSettingsNavigatorParamList = {

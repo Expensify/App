@@ -216,6 +216,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
+        items.push({
+            key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
+            // TODO: Change to common.export
+            translationKey: 'workspace.qbo.export',
+            icon: Expensicons.Upload,
+            isAnonymousAction: false,
+            action: () => {
+                // TODO: Add correct integration
+                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', 'xero'));
+            },
+        });
+
         return items;
     }, [
         isSelfDM,

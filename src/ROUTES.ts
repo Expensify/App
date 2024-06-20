@@ -277,6 +277,10 @@ const ROUTES = {
         route: 'r/:reportID/details',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
     },
+    REPORT_WITH_ID_DETAILS_EXPORT: {
+        route: 'r/:reportID/details/export/:integrationName',
+        getRoute: (reportID: string, integrationName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) => `r/${reportID}/details/export/${integrationName}` as const,
+    },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',
         getRoute: (reportID: string) => `r/${reportID}/settings` as const,

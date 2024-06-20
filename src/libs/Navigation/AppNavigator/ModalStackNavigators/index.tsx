@@ -110,6 +110,7 @@ const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorPar
 const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetailsNavigatorParamList>({
     [SCREENS.REPORT_DETAILS.ROOT]: () => require('../../../../pages/ReportDetailsPage').default as React.ComponentType,
     [SCREENS.REPORT_DETAILS.SHARE_CODE]: () => require('../../../../pages/home/report/ReportDetailsShareCodePage').default as React.ComponentType,
+    [SCREENS.REPORT_DETAILS.EXPORT]: () => require('../../../../pages/home/report/ReportDetailsExportPage').default as React.ComponentType,
 });
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
