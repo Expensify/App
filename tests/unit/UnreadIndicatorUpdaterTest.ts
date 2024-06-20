@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../src/CONST';
-import getUnreadReportsForUnreadIndicator from '../../src/libs/UnreadIndicatorUpdater';
+import * as UnreadIndicatorUpdater from '../../src/libs/UnreadIndicatorUpdater';
 
 describe('UnreadIndicatorUpdaterTest', () => {
     describe('should return correct number of unread reports', () => {
@@ -24,7 +24,7 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 },
                 3: {reportID: '3', reportName: 'test', type: CONST.REPORT.TYPE.TASK, lastMessageText: 'test'},
             };
-            expect(getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(2);
+            expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(2);
         });
 
         it('given some reports are incomplete', () => {
@@ -33,7 +33,7 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 2: {reportID: '2', type: CONST.REPORT.TYPE.TASK, lastReadTime: '2023-02-05 09:12:05.000', lastVisibleActionCreated: '2023-02-06 07:15:44.030'},
                 3: {reportID: '3', type: CONST.REPORT.TYPE.TASK},
             };
-            expect(getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(0);
+            expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(0);
         });
 
         it('given notification preference of some reports is hidden', () => {
@@ -57,7 +57,7 @@ describe('UnreadIndicatorUpdaterTest', () => {
                 },
                 3: {reportID: '3', reportName: 'test', type: CONST.REPORT.TYPE.TASK, lastMessageText: 'test'},
             };
-            expect(getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(1);
+            expect(UnreadIndicatorUpdater.getUnreadReportsForUnreadIndicator(reportsToBeUsed, '3').length).toBe(1);
         });
     });
 });
