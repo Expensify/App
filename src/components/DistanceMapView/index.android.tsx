@@ -30,11 +30,9 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
                     }
                     setIsMapReady(true);
                 }}
-                style={!isMapReady && {opacity: 0}}
             />
             {!isMapReady && (
-                <View style={[styles.mapViewOverlay, overlayStyle]}>
-                    {/* We  */}
+                <View style={[styles.mapViewOverlay, overlayStyle, requireRouteToDisplayMap && StyleUtils.getBorderRadiusStyle(0)]}>
                     {!requireRouteToDisplayMap ? (
                         <BlockingView
                             icon={Expensicons.EmptyStateRoutePending}
