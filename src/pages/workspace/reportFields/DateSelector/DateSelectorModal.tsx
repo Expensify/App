@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
@@ -27,6 +29,8 @@ type DateSelectorModalProps = {
 
 function DateSelectorModal({isVisible, currentDate, onDateSelected, onClose, label}: DateSelectorModalProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const inputRef = useRef<AnimatedTextInputRef>(null);
 
     return (
         <Modal
@@ -55,7 +59,9 @@ function DateSelectorModal({isVisible, currentDate, onDateSelected, onClose, lab
                         defaultValue={currentDate}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                        accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
                         onInputChange={onDateSelected}
+                        ref={inputRef}
                     />
                 </View>
             </ScreenWrapper>
