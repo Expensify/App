@@ -28,7 +28,7 @@ type Options = {
     maxSize: number;
     equality: 'deep' | 'shallow' | KeyComparator;
     monitor: boolean;
-    monitoringName: string;
+    monitoringName?: string;
 } & InternalOptions;
 
 type ClientOptions = Partial<Omit<Options, keyof InternalOptions>>;

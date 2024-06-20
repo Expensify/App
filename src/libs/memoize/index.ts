@@ -31,7 +31,7 @@ class Memoize {
             return;
         }
         this.monitoringEnabled = false;
-        return Memoize.memoizedList.map(({memoized}) => memoized.stopMonitoring());
+        return Memoize.memoizedList.map(({id, memoized}) => ({id, stats: memoized.stopMonitoring()}));
     }
 }
 
@@ -77,7 +77,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
     memoized.startMonitoring = () => stats.startMonitoring();
     memoized.stopMonitoring = () => stats.stopMonitoring();
 
-    Memoize.registerMemoized(options.monitoringName, memoized);
+    Memoize.registerMemoized(options.monitoringName ?? fn.name, memoized);
 
     return memoized as MemoizedFn<Fn>;
 }
