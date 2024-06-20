@@ -199,32 +199,11 @@ function IOURequestStepConfirmation({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
     }, [iouType, transactionID, reportID, action]);
 
-    useEffect(() => {
-        if (transaction?.transactionID !== CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            return;
-        }
-
-        if (transaction?.reportID === reportID) {
-            return;
-        }
-        // set the reportIDFromConfirmationStep if and only if the transaction is draft and transaction.reportID is different from reportID
-        IOU.setReportIDInConfirmationStep(transaction?.transactionID, reportID);
-    }, [transaction?.reportID, reportID, transaction?.transactionID]);
-
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
-        const isDraftTransaction = transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
-        const isReportIDFromConfirmationStepSet = transaction?.reportIDFromConfirmationStep === reportID;
-
-        // if reportIDs in transaction and in route are different, and the transaction is draft and no reportIDFromConfirmationStep is set
-        // we will need to wait for the reportIDFromConfirmationStep to be set before proceeding
-        if (isDraftTransaction && !isReportIDFromConfirmationStepSet && transaction?.reportID !== reportID) {
-            return;
-        }
-
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isLocalFile = FileUtils.isLocalFile(receiptPath);
 
@@ -240,19 +219,7 @@ function IOURequestStepConfirmation({
         };
 
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
-    }, [
-        receiptType,
-        receiptPath,
-        receiptFilename,
-        requestType,
-        iouType,
-        transactionID,
-        reportID,
-        action,
-        transaction?.receipt,
-        transaction?.reportID,
-        transaction?.reportIDFromConfirmationStep,
-    ]);
+    }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {
