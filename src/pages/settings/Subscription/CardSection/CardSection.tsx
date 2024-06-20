@@ -24,6 +24,7 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
 
@@ -66,7 +67,7 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
-            {!isEmptyObject(defaultCard?.accountData) && (
+            {!!account?.hasPurchases && (
                 <MenuItem
                     shouldShowRightIcon
                     icon={Expensicons.History}

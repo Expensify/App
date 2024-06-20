@@ -83,6 +83,9 @@ type Account = {
 
     /** Indicates whether the user can downgrade current subscription plan */
     canDowngrade?: boolean;
+
+    /** Indicates whether the user has previous purchaes */
+    hasPurchases?: boolean;
 };
 
 export default Account;
