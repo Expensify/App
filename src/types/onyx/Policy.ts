@@ -595,7 +595,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 /** Data stored about subsidiaries from NetSuite  */
-type Subsidiary = {
+type NetSuiteSubsidiary = {
     /** ID of the subsidiary */
     internalID: string;
 
@@ -664,7 +664,7 @@ type InvoiceItem = {
 /** Data from the NetSuite accounting integration. */
 type NetSuiteConnectionData = {
     /** Collection of the subsidiaries present in the NetSuite account */
-    subsidiaryList: Subsidiary[];
+    subsidiaryList: NetSuiteSubsidiary[];
 
     /** Collection of receivable accounts */
     receivableList: NetSuiteAccount[];
