@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
@@ -252,6 +252,13 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
     });
 }
 
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -264,5 +271,6 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
     validateImageForCorruption,
 };

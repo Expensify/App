@@ -5,6 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -77,7 +78,7 @@ const createAddListenerMock = (): ListenerMock => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback) => {
+    const addListener: jest.Mock = jest.fn().mockImplementation((listener, callback: () => void) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -119,7 +120,6 @@ beforeAll(() => {
     // fetch() never gets called so it does not need mocking) or we might have fetch throw an error to test error handling
     // behavior. But here we just want to treat all API requests as a generic "success" and in the cases where we need to
     // simulate data arriving we will just set it into Onyx directly with Onyx.merge() or Onyx.set() etc.
-    // @ts-expect-error -- TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated
     global.fetch = TestHelper.getGlobalFetchMock();
 
     Linking.setInitialURL('https://new.expensify.com/');
@@ -158,7 +158,10 @@ function scrollUpToRevealNewMessagesBadge() {
 function isNewMessagesBadgeVisible(): boolean {
     const hintText = Localize.translateLocal('accessibilityHints.scrollToNewestMessages');
     const badge = screen.queryByAccessibilityHint(hintText);
-    return Math.round(badge?.props.style.transform[0].translateY) === -40;
+    const badgeProps = badge?.props as {style: ViewStyle};
+    const transformStyle = badgeProps.style.transform?.[0] as {translateY: number};
+
+    return Math.round(transformStyle.translateY) === -40;
 }
 
 function navigateToSidebar(): Promise<void> {
@@ -460,6 +463,52 @@ describe('Unread Indicators', () => {
                 expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
+    it('Delete a chat message and verify the unread indicator is moved', async () => {
+        const getUnreadIndicator = () => {
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            return screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        };
+
+        return signInAndGetAppWithUnreadChat()
+            .then(() => navigateToSidebarOption(0))
+            .then(async () => act(() => transitionEndCB?.()))
+            .then(async () => {
+                const reportActionsViewWrapper = await screen.findByTestId('report-actions-view-wrapper');
+                if (reportActionsViewWrapper) {
+                    fireEvent(reportActionsViewWrapper, 'onLayout', {nativeEvent: {layout: {x: 0, y: 0, width: 100, height: 100}}});
+                }
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Verify the new line indicator is present, and it's before the action with ID 4
+                const unreadIndicator = getUnreadIndicator();
+                expect(unreadIndicator).toHaveLength(1);
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                expect(reportActionID).toBe('4');
+
+                // simulate delete comment event from Pusher
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            '4': {
+                                message: [],
+                            },
+                        },
+                    },
+                ]);
+                return waitForBatchedUpdates();
+            })
+            .then(() =>
+                // Verify the new line indicator is now before the action with ID 5
+                waitFor(() => {
+                    const unreadIndicator = getUnreadIndicator();
+                    const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                    expect(reportActionID).toBe('5');
+                }),
+            );
+    });
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
@@ -604,7 +653,6 @@ describe('Unread Indicators', () => {
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: lastReportAction?.message?.[0]?.text,
-                        lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction?.timestamp),
                         lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,
                     });

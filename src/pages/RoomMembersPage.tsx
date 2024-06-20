@@ -8,6 +8,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -26,7 +27,6 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +55,8 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const [searchValue, setSearchValue] = useState('');
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(report), [report]);
 
     const isFocusedScreen = useIsFocused();
 
@@ -167,66 +169,55 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && !participant.hidden)
-            .forEach(([accountIDKey]) => {
-                const accountID = Number(accountIDKey);
+        const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
-                const details = personalDetails[accountID];
+        participants.forEach((accountID) => {
+            const details = personalDetails[accountID];
 
-                if (!details) {
-                    Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
-                    return;
-                }
+            if (!details) {
+                Log.hmmm(`[RoomMembersPage] no personal details found for room member with accountID: ${accountID}`);
+                return;
+            }
 
-                // If search value is provided, filter out members that don't match the search value
-                if (searchValue.trim()) {
-                    let memberDetails = '';
-                    if (details.login) {
-                        memberDetails += ` ${details.login.toLowerCase()}`;
-                    }
-                    if (details.firstName) {
-                        memberDetails += ` ${details.firstName.toLowerCase()}`;
-                    }
-                    if (details.lastName) {
-                        memberDetails += ` ${details.lastName.toLowerCase()}`;
-                    }
-                    if (details.displayName) {
-                        memberDetails += ` ${PersonalDetailsUtils.getDisplayNameOrDefault(details).toLowerCase()}`;
-                    }
-                    if (details.phoneNumber) {
-                        memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
-                    }
+            // If search value is provided, filter out members that don't match the search value
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+                return;
+            }
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+            const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
+            const isDisabled = (isPolicyExpenseChat && isAdmin) || accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                    if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
-                        return;
-                    }
-                }
-                const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-
-                result.push({
-                    keyForList: String(accountID),
-                    accountID,
-                    isSelected: selectedMembers.includes(accountID),
-                    isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
-                    alternateText: details?.login ? formatPhoneNumber(details.login) : '',
-                    icons: [
-                        {
-                            source: UserUtils.getAvatar(details.avatar, accountID),
-                            name: details.login ?? '',
-                            type: CONST.ICON_TYPE_AVATAR,
-                            id: Number(accountID),
-                        },
-                    ],
-                    pendingAction: pendingChatMember?.pendingAction,
-                });
+            result.push({
+                keyForList: String(accountID),
+                accountID,
+                isSelected: selectedMembers.includes(accountID),
+                isDisabled,
+                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                alternateText: details?.login ? formatPhoneNumber(details.login) : '',
+                icons: [
+                    {
+                        source: details.avatar ?? FallbackAvatar,
+                        name: details.login ?? '',
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
+                    },
+                ],
+                pendingAction: pendingChatMember?.pendingAction,
+                errors: pendingChatMember?.errors,
             });
+        });
 
         result = result.sort((value1, value2) => localeCompare(value1.text ?? '', value2.text ?? ''));
 
         return result;
     };
+
+    const dismissError = useCallback(
+        (item: ListItem) => {
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? '-1'));
+        },
+        [report.reportID],
+    );
 
     const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
@@ -304,6 +295,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
+                            onDismissError={dismissError}
                         />
                     </View>
                 </View>

@@ -7,6 +7,8 @@ import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -28,6 +30,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -125,7 +128,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value: OnyxEntry<number>) => {
+    callback: (value) => {
         lastUpdateIDAppliedToClient = value;
     },
 });
@@ -157,6 +160,15 @@ const modalScreenListeners = {
     },
 };
 
+// Extended modal screen listeners with additional cancellation of pending requests
+const modalScreenListenersWithCancelSearch = {
+    ...modalScreenListeners,
+    beforeRemove: () => {
+        modalScreenListeners.beforeRemove();
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+    },
+};
+
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -179,6 +191,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        const debugShortcutConfig = CONST.KEYBOARD_SHORTCUTS.DEBUG;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
@@ -262,10 +275,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             true,
         );
 
+        const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
+            debugShortcutConfig.shortcutKey,
+            () => {
+                toggleTestToolsModal();
+            },
+            debugShortcutConfig.descriptionKey,
+            debugShortcutConfig.modifiers,
+            true,
+        );
+
         return () => {
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
+            unsubscribeDebugShortcut();
             Session.cleanupSession();
         };
 
@@ -307,7 +331,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         getComponent={loadConciergePage}
                     />
                     <RootStack.Screen
-                        name={SCREENS.REPORT_ATTACHMENTS}
+                        name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
                             presentation: 'transparentModal',
@@ -351,7 +375,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         options={screenOptions.rightModalNavigator}
                         component={RightModalNavigator}
-                        listeners={modalScreenListeners}
+                        listeners={modalScreenListenersWithCancelSearch}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}

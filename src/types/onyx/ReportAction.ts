@@ -6,15 +6,18 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview, Reaction} from './OriginalMessage';
+import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type {Receipt} from './Transaction';
 
+/** Partial content of report action message */
 type ReportActionMessageJSON = {
+    /** Collection of accountIDs from users that were mentioned in report */
     whisperedTo?: number[];
 };
 
+/** Model of report action message */
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
@@ -53,10 +56,14 @@ type Message = {
 
     /** Whether the pending transaction was reversed and didn't post to the card */
     isReversedTransaction?: boolean;
-    whisperedTo?: number[];
-    reactions?: Reaction[];
 
+    /** Collection of accountIDs of users mentioned in message */
+    whisperedTo?: number[];
+
+    /** In situations where moderation is required, this is the moderator decision data */
     moderationDecision?: Decision;
+
+    /** Key to translate the message */
     translationKey?: string;
 
     /** ID of a task report */
@@ -81,6 +88,7 @@ type Message = {
     deleted?: string;
 };
 
+/** Model of image */
 type ImageMetadata = {
     /**  The height of the image. */
     height?: number;
@@ -95,6 +103,7 @@ type ImageMetadata = {
     type?: string;
 };
 
+/** Model of link */
 type LinkMetadata = {
     /**  The URL of the link. */
     url?: string;
@@ -115,12 +124,19 @@ type LinkMetadata = {
     logo?: ImageMetadata;
 };
 
+/** Model of report action person */
 type Person = {
+    /** Type of the message to display */
     type?: string;
+
+    /** Style applied to the message */
     style?: string;
+
+    /** Content of the message to display which corresponds to the user display name */
     text?: string;
 };
 
+/** Main properties of report action */
 type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: string;
@@ -131,6 +147,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
     previousReportActionID?: string;
 
+    /** Account ID of the actor that created the action */
     actorAccountID?: number;
 
     /** The account of the last message's actor */
@@ -151,10 +168,13 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
 
+    /** Avatar data to display on the report action */
     avatar?: AvatarSource;
 
+    /** TODO: Not enough context */
     automatic?: boolean;
 
+    /** TODO: Not enough context */
     shouldShow?: boolean;
 
     /** The ID of childReport */
@@ -169,12 +189,22 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The user's ID */
     accountID?: number;
 
-    childOldestFourEmails?: string;
+    /** Account IDs of the oldest four participants, useful to determine which avatars to display in threads */
     childOldestFourAccountIDs?: string;
+
+    /** How many participants commented in the report */
     childCommenterCount?: number;
+
+    /** Timestamp of the most recent reply */
     childLastVisibleActionCreated?: string;
+
+    /** Number of thread replies */
     childVisibleActionCount?: number;
+
+    /** Report ID of the parent report, if there's one */
     parentReportID?: string;
+
+    /** In task reports this is account ID of the user assigned to the task */
     childManagerAccountID?: number;
 
     /** The status of the child report */
@@ -182,12 +212,17 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Report action child status name */
     childStateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
-    childLastReceiptTransactionIDs?: string;
+
+    /** Content of the last money request comment, used in report preview */
     childLastMoneyRequestComment?: string;
+
+    /** Account ID of the last actor */
     childLastActorAccountID?: number;
-    timestamp?: number;
-    reportActionTimestamp?: number;
+
+    /** Amount of money requests */
     childMoneyRequestCount?: number;
+
+    /** Whether the report action is the first one */
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
@@ -199,6 +234,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ISO-formatted datetime */
     lastModified?: string;
 
+    /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
@@ -230,14 +266,24 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** The admins's ID */
     adminAccountID?: number;
+
+    /** These are the account IDs to whom a message was whispered. It is used to check if a specific user should be displayed a whisper message or not. */
+    whisperedToAccountIDs?: number[];
 }>;
 
+/** Model of report action */
 type ReportAction = ReportActionBase & OriginalMessage;
+
+/** Model of report preview action */
 type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
+
+/** Model of modifies expense action */
 type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
 
+/** Record of report actions, indexed by report action ID */
 type ReportActions = Record<string, ReportAction>;
 
+/** Collection of mock report actions, indexed by reportActions_${reportID} */
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;

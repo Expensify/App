@@ -32,7 +32,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,8 +40,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, ReimbursementAccount, Report, Session as SessionType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import WorkspacesListRow from './WorkspacesListRow';
 
 type WorkspaceItem = Required<Pick<MenuItemProps, 'title' | 'disabled'>> &
@@ -82,7 +80,7 @@ type WorkspaceListPageOnyxProps = {
     session: OnyxEntry<SessionType>;
 };
 
-type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
+type WorkspaceListPageProps = WorkspaceListPageOnyxProps;
 
 const workspaceFeatures: FeatureListItem[] = [
     {
@@ -163,7 +161,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
                     onSelected: () => {
-                        setPolicyIDToDelete(item.policyID ?? '');
+                        setPolicyIDToDelete(item.policyID ?? '-1');
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
                     },
@@ -174,7 +172,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 threeDotsMenuItems.push({
                     icon: Expensicons.ChatBubbles,
                     text: translate('common.leave'),
-                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '')),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '-1')),
                 });
             }
 
@@ -369,6 +367,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
@@ -390,6 +389,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
+                            titleStyles={styles.textHeadlineH1}
                         />
                     </View>
                 </ScrollView>
@@ -408,6 +408,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
@@ -440,20 +441,18 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
 
 WorkspacesListPage.displayName = 'WorkspacesListPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    })(WorkspacesListPage),
-);
+export default withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+    reimbursementAccount: {
+        key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+    },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(WorkspacesListPage);

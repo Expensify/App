@@ -13,7 +13,7 @@ import type {PolicySelector} from '@hooks/useReportIDs';
 import {policySelector, useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -47,7 +47,7 @@ function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMod
     const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '', policyMemberAccountIDs), [activeWorkspaceID]);
+    useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '-1', policyMemberAccountIDs), [activeWorkspaceID]);
 
     const isLoading = isLoadingApp;
     const {orderedReportIDs, currentReportID} = useReportIDs();

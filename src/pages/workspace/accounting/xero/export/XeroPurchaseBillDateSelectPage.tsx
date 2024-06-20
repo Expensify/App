@@ -21,7 +21,7 @@ type MenuListItem = ListItem & {
 
 function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {billDate} = policy?.connections?.xero?.config?.export ?? {};
     const data: MenuListItem[] = Object.values(CONST.XERO_EXPORT_DATE).map((dateType) => ({
@@ -64,6 +64,7 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         />
     );
 }

@@ -17,7 +17,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Policy from '@userActions/Policy';
+import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,11 +59,11 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
         const work = values.work.trim();
 
         if (!ValidationUtils.isRequiredFulfilled(work)) {
-            errors.work = 'workspace.editor.nameIsRequiredError';
+            errors.work = translate('workspace.editor.nameIsRequiredError');
         } else if ([...work].length > CONST.TITLE_CHARACTER_LIMIT) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
-            ErrorUtils.addErrorMessage(errors, 'work', ['common.error.characterLimitExceedCounter', {length: [...work].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'work', translate('common.error.characterLimitExceedCounter', {length: [...work].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
 
         return errors;

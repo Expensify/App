@@ -55,6 +55,11 @@ const restrictedImportPaths = [
         name: 'date-fns/locale',
         message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
     },
+    {
+        name: 'expensify-common',
+        importNames: ['Device'],
+        message: "Do not import Device directly, it's known to make VSCode's IntelliSense crash. Please import the desired module from `expensify-common/dist/Device` instead.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -100,8 +105,6 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
-        '@typescript-eslint/no-unsafe-argument': 'off',
-        '@typescript-eslint/no-unsafe-call': 'off',
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
 
@@ -156,6 +159,7 @@ module.exports = {
                 fixMixedExportsWithInlineTypeSpecifier: false,
             },
         ],
+        '@typescript-eslint/no-use-before-define': ['error', {functions: false}],
 
         // ESLint core rules
         'es/no-nullish-coalescing-operators': 'off',
@@ -167,6 +171,7 @@ module.exports = {
 
         // Rulesdir specific rules
         'rulesdir/no-default-props': 'error',
+        'rulesdir/prefer-type-fest': 'error',
         'rulesdir/no-multiple-onyx-in-file': 'off',
         'rulesdir/prefer-underscore-method': 'off',
         'rulesdir/prefer-import-module-contents': 'off',
@@ -235,8 +240,21 @@ module.exports = {
         ],
     },
 
-    // Remove once no JS files are left
     overrides: [
+        // Enforces every Onyx type and its properties to have a comment explaining its purpose.
+        {
+            files: ['src/types/onyx/**/*.ts'],
+            rules: {
+                'jsdoc/require-jsdoc': [
+                    'error',
+                    {
+                        contexts: ['TSInterfaceDeclaration', 'TSTypeAliasDeclaration', 'TSPropertySignature'],
+                    },
+                ],
+            },
+        },
+
+        // Remove once no JS files are left
         {
             files: ['*.js', '*.jsx'],
             rules: {

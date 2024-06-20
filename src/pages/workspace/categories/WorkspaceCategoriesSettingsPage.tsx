@@ -5,13 +5,13 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setWorkspaceRequiresCategory} from '@libs/actions/Policy';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy';
+import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -23,14 +23,14 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const isConnectedToQbo = policy?.connections?.quickbooksOnline;
     const isConnectedToXero = policy?.connections?.xero;
-    const policyID = route.params.policyID ?? '';
+    const policyID = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     let toggleSubtitle = '';
     if (isConnectedToQbo) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}`;
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}.`;
     }
     if (isConnectedToXero) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}`;
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}.`;
     }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
@@ -53,7 +53,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 <View style={styles.flexGrow1}>
                     <ToggleSettingOptionRow
                         title={translate('workspace.categories.requiresCategory')}
-                        titleStyle={styles.textStrong}
                         subtitle={toggleSubtitle}
                         switchAccessibilityLabel={toggleSubtitle}
                         isActive={policy?.requiresCategory ?? false}
@@ -62,7 +61,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
                         wrapperStyle={[styles.mt2, styles.mh4]}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
-                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
+                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
                         shouldPlaceSubtitleBelowSwitch
                     />
                 </View>

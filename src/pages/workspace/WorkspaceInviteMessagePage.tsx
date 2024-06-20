@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -22,13 +22,15 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy';
+import * as Member from '@userActions/Policy/Member';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -94,7 +96,7 @@ function WorkspaceInviteMessagePage({
 
     useEffect(() => {
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            setWelcomeNote(parser.htmlToMarkdown(getDefaultWelcomeNote()));
+            setWelcomeNote(parseHtmlToMarkdown(getDefaultWelcomeNote()));
             return;
         }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
@@ -108,7 +110,7 @@ function WorkspaceInviteMessagePage({
     const sendInvitation = () => {
         Keyboard.dismiss();
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
+        Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
@@ -125,7 +127,7 @@ function WorkspaceInviteMessagePage({
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
         if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
+            errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
     };

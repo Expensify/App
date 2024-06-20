@@ -12,8 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {openDraftWorkspaceRequest} from '@libs/actions/Policy';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -22,6 +22,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
+import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,16 +82,20 @@ function IOURequestStepConfirmation({
     const {windowWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const [receiptFile, setReceiptFile] = useState<Receipt>();
+    const requestType = TransactionUtils.getRequestType(transaction);
+    const isDistanceRequest = requestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
+    const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
+    const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
     const payeePersonalDetails = useMemo(() => {
         if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
             return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
@@ -106,8 +111,6 @@ function IOURequestStepConfirmation({
             isOptimisticPersonalDetail: true,
         };
     }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
-
-    const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -137,7 +140,7 @@ function IOURequestStepConfirmation({
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
-                const participantAccountID = participant.accountID ?? 0;
+                const participantAccountID = participant.accountID ?? -1;
 
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
@@ -202,7 +205,7 @@ function IOURequestStepConfirmation({
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isLocalFile = typeof receiptPath === 'number' || receiptPath?.startsWith('blob:') || receiptPath?.startsWith('file:') || receiptPath?.startsWith('/');
+        const isLocalFile = FileUtils.isLocalFile(receiptPath);
 
         if (!isLocalFile) {
             setReceiptFile(transaction?.receipt);
@@ -317,7 +320,7 @@ function IOURequestStepConfirmation({
                 transaction.splitShares,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, currentUserPersonalDetails],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails],
     );
 
     const createTransaction = useCallback(
@@ -329,7 +332,9 @@ function IOURequestStepConfirmation({
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
                     .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
-                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
+                splitParticipants = selectedParticipants.filter((participant) =>
+                    participantsWithAmount.includes(participant.isPolicyExpenseChat ? participant?.ownerAccountID ?? -1 : participant.accountID ?? -1),
+                );
             }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
@@ -359,6 +364,8 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -384,6 +391,8 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -407,6 +416,8 @@ function IOURequestStepConfirmation({
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
+                        taxCode: transactionTaxCode,
+                        taxAmount: transactionTaxAmount,
                     });
                 }
                 return;
@@ -477,6 +488,10 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            if (isDistanceRequest && !isMovingTransactionFromTrackExpense) {
+                createDistanceRequest(selectedParticipants, trimmedComment);
+                return;
+            }
 
             requestMoney(selectedParticipants, trimmedComment);
         },
@@ -485,7 +500,7 @@ function IOURequestStepConfirmation({
             report,
             iouType,
             receiptFile,
-            requestType,
+            isDistanceRequest,
             requestMoney,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
@@ -493,10 +508,12 @@ function IOURequestStepConfirmation({
             createDistanceRequest,
             isSharingTrackExpense,
             isCategorizingTrackExpense,
-            action,
+            isMovingTransactionFromTrackExpense,
             policy,
             policyTags,
             policyCategories,
+            transactionTaxAmount,
+            transactionTaxCode,
         ],
     );
 
@@ -542,7 +559,9 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
+                        shouldShowThreeDotsButton={
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
+                        }
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
@@ -572,8 +591,8 @@ function IOURequestStepConfirmation({
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
-                        isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                        shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                        isDistanceRequest={isDistanceRequest}
+                        shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
                     />

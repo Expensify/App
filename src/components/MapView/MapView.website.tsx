@@ -5,15 +5,19 @@
 import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {MapRef} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import setUserLocation from '@userActions/UserLocation';
+import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import * as UserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -50,7 +54,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const StyleUtils = useStyleUtils();
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
+        const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
+        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
@@ -62,13 +67,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         // if there are one or more waypoints present.
         const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
-        const setCurrentPositionToInitialState = useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (cachedUserLocation || !initialState) {
-                return;
-            }
-            setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-        }, [initialState, cachedUserLocation]);
+        const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
+            (error) => {
+                if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
+                    return;
+                }
+                UserLocation.clearUserLocation();
+                setCurrentPosition(initialLocation);
+            },
+            [initialLocation],
+        );
 
         useFocusEffect(
             useCallback(() => {
@@ -90,7 +98,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
                     setCurrentPosition(currentCoords);
-                    setUserLocation(currentCoords);
+                    UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
@@ -178,7 +186,27 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             [mapRef],
         );
 
-        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+        const centerMap = useCallback(() => {
+            if (!mapRef) {
+                return;
+            }
+            if (directionCoordinates && directionCoordinates.length > 1) {
+                const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
+                const map = mapRef?.getMap();
+                map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME});
+                return;
+            }
+
+            mapRef.flyTo({
+                center: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                bearing: 0,
+                animate: true,
+                duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            });
+        }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
+
+        return !isOffline && !!accessToken && !!currentPosition ? (
             <View
                 style={style}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -198,8 +226,18 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     mapStyle={styleURL}
                     interactive={interactive}
                 >
+                    <Marker
+                        key="Current-position"
+                        longitude={currentPosition?.longitude ?? 0}
+                        latitude={currentPosition?.latitude ?? 0}
+                    >
+                        <View style={styles.currentPositionDot} />
+                    </Marker>
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
+                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0])) {
+                            return null;
+                        }
                         return (
                             <Marker
                                 key={id}
@@ -212,6 +250,15 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     })}
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Map>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                    <Button
+                        onPress={centerMap}
+                        iconFill={theme.icon}
+                        medium
+                        icon={Expensicons.Crosshair}
+                        accessibilityLabel={translate('common.center')}
+                    />
+                </View>
             </View>
         ) : (
             <PendingMapView
