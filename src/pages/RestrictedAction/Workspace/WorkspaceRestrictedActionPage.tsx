@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
-import * as Policy from '@libs/PolicyUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -21,17 +21,17 @@ function WorkspaceRestrictedActionPage({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     // Workspace Owner
-    if (Policy.isPolicyOwner(policy, session?.accountID ?? -1)) {
+    if (PolicyUtils.isPolicyOwner(policy, session?.accountID ?? -1)) {
         return <WorkspaceOwnerRestrictedAction />;
     }
 
     // Workspace Admin
-    if (Policy.isPolicyAdmin(policy, session?.email)) {
+    if (PolicyUtils.isPolicyAdmin(policy, session?.email)) {
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
     // Workspace User
-    if (Policy.isPolicyUser(policy, session?.email)) {
+    if (PolicyUtils.isPolicyUser(policy, session?.email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 
