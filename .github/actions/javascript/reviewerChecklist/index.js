@@ -12051,16 +12051,19 @@ class GithubUtils {
     /**
      * Returns a single artifact by name. If none is found, it returns undefined.
      */
-    static getArtifactByName(artefactName) {
+    static getArtifactByName(artifactName) {
         return this.octokit.actions
             .listArtifactsForRepo({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
             per_page: 1,
-            name: artefactName,
+            name: artifactName,
         })
             .then((response) => response.data.artifacts[0]);
     }
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
     static getArtifactDownloadURL(artifactId) {
         return this.octokit.actions
             .downloadArtifact({
