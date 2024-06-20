@@ -1366,7 +1366,7 @@ function generateDefaultWorkspaceName(email = ''): string {
     } else if (PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase())) {
         defaultWorkspaceName = `${Str.UCFirst(username)}'s Workspace`;
     } else {
-        defaultWorkspaceName = userDeatils?.phoneNumber ?? '';
+        defaultWorkspaceName = userDetails?.phoneNumber ?? '';
     }
 
     if (`@${domain.toLowerCase()}` === CONST.SMS.DOMAIN) {
