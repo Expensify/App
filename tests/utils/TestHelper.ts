@@ -319,7 +319,7 @@ type Listener = () => void;
  *
  * @returns An object with two functions: triggerTransitionEnd and addListener
  */
-const createAddListenerMock = () => {
+function createAddListenerMock() {
     const transitionEndListeners: Listener[] = [];
     const triggerTransitionEnd = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
@@ -335,7 +335,7 @@ const createAddListenerMock = () => {
     });
 
     return {triggerTransitionEnd, addListener};
-};
+}
 
 export type {MockFetch, FormData, NativeNavigationMock};
 export {
