@@ -393,7 +393,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToAndForwardToParms;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
