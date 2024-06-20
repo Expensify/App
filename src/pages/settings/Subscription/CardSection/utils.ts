@@ -1,10 +1,11 @@
 import DateUtils from '@libs/DateUtils';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
-import SubscriptionUtils from '@libs/SubscriptionUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Fund} from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
+import { fromUnixTime } from 'date-fns';
 
 type BillingStatusResult = {
     title?: string;
@@ -29,7 +30,7 @@ function getBillingStatus(
 
     const endDate = SubscriptionUtils.getOverdueGracePeriodDate();
 
-    const endDateFormatted = DateUtils.formatWithUTCTimeZone(endDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    const endDateFormatted = DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 
     switch (status.status) {
         case SubscriptionUtils.PAYMENT_STATUSES.POLICY_OWNER_WITH_AMOUNT_OWED:
