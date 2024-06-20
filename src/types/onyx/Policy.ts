@@ -633,26 +633,22 @@ type SageIntacctConnectionData = {
     taxSolutionIDs: string[];
 };
 
-/**
- * Sage Intacct credentials
- */
-type SageIntacctCredentials = {
-    /** Sage Intacct companyID */
-    companyID: string;
+/** Mapping type for Sage Intacct */
+type SageIntacctMappingType = {
+    /** Mapping type for Sage Intacct */
+    departments: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
 
-    /** Sage Intacct password */
-    password: string;
+    /** Mapping type for Sage Intacct */
+    classes: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
 
-    /** Sage Intacct userID */
-    userID: string;
-};
+    /** Mapping type for Sage Intacct */
+    locations: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
 
-/**
- * Sage Intacct tax
- */
-type SageIntacctTax = {
-    /** Sage Intacct tax solution ID */
-    taxSolutionID: string;
+    /** Mapping type for Sage Intacct */
+    customers: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+
+    /** Mapping type for Sage Intacct */
+    projects: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
 };
 
 /**
@@ -683,10 +679,16 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         userID: string;
     };
 
+    /** Sage Intacct mappings */
+    mappings: SageIntacctMappingType;
+
     /** Sage Intacct tax */
     tax: {
         /** Sage Intacct tax solution ID */
         taxSolutionID: string;
+
+        /** Whether should sync tax with Sage Intacct */
+        syncTax: boolean;
     };
 
     /** Configuration of automatic synchronization from Sage Intacct to the app */

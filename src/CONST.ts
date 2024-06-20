@@ -1346,6 +1346,22 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_CONFIG: {
+        MAPPING_VALUE: {
+            NONE: 'NONE',
+            DEFAULT: 'DEFAULT',
+            TAG: 'TAG',
+            REPORT_FIELD: 'REPORT_FIELD',
+        },
+        MAPPINGS: {
+            DEPARTMENTS: 'departments',
+            CLASSES: 'classes',
+            LOCATIONS: 'locations',
+            CUSTOMERS: 'customers',
+            PROJECTS: 'projects',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',

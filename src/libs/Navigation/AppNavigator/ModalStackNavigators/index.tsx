@@ -319,6 +319,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: () => require('../../../../pages/workspace/accounting/intacct/import/SageIntacctImportPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: () =>
+        require('../../../../pages/workspace/accounting/intacct/import/SageIntacctToggleMappingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: () =>
+        require('../../../../pages/workspace/accounting/intacct/import/SageIntacctMappingsTypePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_EDIT]: () => require('../../../../pages/workspace/taxes/WorkspaceEditTaxPage').default as React.ComponentType,

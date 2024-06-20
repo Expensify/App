@@ -388,6 +388,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: {
+        policyID: string;
+        mapping: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: {
+        policyID: string;
+        mapping: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
