@@ -98,6 +98,7 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -121,7 +122,6 @@ import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
-import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import NewWindow from '@assets/images/new-window.svg';
 import NewWorkspace from '@assets/images/new-workspace.svg';
 import OfflineCloud from '@assets/images/offline-cloud.svg';
@@ -367,5 +367,5 @@ export {
     Clear,
     CheckCircle,
     CheckmarkCircle,
-    NetSuiteSquare
+    NetSuiteSquare,
 };
