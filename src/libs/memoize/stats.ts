@@ -27,7 +27,8 @@ class MemoizeStats {
 
     // See https://en.wikipedia.org/wiki/Moving_average#Cumulative_average
     private calculateCumulativeAvg(avg: number, length: number, value: number) {
-        return (avg * (length - 1) + value) / length;
+        const result = (avg * (length - 1) + value) / length;
+        return Number.isFinite(result) ? result : avg;
     }
 
     private cumulateEntry(entry: MemoizeStatsEntry) {
