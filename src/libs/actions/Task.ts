@@ -12,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import getAllReports from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -76,13 +77,6 @@ Onyx.connect({
 
         allReportActions = actions;
     },
-});
-
-let allReports: OnyxCollection<OnyxTypes.Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
 });
 
 /**
@@ -810,7 +804,7 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report> | EmptyObject): Ony
     if (!report?.parentReportID) {
         return {};
     }
-    return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
+    return getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] ?? {};
 }
 
 /**
