@@ -4,18 +4,18 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
+    paths: ['.github/**', 'package.json', 'package-lock.json', 'tsconfig.json']
 
 jobs:
   verify:
-    if: github.actor != 'OSBotify'
+    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
     runs-on: ubuntu-latest
     steps:
-      # This action checks-out the repository, so the workflow can access it.
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: Expensify/App/.github/actions/composite/setupNode@main
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
       # Rebuild all the actions on this branch and check for a diff. Fail if there is one,
       # because that would be a sign that the PR author did not rebuild the Github Actions

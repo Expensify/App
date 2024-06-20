@@ -4,26 +4,34 @@ on:
   workflow_call:
     inputs:
       PR_NUMBER:
-        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the test merge commit will be used.
+        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the PR will be merged locally before running the performance tests.
         type: string
         required: true
 
   workflow_dispatch:
     inputs:
       PR_NUMBER:
-        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the test merge commit will be used.
+        description: A PR number to run performance tests against. If the PR is already merged, the merge commit will be used. If not, the PR will be merged locally before running the performance tests.
         type: string
         required: true
 
+concurrency:
+  group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-e2e
+  cancel-in-progress: true
+
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    name: Prepare to run builds
+  buildBaseline:
+    runs-on: ubuntu-latest-xl
+    name: Build apk from latest release as a baseline
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
-      DELTA_REF: ${{ steps.getMergeCommitSha.outputs.MERGE_COMMIT_SHA }}
+      ARTIFACT_FOUND: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND }}
+      ARTIFACT_WORKFLOW_ID: ${{ steps.checkForExistingArtifact.outputs.ARTIFACT_WORKFLOW_ID }}
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: actions/checkout@v4
+        with:
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
+          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Get most recent release version
         id: getMostRecentRelease
@@ -31,112 +39,170 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
+      - name: Check if there's an existing artifact for this baseline
+        id: checkForExistingArtifact
+        uses: ./.github/actions/javascript/getArtifactInfo
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - name: Skip build if there's already an existing artifact for the baseline
+        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+        run: echo 'APK for baseline ${{ steps.getMostRecentRelease.outputs.VERSION }} already exists, reusing existing build'
+
+      - name: Checkout "Baseline" commit (last release)
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+        run: |
+          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
+
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
+        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.ARTIFACT_FOUND) }}
+        with:
+          ARTIFACT_NAME: baseline-apk-${{ steps.getMostRecentRelease.outputs.VERSION }}
+          PACKAGE_SCRIPT_NAME: android-build-e2e
+          APP_OUTPUT_PATH: android/app/build/outputs/apk/e2e/release/app-e2e-release.apk
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+          EXPENSIFY_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
+          EXPENSIFY_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
+          EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
+          EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
+          EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+          PATH_ENV_FILE: tests/e2e/.env.e2e
+
+  buildDelta:
+    runs-on: ubuntu-latest-xl
+    name: Build apk from delta ref
+    outputs:
+      DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Get pull request details
         id: getPullRequestDetails
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
+        uses: ./.github/actions/javascript/getPullRequestDetails
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
-          user: ${{ github.actor }}
+          USER: ${{ github.actor }}
 
-      - name: Get merge commit sha for the pull request
-        id: getMergeCommitSha
-        run: echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+      - name: Merged PR - Get merge commit sha for the pull request
+        if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        id: getMergeCommitShaIfMergedPR
+        run: |
+          MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}
+          git fetch origin "$MERGE_COMMIT_SHA" --no-tags --depth=1
+          echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-  buildBaseline:
-    runs-on: ubuntu-20.04-64core
-    needs: [prepare]
-    name: Build apk from latest release as a baseline
-    steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
+      - name: Unmerged PR - Fetch head ref of unmerged PR
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        run: |
+          git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
 
-      - name: Check if there's an existing artifact for this baseline
-        id: checkForExistingArtifact
-        uses: xSAVIKx/artifact-exists-action@3c5206b1411c0d2fc0840f56b7140646933d9d6a
-        with:
-          name: baseline-apk-${{ needs.prepare.outputs.VERSION }}
+      - name: Unmerged PR - Set dummy git credentials before merging
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        run: |
+          git config --global user.email "test@test.com"
+          git config --global user.name "Test"
 
-      - name: Skip build if there's already an existing artifact for the baseline
-        if: ${{ fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: echo 'APK for baseline ${{ needs.prepare.outputs.VERSION }} already exists, reusing existing build'
+      - name: Unmerged PR - Merge pull request locally and get merge commit sha
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
+        id: getMergeCommitShaIfUnmergedPR
+        run: |
+          git merge --allow-unrelated-histories -X ours --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Checkout "Baseline" commit (last release)
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: git checkout ${{ needs.prepare.outputs.VERSION }}
-
-      - name: Build APK
-        if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
-        with:
-          ARTIFACT_NAME: baseline-apk-${{ needs.prepare.outputs.VERSION }}
-
-  buildDelta:
-    runs-on: ubuntu-20.04-64core
-    needs: [prepare]
-    name: Build apk from delta ref
-    steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
+      - name: Determine "delta ref"
+        id: getDeltaRef
+        run: echo "DELTA_REF=${{ steps.getMergeCommitShaIfMergedPR.outputs.MERGE_COMMIT_SHA || steps.getMergeCommitShaIfUnmergedPR.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Checkout "delta ref"
-        run: git checkout ${{ needs.prepare.outputs.DELTA_REF }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+        run: git checkout ${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
-      - name: Build APK
-        uses: Expensify/App/.github/actions/composite/buildAndroidAPK@main
+      - uses: Expensify/App/.github/actions/composite/buildAndroidE2EAPK@main
         with:
-          ARTIFACT_NAME: delta-apk-${{ needs.prepare.outputs.DELTA_REF }}
+          ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
+          ARTIFACT_RETENTION_DAYS: 3 # We don't need to store the delta apk for long, its only really needed for the next job in this workflow
+          PACKAGE_SCRIPT_NAME: android-build-e2edelta
+          APP_OUTPUT_PATH: android/app/build/outputs/apk/e2edelta/release/app-e2edelta-release.apk
+          MAPBOX_SDK_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
+          EXPENSIFY_PARTNER_NAME: ${{ secrets.EXPENSIFY_PARTNER_NAME }}
+          EXPENSIFY_PARTNER_PASSWORD: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD }}
+          EXPENSIFY_PARTNER_USER_ID: ${{ secrets.EXPENSIFY_PARTNER_USER_ID }}
+          EXPENSIFY_PARTNER_USER_SECRET: ${{ secrets.EXPENSIFY_PARTNER_USER_SECRET }}
+          EXPENSIFY_PARTNER_PASSWORD_EMAIL: ${{ secrets.EXPENSIFY_PARTNER_PASSWORD_EMAIL }}
+          PATH_ENV_FILE: tests/e2e/.env.e2edelta
 
   runTestsInAWS:
-    runs-on: ubuntu-20.04-64core
-    needs: [prepare, buildBaseline, buildDelta]
+    runs-on: ubuntu-latest
+    needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.prepare.outputs.DELTA_REF }}
+          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify (we need a PAT to access the artifact API)
+          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
 
       - name: Download baseline APK
-        uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
+        uses: actions/download-artifact@348754975ef0295bfa2c111cba996120cfdf8a5d
+        id: downloadBaselineAPK
         with:
-          name: baseline-apk-${{ needs.prepare.outputs.VERSION }}
+          name: baseline-apk-${{ needs.buildBaseline.outputs.VERSION }}
           path: zip
+          # Set github-token only if the baseline was built in this workflow run:
+          github-token: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID && github.token }}
+          run-id: ${{ needs.buildBaseline.outputs.ARTIFACT_WORKFLOW_ID }}
+
+      # The downloaded artifact will be a file named "app-e2e-release.apk" so we have to rename it
+      - name: Rename baseline APK
+        run: mv "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2e-release.apk" "${{steps.downloadBaselineAPK.outputs.download-path}}/app-e2eRelease.apk"
 
       - name: Download delta APK
-        uses: actions/download-artifact@e9ef242655d12993efdcda9058dee2db83a2cb9b
+        uses: actions/download-artifact@348754975ef0295bfa2c111cba996120cfdf8a5d
+        id: downloadDeltaAPK
         with:
-          name: delta-apk-${{ needs.prepare.outputs.DELTA_REF }}
+          name: delta-apk-${{ needs.buildDelta.outputs.DELTA_REF }}
           path: zip
 
+      - name: Rename delta APK
+        run: mv "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edelta-release.apk" "${{steps.downloadDeltaAPK.outputs.download-path}}/app-e2edeltaRelease.apk"
+
+      - name: Compile test runner to be executable in a nodeJS environment
+        run: npm run e2e-test-runner-build
+
       - name: Copy e2e code into zip folder
-        run: cp -r tests/e2e zip
+        run: cp tests/e2e/dist/index.js zip/testRunner.ts
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip
 
       - name: Configure AWS Credentials
-        uses: Expensify/App/.github/actions/composite/configureAwsCredentials@main
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-west-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
 
-      - name: Schedule AWS Device Farm test run
+      - name: Schedule AWS Device Farm test run on main branch
         uses: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
+        id: schedule-awsdf-main
         with:
           name: App E2E Performance Regression Tests
           project_arn: ${{ secrets.AWS_PROJECT_ARN }}
           device_pool_arn: ${{ secrets.AWS_DEVICE_POOL_ARN }}
-          app_file: zip/app-e2eRelease-baseline.apk
+          app_file: zip/app-e2eRelease.apk
           app_type: ANDROID_APP
           test_type: APPIUM_NODE
           test_package_file: App.zip
@@ -144,30 +210,77 @@ jobs:
           test_spec_file: tests/e2e/TestSpec.yml
           test_spec_type: APPIUM_NODE_TEST_SPEC
           remote_src: false
-          file_artifacts: CustomerArtifacts.zip
+          file_artifacts: |
+            Customer Artifacts.zip
+            Test spec output.txt
+          log_artifacts: debug.log
           cleanup: true
+          timeout: 5400
+
+      - name: Print logs if run failed
+        if: failure()
+        run: |
+          echo ${{ steps.schedule-awsdf-main.outputs.data }}
+          unzip "Customer Artifacts.zip" -d mainResults
+          cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/logcat.txt" || true
+          cat ./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/debug.log || true
+          cat "./mainResults/Host_Machine_Files/\$WORKING_DIRECTORY/Test spec output.txt" || true
+
+      - name: Announce failed workflow in Slack
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#e2e-announce',
+              attachments: [{
+                color: 'danger',
+                text: `💥 ${process.env.AS_REPO} E2E Test run failed failed on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Unzip AWS Device Farm results
-        if: ${{ always() }}
-        run: unzip CustomerArtifacts.zip
+        if: always()
+        run: unzip "Customer Artifacts.zip"
 
       - name: Print AWS Device Farm run results
-        if: ${{ always() }}
+        if: always()
         run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/output.md"
 
-      - name: Print AWS Device Farm verbose run results
-        if: ${{ always() && fromJSON(runner.debug) }}
-        run: cat "./Host_Machine_Files/\$WORKING_DIRECTORY/debug.log"
-
       - name: Check if test failed, if so post the results and add the DeployBlocker label
-        if: ${{ github.event_name == 'workflow_call' }}
+        id: checkIfRegressionDetected
         run: |
-          if grep -q '🔴' ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md; then
+          if grep -q '🔴' ./output.md; then
+            # Create an output to the GH action that the test failed:
+            echo "performanceRegressionDetected=true" >> "$GITHUB_OUTPUT"
+
             gh pr edit ${{ inputs.PR_NUMBER }} --add-label DeployBlockerCash
-            gh pr comment ${{ inputs.PR_NUMBER }} -F ./Host_Machine_Files/\$WORKING_DIRECTORY/output.md
+            gh pr comment ${{ inputs.PR_NUMBER }} -F ./output.md
             gh pr comment ${{ inputs.PR_NUMBER }} -b "@Expensify/mobile-deployers 📣 Please look into this performance regression as it's a deploy blocker."
           else
+            echo "performanceRegressionDetected=false" >> "$GITHUB_OUTPUT"
             echo '✅ no performance regression detected'
           fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: 'Announce regression in Slack'
+        if: ${{ steps.checkIfRegressionDetected.outputs.performanceRegressionDetected == 'true' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#newdot-performance',
+              attachments: [{
+                color: 'danger',
+                text: `🔴 Performance regression detected in PR ${{ inputs.PR_NUMBER }}\nDetected in <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}> workflow.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

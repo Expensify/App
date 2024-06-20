@@ -15,14 +15,30 @@ opt_out_usage
 
 platform :android do
   desc "Generate a new local APK for e2e testing"
+
   lane :build_e2e do
     ENV["ENVFILE"]="tests/e2e/.env.e2e"
-    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.js"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
     ENV["E2E_TESTING"]="true"
 
     gradle(
       project_dir: './android',
-      task: ':app:assembleE2eRelease',
+      task: ':app:assemble',
+      flavor: 'e2e',
+      build_type: 'Release',
+    )
+  end
+
+  lane :build_e2edelta do
+    ENV["ENVFILE"]="tests/e2e/.env.e2edelta"
+    ENV["ENTRY_FILE"]="src/libs/E2E/reactNativeLaunchingTest.ts"
+    ENV["E2E_TESTING"]="true"
+
+    gradle(
+      project_dir: './android',
+      task: ':app:assemble',
+      flavor: 'e2edelta',
+      build_type: 'Release',
     )
   end
 
@@ -33,18 +49,20 @@ platform :android do
     gradle(
       project_dir: './android',
       task: 'assemble',
+      flavor: 'Production',
       build_type: 'Release',
     )
   end
 
   desc "Build app for testing"
   lane :build_internal do
-    ENV["ENVFILE"]=".env.staging"
+    ENV["ENVFILE"]=".env.adhoc"
 
     gradle(
         project_dir: './android',
         task: 'assemble',
-        build_type: 'InternalRelease',
+        flavor: 'Adhoc',
+        build_type: 'Release',
     )
 
     aws_s3(
@@ -63,17 +81,20 @@ platform :android do
   desc "Build and upload app to Google Play"
   lane :beta do
     ENV["ENVFILE"]=".env.production"
+    # Google is very unreliable, so we retry a few times
+    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
 
     gradle(
         project_dir: './android',
         task: 'bundle',
+        flavor: 'Production',
         build_type: 'Release',
     )
 
     upload_to_play_store(
         package_name: "com.expensify.chat",
         json_key: './android/app/android-fastlane-json-key.json',
-        aab: './android/app/build/outputs/bundle/release/app-release.aab',
+        aab: './android/app/build/outputs/bundle/productionRelease/app-production-release.aab',
         track: 'internal',
         rollout: '1.0'
     )
@@ -81,6 +102,8 @@ platform :android do
 
   desc "Deploy app to Google Play production"
   lane :production do
+    # Google is very unreliable, so we retry a few times
+    ENV["SUPPLY_UPLOAD_MAX_RETRIES"]="5"
     google_play_track_version_codes(
       package_name: "com.expensify.chat",
       json_key: './android/app/android-fastlane-json-key.json',
@@ -111,14 +134,14 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify"
+        scheme: "New Expensify"
     )
   end
 
   desc "Build app for testing"
   lane :build_internal do
     require 'securerandom'
-    ENV["ENVFILE"]=".env.staging"
+    ENV["ENVFILE"]=".env.adhoc"
 
     keychain_password = SecureRandom.uuid
 
@@ -138,19 +161,23 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_adhoc.mobileprovision"
+        path: "./ios/NewApp_AdHoc.mobileprovision"
+    )
+
+    install_provisioning_profile(
+        path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
-        scheme: "NewExpensify",
-        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
+        scheme: "New Expensify AdHoc",
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
             provisioningProfiles: {
-              "com.chat.expensify.chat" => "chat_expensify_adhoc",
+              "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
+              "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
             },
             manageAppVersionAndBuildNumber: false
         }
@@ -192,13 +219,22 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_appstore.mobileprovision"
+        path: "./ios/NewApp_AppStore.mobileprovision"
+    )
+
+    install_provisioning_profile(
+        path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
     )
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify",
+        scheme: "New Expensify",
+        output_name: "New Expensify.ipa",
         export_options: {
+            provisioningProfiles: {
+              "com.chat.expensify.chat" => "(NewApp) AppStore",
+              "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
+            },
             manageAppVersionAndBuildNumber: false
         }
     )
@@ -218,7 +254,11 @@ platform :ios do
               contact_phone: ENV["APPLE_CONTACT_PHONE"],
               demo_account_name: ENV["APPLE_DEMO_EMAIL"],
               demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-              notes: "Use the account provided. Thank you for the review."
+              notes: "1. In the Expensify app, enter the email 'appletest.expensify@proton.me'. This will trigger a sign-in link to be sent to 'appletest.expensify@proton.me'
+                      2. Navigate to https://account.proton.me/login, log into Proton Mail using 'appletest.expensify@proton.me' as email and the password associated with 'appletest.expensify@proton.me', provided above
+                      3. Once logged into Proton Mail, navigate to your inbox and locate the email triggered in step 1. The email subject should be 'Your magic sign-in link for Expensify'
+                      4. Open the email and copy the 6-digit sign-in code provided within
+                      5. Return to the Expensify app and enter the copied 6-digit code in the designated login field"
           }
       )
     rescue Exception => e
@@ -291,7 +331,10 @@ platform :ios do
         export_compliance_contains_proprietary_cryptography: false,
 
         # We do not show any third party content
-        content_rights_contains_third_party_content: false
+        content_rights_contains_third_party_content: false,
+
+        # Indicate that our key has admin permissions
+        content_rights_has_rights: true
       },
       release_notes: {
         'en-US' => "Improvements and bug fixes"

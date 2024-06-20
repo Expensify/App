@@ -3,8 +3,6 @@
 ## Important tip for creating GitHub Workflows
 All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
 
-
-
 ```yaml
 name: CI
 on: pull_request
@@ -39,11 +37,35 @@ We've found that the best way to avoid this pitfall is to always wrap any refere
 
 **Note:** Action inputs and outputs aren't the only thing that's JSON-encoded! Any data passed between jobs via a `needs` parameter is also JSON-encoded!
 
+## Fast fetch
+Due to the large, ever-growing history of this repo, do not do any full-fetches of the repo:
+
+```yaml
+# Bad
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+# Good
+- uses: actions/checkout@v4
+```
+
+```sh
+# Bad
+git fetch origin # This will fetch all history of all branches and tags
+git fetch origin main # This will fetch the full history of the main branch, plus all tags
+
+# Good
+git fetch origin main --no-tags --depth=1 # This will just fetch the latest commit from main
+git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest commit from the 1.0.0-0 tag and create a local tag to match
+git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
+```
+
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
-1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
+1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v4`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
 1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.
-1. If an external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
+1. If an untrusted (i.e: not maintained by GitHub) external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
     1. **Bad:** `hmarr/auto-approve-action@v2.0.0` Relies on the tag
     1. **Good:** `hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd` Explicit Git hash
 1. When creating secrets, use tightly scoped secrets that only allow access to that specific action's requirement
@@ -61,8 +83,10 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
    1. `android/app/my-upload-key.keystore.gpg`
    1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/chat_expensify_adhoc.mobileprovision.gpg`
-   1. `ios/chat_expensify_appstore.mobileprovision.gpg`
+   1. `ios/NewApp_AdHoc.mobileprovision`
+   1. `ios/NewApp_AdHoc_Notification_Service.mobileprovision`
+   1. `ios/NewApp_AppStore.mobileprovision.gpg`
+   1. `ios/NewApp_AppStore_Notification_Service.mobileprovision.gpg`
    1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
@@ -79,6 +103,11 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 1. `BROWSERSTACK` - Used to access Browserstack's API
+
+### Important note about Secrets
+Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
+
+Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, you must declare it as an input and pass it in. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
 
 ## Actions
 
@@ -112,31 +141,11 @@ In order to bundle actions with their dependencies into a single Node.js executa
 
 - When calling your GitHub Action from one of our workflows, you must:
     - First call `@actions/checkout`.
-    - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
+    - Use the relative path of the action in GitHub from the root of this repo, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/App/.github/actions/javascript/bumpVersion@main
+        uses: ./.github/actions/javascript/bumpVersion
       ```
-       Do not try to use a relative path.
-- Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
+
 - You can't use any dynamic values or environment variables in a `uses` statement
 - In general, it is a best practice to minimize any side-effects of each action. Using atomic ("dumb") actions that have a clear and simple purpose will promote reuse and make it easier to understand the workflows that use them.
-
-## Imperative Workflows
-
-We have a unique way of defining certain workflows which can be manually triggered by the `workflow_dispatch` event. See `createNewVersion.yml` and `updateProtectedBranch.yml` for examples. Used in combination with the custom [`triggerWorkflowAndWait` action](https://github.com/Expensify/App/blob/d07dcf4e3e0b3f11bec73726856e6d5f8624704c/.github/actions/triggerWorkflowAndWait/triggerWorkflowAndWait.js), workflows can be synchronously executed like a function from another workflow, like this:
-
-```yaml
-- name: Create new BUILD version
-  uses: Expensify/App/.github/actions/javascript/triggerWorkflowAndWait@main
-  with:
-    GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-    WORKFLOW: createNewVersion.yml
-    INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
-```
-
-There are several reasons why we created these "imperative workflows" or "subroutines":
-
-1. It greatly simplifies the handling of race conditions, particularly when used in combination with the [`softprops/turnstyle` action](https://github.com/softprops/turnstyle).
-1. It promotes code reuse. A common set of yaml steps defined in a workflow can be extracted into an imperative workflow which can be executed from other workflows in just a few lines.
-1. If a workflow is defined to execute in response to the `workflow_dispatch` event, it can be manually started by an authorized actor in the GitHub UI.

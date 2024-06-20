@@ -3,19 +3,27 @@
 <head>
     <meta charset="utf-8" />
     <title>New Expensify</title>
-    <meta name="description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay. One app, all free.">
-    <meta name="theme-color" content="">
+    <meta name="description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
+    <meta name="theme-color" content="#03D47C">
     <meta property="twitter:card" content="summary">
     <meta property="twitter:site" content="@expensify">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="New Expensify">
     <meta property="og:url" content="https://new.expensify.com">
     <meta property="og:title" content="New Expensify">
-    <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay. One app, all free.">
+    <meta property="og:description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
     <meta property="og:image" content="https://new.expensify.com/og-preview-image.png">
     <link rel="stylesheet" type="text/css" href="/css/fonts.css" />
     <link rel="stylesheet" type="text/css" href="/css/pdf.css" />
+    <!-- Do not index the staging site -->
+    <% if (htmlWebpackPlugin.options.isStaging) { %>
+        <meta name="robots" content="noindex, nofollow">
+    <% } %>
     <style>
+        .signin-button {
+            width: 100% !important;
+            height: 100% !important;
+        }
         html,
         body,
         #root,
@@ -23,16 +31,20 @@
         #root > div > div {
             height: 100% !important;
         }
-        :root {
-            color-scheme: dark !important;
+        * {
+            touch-action: pan-x pan-y;
         }
         body {
            overflow: hidden;
            overscroll-behavior: none;
            touch-action: none;
         }
-        #drag-area {
+        [data-drag-area='true'] {
             -webkit-app-region: drag;
+        }
+        [data-drag-area='false'], [data-drag-area='true'] [data-tag="pressable"] {
+            -webkit-app-region: no-drag;
+
         }
         input::placeholder {
             user-select: none;
@@ -50,46 +62,85 @@
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
         }
-        @keyframes blink_input_opacity_to_prevent_scrolling_when_focus {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
-        }
         input:focus-visible, input:focus[data-focusvisible-polyfill],
         select:focus-visible, select:focus[data-focusvisible-polyfill]  {
             box-shadow: none;
-            animation: blink_input_opacity_to_prevent_scrolling_when_focus 0.01s;
         }
         ::-ms-reveal {
             display: none;
         }
 
-        /* Customizes the background and text colors for autofill inputs in Chrome */
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus,
-        textarea:-webkit-autofill,
-        textarea:-webkit-autofill:hover,
-        textarea:-webkit-autofill:focus,
-        select:-webkit-autofill,
-        select:-webkit-autofill:hover,
-        select:-webkit-autofill:focus {
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: #ffffff;
-            caret-color: #ffffff;
+        /* Customize Plaid iframe */
+        [id^="plaid-link-iframe"] {
+            color-scheme: dark !important;
+        }
+
+        /* Prevent autofill from overlapping with the input label in Chrome */
+        div:has(input:-webkit-autofill, input[chrome-autofilled]) > label {
+            transform: translateY(var(--active-label-translate-y)) scale(var(--active-label-scale)) !important;
+            transition: transform var(--label-transition-duration);
+        }
+
+        @media screen and (min-width: 480px) {
+            .splash-logo > svg {
+                width: 104px;
+                height: 104px;
+            }
+        }
+
+        @media screen and (max-width: 479px) {
+            .splash-logo > svg {
+                width: 52px;
+                height: 52px;
+            }
+        }
+
+        #splash {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            top: 0;
+            background-color: #03D47C;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition-duration: 250ms;
+            transition-property: opacity;
+        }
+
+        .animation {
+            display: flex;
         }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, interactive-widget=resizes-content">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">
-    <% if (htmlWebpackPlugin.options.usePolyfillIO) { %>
+    <% if (htmlWebpackPlugin.options.isWeb) { %>
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
+        <% if (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging) { %>
+            <!-- Third party scripts -->
+            <script async="" src="thirdPartyScripts.js"></script>
+            <!-- End Third party scripts -->
+        <% } %>
     <% } %>
+    <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" id="drag-area"></div>
+    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging)) { %>
+        <!-- Google Tag Manager (noscript) -->
+        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+        <!-- End Google Tag Manager (noscript) -->
+    <% } %>
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 30px;" data-drag-area="true"></div>
     <div id="root"></div>
     <div id="splash">
-        <div class="splash-logo"></div>
+        <div class="splash-logo">
+            <%= htmlWebpackPlugin.options.splashLogo %>
+        </div>
     </div>
 </body>
 </html>

@@ -9,12 +9,12 @@
                        "comment": "Reports"
                     },
                     {
-                        "/": "/settings/*",
-                        "comment": "Profile and app settings"
+                        "/": "/a/*",
+                        "comment": "Profile Page"
                     },
                     {
-                        "/": "/setpassword/*",
-                        "comment": "Passoword setup"
+                        "/": "/settings/*",
+                        "comment": "Profile and app settings"
                     },
                     {
                         "/": "/details/*",
@@ -47,6 +47,50 @@
                     {
                         "/": "/concierge/*",
                         "comment": "Concierge"
+                    },
+                    {
+                        "/": "/split/*",
+                        "comment": "Split Expense"
+                    },
+                    {
+                        "/": "/submit/*",
+                        "comment": "Submit Expense"
+                    },
+                    {
+                        "/": "/request/*",
+                        "comment": "Submit Expense"
+                    },
+                    {
+                        "/": "/new/*",
+                        "comment": "New Chat"
+                    },
+                    {
+                        "/": "/workspace/*",
+                        "comment": "Workspace Details"
+                    },
+                    {
+                        "/": "/get-assistance/*",
+                        "comment": "Get Assistance Pages"
+                    },
+                    {
+                        "/": "/teachersunite/*",
+                        "comment": "Teachers Unite!"
+                    },
+                    {
+                        "/": "/search/*",
+                        "comment": "Search"
+                    },
+                    {
+                        "/": "/pay/*",
+                        "comment": "Pay someone"
+                    },
+                    {
+                        "/": "/send/*",
+                        "comment": "Pay someone"
+                    },
+                    {
+                        "/": "/money2020/*",
+                        "comment": "Money 2020"
                     }
                 ]
             }

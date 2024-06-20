@@ -27,7 +27,10 @@ public class BootSplashDialog extends Dialog {
 
     if (window != null) {
       window.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-      window.setWindowAnimations(R.style.Theme_SplashScreen_Dialog);
+
+      if (BootSplashModule.isSamsungOneUI4()) {
+        window.setBackgroundDrawableResource(R.drawable.bootsplash_samsung_oneui_4);
+      }
     }
 
     super.onCreate(savedInstanceState);

@@ -4,9 +4,7 @@ inputs:
     GITHUB_TOKEN:
         description: Auth token for New Expensify Github
         required: true
-    NPM_VERSION:
-        description: The new NPM version of the StagingDeployCash issue.
-        required: false
+
 runs:
-    using: 'node16'
+    using: 'node20'
     main: './index.js'

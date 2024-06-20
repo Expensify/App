@@ -1,6 +1,7 @@
 @import 'breakpoints';
 @import 'colors';
 @import 'fonts';
+@import 'search-bar';
 
 * {
     margin: 0;
@@ -21,8 +22,8 @@ html {
 }
 
 table {
-    border-collapse: collapse;
     border-spacing: 0;
+    border-collapse: collapse;
 }
 
 caption,
@@ -45,7 +46,6 @@ blockquote {
 
 article,
 aside,
-details,
 figcaption,
 figure,
 footer,
@@ -54,8 +54,7 @@ hgroup,
 main,
 menu,
 nav,
-section,
-summary {
+section {
     display: block;
 }
 
@@ -63,11 +62,12 @@ html,
 body {
     height: 100%;
     min-height: 100%;
-    background: $color-darker-green;
+    background: var(--color-appBG);
+    color: var(--color-text-supporting);
 }
 
 hr {
-    background: $color-light-blue;
+    background: var(--color-borders);
     border: none;
     display: inline-block;
     width: 24px;
@@ -84,7 +84,7 @@ em {
 }
 
 a {
-    color: $color-light-blue;
+    color: var(--color-link);
     text-decoration: none;
 
     img {
@@ -97,8 +97,9 @@ h2,
 h3,
 h4,
 h5,
-h6 {
-    color: $color-white;
+h6,
+summary {
+    color: var(--color-text);
     font-weight: bold;
     padding-bottom: 12px;
 }
@@ -111,8 +112,26 @@ h6 {
     margin-top: 20px;
 }
 
-h1 {
-    font-family: "ExpensifyNewKansas", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+#faq::marker {
+    font-size: 1.5em;
+}
+
+details summary {
+    cursor: pointer;
+    user-select: none;
+}
+
+details > summary {
+    list-style-image: url('/assets/images/arrow-right.svg');
+}
+
+details[open] > summary {
+    list-style-image: url('/assets/images/down.svg');
+}
+
+h1,
+summary {
+    font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-weight: 500;
     font-size: larger;
 }
@@ -132,28 +151,28 @@ select,
 textarea {
     line-height: 1.4;
     font-weight: 400;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 16px;
-    color: $color-white;
+    color: var(--color-text-supporting);
 }
 
 button {
     border-radius: 12px;
     padding: 12px;
-    font-family: "ExpensifyNeue", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+    font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
     font-size: 15px;
     font-weight: bold;
 
     &.success {
-        background-color: $color-green;
-        color: $color-white;
+        background-color: var(--color-button-success-background);
+        color: var(--color-button-text);
         width: 100%;
         border-radius: 100px;
         padding-left: 20px;
         padding-right: 20px;
 
         &:hover {
-            background-color: desaturate($color-green, 15%);
+            background-color: var(--color-button-success-background-hover);
             cursor: pointer;
         }
 
@@ -172,11 +191,23 @@ button {
     align-content: center;
 }
 
+.flex {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -moz-flex;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: row wrap;
+    flex-flow: row wrap;
+    align-content: space-between;
+}
+
 #lhn {
     position: fixed;
-    background-color: $color-darker-green;
+    background-color: var(--color-highlightBG);
     box-sizing: border-box;
-    border-right-color: $color-dark-green;
+    border-right-color: var(--color-borders);
     border-right-width: 1px;
     border-style: solid;
     width: 100%;
@@ -198,7 +229,6 @@ button {
     li {
         list-style: none;
     }
-
 
     #lhn-content {
         overflow: auto;
@@ -222,7 +252,6 @@ button {
             &::-webkit-scrollbar {
                 display: none;
             }
-
         }
 
         &.expanded {
@@ -236,13 +265,15 @@ button {
 
     .lhn-header {
         padding: 24px;
+
         @include breakpoint($breakpoint-tablet) {
             padding: 44px;
         }
 
         #header-button {
-            position: absolute;
             display: block;
+            padding-right: 24px;
+
             @include breakpoint($breakpoint-tablet) {
                 display: none;
             }
@@ -255,8 +286,8 @@ button {
             margin-left: auto;
             margin-right: auto;
 
-            @include breakpoint($breakpoint-tablet) {
-                width: 210px;
+            @include breakpoint($breakpoint-desktop) {
+                width: 180px;
                 align-content: normal;
                 display: flex;
                 margin-left: 0;
@@ -269,12 +300,12 @@ button {
         display: grid;
         grid-template-columns: 40px auto;
         cursor: pointer;
+        align-items: center;
     }
 
     .selected {
-        cursor: auto;
         font-weight: bold;
-        color: $color-white;
+        color: var(--color-text);
     }
 
     .hide {
@@ -286,7 +317,6 @@ button {
 #content-area {
     display: flex;
     flex-direction: column;
-    background-color: $color-super-dark-green;
     min-height: 100vh;
     margin-left: 0;
     padding: 80px 24px 0px 24px;
@@ -306,7 +336,7 @@ button {
         margin-left: 420px;
         /* On wide screens, the padding needs to be equal to
         the view width, minus the content size, minus the lhn size, divided by two. */
-        padding: 52px calc((100vw - 1000px - 420px)/2) 0 calc((100vw - 1000px - 420px)/2);
+        padding: 52px calc((100vw - 1000px - 420px) / 2) 0 calc((100vw - 1000px - 420px) / 2);
     }
 
     ul,
@@ -318,15 +348,18 @@ button {
     h1 {
         &.title {
             font-size: 2.25em;
+            flex: 1;
         }
     }
 
     .article {
+        .hidden {
+            display: none;
+        }
         img {
             display: block;
-            margin-left: auto;
-            margin-right: auto;
-            padding-bottom: 20px;
+            margin: 20px auto;
+            border-radius: 16px;
 
             @include maxBreakpoint($breakpoint-tablet) {
                 width: 100%;
@@ -341,27 +374,175 @@ button {
             }
         }
 
+        table {
+            margin-bottom: 20px;
+            border-radius: 8px;
+
+            // Box shadow is used here because border-radius and border-collapse don't work together. It leads to double borders.
+            // https://stackoverflow.com/questions/628301/the-border-radius-property-and-border-collapsecollapse-dont-mix-how-can-i-use
+            border-style: hidden;
+            box-shadow: 0 0 0 1px var(--color-borders);
+        }
+
+        th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        tr:last-child > td:first-child {
+            border-bottom-left-radius: 8px;
+        }
+
+        tr:last-child > td:last-child {
+            border-bottom-right-radius: 8px;
+        }
+
+        th,
+        td {
+            padding: 6px 13px;
+            border: 1px solid var(--color-borders);
+        }
+
+        thead tr th {
+            font-weight: bold;
+            background-color: var(--color-highlightBG);
+        }
+
         .img-wrap {
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
         }
-    }
 
+        h1,
+        summary {
+            font-size: 1.5em;
+            padding: 20px 0 12px 0;
+        }
+
+        h2 {
+            font-size: 1.125em;
+            font-weight: 500;
+            font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        }
+
+        h3 {
+            font-size: 1em;
+            font-family: 'ExpensifyNeue', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+        }
+
+        h2,
+        h3 {
+            margin: 0;
+            padding: 12px 0 12px 0;
+        }
+
+        blockquote {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding-top: 20px;
+            padding-left: 5%;
+            border-left: 5px solid var(--color-button-background-hover);
+
+            em:before {
+                content: '\“\a';
+                white-space: pre;
+                font-size: 60px;
+                line-height: 1em;
+                color: var(--color-accent);
+            }
+
+            p:first-child {
+                font-size: large;
+                font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+                opacity: 0.8;
+            }
+        }
+
+        .selector-container {
+            background-color: var(--color-highlightBG);
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 20px;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            * > ol,
+            ul {
+                padding: 0;
+            }
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                flex-direction: column;
+            }
+        }
+
+        select {
+            height: 28px;
+            border-radius: 20px;
+            padding: 0px 26px 0px 12px;
+            color: var(--color-text);
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+
+            @include maxBreakpoint($breakpoint-tablet) {
+                width: 100px;
+            }
+        }
+
+        select {
+            background: url('/assets/images/down.svg') no-repeat right var(--color-button-background);
+            background-size: 12px;
+            background-position-x: 85%;
+            appearance: none !important;
+            -moz-appearance: none !important;
+            -webkit-appearance: none !important;
+        }
+
+        .info {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background-color: var(--color-highlightBG);
+            color: var(--color-text);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+
+            img {
+                height: 16px;
+                width: 16px;
+            }
+
+            * {
+                padding: 0;
+                margin: 0;
+            }
+
+            li {
+                margin-left: 12px;
+            }
+        }
+    }
 }
 
 .link {
     display: inline;
-    color: $color-link;
+    color: var(--color-text-supporting);
     cursor: pointer;
 
     &:hover {
-        color: $color-link-hovered;
+        color: var(--color-link);
     }
 }
 
 .lhn-items {
-
     ol,
     ul {
         padding-left: 32px;
@@ -385,7 +566,7 @@ button {
 
     .selected-article {
         font-weight: bold;
-        color: $color-white;
+        color: var(--color-text);
     }
 
     .home-link {
@@ -405,6 +586,14 @@ button {
     }
 }
 
+.platform-cards-group {
+    @extend .cards-group;
+
+    @include breakpoint($breakpoint-desktop) {
+        grid-template-columns: 33.33% 33.33% 33.33%;
+    }
+}
+
 .card {
     display: flex;
     flex-wrap: nowrap;
@@ -412,32 +601,66 @@ button {
     padding: 28px;
     font-weight: 700;
     cursor: pointer;
-    color: $color-white;
-    background-color: $color-darker-green;
+    color: var(--color-text);
+    background-color: var(--color-highlightBG);
 
     &:hover {
-        background-color: darken($color-darker-green, 1%);
+        background-color: var(--color-row-hover);
     }
 
     .row {
         display: flex;
-        flex-basis:100%;
+        flex-basis: 100%;
     }
 
-    .left-icon {
+    .body {
         display: flex;
-        align-items: center;
-        padding-right: 28px;
-
-        img {
-            width: 64px;
-        }
+        flex-wrap: nowrap;
+        flex-direction: column;
+        flex-grow: 2;
     }
+
+    h3.title {
+        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    }
+
+    h3.title,
+    h4.title {
+        padding: 0;
+        margin: 0;
+    }
+
+    p.description,
+    p.url {
+        margin: 0;
+        font-weight: normal;
+    }
+}
+
+.article-card {
+    @extend .card;
 
     .right-icon {
         display: flex;
         align-items: center;
         padding-left: 16px;
+    }
+}
+
+.platform-card {
+    @extend .card;
+    .row {
+        flex-direction: column;
+    }
+
+    .platform-screenshot {
+        display: flex;
+        align-items: center;
+
+        img {
+            border-radius: 16px;
+            width: 100%;
+        }
     }
 
     .submit-button {
@@ -453,27 +676,64 @@ button {
     }
 
     .body {
-        display: flex;
-        flex-wrap: nowrap;
-        flex-direction: column;
-        flex-grow: 2;
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            .select-button {
+                display: flex;
+                .success {
+                    align-items: flex-end;
+                    font-size: 0.8em;
+                }
+            }
+        }
     }
 
-    h3.title {
-        padding: 0;
-        margin: 0;
-
+    h3.title,
+    h4.title {
         &.with-margin {
             margin: 0 0 4px 0;
         }
     }
 
+    h3.title {
+        font-size: 1.4em;
+        font-weight: normal;
+    }
 
+    p.description {
+        color: var(--color-text-supporting);
+        padding: 20px 0 20px 0;
+    }
+
+    p.url {
+        padding: 0;
+        font-size: 0.8em;
+        color: var(--color-text-supporting);
+    }
+}
+
+.hub-card {
+    @extend .card;
+    padding: 24px;
+
+    .row {
+        flex-direction: column;
+    }
+
+    h3.title {
+        font-size: 1.2em;
+        font-weight: normal;
+        &.with-margin {
+            margin: 20px 0 8px 0;
+        }
+    }
 
     p.description {
         padding: 0;
-        margin: 0;
-        font-weight: normal;
+        color: var(--color-text-supporting);
 
         &.with-min-height {
             min-height: 68px;
@@ -485,14 +745,10 @@ button {
     }
 }
 
-.icon {
-    color: $color-gray-green;
-    font-size: larger;
-    display: inline;
-
-    &.fa-angle-right {
-        padding-left: 4px;
-    }
+.base-icon {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
 .homepage {
@@ -504,7 +760,7 @@ button {
             padding-top: 0px;
         }
     }
-    h2  {
+    h2 {
         padding-bottom: 24px;
     }
     p {
@@ -516,30 +772,13 @@ button {
 }
 
 .centered-content {
-    height: 240px;
+    width: 100%;
+    height: calc(100vh - 56px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    font-size: larger;
-    position: absolute;
-    top: calc((100vh - 240px) / 2);
-
-    width: 380px;
-    right: calc((100vw - 380px) / 2);
-    @include breakpoint($breakpoint-tablet) {
-        width: 500px;
-        right: calc((100vw - 500px) / 2);
-    }
-
-    &.with-lhn {
-        right: calc((100vw - 380px) / 2);
-
-        @include breakpoint($breakpoint-tablet) {
-            right: calc((100vw - 320px - 500px ) / 2);
-        }
-
-        @include breakpoint($breakpoint-desktop) {
-            right: calc((100vw - 420px - 500px) / 2);
-        }
-    }
 
     div {
         margin-top: 8px;
@@ -558,39 +797,9 @@ button {
     }
 }
 
-#floating-concierge-button-global {
-    position: fixed;
-    display: block;
-    @include breakpoint($breakpoint-tablet) {
-        display: none;
-    }
-}
-
-#floating-concierge-button-lhn {
-    position: absolute;
-    display: none;
-    @include breakpoint($breakpoint-tablet) {
-        display: block;
-    }
-}
-
 .get-help {
     flex-wrap: wrap;
-    margin-top: auto;
-}
-
-.floating-concierge-button {
-    bottom: 2rem;
-    right: 2rem;
-
-    img {
-        width: 4rem;
-        height: 4rem;
-
-        &:hover {
-            filter: saturate(2);
-        }
-    }
+    margin-top: 40px;
 }
 
 .disable-scrollbar {
@@ -609,10 +818,13 @@ button {
     }
 
     h3 {
-        color: $color-green;
+        color: var(--color-success);
+        font-family: 'ExpensifyNewKansas', 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
         font-size: 17px;
-        font-weight: 700;
+        font-weight: 500;
+        padding: 0;
         margin-bottom: 16px;
+        margin-top: 0;
     }
 
     ul {
@@ -624,13 +836,13 @@ button {
             margin: 0 0 8px;
 
             a {
-                color: $color-white;
+                color: var(--color-text-supporting);
                 display: block;
                 padding: 4px 0;
                 word-break: break-word;
 
                 &:hover {
-                    color: $color-green;
+                    color: var(--color-link);
                 }
             }
         }
@@ -640,21 +852,21 @@ button {
         padding-bottom: 20px;
 
         a {
-            color: $color-white;
+            color: var(--color-text-supporting);
             display: inline-block;
 
             &:hover {
-                color: $color-green;
+                color: var(--color-link);
             }
         }
     }
 
     &__fine-print {
-        color: $color-gray-green;
+        color: var(--color-text-supporting);
         font-size: 10px;
 
         a {
-            color: $color-link;
+            color: var(--color-link);
         }
     }
 
@@ -697,4 +909,46 @@ button {
             width: 25%;
         }
     }
+}
+
+.title-platform-tabs {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    h1 {
+        padding: 0;
+    }
+
+    @include maxBreakpoint($breakpoint-tablet) {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+#platform-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    gap: 4px;
+}
+
+#platform-tabs > * {
+    cursor: pointer;
+    border-radius: 20px;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    height: 36px;
+    line-height: 16px;
+}
+
+#platform-tabs > .active {
+    color: var(--color-text);
+    background-color: var(--color-button-background);
+}
+
+.hidden {
+    display: none;
 }

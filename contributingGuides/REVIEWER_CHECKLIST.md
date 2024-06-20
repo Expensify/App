@@ -10,20 +10,21 @@
 - [ ] I checked that screenshots or videos are included for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I included screenshots or videos for tests on [all platforms](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#make-sure-you-can-test-on-all-platforms)
 - [ ] I verified tests pass on **all platforms** & I tested again on:
-    - [ ] Android / native
-    - [ ] Android / Chrome
-    - [ ] iOS / native
-    - [ ] iOS / Safari
-    - [ ] MacOS / Chrome / Safari
-    - [ ] MacOS / Desktop
+    - [ ] Android: Native
+    - [ ] Android: mWeb Chrome
+    - [ ] iOS: Native
+    - [ ] iOS: mWeb Safari
+    - [ ] MacOS: Chrome / Safari
+    - [ ] MacOS: Desktop
 - [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
 - [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
     - [ ] I verified that any callback methods that were added or modified are named for what the method does and never what callback they handle (i.e. `toggleReport` and not `onIconClick`).
+    - [ ] I verified that the left part of a conditional rendering a React component is a boolean and NOT a string, e.g. `myBool && <MyComponent />`.
     - [ ] I verified that comments were added to code that is not self explanatory
     - [ ] I verified that any new or modified comments were clear, correct English, and explained "why" the code was doing something instead of only explaining "what" the code was doing.
     - [ ] I verified any copy / text shown in the product is localized by adding it to `src/languages/*` files and using the [translation method](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60)
     - [ ] I verified all numbers, amounts, dates and phone numbers shown in the product are using the [localization methods](https://github.com/Expensify/App/blob/4bd99402cebdf4d7394e0d1f260879ea238197eb/src/components/withLocalize.js#L60-L68)
-    - [ ] I verified any copy / text that was added to the app is correct English and approved by marketing by adding the `Waiting for Copy` label for a copy review on the original GH to get the correct copy.
+    - [ ] I verified any copy / text that was added to the app is grammatically correct in English. It adheres to proper capitalization guidelines (note: only the first word of header/labels should be capitalized), and is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
     - [ ] I verified proper file naming conventions were followed for any new files or renamed files. All non-platform specific files are named after what they export and are not named "index.js". All platform-specific files are named for the platform the code supports as outlined in the README.
     - [ ] I verified the JSDocs style guidelines (in [`STYLE.md`](https://github.com/Expensify/App/blob/main/contributingGuides/STYLE.md#jsdocs)) were followed
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
@@ -45,52 +46,56 @@
     - [ ] The file has a description of what it does and/or why is needed at the top of the file if the code is not self explanatory
 - [ ] If a new CSS style is added I verified that:
     - [ ] A similar style doesn't already exist
-    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/StyleUtils.js) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG`)
+    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/utils/index.ts) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(theme.componentBG`)
 - [ ] If the PR modifies code that runs when editing or sending messages, I tested and verified there is no unexpected behavior for all supported markdown - URLs, single line code, code blocks, quotes, headings, bold, strikethrough, and italic.
 - [ ] If the PR modifies a generic component, I tested and verified that those changes do not break usages of that component in the rest of the App (i.e. if a shared library or component like `Avatar` is modified, I verified that `Avatar` is working as expected in all cases)
 - [ ] If the PR modifies a component related to any of the existing Storybook stories, I tested and verified all stories for that component are still working as expected.
+- [ ] If the PR modifies a component or page that can be accessed by a direct deeplink, I verified that the code functions as expected when the deeplink is used - from a logged in and logged out account.
+- [ ] If the PR modifies the UI (e.g. new buttons, new UI components, changing the padding/spacing/sizing, moving components, etc) or modifies the form input styles:
+    - [ ] I verified that all the inputs inside a form are aligned with each other.
+    - [ ] I added `Design` label and/or tagged `@Expensify/design` so the design team can review the changes.
 - [ ] If a new page is added, I verified it's using the `ScrollView` component to make it scrollable when more elements are added to the page.
 - [ ] If the `main` branch was merged into this PR after a review, I tested again and verified the outcome was still expected according to the `Test` steps.
 - [ ] I have checked off every checkbox in the PR reviewer checklist, including those that don't apply to this PR.
 
 ### Screenshots/Videos
 <details>
-<summary>Web</summary>
+<summary>Android: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Chrome</summary>
+<summary>Android: mWeb Chrome</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Mobile Web - Safari</summary>
+<summary>iOS: Native</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Desktop</summary>
+<summary>iOS: mWeb Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>iOS</summary>
+<summary>MacOS: Chrome / Safari</summary>
 
 <!-- add screenshots or videos here -->
 
 </details>
 
 <details>
-<summary>Android</summary>
+<summary>MacOS: Desktop</summary>
 
 <!-- add screenshots or videos here -->
 

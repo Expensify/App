@@ -54,6 +54,11 @@
     src: url('/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
 }
 
+@font-face {
+    font-family: Windows Segoe UI Emoji;
+    src: url('/fonts/seguiemj.ttf');
+}
+
 * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

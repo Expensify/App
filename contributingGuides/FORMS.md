@@ -4,6 +4,21 @@ This document lists specific guidelines for using our Form component and general
 
 ## General Form UI/UX
 
+### Inputs
+Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/InputWrapper.js) and passed as `InputComponent` property, additionally, it's necessary to pass an unique `inputID`. All other props of the input can be passed as `InputWrapper` props.
+
+```jsx
+<InputWrapper
+    // `InputWrapper` required props
+    InputComponent={TextInput}
+    inputID={INPUT_IDS.UNIQUE_INPUT_ID}
+    // `TextInput` specific props
+    placeholder="Text input placeholder"
+    label="Text input label"
+    shouldSaveDraft
+/>
+```
+
 ### Labels, Placeholders, & Hints
 
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
@@ -13,7 +28,8 @@ Labels are required for each input and should clearly mark the field. Optional t
 Labels and hints are enabled by passing the appropriate props to each input:
 
 ```jsx
-<TextInput
+<InputWrapper
+    InputComponent={TextInput}
     label="Value"
     hint="Hint text goes here"
 />
@@ -21,10 +37,11 @@ Labels and hints are enabled by passing the appropriate props to each input:
 
 ### Character Limits
 
-If a field has a character limit we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
+If a field has a character limit, we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
 
 ```jsx
-<TextInput
+<InputWrapper
+    InputComponent={TextInput}
     maxLength={20}
 />
 ```
@@ -37,33 +54,45 @@ The phone number can be formatted in different ways.
 
 ### Native Keyboards
 
-We should always set people up for success on native platforms by enabling the best keyboard for the type of input we’re asking them to provide. See [keyboardType](https://reactnative.dev/docs/0.64/textinput#keyboardtype) in the React Native documentation.
+We should always set people up for success on native platforms by enabling the best keyboard for the type of input we’re asking them to provide. See [inputMode](https://reactnative.dev/docs/textinput#inputmode) in the React Native documentation.
 
-We have a couple of keyboard types [defined](https://github.com/Expensify/App/blob/572caa9e7cf32a2d64fe0e93d171bb05a1dfb217/src/CONST.js#L357-L360) and should be used like so:
+We have a list of input modes [defined](https://github.com/Expensify/App/blob/9418b870515102631ea2156b5ea253ee05a98ff1/src/CONST.js#L765-L774) and should be used like so:
 
 ```jsx
-<TextInput
-    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+<InputWrapper
+    InputComponent={TextInput}
+    inputMode={CONST.INPUT_MODE.NUMERIC}
 />
 ```
 
+We also have [keyboardType](https://github.com/Expensify/App/blob/9418b870515102631ea2156b5ea253ee05a98ff1/src/CONST.js#L760-L763) and should be used for specific use cases when there is no `inputMode` equivalent of the value exist, and should be used like so:
+
+```jsx
+<InputWrapper
+    InputComponent={TextInput}
+    keyboardType={CONST.KEYBOARD_TYPE.ASCII_CAPABLE}
+/>
+```
+
+
 ### Autofill Behavior
 
-Forms should autofill information whenever possible i.e. they should work with browsers and password managers auto complete features.
+Forms should autofill information whenever possible i.e. they should work with browsers and password managers auto-complete features.
 
-As a best practice we should avoid asking for information we can get via other means e.g. asking for City, State, and Zip if we can use Google Places to gather information with the least amount of hassle to the user.
+As a best practice, we should avoid asking for information we can get via other means e.g. asking for City, State, and Zip if we can use Google Places to gather information with the least amount of hassle to the user.
 
 Browsers use the name prop to autofill information into the input. Here's a [reference](https://developers.google.com/web/fundamentals/design-and-ux/input/forms#recommended_input_name_and_autocomplete_attribute_values) for available values for the name prop.
 
 ```jsx
-<TextInput
+<InputWrapper
+    InputComponent={TextInput} 
     name="fname"
 />
 ```
 
 ### Focus and Tab Behavior
 
-All forms should define an order in which the inputs should be filled out, and using tab / shift + tab to navigate through the form should traverse the inputs in that order/reversed order, respectively. In most cases this can be achieved by composition, i.e. rendering the components in the correct order. If we come across a situation where composition is not enough, we can:
+All forms should define an order in which the inputs should be filled out, and using tab / shift + tab to navigate through the form should traverse the inputs in that order/reversed order, respectively. In most cases, this can be achieved by composition, i.e. rendering the components in the correct order. If we come across a situation where composition is not enough, we can:
 
 1. Create a local tab index state
 2. Assign a tab index to each form input
@@ -78,9 +107,9 @@ Note: This doesn't apply to the multiline fields. To keep the browser behavior c
 
 User input that may include optional characters (e.g. (, ), - in a phone number) should never be restricted on input, nor be modified or formatted on blur. This type of input jacking is disconcerting and makes things feel broken.
 
-Instead we will format and clean the user input internally before using the value (e.g. making an API request where the user will never see this transformation happen). Additionally, users should always be able to copy/paste whatever characters they want into fields.
+Instead, we will format and clean the user input internally before using the value (e.g. making an API request where the user will never see this transformation happen). Additionally, users should always be able to copy/paste whatever characters they want into fields.
 
-To give a slightly more detailed example of how this would work with phone numbers we should:
+To give a slightly more detailed example of how this would work with phone numbers, we should:
 
 1. Allow any character to be entered in the field.
 2. On blur, strip all non-number characters (with the exception of + if the API accepts it) and validate the result against the E.164 regex pattern we use for a valid phone. This change is internal and the user should not see any changes. This should be done in the validate callback passed as a prop to Form.
@@ -88,10 +117,10 @@ To give a slightly more detailed example of how this would work with phone numbe
 
 ### Form Drafts
 
-Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
+Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the `shouldSaveDraft` prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
 ```jsx
-<TextInput
+<InputWrapper
     shouldSaveDraft
 />
 ```
@@ -114,10 +143,10 @@ Here's an example for a form that has two inputs, `routingNumber` and `accountNu
 function validate(values) {
     const errors = {};
     if (!values.routingNumber) {
-        errors.routingNumber = props.translate(CONST.ERRORS.ROUTING_NUMBER);
+        errors.routingNumber = CONST.ERRORS.ROUTING_NUMBER;
     }
     if (!values.accountNumber) {
-        errors.accountNumber = props.translate(CONST.ERRORS.ACCOUNT_NUMBER);
+        errors.accountNumber = CONST.ERRORS.ACCOUNT_NUMBER;
     }
     return errors;
 }
@@ -130,15 +159,15 @@ function validate(values) {
         let errors = {};
 
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
 
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
+            errors.lastName = 'personalDetails.error.hasInvalidCharacter';
         }
 
         return errors;
@@ -176,11 +205,11 @@ Note: There are edge cases where some server errors will inevitably relate to sp
 
 Submit buttons shall not be disabled or blocked from being pressed in most cases. We will allow the user to submit a form and point them in the right direction if anything needs their attention.
 
-The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
+The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case, we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
 
-## Using Form.js
+## Using Form
 
-The example below shows how to use [Form.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/components/Form.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
+The example below shows how to use [FormProvider](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/FormProvider.js) and [InputWrapper](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/InputWrapper.js) in our app. You can also refer to [Form.stories.js](https://github.com/Expensify/App/blob/c5a84e5b4c0b8536eed2214298a565e5237a27ca/src/stories/Form.stories.js) for more examples.
 
 ```jsx
 function validate(values) {
@@ -201,59 +230,63 @@ function onSubmit(values) {
     }, 1000);
 }
 
-<Form
+<FormProvider
     formID="testForm"
     submitButtonText="Submit"
     validate={this.validate}
     onSubmit={this.onSubmit}
 >
-    // Wrapping TextInput in a View to show that Form inputs can be nested in other components
+    // Wrapping InputWrapper in a View to show that Form inputs can be nested in other components
     <View>
-        <TextInput
+        <InputWrapper
+            InputComponent={TextInput}
             label="Routing number"
-            inputID="routingNumber"
+            inputID={INPUT_IDS.ROUTING_NUMBER}
             maxLength={8}
             shouldSaveDraft
         />
     </View>
-    <TextInput
+    <InputWrapper
+        InputComponent={TextInput}
         label="Account number"
-        inputID="accountNumber"
+        inputID={INPUT_IDS.ACCOUNT_NUMBER}
         containerStyles={[styles.mt4]}
     />
-</Form>
+</FormProvider>
 ```
 
-`Form.js` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC.
+`FormProvider` also works with inputs nested in a custom component, e.g. [AddressForm](https://github.com/Expensify/App/blob/86579225ff30b21dea507347735259637a2df461/src/pages/ReimbursementAccount/AddressForm.js). The only exception is that the nested component shouldn't be wrapped around any HoC and all inputs in the component needs to be wrapped with `InputWrapper`.
 
 ```jsx
 const BankAccountForm = () => (
     <>
         <View>
-            <TextInput
+            <InputWrapper
+                InputComponent={TextInput}
                 label="Routing number"
-                inputID="routingNumber"
+                inputID={INPUT_IDS.ROUTING_NUMBER}
                 maxLength={8}
                 shouldSaveDraft
             />
         </View>
-        <TextInput
+        <InputWrapper
+            InputComponent={TextInput}
             label="Account number"
-            inputID="accountNumber"
+            inputID={INPUT_IDS.ACCOUNT_NUMBER}
             containerStyles={[styles.mt4]}
         />
     </>
 );
 
 // ...
-<Form
+<FormProvider
     formID="testForm"
     submitButtonText="Submit"
     validate={this.validate}
     onSubmit={this.onSubmit}
 >
     <BankAccountForm />
-</Form>
+</FormProvider>
 ```
 
 ### Props provided to Form inputs
@@ -266,13 +299,15 @@ The following prop is available to form inputs:
 - value: The value to show for the input.
 - onValueChange: A callback that is called when the input's value changes.
 
-Form.js will automatically provide the following props to any input with the inputID prop.
+InputWrapper component will automatically provide the following props to any input with the inputID prop.
 
 - ref: A React ref that must be attached to the input.
 - value: The input value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
+- onTouched: An onTouched handler that marks the input as touched.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
+- onFocus: An onFocus handler that marks the input as focused.
 
 ## Dynamic Form Inputs
 
@@ -285,13 +320,13 @@ An example of this can be seen in the [ACHContractStep](https://github.com/Expen
 
 ### Safe Area Padding
 
-Any `Form.js` that has a button will also add safe area padding by default. If the `<Form/>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+Any `FormProvider.js` that has a button will also add safe area padding by default. If the `<FormProvider>` is inside a `<ScreenWrapper>`, we will want to disable the default safe area padding applied there e.g.
 
-```js
+```jsx
 <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-    <Form>
+    <FormProvider>
         {...}
-    </Form>
+    </FormProvider>
 </ScreenWrapper>
 ```
 
@@ -302,7 +337,3 @@ In case there's a nested Picker in Form, we should pass the props below to Form,
 #### Enable ScrollContext
 
 Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
-
-#### Enable scrolling to overflow
-
-In addition to the `scrollContextEnabled` prop, we can also pass `scrollToOverflowEnabled` when the nested Picker is at the bottom of the Form to prevent the popup selector from covering Picker.

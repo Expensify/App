@@ -36,6 +36,7 @@ ln -sf universal-darwin22 universal-darwin21
 ## Steps
 
 1. Open the Terminal command line in macOS.
+1. In the root folder of the repository, execute `npm run createDocsRoutes` to generate the file which contains the routes for the articles (without this, the site will appear empty).
 1. Navigate to the `docs` folder in the command line.
 1. Run `bundle exec jekyll serve --livereload`.
     - _Note: If you see an error like `Unable to load the EventMachine C Extension...`, try running `gem uninstall eventmachine && bundle install`. If that doesn't work just removing the `--livereload` flag should work._
@@ -46,7 +47,7 @@ ln -sf universal-darwin22 universal-darwin21
 ### Android Chrome emulator
 To visit the site on the Android emulator, go to `10.0.2.2:4000`.
 
-If you're getting an error page that says "Refused to connect", try running `adb reverse tcp:4000 tcp:4000` with your emulator open. 
+If you're getting an error page that says "Refused to connect", try running `adb reverse tcp:4000 tcp:4000` with your emulator open.
 
 
 # How the project is structured
@@ -64,13 +65,108 @@ The [docs](https://github.com/Expensify/App/tree/main/docs) folder will contain 
 
 More details about the Jekyll project structure can be found [here](https://jekyllrb.com/docs/structure/). Note that all html files in this project support the use of the [liquid template language](https://shopify.github.io/liquid/).
 
+# Terminology
+- **Platform**: Expensify Classic and New Expensify are the two platforms. They are shown on the homepage.
+  - **Hub**: A hub is a collection of related articles. It comprises of:
+    - **Article**: The document that explains some feature.
+    - **Subcategory**: A narrower collection of related articles.
+
+To put it all together, this is the mental model that you should have.
+
+- Expensify Classic (Platform)
+  - Getting Started (Hub)
+    - Invite Members (Article)
+    - Security (Article)
+    - Playbooks (Subcategory)
+      - Small business guide (Article)
+      - Big business guide (Article)
+
+# How to create a new hub
+Let's assume that we want to create a new hub called Billing and Subscriptions inside the platform New Expensify.
+
+1. Open `docs/_data/_routes.yml`
+2. Under New Expensify add
+```
+    - href: billing-and-subscriptions
+      title: Billing & Subscriptions
+      icon: /assets/images/subscription.svg
+      description: Adjust billing...
+```
+3. Use an existing icon, or a new one by adding it to `docs/assets/images/`
+
+
+Link the hub.
+1. Go to `docs/new-expensify/hubs`
+2. Create a new folder using the hub name `billing-and-subscriptions`
+3. Inside the newly created folder, create `index.html` with the following content.
+```
+---
+layout: default
+title: Billing & Subscriptions
+---
+
+{% include hub.html %}
+``` 
+
+Add articles.
+1. Go to `docs/articles/new-expensify`
+2. Create a new folder with the hub name `billing-and-subscriptions`
+
+You are now ready to start adding articles and subcategories inside the hub 🎉
+
+# How to delete an existing hub
+Let's assume we want to delete the hub `integrations` inside the platform Expensify Classic.
+1. Open `docs/_data/_routes.yml`
+2. Find the hub integrations and delete its href, icon, title and description.
+3. Go to `docs/expensify-classic/hubs/`
+4. Delete the folder with your hub name and all its contents. eg: `integrations/`
+
+Delete all articles for the hub
+1. Go to `docs/articles/expensify-classic/`
+2. Delete the folder with your hub name and all its contents. eg: `integrations/`
+
+# How to rename a hub
+If you need help with how to do this on github. Follow this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1703012261896119?thread_ts=1702999732.847589&cid=C02QSAC6BJ8) in `#expensifyhelp`
+
+Let's assume that we need to rename the hub `get-paid-back` to `payments` for the platform `New Expensify`
+1. Go to `docs/new-expensify/hubs/`
+2. Rename the folder `get-paid-back/` to `payments`
+3. Go to `docs/articles/new-expensify/`
+4. Rename the folder `get-paid-back/` to `payments`
+5. Open docs/_data/_routes.yml 
+6. Rename the href `get-paid-back` to `payments`
+7. Change `title` to `Payments`
+
+# How to change icon of a hub
+1. Open `docs/_data/_routes.yml`
+2. Under the platform and hub, replace the icon link `assets/images/send.svg`.
+3. Use an existing icon, or a new one by adding it to `docs/assets/images/`
+
+# How to create a new subcategory
+Creating a new subcategory is as easy as creating a new folder. For example, if we want to create a new subcategory `HR Integrations` for the hub `Integrations` and platform `Expensify Classic`
+1. Go to `docs/articles/expensify-classic/integrations`
+2. Create a new folder `hr-integrations`
+
+You can now begin adding articles inside the subcategory `hr-integrations/`.
+
 # How to add a new Article
 
 ## Add content
 
-Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `/articles`. For example, if the article belongs in the `Send money` hub, then copy the template into `articles/send-money` directory. Next, rename the copy with the name of the article title, i.e. [The-Free-Plan.md](https://github.com/Expensify/App/blob/main/docs/articles/send-money/The-Free-Plan.md) (you can use dashes for spaces in the file name if it's needed) and put the new file inside of the respective hub folder or sub-folder. The title will be rendered automatically according to the filename (the dashes will be removed in the generated site page).
+Copy the [template](https://github.com/Expensify/App/blob/main/docs/TEMPLATE.md) file into the correct subdirectory of `docs/articles`. For example, if the article belongs in the `Bank Accounts` hub for the platform `Expensify Classic`, then copy the template into `docs/articles/expensiyfy-classic/bank-accounts` directory.
+
+Next, rename the copy with the name of the article title, i.e. `Connect-ANZ.md`. It is **important** that the article has `.md` extension (you can use dashes for spaces in the file name if it's needed). The dashes will be removed in the generated site page. 
 
 The sections of the article will be filled and nested automatically in the LHN, just ensure to use the [heading markdown tags](https://www.markdownguide.org/cheat-sheet/) correctly.
+
+## Add images
+1. Drag and drop your image inside `docs/assets/images/`
+2. Use the image in your article by adding the markdown `![Image description here]({{site.url}}/assets/images/your_image_name_here.png){:width="100%"}`
+
+- Note to replace `your_image_name_here` with the name of image that you uploaded.
+- Note to replace `Image description here`  with an apt description of the image.
+
+If you're unfamiliar with github branches, PRs and confused how to add images and article in the same PR, head to this [slack thread 🧵](https://expensify.slack.com/archives/C02QSAC6BJ8/p1699632298177679?thread_ts=1699576284.768909&cid=C02QSAC6BJ8) in `#expensifyhelp`.
 
 ## Add meta-description tags for SEO
 
@@ -86,9 +182,23 @@ image: (Optional) URL to an image associated with the post, page, or document (e
 
 Just update the content for each variable accordingly or remove it if the information is not available. More details [here](https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md#usage).
 
-## Add the new page to routes.yml
+# How to rename an article
+Assume that we want to rename the article `The Free Plan` to `Freemium Features` for the hub `billing and plan types` in New Expensify platform.
+1. Go to `docs/articles/new-expensify/billing-and-plan-types`
+2. Rename `The-Free-Plan.md` to `Freemium-Features.md`. Use dashes for spaces in the file name.
+3. Add an entry in redirects.csv for the old article pointing to the new article.
 
-Next, add the article to `_data/routes.yml`. Note that hubs contain one or more articles, which may or may not be grouped into sections with other related articles.
+Note: It is important that the file has `.md` extension.
+
+# How to hide an article temporarily
+Video demo available [here 🧵](https://expensify.slack.com/archives/C02NK2DQWUX/p1717772272605829?thread_ts=1717523271.137469&cid=C02NK2DQWUX).
+1. Open github's in built code editor by pressing `.` on your keyboard. ([instructions here](https://docs.github.com/en/codespaces/the-githubdev-web-based-editor#opening-the-githubdev-editor))
+2. Go to the article that you want to hide `docs/articles/...`.
+3. Drag and drop the article inside the hidden folder `docs/Hidden/`.
+4. Add a redirect for it in `docs/redirects.csv` to ensure that we don't have broken links. You can choose to point it to the home page or the article's hub.
+5. Commit the changes and raise a PR.
 
 # How the site is deployed
-This site is hosted on GitHub Pages. GitHub Pages has a built-in Jekyll integration, and we have it configured such that whenever code is merged to main, GitHub will automatically build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
+This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run.
+
+It will generate routes.yml using the script `createDocsRoutes`, build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/

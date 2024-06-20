@@ -5,9 +5,9 @@
   "scripts": {},
   "dependencies": {
     "electron-context-menu": "^2.3.0",
-    "electron-log": "^4.4.7",
-    "electron-serve": "^1.0.0",
-    "electron-updater": "^4.3.4",
+    "electron-log": "^4.4.8",
+    "electron-serve": "^1.3.0",
+    "electron-updater": "^6.2.1",
     "node-machine-id": "^1.1.12"
   },
   "author": "Expensify, Inc.",

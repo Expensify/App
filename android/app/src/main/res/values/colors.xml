@@ -1,4 +1,5 @@
 <resources>
+    <!-- If these colors are changed, we must add them to HybridApp also -->
     <color name="bootsplash_background">#03D47C</color>
     <color name="white">#FFFFFF</color>
     <color name="accent">#03D47C</color>

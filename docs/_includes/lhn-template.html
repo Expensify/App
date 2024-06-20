@@ -1,4 +1,13 @@
-{% assign activeHub = page.url | remove: "/hubs/" | remove: ".html" %}
+{% assign urlArray = page.url | replace: '/', ' ' | split: " " %}
+
+{% assign activePlatform = urlArray[0] %}
+{% assign platform = site.data.routes.platforms | where: "href", activePlatform | first %}
+
+{% assign activeHub = urlArray[2] %}
+{% assign hub = platform.hubs | where: "href", activeHub | first %}
+
+{% assign activeSection = urlArray[3] | remove: ".html" %}
+{% assign section = hub.sections | where: "href", activeSection | first %}
 
 <ul class="lhn-items">
     <li class="home-link">
@@ -9,37 +18,65 @@
         {% endif %}
     </li>
 
-    {% for hub in site.data.routes.hubs %}
-        {% if hub.href == activeHub %}
+    {% for platform in site.data.routes.platforms %}
+        {% if platform.href == activePlatform %}
             <li>
-                <div class="icon-with-link selected">
-                    <i class="fa-solid fa-angle-down icon"></i>
-                    <span>{{ hub.title }}</span>
-                </div>
-                <ul class="nested-treeview">
-                    <!-- First display sections with nested articles -->
-                    {% for section in hub.sections %}
-                        <li>
-                            <a href="#{{ section.href }}" class="link">{{ section.title }}</a>
-                            <ul>
-                                {% for article in section.articles %}
-                                    {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
-                                {% endfor %}
-                            </ul>
-                        </li>
-                    {% endfor %}
+                <a href="/" class="icon-with-link selected">
+                    <img src="/assets/images/down.svg" class="base-icon"></img>
+                    <span>{{ platform.title }}</span>
+                </a>
+                {% for hub in platform.hubs %}
+                <ul>
+                    {% if hub.href == activeHub %}
+                        <a href="/{{ activePlatform }}/hubs/" class="icon-with-link selected">
+                            <img src="/assets/images/down.svg" class="base-icon"></img>
+                            <span>{{ hub.title }}</span>
+                        </a>
+                        <ul class="nested-treeview">
+                            {% for section in hub.sections %}
+                                <li>
+                                    {% if section.href == activeSection %}
+                                        <a href="/{{ activePlatform }}/hubs/{{ hub.href }}" class="icon-with-link selected">
+                                            <img src="/assets/images/down.svg" class="base-icon"></img>
+                                            <span>{{ section.title }}</span>
+                                        </a>
+                                        <ul>
+                                            {% for article in section.articles %}
+                                                {% assign article_href = section.href | append: '/' | append: article.href %}
+                                                {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <a href="{{ section.href }}" class="icon-with-link link">
+                                            <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                                            {{ section.title }}
+                                        </a>
+                                    {% endif %}
+                                    
+                                </li>
+                            {% endfor %}
 
-                    <!-- Then display standalone articles -->
-                    {% for article in hub.articles %}
-                        {% include lhn-article-link.html hub=hub.href href=article.href title=article.title %}
-                    {% endfor %}
+                            {% for article in hub.articles %}
+                                {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article.href title=article.title %}
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <li>
+                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}" class="icon-with-link link">
+                                <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                                {{ hub.title }}
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
+                {% endfor %}
             </li>
+
         {% else %}
             <li>
-                <a href="/hubs/{{ hub.href }}" class="icon-with-link link">
-                    <i class="fa-solid fa-angle-right icon"></i>
-                    {{ hub.title }}
+                <a href="/{{ platform.href }}/hubs" class="icon-with-link link">
+                    <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                    {{ platform.title }}
                 </a>
             </li>
         {% endif %}

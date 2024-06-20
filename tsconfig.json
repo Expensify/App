@@ -1,0 +1,28 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "expo/tsconfig.base",
+    "compilerOptions": {
+        "module": "commonjs",
+        "types": ["react-native", "jest"],
+        "isolatedModules": true,
+        "strict": true,
+        "allowSyntheticDefaultImports": true,
+        "incremental": true,
+        "baseUrl": ".",
+        "paths": {
+            "@assets/*": ["./assets/*"],
+            "@components/*": ["./src/components/*"],
+            "@desktop/*": ["./desktop/*"],
+            "@github/*": ["./.github/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@libs/*": ["./src/libs/*"],
+            "@navigation/*": ["./src/libs/Navigation/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@styles/*": ["./src/styles/*"],
+            "@src/*": ["./src/*"],
+            "@userActions/*": ["./src/libs/actions/*"]
+        }
+    },
+    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "workflow_tests", "scripts"],
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
+}

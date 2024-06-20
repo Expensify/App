@@ -8,6 +8,7 @@
 
 #import "RCTBootSplash.h"
 #import "RCTStartupTimer.h"
+#import <HardwareShortcuts.h>
 
 @interface AppDelegate () <UNUserNotificationCenterDelegate>
 
@@ -43,7 +44,12 @@
   // stopped by a native module in the JS so we can measure total time starting
   // in the native layer and ending in the JS layer.
   [RCTStartupTimer start];
-  
+
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"isFirstRunComplete"]) {
+      [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
+      [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"isFirstRunComplete"];
+  }
+
   return YES;
 }
 
@@ -66,20 +72,13 @@
                      restorationHandler:restorationHandler];
 }
 
-/// This method controls whether the `concurrentRoot`feature of React18 is
-/// turned on or off.
-///
-/// @see: https://reactjs.org/blog/2022/03/29/react-v18.html
-/// @note: This requires to be rendering on Fabric (i.e. on the New
-/// Architecture).
-/// @return: `true` if the `concurrentRoot` feature is enabled. Otherwise, it
-/// returns `false`.
-- (BOOL)concurrentRootEnabled {
-  // Switch this bool to turn on and off the concurrent root
-  return true;
+- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
+{
+  return [self getBundleURL];
 }
 
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
+- (NSURL *)getBundleURL
+{
 #if DEBUG
   return
       [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
@@ -87,6 +86,15 @@
   return [[NSBundle mainBundle] URLForResource:@"main"
                                  withExtension:@"jsbundle"];
 #endif
+}
+
+// This methods is needed to support the hardware keyboard shortcuts
+- (NSArray *)keyCommands {
+  return [HardwareShortcuts sharedInstance].keyCommands;
+}
+
+- (void)handleKeyCommand:(UIKeyCommand *)keyCommand {
+  [[HardwareShortcuts sharedInstance] handleKeyCommand:keyCommand];
 }
 
 @end

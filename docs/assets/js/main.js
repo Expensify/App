@@ -44,12 +44,24 @@ function clamp(num, min, max) {
 function isInRange(num, min, max) {
     return num >= min && num <= max;
 }
-
+/**
+ * Checks if the user has navigated within the docs using internal links and uses browser history to navigate back.
+ * If a page is directly accessed (e.g., via deep link, bookmark, or opened in a new tab),the user will be navigated
+ * back to the relevant hub page of that article.
+ */
 function navigateBack() {
-    const hubs = JSON.parse(document.getElementById('hubs-data').value);
-    const hubToNavigate = hubs.find(hub => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
-    if (hubToNavigate) {
-        window.location.href = `/hubs/${hubToNavigate}`;
+    const currentHost = window.location.host;
+    const referrer = document.referrer;
+
+    if (referrer.includes(currentHost) && window.history.length > 1) {
+        window.history.back();
+        return;
+    }
+
+    // Path name is of the form /articles/[platform]/[hub]/[resource]
+    const path = window.location.pathname.split('/');
+    if (path[2] && path[3]) {
+        window.location.href = `/${path[2]}/hubs/${path[3]}`;
     } else {
         window.location.href = '/';
     }
@@ -63,47 +75,201 @@ function injectFooterCopywrite() {
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
+function closeSidebar() {
+    document.getElementById('sidebar-layer').style.display = 'none';
+
+    // Make the body scrollable again
+    const body = document.body;
+    const scrollY = body.style.top;
+
+    // Reset the position and top styles of the body element
+    body.style.position = '';
+    body.style.top = '';
+
+    // Scroll to the original scroll position
+    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+}
+
+function closeSidebarOnClickOutside(event) {
+    const sidebarLayer = document.getElementById('sidebar-layer');
+
+    if (event.target !== sidebarLayer) {
+        return;
+    }
+    closeSidebar();
+}
+
+function openSidebar() {
+    document.getElementById('sidebar-layer').style.display = 'block';
+    document.getElementById('gsc-i-id1').focus();
+
+    // Make body unscrollable
+    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
+    const body = document.body;
+    body.style.position = 'fixed';
+    body.style.top = `-${yAxis}`;
+
+    document.getElementById('gsc-i-id1').focus();
+
+    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
+    const sidebarLayer = document.getElementById('sidebar-layer');
+    if (sidebarLayer) {
+        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
+    }
+}
+
+// Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
+function changeSVGViewBoxGoogle() {
+    // Get all inline Google SVG elements on the page
+    const svgsGoogle = document.querySelectorAll('svg');
+
+    Array.from(svgsGoogle).forEach((svg) => {
+        // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
+        svg.setAttribute('viewBox', '0 0 20 20');
+        svg.setAttribute('height', '16');
+        svg.setAttribute('width', '16');
+    });
+}
+
+// Function to insert element after another
+// In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
+function insertElementAfter(referenceNode, newNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+}
+
+// Update the ICON for search input.
+/* Change the path of the Google Search Button icon into Expensify icon */
+function updateGoogleSearchIcon() {
+    const node = document.querySelector('.gsc-search-button.gsc-search-button-v2 svg path');
+    node.setAttribute(
+        'd',
+        'M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z',
+    );
+}
+
+// Need to wait up until page is load, so the svg viewBox can be changed
+// And the search label can be inserted
+window.addEventListener('load', () => {
+    changeSVGViewBoxGoogle();
+
+    updateGoogleSearchIcon();
+
+    // Add required into the search input
+    const searchInput = document.getElementById('gsc-i-id1');
+    searchInput.setAttribute('required', '');
+
+    // Insert search label after the search input
+    const searchLabel = document.createElement('label');
+    searchLabel.classList.add('search-label');
+    searchLabel.innerHTML = 'Search for something...';
+    insertElementAfter(searchInput, searchLabel);
+});
+
+const tocbotOptions = {
+    // Where to render the table of contents.
+    tocSelector: '.article-toc',
+
+    // Where to grab the headings to build the table of contents.
+    contentSelector: '',
+
+    // Disable the collapsible functionality of the library by
+    // setting the maximum number of heading levels (6)
+    collapseDepth: 6,
+    headingSelector: 'h1, h2, h3, summary',
+
+    // Main class to add to lists.
+    listClass: 'lhn-items',
+
+    // Main class to add to links.
+    linkClass: 'link',
+
+    // Class to add to active links,
+    // the link corresponding to the top most heading on the page.
+    activeLinkClass: 'selected-article',
+
+    // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
+    headingsOffset: 80,
+    scrollSmoothOffset: -80,
+    scrollSmooth: true,
+
+    // If there is a fixed article scroll container, set to calculate titles' offset
+    scrollContainer: 'content-area',
+};
+
+function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
+    newExpensifyTab.classList.add('active');
+    newExpensifyContent.classList.remove('hidden');
+
+    if (expensifyClassicTab && expensifyClassicContent) {
+        expensifyClassicTab.classList.remove('active');
+        expensifyClassicContent.classList.add('hidden');
+    }
+    window.tocbot.refresh({
+        ...tocbotOptions,
+        contentSelector: '#new-expensify',
+    });
+}
+
+function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
+    expensifyClassicTab.classList.add('active');
+    expensifyClassicContent.classList.remove('hidden');
+
+    if (newExpensifyTab && newExpensifyContent) {
+        newExpensifyTab.classList.remove('active');
+        newExpensifyContent.classList.add('hidden');
+    }
+
+    window.tocbot.refresh({
+        ...tocbotOptions,
+        contentSelector: '#expensify-classic',
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     injectFooterCopywrite();
 
+    // Handle open & close the sidebar
+    const buttonOpenSidebar = document.getElementById('toggle-search-open');
+    if (buttonOpenSidebar) {
+        buttonOpenSidebar.addEventListener('click', openSidebar);
+    }
+
+    const buttonCloseSidebar = document.getElementById('toggle-search-close');
+    if (buttonCloseSidebar) {
+        buttonCloseSidebar.addEventListener('click', closeSidebar);
+    }
+
+    const expensifyClassicTab = document.getElementById('platform-tab-expensify-classic');
+    const newExpensifyTab = document.getElementById('platform-tab-new-expensify');
+
+    const expensifyClassicContent = document.getElementById('expensify-classic');
+    const newExpensifyContent = document.getElementById('new-expensify');
+
+    let contentSelector = '.article-toc-content';
+    if (expensifyClassicContent) {
+        contentSelector = '#expensify-classic';
+        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
+    } else if (newExpensifyContent) {
+        contentSelector = '#new-expensify';
+        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
+    }
+
     if (window.tocbot) {
         window.tocbot.init({
-        // Where to render the table of contents.
-            tocSelector: '.article-toc',
-
-            // Where to grab the headings to build the table of contents.
-            contentSelector: '.article-toc-content',
-
-            // Disable the collapsible functionality of the library by
-            // setting the maximum number of heading levels (6)
-            collapseDepth: 6,
-
-            // Main class to add to lists.
-            listClass: 'lhn-items',
-
-            // Main class to add to links.
-            linkClass: 'link',
-
-            // Class to add to active links,
-            // the link corresponding to the top most heading on the page.
-            activeLinkClass: 'selected-article',
-
-            // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-            headingsOffset: 80,
-            scrollSmoothOffset: -80,
-            scrollSmooth: true,
-
-            // If there is a fixed article scroll container, set to calculate titles' offset
-            scrollContainer: 'content-area',
-
-            // onclick function to apply to all links in toc. will be called with
-            // the event as the first parameter, and this can be used to stop,
-            // propagation, prevent default or perform action
-            onClick() {
-                toggleHeaderMenu();
-            },
+            ...tocbotOptions,
+            contentSelector,
         });
     }
+
+    // eslint-disable-next-line es/no-optional-chaining
+    expensifyClassicTab?.addEventListener('click', () => {
+        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
+    });
+
+    // eslint-disable-next-line es/no-optional-chaining
+    newExpensifyTab?.addEventListener('click', () => {
+        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
+    });
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
@@ -115,13 +281,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const articleContent = document.getElementById('article-content');
     const lhnContent = document.getElementById('lhn-content');
+
+    // This event listener checks if a link clicked in the LHN points to some section of the same page and toggles
+    // the LHN menu in responsive view.
+    lhnContent.addEventListener('click', (event) => {
+        const clickedLink = event.target;
+        if (clickedLink) {
+            const href = clickedLink.getAttribute('href');
+            if (href && href.startsWith('#') && !!document.getElementById(href.slice(1))) {
+                toggleHeaderMenu();
+            }
+        }
+    });
     lhnContent.addEventListener('wheel', (e) => {
         const scrollTop = lhnContent.scrollTop;
         const isScrollingPastLHNTop = e.deltaY < 0 && scrollTop === 0;
-        const isScrollingPastLHNBottom = (
-            e.deltaY > 0
-            && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1)
-        );
+        const isScrollingPastLHNBottom = e.deltaY > 0 && isInRange(lhnContent.scrollHeight - lhnContent.offsetHeight, scrollTop - 1, scrollTop + 1);
         if (isScrollingPastLHNTop || isScrollingPastLHNBottom) {
             e.preventDefault();
         }
@@ -130,5 +305,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
+
+        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
+        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });

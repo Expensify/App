@@ -6,19 +6,10 @@
 
     <p>{{ site.data.routes.home.description }}</p>
 
-    <h2>
-        Which best describes how you use Expensify?
-    </h2>
-
     <div class="cards-group">
-        {% include hub-card.html href="send-money" %}
-        {% include hub-card.html href="request-money" %}
-        {% include hub-card.html href="playbooks" %}
-        {% include hub-card.html href="other" %}
-    </div>
-
-    <div class="cards-group">
-        <!-- Concierge button anchored globally (rendered on narrow screens) -->
-        {% include floating-concierge-button.html id="floating-concierge-button-global" %}
+        {% for platform in site.data.routes.platforms %}
+            {% assign platform_href = platform.href %}
+            {% include platform-card.html href=platform.platform_href %}
+        {% endfor %}
     </div>
 </div>
