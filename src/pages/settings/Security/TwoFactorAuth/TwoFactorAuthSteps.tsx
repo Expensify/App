@@ -61,7 +61,12 @@ function TwoFactorAuthSteps({account}: TwoFactorAuthStepProps) {
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep backTo={backTo} forwardTo={forwardTo} />;
+                return (
+                    <SuccessStep
+                        backTo={backTo}
+                        forwardTo={forwardTo}
+                    />
+                );
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
                 return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
