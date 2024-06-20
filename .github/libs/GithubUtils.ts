@@ -543,6 +543,9 @@ class GithubUtils {
             .then((response) => response.data.artifacts[0]);
     }
 
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
     static getArtifactDownloadURL(artifactId: number): Promise<string> {
         return this.octokit.actions
             .downloadArtifact({
