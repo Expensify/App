@@ -63,7 +63,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
                     onSelectRow={saveSelection}
                     shouldDebounceRowSelect
                     sections={[{data: sections}]}
-                    initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? ''}
+                    initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
                 />
             </OfflineWithFeedback>
         </ConnectionLayout>
