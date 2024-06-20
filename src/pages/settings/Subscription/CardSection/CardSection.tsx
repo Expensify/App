@@ -14,7 +14,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
-import CardSectionUtils from './utils';
 
 function CardSection() {
     const {translate, preferredLocale} = useLocalize();
@@ -26,12 +25,7 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    let BillingBanner: React.ReactNode | undefined;
-    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
-        BillingBanner = <PreTrialBillingBanner />;
-    } else {
-        // TODO: Add other billing banners here.
-    }
+    const BillingBanner = <PreTrialBillingBanner />;
 
     return (
         <Section

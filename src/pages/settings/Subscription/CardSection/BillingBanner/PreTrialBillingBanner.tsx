@@ -18,10 +18,10 @@ function PreTrialBillingBanner() {
         const reportUsedForOnboarding = ReportUtils.getChatUsedForOnboarding();
 
         if (!reportUsedForOnboarding) {
+            Report.navigateToConciergeChat();
             return;
         }
 
-        Report.openReport(reportUsedForOnboarding.reportID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportUsedForOnboarding.reportID));
     };
 
