@@ -14,11 +14,11 @@
  *
  * @note For downloading an artifact a github token is required.
  */
-import {Octokit} from '@octokit/core';
 import {execSync} from 'child_process';
 import fs from 'fs';
 import https from 'https';
 import path from 'path';
+import GithubUtils from '@github/libs/GithubUtils';
 import * as Logger from './utils/Logger';
 import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
@@ -55,6 +55,8 @@ if (githubToken === undefined) {
     Logger.error('No GitHub token provided. Either set a GITHUB_TOKEN environment variable or pass it using --gh-token');
     process.exit(1);
 }
+
+GithubUtils.initOctokitWithToken(githubToken);
 // #endregion
 
 // #region Get the app version
@@ -70,63 +72,14 @@ Logger.info(`Found app version ${appVersion} in the profile filename`);
 // #endregion
 
 // #region Utility functions
-// We need the token for the download step
-const octokit = new Octokit({auth: githubToken});
-const OWNER = 'Expensify';
-const REPO = 'App';
-
-function getWorkflowRunArtifact() {
+async function getWorkflowRunArtifact() {
     const artifactName = `${argsMap.platform}-sourcemap-${appVersion}`;
     Logger.info(`Fetching sourcemap artifact with name "${artifactName}"`);
-    return octokit
-        .request('GET /repos/{owner}/{repo}/actions/artifacts', {
-            owner: OWNER,
-            repo: REPO,
-            per_page: 1,
-            name: artifactName,
-        })
-        .then((artifactsResponse) => {
-            const artifact = artifactsResponse.data.artifacts[0];
-            if (artifact === undefined) {
-                throw new Error(`Could not find the artifact ${artifactName}!`);
-            }
-            return artifact.id;
-        })
-        .catch((error) => {
-            Logger.error('Failed to get artifact!');
-            Logger.error(error);
-            throw error;
-        });
-}
-
-function getDownloadUrl(artifactId: number) {
-    // https://docs.github.com/en/rest/actions/artifacts?apiVersion=2022-11-28#download-an-artifact
-    // Gets a redirect URL to download an archive for a repository. This URL expires after 1 minute.
-    // Look for Location: in the response header to find the URL for the download.
-
-    Logger.log(`Getting download URL for artifact…`);
-    return octokit
-        .request('GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}', {
-            owner: OWNER,
-            repo: REPO,
-            artifact_id: artifactId,
-            archive_format: 'zip',
-        })
-        .then((response) => {
-            // The response should be a redirect to the actual download URL
-            const downloadUrl = response.url;
-
-            if (downloadUrl === undefined) {
-                throw new Error(`Could not find the download URL in:\n${JSON.stringify(response, null, 2)}`);
-            }
-
-            return downloadUrl;
-        })
-        .catch((error) => {
-            Logger.error('Failed to download artifact!');
-            Logger.error(error);
-            throw error;
-        });
+    const artifact = await GithubUtils.getArtifactByName(artifactName);
+    if (artifact === undefined) {
+        throw new Error(`Could not find the artifact ${artifactName}! Are you sure the deploy step succeeded?`);
+    }
+    return artifact.id;
 }
 
 const dirName = '.sourcemaps';
@@ -190,19 +143,31 @@ function symbolicateProfile() {
     execSync(command, {stdio: 'inherit'});
 }
 
+async function fetchAndProcessArtifact() {
+    const artifactId = await getWorkflowRunArtifact();
+    const downloadUrl = await GithubUtils.getArtifactDownloadURL(artifactId);
+    const zipPath = await downloadFile(downloadUrl);
+    await unpackZipFile(zipPath);
+    renameDownloadedSourcemapFile();
+}
 // #endregion
 
-// Step: check if source map locally already exists (if so we can skip the download)
-if (fs.existsSync(localSourceMapPath)) {
-    Logger.success(`Found local source map at ${localSourceMapPath}`);
-    Logger.info('Skipping download step');
+async function runAsyncScript() {
+    // Step: check if source map locally already exists (if so we can skip the download)
+    if (fs.existsSync(localSourceMapPath)) {
+        Logger.success(`Found local source map at ${localSourceMapPath}`);
+        Logger.info('Skipping download step');
+    } else {
+        // Step: Download the source map for the app version and then symbolicate the profile:
+        try {
+            await fetchAndProcessArtifact();
+        } catch (error) {
+            Logger.error(error);
+            process.exit(1);
+        }
+    }
+
     symbolicateProfile();
-} else {
-    // Step: Download the source map for the app version:
-    getWorkflowRunArtifact()
-        .then((artifactId) => getDownloadUrl(artifactId))
-        .then((downloadUrl) => downloadFile(downloadUrl))
-        .then((zipPath) => unpackZipFile(zipPath))
-        .then(() => renameDownloadedSourcemapFile())
-        .then(() => symbolicateProfile());
 }
+
+runAsyncScript();
