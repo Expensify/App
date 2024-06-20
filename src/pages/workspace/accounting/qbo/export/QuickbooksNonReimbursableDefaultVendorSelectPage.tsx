@@ -73,7 +73,6 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             <ScreenWrapper testID={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}>
                 <HeaderWithBackButton title={translate('workspace.qbo.defaultVendor')} />
                 <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.defaultVendorDescription')}</Text>}
                     sections={sections}
                     ListItem={RadioListItem}
                     onSelectRow={selectVendor}
