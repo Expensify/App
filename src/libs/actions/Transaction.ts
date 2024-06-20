@@ -10,7 +10,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
