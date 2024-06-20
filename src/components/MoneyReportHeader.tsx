@@ -24,6 +24,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
@@ -70,7 +71,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID) as OnyxTypes.ReportAction & OnyxTypes.OriginalMessageIOU;
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [shownHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, {initWithStoredValues: false});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
+    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`] ?? undefined;
 
     const styles = useThemeStyles();
@@ -125,11 +127,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
 
-    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation && !hasOnlyHeldExpenses;
+    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
-    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation && !hasOnlyHeldExpenses;
+    const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
@@ -253,8 +255,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     }
 
     useEffect(() => {
-        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplanation);
-    }, [isOnHold, shownHoldUseExplanation]);
+        if (isLoadingHoldUseExplained) {
+            return;
+        }
+        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
@@ -271,7 +276,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.setShownHoldUseExplanation();
+        IOU.dismissHoldUseExplanation();
     };
 
     if (isPayer && isSettled && ReportUtils.isExpenseReport(moneyRequestReport)) {
