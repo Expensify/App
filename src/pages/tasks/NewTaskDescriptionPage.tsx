@@ -50,7 +50,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
         const errors = {};
         const taskDescriptionLength = ReportUtils.getCommentLength(values.taskDescription);
-        if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
+        if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
             ErrorUtils.addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
         }
 
