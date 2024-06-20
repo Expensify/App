@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -9,18 +10,15 @@ import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
-type TypeSelectorProps = Pick<MenuItemBaseProps, 'rightLabel'> & {
+type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
     /** Function to call when the user selects a type */
     onInputChange?: (value: string) => void;
 
     /** Currently selected type */
     value?: string;
-
-    /** Label to display on field */
-    label: string;
 };
 
-function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorProps) {
+function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -41,6 +39,7 @@ function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorPro
     return (
         <View>
             <MenuItemWithTopDescription
+                ref={forwardedRef}
                 shouldShowRightIcon
                 title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
                 description={label}
@@ -52,7 +51,7 @@ function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorPro
                 currentType={value as PolicyReportFieldType}
                 onClose={hidePickerModal}
                 onTypeSelected={updateTypeInput}
-                label={label}
+                label={label ?? ''}
             />
         </View>
     );
@@ -60,4 +59,4 @@ function TypeSelector({value, label, rightLabel, onInputChange}: TypeSelectorPro
 
 TypeSelector.displayName = 'TypeSelector';
 
-export default TypeSelector;
+export default forwardRef(TypeSelector);

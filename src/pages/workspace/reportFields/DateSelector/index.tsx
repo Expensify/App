@@ -1,21 +1,20 @@
-import React, {useState} from 'react';
+import React, {forwardRef, useState} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
+import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import DateUtils from '@libs/DateUtils';
 import DateSelectorModal from './DateSelectorModal';
 
-type DateSelectorProps = {
+type DateSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
     /** Function to call when the user selects a data */
     onInputChange?: (value: string) => void;
 
     /** Currently selected data */
     value?: string;
-
-    /** Label to display on field */
-    label: string;
 };
 
-function DateSelector({value, label, onInputChange}: DateSelectorProps) {
+function DateSelector({value, label, onInputChange}: DateSelectorProps, forwardedRef: ForwardedRef<View>) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
@@ -34,6 +33,7 @@ function DateSelector({value, label, onInputChange}: DateSelectorProps) {
     return (
         <View>
             <MenuItemWithTopDescription
+                ref={forwardedRef}
                 shouldShowRightIcon
                 title={DateUtils.extractDate(value ?? '')}
                 description={label}
@@ -44,7 +44,7 @@ function DateSelector({value, label, onInputChange}: DateSelectorProps) {
                 currentDate={value ?? ''}
                 onClose={hidePickerModal}
                 onDateSelected={updateDateInput}
-                label={label}
+                label={label ?? ''}
             />
         </View>
     );
@@ -52,4 +52,4 @@ function DateSelector({value, label, onInputChange}: DateSelectorProps) {
 
 DateSelector.displayName = 'DateSelector';
 
-export default DateSelector;
+export default forwardRef(DateSelector);
