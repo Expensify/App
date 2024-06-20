@@ -45,13 +45,13 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
         },
         delete(key) {
             const index = getKeyIndex(key);
-            const has = index !== -1;
+            const entryExists = index !== -1;
 
-            if (has) {
+            if (entryExists) {
                 cache.splice(index, 1);
             }
 
-            return has;
+            return entryExists;
         },
         clear() {
             cache.length = 0;
