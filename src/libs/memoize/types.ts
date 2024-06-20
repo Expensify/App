@@ -10,9 +10,9 @@ type Cache<K, V> = {
     snapshot: {
         keys: () => K[];
         values: () => V[];
-        cache: () => Array<[K, V]>;
-        size: number;
+        entries: () => Array<[K, V]>;
     };
+    size: number;
 };
 
 type CacheOpts = {

@@ -63,10 +63,12 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
             values() {
                 return cache.map((entry) => entry[1]);
             },
-            cache() {
+            entries() {
                 return [...cache];
             },
-            size: cache.length,
+        },
+        get size() {
+            return cache.length;
         },
     };
 }
