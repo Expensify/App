@@ -76,7 +76,6 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
                     key: ONYXKEYS.PLAID_LINK_TOKEN,
                     value: '',
                 },
-                // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
