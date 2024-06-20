@@ -5,7 +5,7 @@ const SEMANTIC_VERSION_LEVELS = {
     BUILD: 'BUILD',
 } as const;
 
-const MAX_INCREMENTS = 99 as const;
+const MAX_INCREMENTS = 99;
 
 /**
  * Transforms a versions string into a number
