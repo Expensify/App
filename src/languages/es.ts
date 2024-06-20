@@ -2296,9 +2296,8 @@ export default {
         reportFields: {
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
-            // TODO: Verify translations
             disableReportFields: 'Desactivar campos de informe',
-            disableReportFieldsConfirmation: '¿Está seguro? Se eliminarán los campos de texto y fecha, y se desactivarán las listas.',
+            disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
