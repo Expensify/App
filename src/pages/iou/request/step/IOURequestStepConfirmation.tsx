@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -225,7 +226,7 @@ function IOURequestStepConfirmation({
         }
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const isLocalFile = typeof receiptPath === 'number' || receiptPath?.startsWith('blob:') || receiptPath?.startsWith('file:') || receiptPath?.startsWith('/');
+        const isLocalFile = FileUtils.isLocalFile(receiptPath);
 
         if (!isLocalFile) {
             setReceiptFile(transaction?.receipt);
