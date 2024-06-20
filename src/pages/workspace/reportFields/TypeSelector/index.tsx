@@ -18,7 +18,7 @@ type TypeSelectorProps = {
     label: string;
 };
 
-function TypeSelector({value, label, onInputChange: setNewType}: TypeSelectorProps) {
+function TypeSelector({value, label, onInputChange}: TypeSelectorProps) {
     // const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -32,7 +32,7 @@ function TypeSelector({value, label, onInputChange: setNewType}: TypeSelectorPro
     };
 
     const updateTypeInput = (reportField: ReportFieldItemType) => {
-        setNewType?.(reportField.value);
+        onInputChange?.(reportField.value);
         hidePickerModal();
     };
 
