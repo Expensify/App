@@ -1,5 +1,5 @@
-import React from 'react'
-import {View} from 'react-native';;
+import React from 'react';
+import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
