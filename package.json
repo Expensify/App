@@ -294,6 +294,7 @@
     "time-analytics-webpack-plugin": "^0.1.17",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "type-fest": "^4.10.2",
     "typescript": "^5.4.5",
     "wait-port": "^0.2.9",
@@ -334,5 +335,6 @@
   "engines": {
     "node": "20.14.0",
     "npm": "10.7.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
