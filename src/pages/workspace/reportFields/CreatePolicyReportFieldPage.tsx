@@ -87,11 +87,9 @@ function CreatePolicyReportFieldPage({
                         />
                         <InputWrapper
                             InputComponent={TypeSelector}
-                            label={translate('common.type')}
-                            description={translate('common.type')}
-                            rightLabel={translate('common.required')}
-                            accessibilityLabel={translate('workspace.editor.typeInputLabel')}
                             inputID={INPUT_IDS.TYPE}
+                            label={translate('common.type')}
+                            rightLabel={translate('common.required')}
                         />
                         <InputWrapper
                             InputComponent={TextPicker}
