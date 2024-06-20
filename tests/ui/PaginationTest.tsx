@@ -11,6 +11,7 @@ import * as User from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
@@ -51,7 +52,7 @@ function getReportScreen(reportID = REPORT_ID) {
 
 function scrollToOffset(offset: number) {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
-    fireEvent.scroll(screen.getByLabelText(hintText), {
+    fireEvent.scroll(within(getReportScreen()).getByLabelText(hintText), {
         nativeEvent: {
             contentOffset: {
                 y: offset,
@@ -113,14 +114,17 @@ function buildCreatedAction(reportActionID: string, created: string) {
 
 function buildReportComments(count: number, initialID: string, reverse = false) {
     let currentID = parseInt(initialID, 10);
-    return Object.fromEntries(
-        Array.from({length: Math.min(count, currentID)}).map(() => {
-            const created = format(addSeconds(TEN_MINUTES_AGO, 10 * currentID), CONST.DATE.FNS_DB_FORMAT_STRING);
-            const id = currentID;
-            currentID += reverse ? 1 : -1;
-            return [`${id}`, id === 1 ? buildCreatedAction('1', created) : TestHelper.buildTestReportComment(created, USER_B_ACCOUNT_ID, `${id}`)];
-        }),
-    );
+    const result: Record<string, Partial<ReportAction>> = {};
+    for (let i = 0; i < count; i++) {
+        if (currentID < 1) {
+            break;
+        }
+        const created = format(addSeconds(TEN_MINUTES_AGO, 10 * currentID), CONST.DATE.FNS_DB_FORMAT_STRING);
+        const id = currentID;
+        currentID += reverse ? 1 : -1;
+        result[`${id}`] = id === 1 ? buildCreatedAction('1', created) : TestHelper.buildTestReportComment(created, USER_B_ACCOUNT_ID, `${id}`);
+    }
+    return result;
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
@@ -300,12 +304,13 @@ describe('Pagination', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        // We now have 10 messages. 5 from the initial OpenReport and 3 from GetOlderActions.
+        // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
         expect(getReportActions()).toHaveLength(8);
     });
 
     it('opens a chat and load newer messages', async () => {
         mockOpenReport(5, '5');
-        mockGetOlderActions(5);
         mockGetNewerActions(5);
 
         await signInAndGetApp();
@@ -319,10 +324,25 @@ describe('Pagination', () => {
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
 
+        expect(getReportActions()).toHaveLength(5);
+
+        // There is 1 extra call here because of the comment linking report.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
-        expect(getReportActions()).toHaveLength(5);
+
+        scrollToOffset(0);
+        await waitForBatchedUpdatesWithAct();
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // We now have 10 messages. 5 from the initial OpenReport and 5 from GetNewerActions.
+        expect(getReportActions()).toHaveLength(10);
     });
 });
