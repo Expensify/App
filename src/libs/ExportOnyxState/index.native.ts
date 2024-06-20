@@ -25,11 +25,9 @@ const shareAsFile = (value: string) => {
         const actualInfoFile = `file://${infoFilePath}`;
 
         RNFS.writeFile(infoFilePath, value, 'utf8').then(() => {
-            const shareOptions = {
-                urls: [actualInfoFile],
-            };
-
-            Share.open(shareOptions);
+            Share.open({
+                url: actualInfoFile,
+            });
         });
     } catch (error) {
         console.error('Error renaming and sharing file:', error);
