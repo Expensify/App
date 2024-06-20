@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -16,6 +17,12 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
                             options: {
                                 config: {
                                     subsidiary: subsidiaryName,
+                                    pendingFields: {
+                                        subsidiary:  CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+                                    },
+                                    errorFields: {
+                                        subsidiary: null
+                                    },
                                 },
                             },
                         },
@@ -27,7 +34,23 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {},
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    subsidiary: subsidiaryName,
+                                    errorFields: {
+                                        subsidiary: null
+                                    },
+                                    pendingFields: {
+                                        subsidiary: null
+                                    }
+                                },
+                            },
+                        },
+                    },
+                },
             },
         ],
         failureData: [
@@ -40,6 +63,12 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
                             options: {
                                 config: {
                                     subsidiary: oldSubsidiaryName,
+                                    errorFields: {
+                                        subsidiary: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')
+                                    },
+                                    pendingFields: {
+                                        subsidiary: null
+                                    }
                                 },
                             },
                         },
