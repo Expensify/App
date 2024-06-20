@@ -38,6 +38,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
 import * as KeyDownListener from '@libs/KeyboardShortcut/KeyDownPressListener';
+import Log from '@libs/Log';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -434,6 +435,7 @@ function ComposerWithSuggestions(
                 setIsCommentEmpty(isNewCommentEmpty);
             }
             emojisPresentBefore.current = emojis;
+            Log.info('[ComposerWithSuggestions] Setting new comment value', true, {newValue: newCommentConverted, oldValue: value});
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
@@ -461,6 +463,8 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
+        // We don't want to have `value` in dependencies since it is only used in Log.info
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             debouncedUpdateFrequentlyUsedEmojis,
             findNewlyAddedChars,
@@ -492,12 +496,15 @@ function ComposerWithSuggestions(
 
         setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
         updateComment('');
+        Log.info('[ComposerWithSuggestions] `textInputShouldClear` changed to true', true, {oldTextInputShouldClear: textInputShouldClear});
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
             Report.setIsComposerFullSize(reportID, false);
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
+        // We don't want to have `textInputShouldClear` in dependencies since it is only used in Log.info
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
@@ -741,6 +748,7 @@ function ComposerWithSuggestions(
     );
 
     const onClear = useCallback(() => {
+        Log.info('[ComposerWithSuggestions] `onClear` called', true);
         setTextInputShouldClear(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

@@ -26,6 +26,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -267,8 +268,11 @@ function ReportActionCompose({
             playSound(SOUNDS.DONE);
             const newComment = composerRef?.current?.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
+            Log.info('[ReportActionCompose] `textInputShouldClear` changed to false', true, {oldTextInputShouldClear: textInputShouldClear});
             setTextInputShouldClear(false);
         },
+        // We don't want to have `textInputShouldClear` in dependencies since it is only used in Log.info
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID],
     );
 
