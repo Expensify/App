@@ -5,12 +5,12 @@ import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PhoneNumber from '@libs/PhoneNumber';
+import {getPolicy} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import {getPolicy} from "@libs/PolicyUtils";
 
 type CreationData = {
     reportID: string;
