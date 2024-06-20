@@ -3738,7 +3738,7 @@ export default {
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
             retryPaymentButton: 'Reintentar el pago',
-            viewPaymentHistory: 'Ver historial de pago',
+            viewPaymentHistory: 'Ver historial de pagos',
         },
         yourPlan: {
             title: 'Tu plan',
