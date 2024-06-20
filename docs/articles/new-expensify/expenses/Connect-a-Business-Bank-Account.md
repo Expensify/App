@@ -11,6 +11,10 @@ To connect a bank account in New Expensify, you must first enable the Make or Tr
 3. Click on **Workflows** 
 4. Enable **Make or track payments**
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_1_Light.png){:width="100%"}
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
+
 # Step 2: Connect bank account
 1. Click Connect bank account
 2. Select either Connect online with Plaid (preferred) or Connect manually
