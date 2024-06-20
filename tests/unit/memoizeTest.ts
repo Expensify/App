@@ -103,7 +103,7 @@ describe('memoize test', () => {
             [2, 3],
         ]);
         expect(memoizedFn.cache.snapshot.values()).toEqual([3, 5]);
-        expect(memoizedFn.cache.snapshot.cache()).toEqual([
+        expect(memoizedFn.cache.snapshot.entries()).toEqual([
             [[1, 2], 3],
             [[2, 3], 5],
         ]);
