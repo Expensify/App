@@ -47,6 +47,7 @@ type TransactionListItemRowProps = {
     item: TransactionListItemType;
     showTooltip: boolean;
     onButtonPress: () => void;
+    onCheckboxPress: (item: TransactionListItemType) => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     isChildListItem?: boolean;
@@ -222,6 +223,7 @@ function TransactionListItemRow({
     isDisabled,
     canSelectMultiple,
     onButtonPress,
+    onCheckboxPress,
     showItemHeaderOnNarrowLayout = true,
     containerStyle,
     isChildListItem = false,
@@ -299,7 +301,9 @@ function TransactionListItemRow({
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             {canSelectMultiple && (
                 <Checkbox
-                    onPress={() => {}}
+                    isChecked={item.isSelected}
+                    onPress={() => onCheckboxPress(item)}
+                    disabled={!item.canDelete || !!item.isDisabled || isDisabled}
                     accessibilityLabel={item.text ?? ''}
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                 />

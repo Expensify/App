@@ -12,6 +12,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
+    onCheckboxPress,
     onDismissError,
     onFocus,
     shouldSyncFocus,
@@ -54,6 +55,7 @@ function TransactionListItem<TItem extends ListItem>({
                 onButtonPress={() => {
                     onSelectRow(item);
                 }}
+                onCheckboxPress={onCheckboxPress}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
             />

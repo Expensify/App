@@ -10,8 +10,8 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -19,8 +19,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchQuery, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
@@ -47,7 +47,7 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
-    const [selectedItems, setSelectedItems] = useState<Array<SearchTransaction | SearchReport>>([]);
+    const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -152,17 +152,41 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
-    const toggleAllItems = () => {
-        if (selectedItems.length === data.length) {
-            setSelectedItems([]);
-        } else {
-            setSelectedItems([...data]);
+    const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
+        console.log('item', item);
+
+        if (isTransactionListItemType(item)) {
+            // console.log('item', item);
+            // if (!item.canDelete || !item.keyForList) {
+            //     return;
+            // }
+
+            setSelectedItems((prev) => {
+                if (prev[item.keyForList]) {
+                    const {[item.keyForList]: omittedCategory, ...newCategories} = prev;
+                    return newCategories;
+                }
+                return {...prev, [item.keyForList]: true};
+            });
+
+            return;
         }
+
+        item.transactions.forEach((transaction) => toggleTransaction(transaction));
     };
 
-    const toggleListItem = (listItem: TransactionListItemType | ReportListItemType) => {
-        console.log(listItem);
+    const toggleAllTransactions = () => {
+        const availableCategories = sortedData.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const isAllSelected = availableCategories.length === Object.keys(selectedItems).length;
+        setSelectedItems(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
+
+    const sortedSelectedData = sortedData.map((item) => ({
+        ...item,
+        isSelected: !!selectedItems[item.keyForList],
+    }));
+
+    console.log('selectedItems', selectedItems);
 
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
@@ -177,8 +201,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                 />
             }
             canSelectMultiple={isLargeScreenWidth}
-            onSelectAll={toggleAllItems}
-            onCheckboxPress={toggleListItem}
+            onSelectAll={toggleAllTransactions}
+            onCheckboxPress={toggleTransaction}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
@@ -192,7 +216,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             windowSize={111}
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
-            sections={[{data: sortedData, isDisabled: false}]}
+            sections={[{data: sortedSelectedData, isDisabled: false}]}
             onSelectRow={(item) => openReport(item)}
             getItemHeight={getItemHeight}
             shouldDebounceRowSelect

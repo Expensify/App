@@ -67,6 +67,7 @@ function ReportListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     canSelectMultiple,
+    onCheckboxPress,
     onSelectRow,
     onDismissError,
     onFocus,
@@ -203,6 +204,7 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
+                        onCheckboxPress={onCheckboxPress}
                         showItemHeaderOnNarrowLayout={false}
                         containerStyle={styles.mt3}
                         isChildListItem
