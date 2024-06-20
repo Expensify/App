@@ -1216,7 +1216,7 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
         return !isCreatedAction(reportAction);
     }
 
-    return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
+    return Boolean(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
 }
 
 /**
