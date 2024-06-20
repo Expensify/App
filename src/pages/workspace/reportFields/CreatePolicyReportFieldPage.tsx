@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -111,6 +112,7 @@ function CreatePolicyReportFieldPage({
                                 <InputWrapper
                                     InputComponent={DateSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
+                                    defaultValue={DateUtils.extractDate(new Date().toString())}
                                     label={translate('common.date')}
                                 />
                             )}

@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import DateUtils from '@libs/DateUtils';
-import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import DateSelectorModal from './DateSelectorModal';
 
 type DateSelectorProps = {
@@ -36,13 +35,13 @@ function DateSelector({value, label, onInputChange}: DateSelectorProps) {
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                title={value ? DateUtils.extractDate(value) : ''}
+                title={DateUtils.extractDate(value ?? '')}
                 description={label}
                 onPress={showPickerModal}
             />
             <DateSelectorModal
                 isVisible={isPickerVisible}
-                currentDate={value as PolicyReportFieldType}
+                currentDate={value ?? ''}
                 onClose={hidePickerModal}
                 onDateSelected={updateDateInput}
                 label={label}

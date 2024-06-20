@@ -6,7 +6,6 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
 type DateSelectorModalProps = {
@@ -52,9 +51,8 @@ function DateSelectorModal({isVisible, currentDate, onDateSelected, onClose, lab
 
                 <View style={[styles.ph5]}>
                     <DatePicker
-                        formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                         inputID={INPUT_IDS.INITIAL_VALUE}
-                        defaultValue={currentDate ?? ''}
+                        defaultValue={currentDate}
                         maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         onInputChange={onDateSelected}
