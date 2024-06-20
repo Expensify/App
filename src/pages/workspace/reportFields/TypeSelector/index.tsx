@@ -9,7 +9,7 @@ import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
-type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
+type TypeSelectorProps = Pick<MenuItemBaseProps, 'rightLabel'> & {
     /** Function to call when the user selects a type */
     onInputChange?: (value: string) => void;
 
