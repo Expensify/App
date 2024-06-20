@@ -5,6 +5,7 @@ import type {RestrictedActionParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import * as Policy from '@libs/PolicyUtils'
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
 import WorkspaceOwnerRestrictedAction from './WorkspaceOwnerRestrictedAction';
 import WorkspaceUserRestrictedAction from './WorkspaceUserRestrictedAction';
@@ -18,20 +19,19 @@ function WorkspaceRestrictedActionPage({
 }: WorkspaceRestrictedActionPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const userRole = policy?.employeeList?.[session?.email ?? '']?.role;
 
     // Workspace Owner
-    if (session?.accountID === policy?.ownerAccountID) {
+    if (Policy.isPolicyOwner(policy, session?.accountID ?? -1)) {
         return <WorkspaceOwnerRestrictedAction />;
     }
 
     // Workspace Admin
-    if (userRole === 'admin') {
+    if (Policy.isPolicyAdmin(policy, session?.email)) {
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
     // Workspace User
-    if (userRole === 'user') {
+    if (Policy.isPolicyUser(policy, session?.email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 
