@@ -532,13 +532,13 @@ class GithubUtils {
     /**
      * Returns a single artifact by name. If none is found, it returns undefined.
      */
-    static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
+    static getArtifactByName(artifactName: string): Promise<OctokitArtifact | undefined> {
         return this.octokit.actions
             .listArtifactsForRepo({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 per_page: 1,
-                name: artefactName,
+                name: artifactName,
             })
             .then((response) => response.data.artifacts[0]);
     }
