@@ -6723,7 +6723,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -11635,29 +11635,6 @@ exports["default"] = CONST;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -11665,7 +11642,6 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
-const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
@@ -11709,9 +11685,8 @@ function fetchTag(tag, shallowExcludeTag = '') {
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
     // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
+    fetchTag(fromTag);
+    fetchTag(toTag);
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
         let stdout = '';
@@ -12284,107 +12259,6 @@ exports["default"] = sanitizeStringForJSONParse;
 
 /***/ }),
 
-/***/ 8982:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
-const SEMANTIC_VERSION_LEVELS = {
-    MAJOR: 'MAJOR',
-    MINOR: 'MINOR',
-    PATCH: 'PATCH',
-    BUILD: 'BUILD',
-};
-exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
-const MAX_INCREMENTS = 99;
-exports.MAX_INCREMENTS = MAX_INCREMENTS;
-/**
- * Transforms a versions string into a number
- */
-const getVersionNumberFromString = (versionString) => {
-    const [version, build] = versionString.split('-');
-    const [major, minor, patch] = version.split('.').map((n) => Number(n));
-    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
-};
-exports.getVersionNumberFromString = getVersionNumberFromString;
-/**
- * Transforms version numbers components into a version string
- */
-const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
-exports.getVersionStringFromNumber = getVersionStringFromNumber;
-/**
- * Increments a minor version
- */
-const incrementMinor = (major, minor) => {
-    if (minor < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor + 1, 0, 0);
-    }
-    return getVersionStringFromNumber(major + 1, 0, 0, 0);
-};
-exports.incrementMinor = incrementMinor;
-/**
- * Increments a Patch version
- */
-const incrementPatch = (major, minor, patch) => {
-    if (patch < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch + 1, 0);
-    }
-    return incrementMinor(major, minor);
-};
-exports.incrementPatch = incrementPatch;
-/**
- * Increments a build version
- */
-const incrementVersion = (version, level) => {
-    const [major, minor, patch, build] = getVersionNumberFromString(version);
-    // Majors will always be incremented
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        return getVersionStringFromNumber(major + 1, 0, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        return incrementMinor(major, minor);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        return incrementPatch(major, minor, patch);
-    }
-    if (build < MAX_INCREMENTS) {
-        return getVersionStringFromNumber(major, minor, patch, build + 1);
-    }
-    return incrementPatch(major, minor, patch);
-};
-exports.incrementVersion = incrementVersion;
-function getPreviousVersion(currentVersion, level) {
-    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
-    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
-        if (major === 1) {
-            return getVersionStringFromNumber(1, 0, 0, 0);
-        }
-        return getVersionStringFromNumber(major - 1, 0, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
-        if (minor === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
-        }
-        return getVersionStringFromNumber(major, minor - 1, 0, 0);
-    }
-    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
-        if (patch === 0) {
-            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
-        }
-        return getVersionStringFromNumber(major, minor, patch - 1, 0);
-    }
-    if (build === 0) {
-        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
-    }
-    return getVersionStringFromNumber(major, minor, patch, build - 1);
-}
-exports.getPreviousVersion = getPreviousVersion;
-
-
-/***/ }),
-
 /***/ 8227:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -12418,14 +12292,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12447,6 +12313,14 @@ module.exports = require("child_process");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 
