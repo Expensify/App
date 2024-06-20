@@ -363,6 +363,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
         XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
+        REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
