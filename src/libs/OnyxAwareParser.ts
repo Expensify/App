@@ -31,22 +31,12 @@ Onyx.connect({
     },
 });
 
-function parseHtmlToMarkdown(
-    html: string,
-    reportIDToName?: Record<string, string>,
-    accountIDToName?: Record<string, string>,
-    cacheVideoAttributes?: (videoSource: string, videoAttrs: string) => void,
-): string {
-    return parser.htmlToMarkdown(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap, cacheVideoAttributes});
+function parseHtmlToMarkdown(html: string, reportIDToName?: Record<string, string>, accountIDToName?: Record<string, string>): string {
+    return parser.htmlToMarkdown(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap});
 }
 
-function parseHtmlToText(
-    html: string,
-    reportIDToName?: Record<string, string>,
-    accountIDToName?: Record<string, string>,
-    cacheVideoAttributes?: (videoSource: string, videoAttrs: string) => void,
-): string {
-    return parser.htmlToText(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap, cacheVideoAttributes});
+function parseHtmlToText(html: string, reportIDToName?: Record<string, string>, accountIDToName?: Record<string, string>): string {
+    return parser.htmlToText(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap});
 }
 
 export {parseHtmlToMarkdown, parseHtmlToText};

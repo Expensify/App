@@ -66,9 +66,6 @@ const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
-// video source -> video attributes
-const draftMessageVideoAttributeCache = new Map<string, string>();
-
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
@@ -108,11 +105,7 @@ function ReportActionItemMessageEdit(
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        draftMessageVideoAttributeCache.clear();
-
-        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '', undefined, undefined, (videoSource, attrs) => {
-            draftMessageVideoAttributeCache.set(videoSource, attrs);
-        });
+        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '');
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
@@ -303,7 +296,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        Report.editReportComment(reportID, action, trimmedNewDraft);
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
