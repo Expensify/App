@@ -12,6 +12,7 @@ import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import NUMBER_OF_CONCURRENT_LIGHTBOXES from './numberOfConcurrentLightboxes';
 
 const cachedImageDimensions = new Map<string, ContentSize | undefined>();
@@ -34,12 +35,15 @@ type LightboxProps = {
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
+
+    /** Whether the loading indicator should be shown */
+    shouldShowLoadingIndicator?: boolean;
 };
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
+function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE, shouldShowLoadingIndicator}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -197,6 +201,8 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
         [onScaleChangedContext, onScaleChangedProp],
     );
 
+    const isLocalFile = FileUtils.isLocalFile(uri);
+
     return (
         <View
             style={[StyleSheet.absoluteFill, style]}
@@ -248,13 +254,14 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {isLoading && !isOffline && (
-                        <ActivityIndicator
-                            size="large"
-                            style={StyleSheet.absoluteFill}
-                        />
-                    )}
-                    {isLoading && <AttachmentOfflineIndicator />}
+                    {shouldShowLoadingIndicator ??
+                        (isLoading && (!isOffline || isLocalFile) && (
+                            <ActivityIndicator
+                                size="large"
+                                style={StyleSheet.absoluteFill}
+                            />
+                        ))}
+                    {isLoading && !isLocalFile && <AttachmentOfflineIndicator />}
                 </>
             )}
         </View>
