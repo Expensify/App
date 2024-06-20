@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -99,7 +99,7 @@ function IOURequestStartPage({
                 return;
             }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
-        }, [transaction, policy, iouType, reportID, isFromGlobalCreate]),
+        }, [transaction, policy, reportID, isFromGlobalCreate]),
     );
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
