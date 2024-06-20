@@ -2,7 +2,7 @@ import type {SubscriptionType} from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of private subscription */
-type PrivateSubscription = {
+type PrivateSubscription = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** "auto increase annual seats" setting */
     addNewUsersAutomatically: boolean;
 
@@ -27,11 +27,11 @@ type PrivateSubscription = {
     /** Subscription size */
     userCount?: number;
 
-    /** Pending action */
-    pendingAction?: OnyxCommon.PendingAction;
-
     /** An error message */
     errors?: OnyxCommon.Errors;
-};
+
+    /** Field-specific error messages */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 export default PrivateSubscription;

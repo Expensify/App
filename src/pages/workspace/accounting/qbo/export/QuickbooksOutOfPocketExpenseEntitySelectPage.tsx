@@ -48,7 +48,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const isLocationsEnabled = !!(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = !!syncTax;
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const data: CardListItem[] = useMemo(
         () => [

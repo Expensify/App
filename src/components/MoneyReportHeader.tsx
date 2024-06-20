@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -64,6 +65,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -149,9 +151,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
-            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '-1', iouTransactionID, requestParentReportAction, true);
             } else {
                 navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
@@ -164,8 +166,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
-        const reportID = transactionThreadReport?.reportID ?? '';
+        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
+        const reportID = transactionThreadReport?.reportID ?? '-1';
 
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
@@ -234,7 +236,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={isOffline && !canAllowSettlement}
+                            isLoading={!isOffline && !canAllowSettlement}
                         />
                     </View>
                 )}
@@ -305,7 +308,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
                             shouldDisableApproveButton={shouldDisableApproveButton}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={isOffline && !canAllowSettlement}
+                            isLoading={!isOffline && !canAllowSettlement}
                         />
                     </View>
                 )}

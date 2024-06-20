@@ -4,11 +4,25 @@ import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {Report as OnyxReportType, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
+
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportActions = value),
+});
+
+let allReports: OnyxCollection<OnyxReportType>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -24,7 +38,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         });
 
         // If there's a linked transaction, delete that too
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID ?? '');
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID ?? '-1');
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }
@@ -58,18 +72,6 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     });
 }
 
-let allReportActions: OnyxCollection<ReportActions>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
-            return;
-        }
-        allReportActions = actions;
-    },
-});
-
 /**
  *
 ignore: `undefined` means we want to check both parent and children report actions
@@ -83,7 +85,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
     clearReportActionErrors(reportID, reportAction, keys);
 
-    const report = ReportUtils.getReport(reportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = ReportActionUtils.getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
@@ -95,7 +97,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
         const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
-            clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);
+            clearAllRelatedReportActionErrors(reportAction.childReportID ?? '-1', action, 'parent', childErrorKeys);
         });
     }
 }
