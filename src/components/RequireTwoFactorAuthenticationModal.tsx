@@ -48,36 +48,29 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                     innerContainerStyle={{...styles.pb5, ...styles.pt3, ...styles.boxShadowNone}}
                     shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                 >
-                    <View
-                        style={[
-                            styles.mh3,
-                            styles.br3,
-                            styles.flex1,
-                            styles.alignItemsCenter,
-                            StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor),
-                            safeAreaPaddingBottomStyle,
-                        ]}
-                    >
-                        <Lottie
-                            source={LottieAnimations.Safe}
-                            style={styles.h100}
-                            webStyle={styles.h100}
-                            autoPlay
-                            loop
-                        />
-                    </View>
-                    <View style={[styles.mt5, styles.mh5]}>
-                        <View style={[styles.gap2, styles.mb10]}>
-                            <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
-                            <Text style={styles.textSupporting}>{description}</Text>
+                    <View style={safeAreaPaddingBottomStyle}>
+                        <View style={[styles.mh3, styles.br3, styles.flex1, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
+                            <Lottie
+                                source={LottieAnimations.Safe}
+                                style={styles.h100}
+                                webStyle={styles.h100}
+                                autoPlay
+                                loop
+                            />
                         </View>
-                        <Button
-                            large
-                            success
-                            pressOnEnter
-                            onPress={onSubmit}
-                            text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                        />
+                        <View style={[styles.mt5, styles.mh5]}>
+                            <View style={[styles.gap2, styles.mb10]}>
+                                <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
+                                <Text style={styles.textSupporting}>{description}</Text>
+                            </View>
+                            <Button
+                                large
+                                success
+                                pressOnEnter
+                                onPress={onSubmit}
+                                text={translate('twoFactorAuth.enableTwoFactorAuth')}
+                            />
+                        </View>
                     </View>
                 </Modal>
             )}
