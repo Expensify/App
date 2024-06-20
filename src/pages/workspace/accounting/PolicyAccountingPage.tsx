@@ -100,7 +100,7 @@ function accountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
-        case CONST.POLICY.CONNECTIONS.NAME.NET_SUITE:
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
@@ -146,7 +146,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-    const policyConnectedToNetSuite = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NET_SUITE;
+    const policyConnectedToNetSuite = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
@@ -267,7 +267,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               if (!(netSuiteSubsidiaryList.length > 1)) {
                                   return;
                               }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NET_SUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
                           },
                       },
                   ]

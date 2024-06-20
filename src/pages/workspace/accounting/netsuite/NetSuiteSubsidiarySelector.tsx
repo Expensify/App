@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NET_SUITE_SUBSIDIARY_SELECTOR>;
+type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
 function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,12 +49,12 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldIncludeSafeAreaPaddingBottom
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.NET_SUITE}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
             <OfflineWithFeedback
-                errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NET_SUITE_CONFIG.SUBSIDIARY)}
+                errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
                 errorRowStyles={[styles.ph5, styles.mt2]}
-                onClose={() => Policy.clearConnectionErrorField(policyID, CONST.POLICY.CONNECTIONS.NAME.NET_SUITE, CONST.NET_SUITE_CONFIG.SUBSIDIARY)}
+                onClose={() => Policy.clearConnectionErrorField(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
             >
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
                 <SelectionList

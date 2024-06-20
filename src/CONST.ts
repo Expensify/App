@@ -1345,7 +1345,7 @@ const CONST = {
         },
     },
 
-    NET_SUITE_CONFIG: {
+    NETSUITE_CONFIG: {
         SUBSIDIARY: 'subsidiary',
     },
 
@@ -1802,7 +1802,7 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
-                NET_SUITE: 'netsuite',
+                NETSUITE: 'netsuite',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',

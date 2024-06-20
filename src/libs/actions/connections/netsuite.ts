@@ -53,7 +53,7 @@ function updateNetSuiteSubsidiary(policyID: string, subsidiaryName: string, oldS
         policyID,
         subsidiaryName,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NET_SUITE_SUBSIDIARY, params, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
 export default updateNetSuiteSubsidiary;
