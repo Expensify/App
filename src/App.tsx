@@ -6,6 +6,7 @@ import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
+import * as ActionSheetAwareScrollView from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
@@ -15,6 +16,7 @@ import CustomStatusBarAndBackgroundContextProvider from './components/CustomStat
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
+import KeyboardHandlerProvider from './components/KeyboardHandlerProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -80,6 +82,8 @@ function App({url}: AppProps) {
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
+                        KeyboardHandlerProvider,
+                        ActionSheetAwareScrollView.ActionSheetAwareScrollViewProvider,
                         ReportIDsContextProvider,
                         PlaybackContextProvider,
                         FullScreenContextProvider,

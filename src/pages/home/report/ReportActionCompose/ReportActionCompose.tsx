@@ -1,11 +1,12 @@
+import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {SyntheticEvent} from 'react';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
+import type {LayoutChangeEvent, MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {runOnJS, setNativeProps, useAnimatedRef} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentModal from '@components/AttachmentModal';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -117,6 +118,7 @@ function ReportActionCompose({
     onComposerFocus,
     onComposerBlur,
 }: ReportActionComposeProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -345,6 +347,12 @@ function ReportActionCompose({
         [],
     );
 
+    useEffect(() => {
+        actionSheetAwareScrollViewContext.transitionActionSheetState({
+            type: isMenuVisible ? ActionSheetAwareScrollView.Actions.SHOW_ATTACHMENTS_POPOVER : ActionSheetAwareScrollView.Actions.CLOSE_ATTACHMENTS_POPOVER,
+        });
+    }, [actionSheetAwareScrollViewContext, isMenuVisible]);
+
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
@@ -369,6 +377,18 @@ function ReportActionCompose({
         runOnJS(submitForm)();
     }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
+    const measureComposer = useCallback(
+        (e: LayoutChangeEvent) => {
+            actionSheetAwareScrollViewContext.transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.MEASURE_COMPOSER,
+                payload: {
+                    composerHeight: e.nativeEvent.layout.height,
+                },
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
         const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
@@ -381,7 +401,10 @@ function ReportActionCompose({
             <OfflineWithFeedback pendingAction={pendingAction}>
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
-            <View style={isComposerFullSize ? styles.flex1 : {}}>
+            <View
+                onLayout={measureComposer}
+                style={isComposerFullSize ? styles.flex1 : {}}
+            >
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
