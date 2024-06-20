@@ -1,5 +1,6 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -22,6 +23,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
@@ -30,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
-type ReportFieldForList = ListItem & {value: string};
+type ReportFieldForList = ListItem & {value: string; fieldID: string};
 
 type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
@@ -74,18 +76,20 @@ function WorkspaceReportFieldsPage({
         }
         return Object.values(filteredPolicyFieldList).map((reportField) => ({
             value: reportField.name,
+            fieldID: reportField.fieldID,
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
-            rightElement: <ListItemRightCaretWithLabel labelText={reportField.type} />,
+            rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(reportField.type)} />,
         }));
     }, [filteredPolicyFieldList, policy, selectedReportFields]);
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
+        const fieldKey = ReportUtils.getReportFieldKey(item.fieldID);
         const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
             ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
-            : [...selectedReportFields, filteredPolicyFieldList[item.value]];
+            : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
         setSelectedReportFields(updatedReportFields);
     };
 
@@ -108,7 +112,7 @@ function WorkspaceReportFieldsPage({
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.type')}</Text>
         </View>
     );
 

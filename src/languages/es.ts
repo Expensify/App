@@ -2298,10 +2298,10 @@ export default {
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
             emptyReportFields: {
-                title: "You haven't created any report fields",
-                subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
+                title: 'No has creado ningún campo de informe',
+                subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
             },
-            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
+            subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando desees solicitar información adicional',
             // TODO: Verify translations
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: '¿Está seguro? Se eliminarán los campos de texto y fecha, y se desactivarán las listas.',
