@@ -1,8 +1,39 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import buildArrayCache from './cache/arrayCacheBuilder';
 import {MemoizeStats} from './stats';
-import type {ClientOptions, MemoizeFnPredicate} from './types';
+import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
 import {mergeOptions} from './utils';
+
+/**
+ * Global memoization class. Use it to orchestrate memoization (e.g. start/stop global monitoring).
+ */
+class Memoize {
+    static monitoringEnabled = false;
+
+    private static memoizedList: Array<{id: string; memoized: Stats}> = [];
+
+    static registerMemoized(id: string, memoized: Stats) {
+        this.memoizedList.push({id, memoized});
+    }
+
+    static startMonitoring() {
+        if (this.monitoringEnabled) {
+            return;
+        }
+        this.monitoringEnabled = true;
+        Memoize.memoizedList.forEach(({memoized}) => {
+            memoized.startMonitoring();
+        });
+    }
+
+    static stopMonitoring() {
+        if (!this.monitoringEnabled) {
+            return;
+        }
+        this.monitoringEnabled = false;
+        return Memoize.memoizedList.map(({memoized}) => memoized.stopMonitoring());
+    }
+}
 
 /**
  * Wraps a function with a memoization layer. Useful for caching expensive calculations.
@@ -10,12 +41,12 @@ import {mergeOptions} from './utils';
  * @param options - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
-function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions) {
+function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
     const options = mergeOptions(opts);
 
     const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);
 
-    const stats = new MemoizeStats(options.monitor);
+    const stats = new MemoizeStats(options.monitor || Memoize.monitoringEnabled);
 
     const memoized = function memoized(...key: Parameters<Fn>): ReturnType<Fn> {
         const statsEntry = stats.createEntry();
@@ -43,12 +74,14 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions) {
 
     memoized.cache = cache;
 
-    memoized.stats = {
-        startMonitoring: () => stats.startMonitoring(),
-        stopMonitoring: () => stats.stopMonitoring(),
-    };
+    memoized.startMonitoring = () => stats.startMonitoring();
+    memoized.stopMonitoring = () => stats.stopMonitoring();
 
-    return memoized;
+    Memoize.registerMemoized(options.monitoringName, memoized);
+
+    return memoized as MemoizedFn<Fn>;
 }
 
 export default memoize;
+
+export {Memoize};
