@@ -85,9 +85,9 @@ function TaskPreview({
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskTitle = Str.htmlEncode(TaskUtils.getTaskTitle(taskReportID, action?.childReportName ?? ''));
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? '';
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? -1;
     const htmlForTaskPreview =
-        taskAssigneeAccountID !== 0 ? `<comment><mention-user accountid="${taskAssigneeAccountID}"></mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
+        taskAssigneeAccountID > 0 ? `<comment><mention-user accountid="${taskAssigneeAccountID}"></mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
 
     if (isDeletedParentAction) {
@@ -107,20 +107,22 @@ function TaskPreview({
                 accessibilityLabel={translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
-                    <Checkbox
-                        style={[styles.mr2]}
-                        containerStyle={[styles.taskCheckbox]}
-                        isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
-                        onPress={Session.checkIfActionIsAllowed(() => {
-                            if (isTaskCompleted) {
-                                Task.reopenTask(taskReport);
-                            } else {
-                                Task.completeTask(taskReport);
-                            }
-                        })}
-                        accessibilityLabel={translate('task.task')}
-                    />
+                    <View style={[styles.taskCheckboxWrapper]}>
+                        <Checkbox
+                            style={[styles.mr2]}
+                            containerStyle={[styles.taskCheckbox]}
+                            isChecked={isTaskCompleted}
+                            disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
+                            onPress={Session.checkIfActionIsAllowed(() => {
+                                if (isTaskCompleted) {
+                                    Task.reopenTask(taskReport);
+                                } else {
+                                    Task.completeTask(taskReport);
+                                }
+                            })}
+                            accessibilityLabel={translate('task.task')}
+                        />
+                    </View>
                     <RenderHTML html={isTaskCompleted ? `<completed-task>${htmlForTaskPreview}</completed-task>` : htmlForTaskPreview} />
                 </View>
                 <Icon

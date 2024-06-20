@@ -21,9 +21,9 @@ type ShowContextMenuContextProps = {
 const ShowContextMenuContext = createContext<ShowContextMenuContextProps>({
     anchor: null,
     onShowContextMenu: (callback) => callback(),
-    report: null,
-    action: null,
-    transactionThreadReport: null,
+    report: undefined,
+    action: undefined,
+    transactionThreadReport: undefined,
     checkIfContextMenuActive: () => {},
 });
 
@@ -67,3 +67,4 @@ function showContextMenuForReport(
 }
 
 export {ShowContextMenuContext, showContextMenuForReport};
+export type {ShowContextMenuContextProps};

@@ -1,5 +1,5 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -9,13 +9,17 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -110,6 +114,7 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -122,6 +127,12 @@ function ReportPreview({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [transactions, iouReportID, action],
     );
+
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [requestType, setRequestType] = useState<ActionHandledType>();
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
     const managerID = iouReport?.managerID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
@@ -150,7 +161,7 @@ function ReportPreview({
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
-        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '', transactionViolations));
+        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '-1', transactionViolations));
 
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
@@ -167,6 +178,32 @@ function ReportPreview({
         () => chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled,
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
+
+    const confirmPayment = (type: PaymentMethodType | undefined) => {
+        if (!type) {
+            return;
+        }
+        setPaymentType(type);
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+            setIsHoldMenuVisible(true);
+        } else if (chatReport && iouReport) {
+            if (ReportUtils.isInvoiceReport(iouReport)) {
+                IOU.payInvoice(type, chatReport, iouReport);
+            } else {
+                IOU.payMoneyRequest(type, chatReport, iouReport);
+            }
+        }
+    };
+
+    const confirmApproval = () => {
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
+            setIsHoldMenuVisible(true);
+        } else {
+            IOU.approveMoneyRequest(iouReport ?? {}, true);
+        }
+    };
 
     const getDisplayAmount = (): string => {
         if (totalDisplaySpend) {
@@ -286,17 +323,6 @@ function ReportPreview({
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
-    const confirmPayment = (paymentMethodType?: PaymentMethodType) => {
-        if (!paymentMethodType || !chatReport || !iouReport) {
-            return;
-        }
-        if (ReportUtils.isInvoiceReport(iouReport)) {
-            IOU.payInvoice(paymentMethodType, chatReport, iouReport);
-        } else {
-            IOU.payMoneyRequest(paymentMethodType, chatReport, iouReport);
-        }
-    };
-
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -387,6 +413,7 @@ function ReportPreview({
                                         chatReportID={chatReportID}
                                         iouReport={iouReport}
                                         onPress={confirmPayment}
+                                        confirmApproval={confirmApproval}
                                         enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                         addBankAccountRoute={bankAccountRoute}
                                         shouldHidePaymentOptions={!shouldShowPayButton}
@@ -400,7 +427,8 @@ function ReportPreview({
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                         }}
-                                        isDisabled={!canAllowSettlement}
+                                        isDisabled={isOffline && !canAllowSettlement}
+                                        isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (
@@ -417,6 +445,19 @@ function ReportPreview({
                     </View>
                 </PressableWithoutFeedback>
             </View>
+            {isHoldMenuVisible && iouReport && requestType !== undefined && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
+                    requestType={requestType}
+                    fullAmount={fullAmount}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onClose={() => setIsHoldMenuVisible(false)}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    chatReport={chatReport}
+                    moneyRequestReport={iouReport}
+                />
+            )}
         </OfflineWithFeedback>
     );
 }

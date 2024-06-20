@@ -40,7 +40,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
                         onLongPress={(event) =>
-                            onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))
+                            onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID ?? '-1', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report)))
                         }
                         shouldUseHapticsOnLongPress
                         role={CONST.ROLE.PRESENTATION}

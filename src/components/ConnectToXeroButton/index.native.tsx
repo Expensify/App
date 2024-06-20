@@ -71,7 +71,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                 onClose={() => setWebViewOpen(false)}
                 fullscreen
                 isVisible={isWebViewOpen}
-                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}

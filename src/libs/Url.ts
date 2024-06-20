@@ -11,6 +11,13 @@ function addTrailingForwardSlash(url: string): string {
     return url;
 }
 
+function addLeadingForwardSlash(url: string): string {
+    if (!url.startsWith('/')) {
+        return `/${url}`;
+    }
+    return url;
+}
+
 /**
  * Get path from URL string
  */
@@ -63,4 +70,4 @@ function hasURL(text: string) {
     return urlPattern.test(text);
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL};
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash};
