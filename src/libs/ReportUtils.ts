@@ -6958,7 +6958,7 @@ function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
  * Get the report (system or concierge chat) used for the user's onboarding process.
  */
 function getChatUsedForOnboarding(): OnyxEntry<Report> {
-    return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
+    return Object.values(getAllReports() ?? {}).find(isChatUsedForOnboarding);
 }
 
 export {
