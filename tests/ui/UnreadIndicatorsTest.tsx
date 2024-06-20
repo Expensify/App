@@ -21,6 +21,7 @@ import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -216,7 +217,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
 
                 // That the report actions are visible along with the created action
                 const welcomeMessageHintText = Localize.translateLocal('accessibilityHints.chatWelcomeMessage');
@@ -241,7 +242,7 @@ describe('Unread Indicators', () => {
             // Navigate to the unread chat from the sidebar
             .then(() => navigateToSidebarOption(0))
             .then(async () => {
-                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
@@ -361,7 +362,7 @@ describe('Unread Indicators', () => {
             })
             .then(waitForBatchedUpdates)
             .then(async () => {
-                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify that report we navigated to appears in a "read" state while the original unread report still shows as unread
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
@@ -379,7 +380,7 @@ describe('Unread Indicators', () => {
 
         return signInAndGetAppWithUnreadChat()
             .then(() => navigateToSidebarOption(0))
-            .then(async () => act(() => transitionEndCB?.()))
+            .then(async () => act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd()))
             .then(async () => {
                 const reportActionsViewWrapper = await screen.findByTestId('report-actions-view-wrapper');
                 if (reportActionsViewWrapper) {
@@ -484,7 +485,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(async () => {
-                await act(() => (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd());
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);

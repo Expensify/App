@@ -1,5 +1,6 @@
+/* eslint-disable import/prefer-default-export, import/no-import-module-exports */
 import type * as ReactNavigation from '@react-navigation/native';
-import {createAddListenerMock} from '../../../tests/utils/TestHelper';
+import createAddListenerMock from '../../../tests/utils/createAddListenerMock';
 
 const isJestEnv = process.env.NODE_ENV === 'test';
 
@@ -24,5 +25,16 @@ const useNavigation = () => ({
     addListener,
 });
 
-export * from '@react-navigation/core';
-export {useIsFocused, useTheme, useNavigation, triggerTransitionEnd};
+type NativeNavigationMock = typeof ReactNavigation & {
+    triggerTransitionEnd: () => void;
+};
+
+module.exports = {
+    ...realReactNavigation,
+    useIsFocused,
+    useTheme,
+    useNavigation,
+    triggerTransitionEnd,
+};
+
+export type {NativeNavigationMock};

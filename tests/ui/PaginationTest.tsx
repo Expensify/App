@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as NativeNavigation from '@react-navigation/native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import * as Localize from '@libs/Localize';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
 import App from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -34,6 +36,18 @@ const LIST_CONTENT_SIZE = {
     width: 300,
     height: 600,
 };
+const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+
+const REPORT_ID = '1';
+const COMMENT_LINKING_REPORT_ID = '2';
+const USER_A_ACCOUNT_ID = 1;
+const USER_A_EMAIL = 'user_a@test.com';
+const USER_B_ACCOUNT_ID = 2;
+const USER_B_EMAIL = 'user_b@test.com';
+
+function getReportScreen(reportID = REPORT_ID) {
+    return screen.getByTestId(`report-screen-${reportID}`);
+}
 
 function scrollToOffset(offset: number) {
     const hintText = Localize.translateLocal('sidebarScreen.listOfChatMessages');
@@ -48,8 +62,9 @@ function scrollToOffset(offset: number) {
     });
 }
 
-function triggerListLayout() {
-    fireEvent(screen.getByTestId('report-actions-view-wrapper'), 'onLayout', {
+function triggerListLayout(reportID?: string) {
+    const report = getReportScreen(reportID);
+    fireEvent(within(report).getByTestId('report-actions-view-wrapper'), 'onLayout', {
         nativeEvent: {
             layout: {
                 x: 0,
@@ -58,94 +73,99 @@ function triggerListLayout() {
             },
         },
     });
-    fireEvent(screen.getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
+
+    fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
 }
 
-function getReportActions() {
+function getReportActions(reportID?: string) {
+    const report = getReportScreen(reportID);
     return [
-        ...screen.queryAllByLabelText(Localize.translateLocal('accessibilityHints.chatMessage')),
+        ...within(report).queryAllByLabelText(Localize.translateLocal('accessibilityHints.chatMessage')),
         // Created action has a different accessibility label.
-        ...screen.queryAllByLabelText(Localize.translateLocal('accessibilityHints.chatWelcomeMessage')),
+        ...within(report).queryAllByLabelText(Localize.translateLocal('accessibilityHints.chatWelcomeMessage')),
     ];
 }
 
-async function navigateToSidebarOption(index: number): Promise<void> {
-    const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-    const optionRows = screen.queryAllByAccessibilityHint(hintText);
-    fireEvent(optionRows[index], 'press');
+async function navigateToSidebarOption(reportID: string): Promise<void> {
+    const optionRow = screen.getByTestId(reportID);
+    fireEvent(optionRow, 'press');
     await act(() => {
-        (NativeNavigation as TestHelper.NativeNavigationMock).triggerTransitionEnd();
+        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
-    triggerListLayout();
+    triggerListLayout(reportID);
     await waitForBatchedUpdatesWithAct();
 }
 
-const REPORT_ID = '1';
-const USER_A_ACCOUNT_ID = 1;
-const USER_A_EMAIL = 'user_a@test.com';
-const USER_B_ACCOUNT_ID = 2;
-const USER_B_EMAIL = 'user_b@test.com';
+function buildCreatedAction(reportActionID: string, created: string) {
+    return {
+        reportActionID,
+        actionName: 'CREATED' as const,
+        created,
+        message: [
+            {
+                type: 'TEXT',
+                text: 'CREATED',
+            },
+        ],
+    };
+}
 
 function buildReportComments(count: number, initialID: string, reverse = false) {
     let currentID = parseInt(initialID, 10);
-    const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
     return Object.fromEntries(
         Array.from({length: Math.min(count, currentID)}).map(() => {
             const created = format(addSeconds(TEN_MINUTES_AGO, 10 * currentID), CONST.DATE.FNS_DB_FORMAT_STRING);
             const id = currentID;
             currentID += reverse ? 1 : -1;
-            return [
-                `${id}`,
-                id === 1
-                    ? {
-                          reportActionID: '1',
-                          actionName: 'CREATED' as const,
-                          created,
-                          message: [
-                              {
-                                  type: 'TEXT',
-                                  text: 'CREATED',
-                              },
-                          ],
-                      }
-                    : TestHelper.buildTestReportComment(created, USER_B_ACCOUNT_ID, `${id}`),
-            ];
+            return [`${id}`, id === 1 ? buildCreatedAction('1', created) : TestHelper.buildTestReportComment(created, USER_B_ACCOUNT_ID, `${id}`)];
         }),
     );
 }
 
 function mockOpenReport(messageCount: number, initialID: string) {
-    fetchMock.mockAPICommand('OpenReport', () => [
-        {
-            onyxMethod: 'merge',
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            value: buildReportComments(messageCount, initialID),
-        },
-    ]);
+    fetchMock.mockAPICommand('OpenReport', ({reportID}) =>
+        reportID === REPORT_ID
+            ? [
+                  {
+                      onyxMethod: 'merge',
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                      value: buildReportComments(messageCount, initialID),
+                  },
+              ]
+            : [],
+    );
 }
 
 function mockGetOlderActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetOlderActions', ({reportActionID}) => [
-        {
-            onyxMethod: 'merge',
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            // The API also returns the action that was requested with the reportActionID.
-            value: buildReportComments(messageCount + 1, reportActionID),
-        },
-    ]);
+    fetchMock.mockAPICommand('GetOlderActions', ({reportID, reportActionID}) =>
+        reportID === REPORT_ID
+            ? [
+                  {
+                      onyxMethod: 'merge',
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                      // The API also returns the action that was requested with the reportActionID.
+                      value: buildReportComments(messageCount + 1, reportActionID),
+                  },
+              ]
+            : [],
+    );
 }
 
-// function mockGetNewerActions(messageCount: number) {
-//     fetchMock.mockAPICommand('GetNewerActions', ({reportActionID}) => [
-//         {
-//             onyxMethod: 'merge',
-//             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-//             // The API also returns the action that was requested with the reportActionID.
-//             value: buildReportComments(messageCount + 1, reportActionID, true),
-//         },
-//     ]);
-// }
+function mockGetNewerActions(messageCount: number) {
+    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) =>
+        reportID === REPORT_ID
+            ? [
+                  {
+                      onyxMethod: 'merge',
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                      // The API also returns the action that was requested with the reportActionID.
+                      value: buildReportComments(messageCount + 1, reportActionID, true),
+                  },
+              ]
+            : [],
+    );
+}
 
 /**
  * Sets up a test with a logged in user. Returns the <App/> test instance.
@@ -155,7 +175,7 @@ async function signInAndGetApp(): Promise<void> {
     render(<App />);
     await waitForBatchedUpdatesWithAct();
     const hintText = Localize.translateLocal('loginForm.loginForm');
-    const loginForm = screen.queryAllByLabelText(hintText);
+    const loginForm = await screen.findAllByLabelText(hintText);
     expect(loginForm).toHaveLength(1);
 
     await act(async () => {
@@ -183,6 +203,34 @@ async function signInAndGetApp(): Promise<void> {
             [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
         });
 
+        // Setup a 2nd report to test comment linking.
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${COMMENT_LINKING_REPORT_ID}`, {
+            reportID: COMMENT_LINKING_REPORT_ID,
+            reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+            lastMessageText: 'Test',
+            participants: {[USER_A_ACCOUNT_ID]: {hidden: false}},
+            lastActorAccountID: USER_A_ACCOUNT_ID,
+            type: CONST.REPORT.TYPE.CHAT,
+        });
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${COMMENT_LINKING_REPORT_ID}`, {
+            '100': buildCreatedAction('100', format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING)),
+            '101': {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                person: [{type: 'TEXT', style: 'strong', text: 'User B'}],
+                created: format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '<a href="https://dev.new.expensify.com:8082/r/1/5">Link 1</a>',
+                        text: 'Link 1',
+                    },
+                ],
+                reportActionID: '101',
+                actorAccountID: USER_A_ACCOUNT_ID,
+            },
+        });
+
         // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
         AppActions.setSidebarLoaded();
     });
@@ -192,6 +240,7 @@ async function signInAndGetApp(): Promise<void> {
 
 describe('Pagination', () => {
     afterEach(async () => {
+        await SequentialQueue.waitForIdle();
         await act(async () => {
             await Onyx.clear();
 
@@ -208,7 +257,7 @@ describe('Pagination', () => {
         mockOpenReport(5, '5');
 
         await signInAndGetApp();
-        await navigateToSidebarOption(0);
+        await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(5);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
@@ -232,7 +281,7 @@ describe('Pagination', () => {
         mockGetOlderActions(5);
 
         await signInAndGetApp();
-        await navigateToSidebarOption(0);
+        await navigateToSidebarOption(REPORT_ID);
 
         expect(getReportActions()).toHaveLength(5);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 1);
@@ -248,5 +297,32 @@ describe('Pagination', () => {
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 1);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetOlderActions', 0, {reportID: REPORT_ID, reportActionID: '4'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+
+        await waitForBatchedUpdatesWithAct();
+
+        expect(getReportActions()).toHaveLength(8);
+    });
+
+    it('opens a chat and load newer messages', async () => {
+        mockOpenReport(5, '5');
+        mockGetOlderActions(5);
+        mockGetNewerActions(5);
+
+        await signInAndGetApp();
+        await navigateToSidebarOption(COMMENT_LINKING_REPORT_ID);
+
+        const link = screen.getByText('Link 1');
+        fireEvent(link, 'press');
+        await act(() => {
+            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+        });
+        // ReportScreen relies on the onLayout event to receive updates from onyx.
+        triggerListLayout();
+
+        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 2);
+        TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
+        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 0);
+        expect(getReportActions()).toHaveLength(5);
     });
 });

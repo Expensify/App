@@ -1,4 +1,3 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -31,10 +30,6 @@ type QueueItem = {
 
 type FormData = {
     entries: () => Array<[string, string | Blob]>;
-};
-
-type NativeNavigationMock = typeof NativeNavigation & {
-    triggerTransitionEnd: () => void;
 };
 
 function setupApp() {
@@ -310,39 +305,11 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
-type Listener = () => void;
-
-/**
- * This is a helper function to create a mock for the addListener function of the react-navigation library.
- * The reason we need this is because we need to trigger the transitionEnd event in our tests to simulate
- * the transitionEnd event that is triggered when the screen transition animation is completed.
- *
- * @returns An object with two functions: triggerTransitionEnd and addListener
- */
-function createAddListenerMock() {
-    const transitionEndListeners: Listener[] = [];
-    const triggerTransitionEnd = () => {
-        transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
-    };
-
-    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
-        if (listener === 'transitionEnd') {
-            transitionEndListeners.push(callback);
-        }
-        return () => {
-            transitionEndListeners.filter((cb) => cb !== callback);
-        };
-    });
-
-    return {triggerTransitionEnd, addListener};
-}
-
-export type {MockFetch, FormData, NativeNavigationMock};
+export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
-    createAddListenerMock,
     getGlobalFetchMock,
     setupApp,
     setupGlobalFetchMock,

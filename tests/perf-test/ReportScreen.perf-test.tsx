@@ -27,6 +27,7 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
+import createAddListenerMock from '../utils/createAddListenerMock';
 import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -168,7 +169,7 @@ const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test.skip('[ReportScreen] should render ReportScreen', () => {
-    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
+    const {triggerTransitionEnd, addListener} = createAddListenerMock();
     const scenario = async () => {
         /**
          * First make sure ReportScreen is mounted, so that we can trigger
