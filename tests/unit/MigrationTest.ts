@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
 import type {OnyxInputValue} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import Log from '@src/libs/Log';
 import KeyReportActionsDraftByReportActionID from '@src/libs/migrations/KeyReportActionsDraftByReportActionID';
 import ONYXKEYS from '@src/ONYXKEYS';
