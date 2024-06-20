@@ -1,5 +1,5 @@
-import type {TupleToUnion, ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type ReportActionName from './ReportActionName';
@@ -532,30 +532,6 @@ type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
 /** */
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 
-// Note: type-fest's ConditionalKeys does not work correctly with objects containing `never`: https://github.com/sindresorhus/type-fest/issues/878
-/** */
-type ReportActionNamesWithHTMLMessage = {
-    [TKey in keyof OriginalMessageMap]-?: OriginalMessageMap[TKey] extends {
-        /**
-         *
-         */
-        html: string;
-    }
-        ? OriginalMessageMap[TKey] extends never
-            ? never
-            : TKey
-        : never;
-}[keyof OriginalMessageMap];
-const REPORT_ACTIONS_WITH_HTML_MESSAGE = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.RENAMED] as const;
-
-/** */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type AssertAllActionsWithHTMLAreListed = AssertTypesEqual<
-    ReportActionNamesWithHTMLMessage,
-    TupleToUnion<typeof REPORT_ACTIONS_WITH_HTML_MESSAGE>,
-    `Error: Types don't match, REPORT_ACTIONS_WITH_HTML_MESSAGE is missing: ${Exclude<ReportActionNamesWithHTMLMessage, typeof REPORT_ACTIONS_WITH_HTML_MESSAGE>}`
->;
-
 export default OriginalMessage;
 export type {
     DecisionName,
@@ -563,7 +539,6 @@ export type {
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,
-    ReportActionNamesWithHTMLMessage,
     Reaction,
     Decision,
     OriginalMessageChangeLog,

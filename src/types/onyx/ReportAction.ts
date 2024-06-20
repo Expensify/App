@@ -7,7 +7,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
-import type {Decision, ReportActionNamesWithHTMLMessage} from './OriginalMessage';
+import type {Decision} from './OriginalMessage';
 import type {NotificationPreference} from './Report';
 import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
@@ -277,13 +277,7 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     previousMessage?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
 };
 
-/**
- *
- */
-type ReportActionWithHTMLMessage = ReportAction<ReportActionNamesWithHTMLMessage>;
-/**
- *
- */
+/** */
 type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
 
 /** Record of report actions, indexed by report action ID */
@@ -293,4 +287,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionWithHTMLMessage, ReportActionChangeLog};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog};

@@ -782,7 +782,7 @@ function ReportActionItem({
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const transactionID = (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID;
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportActionForTransactionThread) ? ReportActionsUtils.getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : '-1';
 
         return (
             <ReportActionItemContentCreated
