@@ -2114,9 +2114,9 @@ export default {
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
 
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
-                    'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+                    'Elige dónde exportar las transacciones con tarjeta de débito.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
-                    'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+                    'Elige dónde exportar las transacciones con tarjeta de crédito.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
 
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
@@ -2179,20 +2179,20 @@ export default {
                 xeroBillPaymentAccountDescription: 'Elige una cuenta bancaria para los reembolsos y crearemos el pago en Xero.',
             },
             exportDate: {
-                label: 'Fecha de exportación',
+                label: 'Fecha de la factura de compra',
                 description: 'Usa esta fecha al exportar informe a Xero.',
                 values: {
                     [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Fecha del último gasto',
-                        description: 'Fecha del gasto mas reciente en el informe',
+                        description: 'Fecha del gasto mas reciente en el informe.',
                     },
                     [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Fecha de exportación',
-                        description: 'Fecha de exportación del informe a Xero',
+                        description: 'Fecha de exportación del informe a Xero.',
                     },
                     [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Fecha de envío',
-                        description: 'Fecha en la que el informe se envió para su aprobación',
+                        description: 'Fecha en la que el informe se envió para su aprobación.',
                     },
                 },
             },
