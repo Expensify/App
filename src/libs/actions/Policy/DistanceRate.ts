@@ -133,16 +133,7 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
         const rateEntries = Object.entries(customUnit?.rates ?? {});
         // find the rate to be enabled after disabling the distance rate feature
-        // first check the default rate
-        let rateEntryToBeEnabled = rateEntries.find((rate) => rate[1]?.name === 'Default Rate');
-        // if the default rate is not enabled/doesn't exist, we'll switch to the first enabled rate
-        if (!rateEntryToBeEnabled?.[1] || !rateEntryToBeEnabled[1].enabled) {
-            rateEntryToBeEnabled = rateEntries.find((rate) => !!rate[1]?.enabled);
-        }
-        // if no rate is enabled, we'll switch to the first rate
-        if (!rateEntryToBeEnabled?.[1]) {
-            rateEntryToBeEnabled = rateEntries[0];
-        }
+        const rateEntryToBeEnabled = rateEntries[0];
 
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
