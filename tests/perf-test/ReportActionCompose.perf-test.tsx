@@ -95,7 +95,6 @@ function ReportActionComposeWrapper() {
                 disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
-                listHeight={200}
             />
         </ComposeProviders>
     );
