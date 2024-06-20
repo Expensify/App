@@ -3,6 +3,7 @@ import {useMemo} from 'react';
 import type {TapGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
 import {runOnJS, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import * as Browser from '@libs/Browser';
 import {DOUBLE_TAP_SCALE, SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
 import * as MultiGestureCanvasUtils from './utils';
@@ -129,7 +130,7 @@ const useTapGestures = ({
             state.fail();
         })
         .numberOfTaps(2)
-        .maxDelay(150)
+        .maxDelay(Browser.isMobile() ? 300 : 150)
         .maxDistance(20)
         .onEnd((evt) => {
             const triggerScaleChangedEvent = () => {
