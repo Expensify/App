@@ -54,9 +54,8 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
     // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
+    fetchTag(fromTag);
+    fetchTag(toTag);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise<string>((resolve, reject) => {
