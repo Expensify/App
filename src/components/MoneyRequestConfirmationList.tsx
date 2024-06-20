@@ -32,6 +32,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -61,7 +62,6 @@ import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
-import Switch from './Switch';
 import Text from './Text';
 
 type MoneyRequestConfirmationListOnyxProps = {
@@ -1077,11 +1077,14 @@ function MoneyRequestConfirmationList({
         {
             item: (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                    <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                    <Switch
-                        accessibilityLabel={translate('common.billable')}
-                        isOn={iouIsBillable}
+                    <ToggleSettingOptionRow
+                        switchAccessibilityLabel={translate('common.billable')}
+                        title={translate('common.billable')}
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
+                        isActive={iouIsBillable}
+                        disabled={isReadOnly}
+                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
+                        wrapperStyle={styles.flex1}
                     />
                 </View>
             ),
