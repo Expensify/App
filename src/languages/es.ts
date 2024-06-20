@@ -264,7 +264,6 @@ export default {
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
         youAppearToBeOffline: 'Parece que estás desconectado.',
-        weMightHaveProblem: 'Peude que te tengamos un problema. Echa un vistazo a ',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         attachementWillBeAvailableOnceBackOnline: 'El archivo adjunto estará disponible cuando vuelvas a estar en línea.',
         areYouSure: '¿Estás seguro?',
@@ -621,6 +620,10 @@ export default {
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
         updateDestination: 'Actualiza el destino',
+        tooltip: {
+            title: '¡Acción rápida! ',
+            subtitle: 'A un click.',
+        },
     },
     iou: {
         amount: 'Importe',
@@ -2027,7 +2030,7 @@ export default {
             exportCompany: 'Exportar tarjetas de empresa como',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
             preferredExporter: 'Exportador preferido',
-            date: 'Fecha',
+            date: 'Fecha de exportación',
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
             deepDiveExpensifyCardIntegration: 'nuestra integración.',
             exportExpensifyCard: 'Exportar las transacciones de las tarjetas Expensify como',
