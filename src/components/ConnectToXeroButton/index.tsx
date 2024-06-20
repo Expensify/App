@@ -72,7 +72,7 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible
-                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescriptionXero')}
+                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
                 />
             )}
         </>
