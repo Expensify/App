@@ -33,7 +33,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                         />
 
                         <Rect
-                            x={36}
+                            x={40}
                             y={24}
                             width={40}
                             height={4}
@@ -45,7 +45,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                         />
 
                         <Rect
-                            x={108}
+                            x={112}
                             y={24}
                             width={40}
                             height={4}
