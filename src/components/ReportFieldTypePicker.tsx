@@ -1,5 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
+import useLocalize from '@hooks/useLocalize';
+import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import SelectionList from './SelectionList';
@@ -18,16 +20,17 @@ type ReportFieldTypePickerProps = {
 };
 
 function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldTypePickerProps) {
+    const {translate} = useLocalize();
+
     const reportFieldOptions = useMemo(
         () =>
-            Object.values(CONST.REPORT_FIELD_TYPES).map((reportField) => ({
-                value: reportField,
-                // TODO: Add translation here
-                text: Str.recapitalize(reportField),
-                keyForList: reportField,
-                isSelected: defaultValue === reportField,
+            Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
+                value: reportFieldType,
+                text: Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportFieldType))),
+                keyForList: reportFieldType,
+                isSelected: defaultValue === reportFieldType,
             })),
-        [defaultValue],
+        [defaultValue, translate],
     );
 
     return (

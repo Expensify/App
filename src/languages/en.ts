@@ -341,6 +341,7 @@ export default {
         drafts: 'Drafts',
         finished: 'Finished',
         disable: 'Disable',
+        initialValue: 'Initial value',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2268,6 +2269,9 @@ export default {
             subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            textType: 'Text',
+            dateType: 'Date',
+            dropdownType: 'Dropdown',
         },
         tags: {
             tagName: 'Tag name',
@@ -2616,6 +2620,8 @@ export default {
         editor: {
             descriptionInputLabel: 'Description',
             nameInputLabel: 'Name',
+            typeInputLabel: 'Type',
+            initialValueInputLabel: 'Initial value',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
             currencyInputLabel: 'Default currency',

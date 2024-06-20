@@ -22,7 +22,6 @@ import TypeSelector from './TypeSelector';
 
 type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
-// TODO: Add translation here
 function CreatePolicyReportFieldPage({
     // policy,
     route: {
@@ -88,18 +87,18 @@ function CreatePolicyReportFieldPage({
                         />
                         <InputWrapper
                             InputComponent={TypeSelector}
-                            label="Type"
+                            label={translate('common.type')}
+                            description={translate('common.type')}
+                            rightLabel={translate('common.required')}
+                            accessibilityLabel={translate('workspace.editor.typeInputLabel')}
                             inputID={INPUT_IDS.TYPE}
                         />
                         <InputWrapper
                             InputComponent={TextPicker}
                             inputID={INPUT_IDS.INITIAL_VALUE}
-                            label="Initial value"
-                            // label={translate('common.name')}
-                            description="Initial value"
-                            // description={translate('common.name')}
-                            accessibilityLabel="Initial value"
-                            // accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            label={translate('common.initialValue')}
+                            description={translate('common.initialValue')}
+                            accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
                             maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                             multiline={false}
                             role={CONST.ROLE.PRESENTATION}

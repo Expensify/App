@@ -3,7 +3,8 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {ReportFieldItemType} from '@components/ReportFieldTypePicker';
-// import useLocalize from '@hooks/useLocalize';
+import useLocalize from '@hooks/useLocalize';
+import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
@@ -19,7 +20,7 @@ type TypeSelectorProps = {
 };
 
 function TypeSelector({value, label, onInputChange}: TypeSelectorProps) {
-    // const {translate} = useLocalize();
+    const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
@@ -40,8 +41,7 @@ function TypeSelector({value, label, onInputChange}: TypeSelectorProps) {
         <View>
             <MenuItemWithTopDescription
                 shouldShowRightIcon
-                // TODO: Add translation here
-                title={Str.recapitalize(value ?? '')}
+                title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
                 description={label}
                 onPress={showPickerModal}
             />

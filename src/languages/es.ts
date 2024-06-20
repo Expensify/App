@@ -332,6 +332,7 @@ export default {
         drafts: 'Borradores',
         finished: 'Finalizados',
         disable: 'Deshabilitar',
+        initialValue: 'Valor inicial',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -2304,6 +2305,9 @@ export default {
             subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando desees solicitar información adicional',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
+            textType: 'Texto',
+            dateType: 'Fecha',
+            dropdownType: 'Desplegable',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2653,6 +2657,8 @@ export default {
         editor: {
             nameInputLabel: 'Nombre',
             descriptionInputLabel: 'Descripción',
+            typeInputLabel: 'Tipo',
+            initialValueInputLabel: 'Valor inicial',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
