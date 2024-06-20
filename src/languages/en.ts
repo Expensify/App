@@ -3214,6 +3214,13 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        billingBanner: {
+            preTrial: {
+                title: 'Start a free trial',
+                subtitle: 'To get started, ',
+                subtitleLink: 'complete your setup checklist here',
+            },
+        },
         cardSection: {
             title: 'Payment',
             subtitle: 'Add a payment card to pay for your Expensify subscription.',
