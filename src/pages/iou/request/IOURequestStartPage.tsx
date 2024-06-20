@@ -92,13 +92,17 @@ function IOURequestStartPage({
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
-    useEffect(() => {
-        if (transaction?.reportID === reportID) {
-            return;
-        }
-        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
-    }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
+    // only when the screen is focused
+    useFocusEffect(
+        useCallback(() => {
+            if (transaction?.reportID === reportID) {
+                return;
+            }
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
+        }, [transaction, policy, iouType, reportID, isFromGlobalCreate]),
+    );
 
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
     const shouldDisplayDistanceRequest = (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate) && iouType !== CONST.IOU.TYPE.SPLIT;

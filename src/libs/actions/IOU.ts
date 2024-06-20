@@ -377,6 +377,10 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
     }
 }
 
+function setMoneyRequestReportID(transactionID: string, reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
+}
+
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
 }
@@ -6978,6 +6982,7 @@ export {
     sendMoneyWithWallet,
     setCustomUnitRateID,
     setDraftSplitTransaction,
+    setMoneyRequestReportID,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
