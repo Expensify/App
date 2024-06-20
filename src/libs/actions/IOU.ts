@@ -6215,7 +6215,8 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`,
         value: {
-            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, full ? expenseReport?.reportID ?? '' : ''),},
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, full ? expenseReport?.reportID ?? '' : ''),
+        },
     };
 
     const optimisticNextStepData: OnyxUpdate = {
