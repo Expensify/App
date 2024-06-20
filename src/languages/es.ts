@@ -2302,9 +2302,8 @@ export default {
                 subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
             },
             subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando desees solicitar información adicional',
-            // TODO: Verify translations
             disableReportFields: 'Desactivar campos de informe',
-            disableReportFieldsConfirmation: '¿Está seguro? Se eliminarán los campos de texto y fecha, y se desactivarán las listas.',
+            disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
