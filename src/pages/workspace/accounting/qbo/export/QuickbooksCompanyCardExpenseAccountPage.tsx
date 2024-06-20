@@ -65,6 +65,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                     {nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
                         <>
                             <ToggleSettingOptionRow
+                                shouldPlaceSubtitleBelowSwitch
                                 subtitle={translate('workspace.qbo.defaultVendorDescription')}
                                 switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
                                 errors={errorFields?.autoCreateVendor ?? undefined}

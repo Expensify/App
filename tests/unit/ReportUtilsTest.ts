@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {addDays, format as formatDate, subDays} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -266,9 +267,15 @@ describe('ReportUtils', () => {
     });
 
     describe('requiresAttentionFromCurrentUser', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
         it('returns false when there is no report', () => {
             expect(ReportUtils.requiresAttentionFromCurrentUser(undefined)).toBe(false);
         });
+
         it('returns false when the matched IOU report does not have an owner accountID', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -276,6 +283,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
+
         it('returns false when the linked iou report has an oustanding IOU', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -288,6 +296,7 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
             });
         });
+
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -296,6 +305,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
+
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -304,6 +314,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
+
         it('returns false when the report has no oustanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -312,6 +323,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
         });
+
         it('returns true when the report has an unread mention', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -319,6 +331,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
+
         it('returns true when the report is an outstanding task', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -330,6 +343,7 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
+
         it('returns true when the report has oustanding child expense', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -337,6 +351,76 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it('returns false if the user is not on free trial', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null, // not on free trial
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it("returns false if the user free trial hasn't ended yet", async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial not ended
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it('returns false if the user free trial has ended and it added a payment card', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial not ended
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010, // payment card added
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(false);
+        });
+
+        it("returns true if the report is the system chat, the user free trial has ended and it didn't add a payment card yet", async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial ended
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
+        });
+
+        it("returns true if the report is the concierge chat, the user free trial has ended and it didn't add a payment card yet", async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING), // trial ended
+                [ONYXKEYS.NVP_BILLING_FUND_ID]: null, // no payment card added
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: 8}, // even account id
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+            };
+
             expect(ReportUtils.requiresAttentionFromCurrentUser(report)).toBe(true);
         });
     });
@@ -819,6 +903,56 @@ describe('ReportUtils', () => {
             ];
 
             expect(ReportUtils.getAllAncestorReportActions(reports[4])).toEqual(resultAncestors);
+        });
+    });
+
+    describe('isChatUsedForOnboarding', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should return false if the report is neither the system or concierge chat', () => {
+            expect(ReportUtils.isChatUsedForOnboarding(LHNTestUtils.getFakeReport())).toBeFalsy();
+        });
+
+        it('should return true if the user account ID is odd and report is the system chat', async () => {
+            const accountID = 1;
+
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [accountID]: {
+                        accountID,
+                    },
+                },
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
+            };
+
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
+        });
+
+        it('should return true if the user account ID is even and report is the concierge chat', async () => {
+            const accountID = 2;
+
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [accountID]: {
+                        accountID,
+                    },
+                },
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
+            });
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport([CONST.ACCOUNT_ID.CONCIERGE]),
+            };
+
+            expect(ReportUtils.isChatUsedForOnboarding(report)).toBeTruthy();
         });
     });
 });
