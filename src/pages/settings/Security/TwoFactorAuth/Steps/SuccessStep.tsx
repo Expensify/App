@@ -2,14 +2,14 @@ import React from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
-import type {BackToParams} from '@libs/Navigation/types';
+import type {BackToAndForwardToParms} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '@pages/settings/Security/TwoFactorAuth/TwoFactorAuthContext/useTwoFactorAuth';
 import * as TwoFactorAuthActions from '@userActions/TwoFactorAuthActions';
 import CONST from '@src/CONST';
 
-function SuccessStep({backTo}: BackToParams) {
+function SuccessStep({backTo, forwardTo}: BackToAndForwardToParms) {
     const {setStep} = useTwoFactorAuthContext();
 
     const {translate} = useLocalize();
@@ -31,6 +31,10 @@ function SuccessStep({backTo}: BackToParams) {
                 onButtonPress={() => {
                     TwoFactorAuthActions.clearTwoFactorAuthData();
                     setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
+                    if (forwardTo) {
+                        Navigation.navigate(forwardTo);
+                        return;
+                    }
                     if (backTo) {
                         Navigation.navigate(backTo);
                     }
