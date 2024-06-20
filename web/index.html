@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>New Expensify</title>
     <meta name="description" content="Corporate cards, reimbursements, receipt scanning, invoicing, and bill pay.">
-    <meta name="theme-color" content="">
+    <meta name="theme-color" content="#03D47C">
     <meta property="twitter:card" content="summary">
     <meta property="twitter:site" content="@expensify">
     <meta property="og:type" content="website">
@@ -130,7 +130,7 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging)) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->

@@ -2,6 +2,7 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -84,6 +85,7 @@ function App({url}: AppProps) {
                         FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
+                        KeyboardProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />
