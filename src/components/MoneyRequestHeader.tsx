@@ -54,9 +54,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? -1}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [holdUseExplained, holdUseExplainedResult] = useOnyx(ONYXKEYS.NVP_HOLD_USE_EXPLAINED);
-    const isLoadingHoldUseExplained = isLoadingOnyxValue(holdUseExplainedResult);
-
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
+    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -180,8 +179,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         if (isLoadingHoldUseExplained) {
             return;
         }
-        setShouldShowHoldMenu(isOnHold && !holdUseExplained);
-    }, [isOnHold, holdUseExplained, isLoadingHoldUseExplained]);
+        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
@@ -198,7 +197,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.setShownHoldUseExplanation();
+        IOU.dismissHoldUseExplanation();
     };
 
     if (canDeleteRequest) {
