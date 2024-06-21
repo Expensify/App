@@ -19,6 +19,7 @@ import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrent
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import * as UserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
+import usePrevious from '@hooks/usePrevious';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
@@ -56,6 +57,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
         const currentPosition = userLocation ?? initialLocation;
+        const prevUserPosition = usePrevious(currentPosition);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
@@ -110,11 +112,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
 
+            // Avoid navigationg to the same location
+            if (prevUserPosition.longitude === currentPosition.longitude && prevUserPosition.latitude === currentPosition.latitude) {
+                return;
+            }
+
             mapRef.flyTo({
                 center: [currentPosition.longitude, currentPosition.latitude],
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
             });
-        }, [currentPosition, userInteractedWithMap, mapRef, shouldPanMapToCurrentPosition]);
+        }, [currentPosition, mapRef, prevUserPosition, shouldPanMapToCurrentPosition]);
 
         const resetBoundaries = useCallback(() => {
             if (!waypoints || waypoints.length === 0) {
