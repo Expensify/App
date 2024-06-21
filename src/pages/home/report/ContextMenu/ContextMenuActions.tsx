@@ -35,7 +35,7 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
-    const message = reportAction?.message?.at(-1) ?? null;
+    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
     return message?.html ?? '';
 }
 
@@ -377,7 +377,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
-                    const {expenseReportID} = reportAction.originalMessage;
+                    const {expenseReportID} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
                     const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
