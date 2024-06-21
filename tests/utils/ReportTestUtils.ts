@@ -1,10 +1,10 @@
 import type {ReportAction, ReportActions} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 import createRandomReportAction from './collections/reportActions';
 
-const actionNames: ActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
+const actionNames: ReportActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
 
-const getFakeReportAction = (index: number, actionName?: ActionName): ReportAction =>
+const getFakeReportAction = (index: number, actionName?: ReportActionName): ReportAction =>
     ({
         actionName,
         actorAccountID: index,
@@ -49,14 +49,14 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
-        const actionName: ActionName = index === 0 ? 'CREATED' : 'ADDCOMMENT';
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : 'ADDCOMMENT';
         return getFakeReportAction(index + 1, actionName);
     }).reverse();
 
 const getMockedReportActionsMap = (length = 100): ReportActions => {
     const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
         const reportID = index + 1;
-        const actionName: ActionName = index === 0 ? 'CREATED' : actionNames[index % actionNames.length];
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : actionNames[index % actionNames.length];
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,

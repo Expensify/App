@@ -110,7 +110,7 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
 
-        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '', undefined, undefined, (videoSource, attrs) => {
+        const originalMessage = parseHtmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), undefined, undefined, (videoSource, attrs) => {
             draftMessageVideoAttributeCache.set(videoSource, attrs);
         });
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
