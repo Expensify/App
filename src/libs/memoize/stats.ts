@@ -6,6 +6,11 @@ type MemoizeStatsEntry = {
     cacheSize: number;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
+    return entry.keyLength !== undefined && entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
+}
+
 class MemoizeStats {
     private calls = 0;
 
@@ -47,14 +52,9 @@ class MemoizeStats {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
-        return entry.keyLength !== undefined && entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
-    }
-
     // eslint-disable-next-line rulesdir/prefer-early-return
     private saveEntry(entry: Partial<MemoizeStatsEntry>) {
-        if (this.isEnabled && MemoizeStats.isMemoizeStatsEntry(entry)) {
+        if (this.isEnabled && isMemoizeStatsEntry(entry)) {
             this.cumulateEntry(entry);
         }
     }
