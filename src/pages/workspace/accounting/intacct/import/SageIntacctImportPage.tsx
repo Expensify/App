@@ -21,31 +21,26 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
-    console.log(
-        '%%%%%\n',
-        'ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS)',
-        ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS),
-    );
 
     const sections = useMemo(
         () => [
             {
                 description: 'Departments',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS)),
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS)),
                 title: 'Sage Intacct employee default',
                 hasError: !!errorFields?.enableNewCategories,
                 pendingAction: pendingFields?.enableNewCategories,
             },
             {
                 description: 'Classes',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES)),
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES)),
                 hasError: !!errorFields?.importTrackingCategories,
                 pendingAction: pendingFields?.importTrackingCategories,
             },
             {
                 description: 'Locations',
                 action: () => {
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS));
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS));
                 },
                 hasError: !!errorFields?.importCustomers,
                 title: 'Imported, displayed as tags',
@@ -53,14 +48,14 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             },
             {
                 description: 'Customers',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS)),
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS)),
                 hasError: !!errorFields?.importTaxRates,
                 title: 'Imported, displayed as report fields',
                 pendingAction: pendingFields?.importTaxRates,
             },
             {
                 description: 'Projects (jobs)',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS)),
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS)),
                 hasError: !!errorFields?.importTaxRates,
                 pendingAction: pendingFields?.importTaxRates,
             },

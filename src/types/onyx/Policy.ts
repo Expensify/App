@@ -633,23 +633,44 @@ type SageIntacctConnectionData = {
     taxSolutionIDs: string[];
 };
 
+/** Mapping value for Sage Intacct */
+type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+
+/** Mapping names for Sage Intacct */
+type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+
 /** Mapping type for Sage Intacct */
-type SageIntacctMappingType = {
-    /** Mapping type for Sage Intacct */
-    departments: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+type SageIntacctMappingType = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Whether should sync items for Sage Intacct */
+    syncItems: boolean;
 
     /** Mapping type for Sage Intacct */
-    classes: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+    departments: SageIntacctMappingValue;
 
     /** Mapping type for Sage Intacct */
-    locations: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+    classes: SageIntacctMappingValue;
 
     /** Mapping type for Sage Intacct */
-    customers: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
+    locations: SageIntacctMappingValue;
 
     /** Mapping type for Sage Intacct */
-    projects: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE>;
-};
+    customers: SageIntacctMappingValue;
+
+    /** Mapping type for Sage Intacct */
+    projects: SageIntacctMappingValue;
+
+    /** User defined dimention type for Sage Intacct */
+    dimensions: {
+        /** Name of user defined dimention */
+        name: string;
+
+        /** Mapping value for user defined dimention */
+        mapping: Omit<SageIntacctMappingValue, typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT>;
+    };
+
+    /** Collection of mapping field errors, which will be triggered when update action fails  */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 
 /**
  * Connection config for Sage Intacct
@@ -1100,4 +1121,7 @@ export type {
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,
+    SageIntacctMappingValue,
+    SageIntacctMappingType,
+    SageIntacctMappingName,
 };

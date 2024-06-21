@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -1982,6 +1982,26 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            lineItemLevel: 'Line-item level',
+            reportLevel: 'Report level',
+            appliedOnExport: 'Not imported into Expensify, applied on export',
+            departments: (startsWithBigLetter = false) => (startsWithBigLetter ? 'Departments' : 'departments'),
+            mappingTitle: (mappingName: SageIntacctMappingName, startsWithBigLetter = false) => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return startsWithBigLetter ? 'Department' : 'department';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return startsWithBigLetter ? 'Classes' : 'classes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return startsWithBigLetter ? 'Locations' : 'locations';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return startsWithBigLetter ? 'Customers' : 'customers';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return startsWithBigLetter ? 'Projects' : 'projects';
+                    default:
+                        return startsWithBigLetter ? 'Mapping' : 'mapping';
+                }
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2173,6 +2193,11 @@ export default {
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
+        },
+        intacct: {
+            employeeDefault: 'Sage Intacct employee default',
+            toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
+            toggleImportTitleSecondPart: ' in Expensify.',
         },
         type: {
             free: 'Free',
