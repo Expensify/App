@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+
 type MemoizeStatsEntry = {
     keyLength: number;
     didHit: boolean;
@@ -52,11 +54,17 @@ class MemoizeStats {
         }
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     private saveEntry(entry: Partial<MemoizeStatsEntry>) {
-        if (this.isEnabled && isMemoizeStatsEntry(entry)) {
-            this.cumulateEntry(entry);
+        if (!this.isEnabled) {
+            return;
         }
+
+        if (!isMemoizeStatsEntry(entry)) {
+            Log.warn('MemoizeStats:saveEntry: Invalid entry', entry);
+            return;
+        }
+
+        return this.cumulateEntry(entry);
     }
 
     createEntry() {
