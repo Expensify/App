@@ -19,10 +19,10 @@ class MemoizeStats {
 
     private cacheSize = 0;
 
-    enabled = false;
+    isEnabled = false;
 
     constructor(enabled: boolean) {
-        this.enabled = enabled;
+        this.isEnabled = enabled;
     }
 
     // See https://en.wikipedia.org/wiki/Moving_average#Cumulative_average
@@ -53,14 +53,14 @@ class MemoizeStats {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     private saveEntry(entry: Partial<MemoizeStatsEntry>) {
-        if (this.enabled && MemoizeStats.isMemoizeStatsEntry(entry)) {
+        if (this.isEnabled && MemoizeStats.isMemoizeStatsEntry(entry)) {
             this.cumulateEntry(entry);
         }
     }
 
     createEntry() {
         // If monitoring is disabled, return a dummy object that does nothing
-        if (!this.enabled) {
+        if (!this.isEnabled) {
             return {
                 track: () => {},
                 save: () => {},
@@ -78,7 +78,7 @@ class MemoizeStats {
     }
 
     startMonitoring() {
-        this.enabled = true;
+        this.isEnabled = true;
         this.calls = 0;
         this.hits = 0;
         this.avgKeyLength = 0;
@@ -88,7 +88,7 @@ class MemoizeStats {
     }
 
     stopMonitoring() {
-        this.enabled = false;
+        this.isEnabled = false;
 
         return {
             calls: this.calls,
