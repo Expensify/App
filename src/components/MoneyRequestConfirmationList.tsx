@@ -761,7 +761,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={!shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
+                        message={isTypeSplit && !shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
                     />
                 )}
 
@@ -770,6 +770,7 @@ function MoneyRequestConfirmationList({
         );
     }, [
         isReadOnly,
+        isTypeSplit,
         iouType,
         selectedParticipants.length,
         confirm,

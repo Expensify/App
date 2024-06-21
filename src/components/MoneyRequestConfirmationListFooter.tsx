@@ -20,6 +20,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +37,6 @@ import PressableWithoutFocus from './Pressable/PressableWithoutFocus';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import ShowMoreButton from './ShowMoreButton';
-import Switch from './Switch';
-import Text from './Text';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -500,11 +499,14 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                    <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                    <Switch
-                        accessibilityLabel={translate('common.billable')}
-                        isOn={iouIsBillable}
+                    <ToggleSettingOptionRow
+                        switchAccessibilityLabel={translate('common.billable')}
+                        title={translate('common.billable')}
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
+                        isActive={iouIsBillable}
+                        disabled={isReadOnly}
+                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
+                        wrapperStyle={styles.flex1}
                     />
                 </View>
             ),
