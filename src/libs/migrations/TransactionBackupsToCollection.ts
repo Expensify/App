@@ -1,4 +1,4 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,11 +26,11 @@ export default function (): Promise<void> {
                     return resolve();
                 }
 
-                const onyxData: OnyxCollection<Transaction> = {};
+                const onyxData: OnyxCollectionInputValue<Transaction> = {};
 
                 // Find all the transaction backups available
                 Object.keys(transactions).forEach((transactionOnyxKey: string) => {
-                    const transaction: Transaction | null = transactions[transactionOnyxKey];
+                    const transaction: OnyxEntry<Transaction> = transactions[transactionOnyxKey];
 
                     // Determine whether or not the transaction is a backup
                     if (transactionOnyxKey.endsWith('-backup') && transaction) {

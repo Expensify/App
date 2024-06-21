@@ -126,6 +126,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_LANGUAGE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.PREFERENCES.THEME]: {
                             path: ROUTES.SETTINGS_THEME,
                             exact: true,
@@ -162,16 +166,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
                         },
-                        // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
-                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR,
-                            exact: true,
-                        },
-                        // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
-                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_TEMPORARY_TERMS]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_TEMPORARY_TERMS,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -198,10 +192,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
@@ -276,6 +266,15 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
+                        },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
+                            parse: {
+                                canChangeSize: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
@@ -413,6 +412,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.route,
                         },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
+                            path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.route,
+                        },
                         [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
                             path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
                         },
@@ -520,11 +525,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.ROOT]: {
                             path: ROUTES.REPORT_SETTINGS.route,
                         },
-                        [SCREENS.REPORT_SETTINGS.ROOM_NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
-                        },
-                        [SCREENS.REPORT_SETTINGS.GROUP_NAME]: {
-                            path: ROUTES.REPORT_SETTINGS_GROUP_NAME.route,
+                        [SCREENS.REPORT_SETTINGS.NAME]: {
+                            path: ROUTES.REPORT_SETTINGS_NAME.route,
                         },
                         [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
                             path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
@@ -534,6 +536,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
                             path: ROUTES.REPORT_SETTINGS_VISIBILITY.route,
+                        },
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
+                    screens: {
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_CREATE.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
+                            path: ROUTES.SETTINGS_CATEGORY_EDIT.route,
+                            parse: {
+                                categoryName: (categoryName: string) => decodeURIComponent(categoryName),
+                            },
                         },
                     },
                 },
@@ -585,11 +609,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.I_AM_A_TEACHER]: ROUTES.I_AM_A_TEACHER,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.DETAILS]: {
-                    screens: {
-                        [SCREENS.DETAILS_ROOT]: ROUTES.DETAILS.route,
-                    },
-                },
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
                         [SCREENS.PROFILE_ROOT]: ROUTES.PROFILE.route,
@@ -634,6 +653,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,

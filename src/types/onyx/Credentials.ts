@@ -1,3 +1,4 @@
+/** Model of user credentials */
 type Credentials = {
     /** The email/phone the user logged in with */
     login?: string;

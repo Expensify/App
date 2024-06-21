@@ -1,12 +1,18 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
+import FixedFooter from '@components/FixedFooter';
+import * as Illustrations from '@components/Icon/Illustrations';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -75,6 +81,7 @@ function IOURequestStepCategory({
     const policy = policyReal ?? policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -92,17 +99,18 @@ function IOURequestStepCategory({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowCategory || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction)));
+    const shouldShowNotFoundPage = isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction));
 
     const fetchData = () => {
         if (policy && policyCategories) {
             return;
         }
 
-        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
+        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '-1');
     };
-
-    useNetwork({onReconnect: fetchData});
+    const {isOffline} = useNetwork({onReconnect: fetchData});
+    const isLoading = !isOffline && policyCategories === undefined;
+    const shouldShowEmptyState = !isLoading && !shouldShowCategory;
 
     useEffect(() => {
         fetchData();
@@ -136,7 +144,7 @@ function IOURequestStepCategory({
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
 
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? ''));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? '-1'));
             return;
         }
 
@@ -150,14 +158,52 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             testID={IOURequestStepCategory.displayName}
-            includeSafeAreaPaddingBottom={false}
         >
-            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
-            <CategoryPicker
-                selectedCategory={transactionCategory}
-                policyID={report?.policyID ?? policy?.id ?? ''}
-                onSubmit={updateCategory}
-            />
+            {isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.flex1]}
+                    color={theme.spinner}
+                />
+            )}
+            {shouldShowEmptyState && (
+                <View style={[styles.flex1]}>
+                    <WorkspaceEmptyStateSection
+                        shouldStyleAsCard={false}
+                        icon={Illustrations.EmptyStateExpenses}
+                        title={translate('workspace.categories.emptyCategories.title')}
+                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                    />
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        <Button
+                            large
+                            success
+                            style={[styles.w100]}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                        policy?.id ?? '-1',
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                    ),
+                                )
+                            }
+                            text={translate('workspace.categories.editCategories')}
+                            pressOnEnter
+                        />
+                    </FixedFooter>
+                </View>
+            )}
+            {!shouldShowEmptyState && !isLoading && (
+                <>
+                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
+                    <CategoryPicker
+                        selectedCategory={transactionCategory}
+                        policyID={report?.policyID ?? policy?.id ?? '-1'}
+                        onSubmit={updateCategory}
+                    />
+                </>
+            )}
         </StepScreenWrapper>
     );
 }
@@ -167,7 +213,7 @@ IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOURequestStepCategoryOnyxProps>({
     splitDraftTransaction: {
         key: ({route}) => {
-            const transactionID = route?.params.transactionID ?? 0;
+            const transactionID = route?.params.transactionID ?? -1;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
@@ -193,7 +239,7 @@ const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOU
                 params: {action, iouType},
             },
         }) => {
-            let reportID = '0';
+            let reportID = '-1';
             if (action === CONST.IOU.ACTION.EDIT && report) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     reportID = report.reportID;

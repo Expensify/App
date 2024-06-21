@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -128,11 +129,13 @@ function BaseReportActionContextMenu({
     const threedotRef = useRef<View>(null);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0') {
-            return null;
+        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
+            return;
         }
-        return reportActions[reportActionID] ?? null;
+        return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
+
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -163,6 +166,7 @@ function BaseReportActionContextMenu({
         disabledIndexes,
         maxIndex: filteredContextMenuActions.length - 1,
         isActive: shouldEnableArrowNavigation,
+        disableCyclicTraversal: true,
     });
 
     /**
@@ -200,8 +204,6 @@ function BaseReportActionContextMenu({
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
-        const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-        const originalReport = ReportUtils.getReport(originalReportID);
         showContextMenu(
             CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -216,8 +218,8 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoom(originalReport),
-            ReportUtils.chatIncludesChronos(originalReport),
+            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
             filteredContextMenuActions,
@@ -229,64 +231,67 @@ function BaseReportActionContextMenu({
 
     return (
         (isVisible || shouldKeepOpen) && (
-            <View
-                ref={contentRef}
-                style={wrapperStyle}
-            >
-                {filteredContextMenuActions.map((contextAction, index) => {
-                    const closePopup = !isMini;
-                    const payload: ContextMenuActionPayload = {
-                        reportAction: reportAction as ReportAction,
-                        reportID,
-                        draftMessage,
-                        selection,
-                        close: () => setShouldKeepOpen(false),
-                        openContextMenu: () => setShouldKeepOpen(true),
-                        interceptAnonymousUser,
-                        openOverflowMenu,
-                        setIsEmojiPickerActive,
-                    };
+            <FocusTrapForModal active={!isMini}>
+                <View
+                    ref={contentRef}
+                    style={wrapperStyle}
+                >
+                    {filteredContextMenuActions.map((contextAction, index) => {
+                        const closePopup = !isMini;
+                        const payload: ContextMenuActionPayload = {
+                            reportAction: (reportAction ?? null) as ReportAction,
+                            reportID,
+                            draftMessage,
+                            selection,
+                            close: () => setShouldKeepOpen(false),
+                            openContextMenu: () => setShouldKeepOpen(true),
+                            interceptAnonymousUser,
+                            openOverflowMenu,
+                            setIsEmojiPickerActive,
+                        };
 
-                    if ('renderContent' in contextAction) {
-                        return contextAction.renderContent(closePopup, payload);
-                    }
+                        if ('renderContent' in contextAction) {
+                            return contextAction.renderContent(closePopup, payload);
+                        }
 
-                    const {textTranslateKey} = contextAction;
-                    const isKeyInActionUpdateKeys =
-                        textTranslateKey === 'reportActionContextMenu.editAction' ||
-                        textTranslateKey === 'reportActionContextMenu.deleteAction' ||
-                        textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                    const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
-                    const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
-                    const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
+                        const {textTranslateKey} = contextAction;
+                        const isKeyInActionUpdateKeys =
+                            textTranslateKey === 'reportActionContextMenu.editAction' ||
+                            textTranslateKey === 'reportActionContextMenu.deleteAction' ||
+                            textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                        const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
+                        const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
+                        const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
 
-                    return (
-                        <ContextMenuItem
-                            ref={(ref) => {
-                                menuItemRefs.current[index] = ref;
-                            }}
-                            buttonRef={isMenuAction ? threedotRef : {current: null}}
-                            icon={contextAction.icon}
-                            text={text ?? ''}
-                            successIcon={contextAction.successIcon}
-                            successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
-                            isMini={isMini}
-                            key={contextAction.textTranslateKey}
-                            onPress={(event) =>
-                                interceptAnonymousUser(
-                                    () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
-                                    contextAction.isAnonymousAction,
-                                )
-                            }
-                            description={contextAction.getDescription?.(selection) ?? ''}
-                            isAnonymousAction={contextAction.isAnonymousAction}
-                            isFocused={focusedIndex === index}
-                            shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
-                            onFocus={() => setFocusedIndex(index)}
-                        />
-                    );
-                })}
-            </View>
+                        return (
+                            <ContextMenuItem
+                                ref={(ref) => {
+                                    menuItemRefs.current[index] = ref;
+                                }}
+                                buttonRef={isMenuAction ? threedotRef : {current: null}}
+                                icon={contextAction.icon}
+                                text={text ?? ''}
+                                successIcon={contextAction.successIcon}
+                                successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
+                                isMini={isMini}
+                                key={contextAction.textTranslateKey}
+                                onPress={(event) =>
+                                    interceptAnonymousUser(
+                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                        contextAction.isAnonymousAction,
+                                    )
+                                }
+                                description={contextAction.getDescription?.(selection) ?? ''}
+                                isAnonymousAction={contextAction.isAnonymousAction}
+                                isFocused={focusedIndex === index}
+                                shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                                onFocus={() => setFocusedIndex(index)}
+                                onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
+                            />
+                        );
+                    })}
+                </View>
+            </FocusTrapForModal>
         )
     );
 }
@@ -302,7 +307,7 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
     transaction: {
         key: ({reportActions, reportActionID}) => {
             const reportAction = reportActions?.[reportActionID];
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? -1}`;
         },
     },
 })(

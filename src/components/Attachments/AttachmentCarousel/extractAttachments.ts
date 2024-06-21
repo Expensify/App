@@ -4,20 +4,23 @@ import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {getReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {Note} from '@src/types/onyx/Report';
 
 /**
  * Constructs the initial component state from report actions
  */
 function extractAttachments(
     type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
-    {reportID, accountID, parentReportAction, reportActions}: {reportID?: string; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
+    {
+        privateNotes,
+        accountID,
+        parentReportAction,
+        reportActions,
+    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>},
 ) {
-    const report = getReport(reportID);
-    const privateNotes = report?.privateNotes;
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
     const attachments: Attachment[] = [];
 
@@ -37,7 +40,7 @@ function extractAttachments(
                 const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
-                    isAuthTokenRequired: Boolean(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
+                    isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
                     file: {name: splittedUrl[splittedUrl.length - 1]},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
@@ -69,7 +72,7 @@ function extractAttachments(
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
                     source,
-                    isAuthTokenRequired: Boolean(expensifySource),
+                    isAuthTokenRequired: !!expensifySource,
                     file: {name: fileName},
                     isReceipt: false,
                     hasBeenFlagged: attribs['data-flagged'] === 'true',

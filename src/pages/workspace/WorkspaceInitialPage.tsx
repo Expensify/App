@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -110,7 +111,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         [policy],
     ) as PolicyFeatureStates;
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';
 
     useEffect(() => {
@@ -142,7 +143,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
-    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
+    const {login} = useCurrentUserPersonalDetails();
+    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
@@ -320,7 +322,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '',
+            id: policy.id ?? '-1',
         };
     }, [policy]);
 
@@ -399,7 +401,7 @@ export default withPolicyAndFullscreenLoading(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
         policyCategories: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`,
         },
     })(WorkspaceInitialPage),
 );

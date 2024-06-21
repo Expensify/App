@@ -19,9 +19,9 @@ import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {Options} from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
@@ -65,7 +65,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
@@ -115,13 +115,13 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             undefined,
             undefined,
             undefined,
-            !isCategorizeOrShareAction,
             isCategorizeOrShareAction ? 0 : undefined,
+            iouType === CONST.IOU.TYPE.INVOICE,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})),
+            participants.map((participant) => ({...participant, reportID: participant.reportID ?? '-1'})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -190,10 +190,9 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
-
+                const policyID = option.item && ReportUtils.isInvoiceRoom(option.item) ? option.policyID : Policy.getPrimaryPolicy(activePolicyID)?.id;
                 newParticipants.push({
-                    policyID: primaryPolicy?.id,
+                    policyID,
                     isSender: true,
                     selected: false,
                     iouType,
@@ -254,7 +253,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         () =>
             OptionsListUtils.getHeaderMessage(
                 ((newChatOptions as Options)?.personalDetails ?? []).length + ((newChatOptions as Options)?.recentReports ?? []).length !== 0,
-                Boolean((newChatOptions as Options)?.userToInvite),
+                !!(newChatOptions as Options)?.userToInvite,
                 debouncedSearchTerm.trim(),
                 participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
@@ -309,7 +308,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message="iou.error.splitExpenseMultipleParticipantsErrorMessage"
+                        message={translate('iou.error.splitExpenseMultipleParticipantsErrorMessage')}
                     />
                 )}
 
