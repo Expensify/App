@@ -120,7 +120,7 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     );
 }
 
-function TotalCell({showTooltip, isLargeScreenWidth, transactionItem, isChildListItem}: TotalCellProps) {
+function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCellProps) {
     const styles = useThemeStyles();
     const currency = TransactionUtils.getCurrency(transactionItem);
 
