@@ -189,13 +189,12 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             subtitleTranslationKey: 'workspace.moreFeatures.organizeSection.subtitle',
             items: organizeItems,
         },
+        {
+            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+            items: integrateItems,
+        },
     ];
-
-    sections.push({
-        titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
-        subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
-        items: integrateItems,
-    });
 
     const renderItem = useCallback(
         (item: Item) => (
