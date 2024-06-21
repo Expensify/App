@@ -32,9 +32,11 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -60,7 +62,6 @@ import type {SectionListDataType} from './SelectionList/types';
 import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
-import Switch from './Switch';
 import Text from './Text';
 
 type MoneyRequestConfirmationListOnyxProps = {
@@ -320,7 +321,7 @@ function MoneyRequestConfirmationList({
     const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
-    const [formError, debouncedFormError, setFormError] = useDebouncedState('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
@@ -755,20 +756,20 @@ function MoneyRequestConfirmationList({
         },
         [
             selectedParticipants,
+            isEditingSplitBill,
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
             transaction,
+            iouCategory.length,
+            formError,
             iouType,
+            setFormError,
             onSendMoney,
             iouCurrencyCode,
             isDistanceRequest,
-            iouCategory,
             isDistanceRequestWithPendingRoute,
             iouAmount,
-            isEditingSplitBill,
-            formError,
-            setFormError,
             onConfirm,
         ],
     );
@@ -820,7 +821,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={!shouldShowReadOnlySplits ? debouncedFormError : formError}
+                        message={isTypeSplit && !shouldShowReadOnlySplits ? debouncedFormError && translate(debouncedFormError) : translate(formError)}
                     />
                 )}
 
@@ -829,6 +830,7 @@ function MoneyRequestConfirmationList({
         );
     }, [
         isReadOnly,
+        isTypeSplit,
         iouType,
         selectedParticipants.length,
         confirm,
@@ -837,10 +839,11 @@ function MoneyRequestConfirmationList({
         policyID,
         splitOrRequestOptions,
         formError,
-        debouncedFormError,
-        shouldShowReadOnlySplits,
         styles.ph1,
         styles.mb2,
+        shouldShowReadOnlySplits,
+        debouncedFormError,
+        translate,
     ]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
@@ -1074,11 +1077,14 @@ function MoneyRequestConfirmationList({
         {
             item: (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8, styles.optionRow]}>
-                    <Text color={!iouIsBillable ? theme.textSupporting : undefined}>{translate('common.billable')}</Text>
-                    <Switch
-                        accessibilityLabel={translate('common.billable')}
-                        isOn={iouIsBillable}
+                    <ToggleSettingOptionRow
+                        switchAccessibilityLabel={translate('common.billable')}
+                        title={translate('common.billable')}
                         onToggle={(isOn) => onToggleBillable?.(isOn)}
+                        isActive={iouIsBillable}
+                        disabled={isReadOnly}
+                        titleStyle={!iouIsBillable && {color: theme.textSupporting}}
+                        wrapperStyle={styles.flex1}
                     />
                 </View>
             ),

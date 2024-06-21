@@ -273,7 +273,6 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
-        weMightHaveProblem: 'We might have a problem. Check out ',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
         areYouSure: 'Are you sure?',
@@ -340,6 +339,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        disable: 'Disable',
     },
     location: {
         useCurrent: 'Use current location',
@@ -627,6 +627,10 @@ export default {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
@@ -1019,7 +1023,6 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
-        disable: 'Disable',
     },
     recoveryCodeForm: {
         error: {
@@ -1397,6 +1400,7 @@ export default {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
+        getStarted: 'Get started',
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
         purpose: {
@@ -2000,7 +2004,7 @@ export default {
             exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             preferredExporter: 'Preferred exporter',
-            date: 'Date',
+            date: 'Export date',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportInvoices: 'Export invoices to',
             exportCompany: 'Export company cards as',
@@ -2256,6 +2260,8 @@ export default {
         reportFields: {
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            disableReportFields: 'Disable report fields',
+            disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
         tags: {
             tagName: 'Tag name',
@@ -3210,6 +3216,13 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        billingBanner: {
+            preTrial: {
+                title: 'Start a free trial',
+                subtitle: 'To get started, ',
+                subtitleLink: 'complete your setup checklist here',
+            },
+        },
         cardSection: {
             title: 'Payment',
             subtitle: 'Add a payment card to pay for your Expensify subscription.',
@@ -3293,8 +3306,8 @@ export default {
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
-            whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
-            renewsOn: ({date}) => `Renews on ${date}`,
+            whatsMainReason: "What's the main reason you're disabling auto-renew?",
+            renewsOn: ({date}) => `Renews on ${date}.`,
         },
     },
     feedbackSurvey: {
@@ -3302,5 +3315,7 @@ export default {
         tooExpensive: 'Too expensive',
         inadequateSupport: 'Inadequate customer support',
         businessClosing: 'Company closing, downsizing, or acquired',
+        additionalInfoTitle: 'What software are you moving to and why?',
+        additionalInfoInputLabel: 'Your response',
     },
 } satisfies TranslationBase;
