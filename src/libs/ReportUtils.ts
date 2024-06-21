@@ -5352,8 +5352,7 @@ function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxC
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very spimport { XeroSquare } from '@assets/images/integrationicons/xero-icon-square.svg';
-ecific minority of reports.
+ * filter out the majority of reports before filtering out very specific minority of reports.
  */
 function shouldReportBeInOptionList({
     report,
