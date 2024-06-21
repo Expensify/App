@@ -335,6 +335,34 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
+let allReportsDraft: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportsDraft = value),
+});
+
+/**
+ * Get the report or draft report given a reportID
+ */
+function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
+    if (!allReports && !allReportsDraft) {
+        return undefined;
+    }
+
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+
+    return report ?? draftReport;
+}
+
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
@@ -533,7 +561,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
         !report?.parentReportID || !report?.parentReportActionID ? undefined : allReportActions?.[report.parentReportID ?? '-1']?.[report.parentReportActionID ?? '-1'];
 
     if (ReportActionUtils.wasActionTakenByCurrentUser(parentReportAction) && ReportActionUtils.isTransactionThread(parentReportAction)) {
-        const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage?.IOUTransactionID : null;
+        const transactionID = ReportActionUtils.isMoneyRequestAction(parentReportAction) ? ReportActionUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID : null;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (TransactionUtils.hasMissingSmartscanFields(transaction ?? null) && !ReportUtils.isSettled(transaction?.reportID)) {
             reportActionErrors.smartscan = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
@@ -577,7 +605,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
-    const report = ReportUtils.getReport(option.reportID);
+    const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = ReportUtils.isAdminRoom(report);
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
 
@@ -634,7 +662,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
 
     if (ReportUtils.isArchivedRoom(report)) {
         const archiveReason =
-            (lastOriginalReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED && lastOriginalReportAction?.originalMessage?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (ReportActionUtils.isClosedAction(lastOriginalReportAction) && ReportActionUtils.getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
@@ -653,9 +682,9 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        const iouReport = getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '-1']?.find(
-            (reportAction, key) =>
+            (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 ReportActionUtils.isMoneyRequestAction(reportAction),
@@ -832,7 +861,7 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    const report = ReportUtils.getReport(participant.reportID);
+    const report = getReportOrDraftReport(participant.reportID);
     const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
@@ -866,7 +895,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
-    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)

@@ -126,7 +126,7 @@ function createTaskAndNavigate(
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTimeWithSkew();
-    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0]?.text ?? '');
+    const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
     const optimisticParentReport = {
         lastVisibleActionCreated: optimisticAddCommentReport.reportAction.created,
         lastMessageText: lastCommentText,
@@ -1000,7 +1000,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+    if (!ReportUtils.canWriteInReport(taskReport)) {
         return false;
     }
 
@@ -1008,7 +1008,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 function clearTaskErrors(reportID: string) {
-    const report = ReportUtils.getReport(reportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
