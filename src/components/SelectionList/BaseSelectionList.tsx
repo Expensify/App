@@ -110,7 +110,6 @@ function BaseSelectionList<TItem extends ListItem>(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
-    const isEmptyList = sections.length === 0;
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -460,6 +459,16 @@ function BaseSelectionList<TItem extends ListItem>(
         );
     };
 
+    const renderListEmptyContent = () => {
+        if (showLoadingPlaceholder) {
+            return <OptionsListSkeletonView shouldAnimate />;
+        }
+        if (!textInputValue && !showLoadingPlaceholder && !!listEmptyContent) {
+            return listEmptyContent;
+        }
+        return null;
+    };
+
     const scrollToFocusedIndexOnFirstRender = useCallback(
         (nativeEvent: LayoutChangeEvent) => {
             if (shouldUseDynamicMaxToRenderPerBatch) {
@@ -679,8 +688,8 @@ function BaseSelectionList<TItem extends ListItem>(
                         </View>
                     )}
                     {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldAnimate />
+                    {flattenedSections.allOptions.length === 0 ? (
+                        renderListEmptyContent()
                     ) : (
                         <>
                             {!listHeaderContent && header()}
@@ -715,9 +724,6 @@ function BaseSelectionList<TItem extends ListItem>(
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                 ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                ListEmptyComponent={listEmptyContent}
-                                contentContainerStyle={isEmptyList && listEmptyContent ? styles.flexGrow1 : undefined}
-                                scrollEnabled={!isEmptyList || !listEmptyContent}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />
