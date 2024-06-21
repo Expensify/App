@@ -57,6 +57,7 @@ import type {Message, ReportActionBase, ReportActions, ReportPreviewAction} from
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
@@ -81,6 +82,7 @@ import * as PolicyUtils from './PolicyUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import StringUtils from './StringUtils';
+import * as SubscriptionUtils from './SubscriptionUtils';
 import * as TransactionUtils from './TransactionUtils';
 import * as Url from './Url';
 import type {AvatarSource} from './UserUtils';
@@ -1034,12 +1036,15 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
 
+/**
+ * Only returns true if this is the Expensify DM report.
+ */
 function isSystemChat(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
 }
 
 /**
- * Only returns true if this is our main 1:1 DM report with Concierge
+ * Only returns true if this is our main 1:1 DM report with Concierge.
  */
 function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {})
@@ -2269,6 +2274,7 @@ function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): bo
  *  - is unread and the user was mentioned in one of the unread comments
  *  - is for an outstanding task waiting on the user
  *  - has an outstanding child expense that is waiting for an action from the current user (e.g. pay, approve, add bank account)
+ *  - is either the system or concierge chat, the user free trial has ended and it didn't add a payment card yet
  *
  * @param option (report or optionItem)
  * @param parentReportAction (the report action the current report is a thread of)
@@ -2296,6 +2302,10 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
     if (optionOrReport.hasOutstandingChildRequest) {
+        return true;
+    }
+
+    if (isChatUsedForOnboarding(optionOrReport) && SubscriptionUtils.hasUserFreeTrialEnded() && !SubscriptionUtils.doesUserHavePaymentCardAdded()) {
         return true;
     }
 
@@ -6935,6 +6945,20 @@ function shouldShowMerchantColumn(transactions: Transaction[]) {
     return transactions.some((transaction) => isExpenseReport(allReports?.[transaction.reportID] ?? null));
 }
 
+/**
+ * Whether the report is a system chat or concierge chat, depending on the user's account ID.
+ */
+function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
+    return AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? -1) ? isSystemChat(report) : isConciergeChatReport(report);
+}
+
+/**
+ * Get the report (system or concierge chat) used for the user's onboarding process.
+ */
+function getChatUsedForOnboarding(): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7206,6 +7230,8 @@ export {
     isDraftReport,
     changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
+    isChatUsedForOnboarding,
+    getChatUsedForOnboarding,
 };
 
 export type {
