@@ -3220,11 +3220,18 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        badge: {
+            trial: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
+        },
         billingBanner: {
             preTrial: {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',
                 subtitleLink: 'complete your setup checklist here',
+            },
+            trial: {
+                title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card below to continue using all of your favorite features.',
             },
         },
         cardSection: {
