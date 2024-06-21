@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -40,25 +40,6 @@ function CardSection() {
 
     const BillingBanner = <PreTrialBillingBanner />;
 
-    useEffect(() => {
-        Onyx.merge(ONYXKEYS.FUND_LIST, [
-            {
-                accountData: {
-                    cardMonth: 11,
-
-                    cardNumber: '1234',
-
-                    cardYear: 2026,
-
-                    currency: 'USD',
-
-                    addressName: 'John Doe',
-                },
-                isDefault: true,
-            },
-        ]);
-    }, [fundList]);
-
     return (
         <>
             <Section
@@ -93,7 +74,7 @@ function CardSection() {
                     )}
                     {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
                 </View>
-                {!isEmptyObject(defaultCard?.accountData && plan) && (
+                {!isEmptyObject(defaultCard?.accountData && plan && isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
                         icon={Expensicons.Bill}
@@ -107,23 +88,25 @@ function CardSection() {
                 )}
             </Section>
 
-            <ConfirmModal
-                title={translate('subscription.cardSection.requestRefund')}
-                isVisible={isRequestRefundModalVisible}
-                onConfirm={requestRefund}
-                onCancel={() => {
-                    setIsRequestRefundModalVisible(false);
-                }}
-                prompt={
-                    <>
-                        <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
-                        <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
-                    </>
-                }
-                confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
+            {isEligibleForRefund && (
+                <ConfirmModal
+                    title={translate('subscription.cardSection.requestRefund')}
+                    isVisible={isRequestRefundModalVisible}
+                    onConfirm={requestRefund}
+                    onCancel={() => {
+                        setIsRequestRefundModalVisible(false);
+                    }}
+                    prompt={
+                        <>
+                            <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
+                            <Text>{translate('subscription.cardSection.requestRefundModal.phrase2')}</Text>
+                        </>
+                    }
+                    confirmText={translate('subscription.cardSection.requestRefundModal.confirm')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            )}
         </>
     );
 }
