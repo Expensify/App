@@ -1,5 +1,5 @@
 import {deepEqual, shallowEqual} from 'fast-equals';
-import {DEFAULT_OPTIONS} from './const';
+import DEFAULT_OPTIONS from './const';
 import type {CacheOpts, ClientOptions, Options} from './types';
 
 function getEqualityComparator(opts: CacheOpts) {

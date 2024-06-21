@@ -7,5 +7,4 @@ const DEFAULT_OPTIONS = {
     cache: 'array',
 } satisfies Options;
 
-// eslint-disable-next-line import/prefer-default-export
-export {DEFAULT_OPTIONS};
+export default DEFAULT_OPTIONS;
