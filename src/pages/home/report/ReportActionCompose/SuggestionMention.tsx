@@ -317,8 +317,8 @@ function SuggestionMention(
     );
 
     const calculateMentionSuggestion = useCallback(
-        (selectionEnd?: number) => {
-            if (!selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
+        (selectionStart?: number, selectionEnd?: number) => {
+            if (selectionEnd !== selectionStart || !selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -384,7 +384,7 @@ function SuggestionMention(
     );
 
     useEffect(() => {
-        calculateMentionSuggestion(selection.end);
+        calculateMentionSuggestion(selection.start, selection.end);
     }, [selection, calculateMentionSuggestion]);
 
     useEffect(() => {
