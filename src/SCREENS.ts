@@ -267,6 +267,7 @@ const SCREENS = {
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
+        EXPENSIFY_CARD: 'Workspace_Expensify_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',

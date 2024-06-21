@@ -752,6 +752,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
+                [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+                    path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
+                },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
                 },

@@ -18,6 +18,7 @@ type Screens = Partial<Record<keyof FullScreenNavigatorParamList, () => React.Co
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require('../../../../pages/workspace/WorkspaceProfilePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.CARD]: () => require('../../../../pages/workspace/card/WorkspaceCardPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: () => require('../../../../pages/workspace/expensifyCard/WorkspaceCardPageFree').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS]: () => require('../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.REIMBURSE]: () => require('../../../../pages/workspace/reimburse/WorkspaceReimbursePage').default as React.ComponentType,
     [SCREENS.WORKSPACE.BILLS]: () => require('../../../../pages/workspace/bills/WorkspaceBillsPage').default as React.ComponentType,

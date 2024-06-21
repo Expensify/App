@@ -619,6 +619,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/card` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD: {
+        route: 'settings/workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    },
     WORKSPACE_REIMBURSE: {
         route: 'settings/workspaces/:policyID/reimburse',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reimburse` as const,

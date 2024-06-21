@@ -1939,6 +1939,7 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            expensifyCard: 'Expensify Card',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2180,6 +2181,9 @@ export default {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+        },
+        expensifyCard: {
+            issueCard: 'Issue card',
         },
         categories: {
             deleteCategories: 'Delete categories',

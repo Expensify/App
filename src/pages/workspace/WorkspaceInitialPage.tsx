@@ -62,7 +62,8 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.TAXES
         | typeof SCREENS.WORKSPACE.MORE_FEATURES
         | typeof SCREENS.WORKSPACE.PROFILE
-        | typeof SCREENS.WORKSPACE.MEMBERS;
+        | typeof SCREENS.WORKSPACE.MEMBERS
+        | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -266,6 +267,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+        });
+    }
+
+    // TODO: replace with a check of enabled feature:  if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
+    if (true) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.expensifyCard',
+            icon: Expensicons.CreditCard,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
         });
     }
 
