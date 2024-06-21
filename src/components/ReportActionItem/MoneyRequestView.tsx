@@ -154,7 +154,7 @@ function MoneyRequestView({
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditTaxFields = canEdit && !isDistanceRequest;
 
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -630,7 +630,8 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         transaction: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+                const originalMessage =
+                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? -1;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
@@ -638,7 +639,8 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         transactionViolations: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+                const originalMessage =
+                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? -1;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },
