@@ -526,8 +526,8 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearConnectionErrorField(policyID: string, connectionName: ConnectionName, fieldName: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {[connectionName]: {config: {errorFields: {[fieldName]: null}}}}});
+function clearNetSuiteErrorField(policyID: string, connectionName: ConnectionName, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {[connectionName]: {options: {config: {errorFields: {[fieldName]: null}}}}}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
@@ -2990,7 +2990,7 @@ export {
     createDraftWorkspace,
     buildPolicyData,
     createPolicyExpenseChats,
-    clearConnectionErrorField,
+    clearNetSuiteErrorField,
 };
 
 export type {NewCustomUnit};

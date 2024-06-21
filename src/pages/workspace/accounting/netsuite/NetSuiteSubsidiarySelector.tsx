@@ -73,9 +73,10 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
                 errorRowStyles={[styles.ph5, styles.mt2]}
-                onClose={() => Policy.clearConnectionErrorField(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
+                onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
             >
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
+            </OfflineWithFeedback>
                 <SelectionList
                     containerStyle={styles.pb0}
                     ListItem={RadioListItem}
@@ -85,7 +86,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
                     initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
                     isNestedInsideScrollView
                 />
-            </OfflineWithFeedback>
+            
         </ConnectionLayout>
     );
 }
