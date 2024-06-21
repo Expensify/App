@@ -220,7 +220,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (policy && connectedIntegration && isPolicyAdmin) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
-                translationKey: 'workspace.accounting.export',
+                translationKey: 'common.export',
                 icon: Expensicons.Upload,
                 isAnonymousAction: false,
                 action: () => {

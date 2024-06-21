@@ -339,6 +339,8 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        export: 'Export',
+        markAsExported: 'Mark as exported',
     },
     location: {
         useCurrent: 'Use current location',

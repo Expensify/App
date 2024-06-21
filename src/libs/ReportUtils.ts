@@ -9,7 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {FallbackAvatar, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -5309,7 +5309,8 @@ function hasWarningTypeViolations(reportID: string, transactionViolations: OnyxC
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very specific minority of reports.
+ * filter out the majority of reports before filtering out very spimport { XeroSquare } from '@assets/images/integrationicons/xero-icon-square.svg';
+ecific minority of reports.
  */
 function shouldReportBeInOptionList({
     report,
@@ -6967,6 +6968,18 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
+function getIntegrationIcon(integrationName: string) {
+    return XeroSquare;
+}
+
+function canBeExported(report: OnyxEntry<Report>) {
+    return true;
+}
+
+function isExported(report: OnyxEntry<Report>) {
+    return false;
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7240,6 +7253,9 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    getIntegrationIcon,
+    canBeExported,
+    isExported,
 };
 
 export type {

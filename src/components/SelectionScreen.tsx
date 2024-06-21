@@ -16,6 +16,8 @@ import type UserListItem from './SelectionList/UserListItem';
 
 type SelectorType = ListItem & {
     value: string;
+
+    onPress?: () => void;
 };
 
 type SelectionScreenProps = {
@@ -82,6 +84,7 @@ function SelectionScreen({
 
     const policy = PolicyUtils.getPolicy(policyID ?? '');
     const isConnectionEmpty = isEmpty(policy.connections?.[connectionName]);
+    console.log('policy', policy, 'isConnectionEmpty', isConnectionEmpty, 'policy.connections?', policy.connections, 'connectionName', connectionName);
 
     return (
         <AccessOrNotFoundWrapper
