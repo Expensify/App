@@ -1,8 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
@@ -28,11 +29,13 @@ import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {TransactionDetails} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import * as IOU from '@userActions/IOU';
+import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -98,6 +101,8 @@ function MoneyRequestView({
     const session = useSession();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'] ?? null;
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
@@ -115,7 +120,7 @@ function MoneyRequestView({
         originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         cardID: transactionCardID,
-    } = ReportUtils.getTransactionDetails(transaction) ?? {};
+    } = useMemo<Partial<TransactionDetails>>(() => ReportUtils.getTransactionDetails(transaction) ?? {}, [transaction]);
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
@@ -136,7 +141,7 @@ function MoneyRequestView({
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
     // Used for non-restricted fields such as: description, category, tag, billable, etc.
-    const canEdit = ReportUtils.canEditMoneyRequest(parentReportAction);
+    const canEdit = ReportActionsUtils.isMoneyRequestAction(parentReportAction) && ReportUtils.canEditMoneyRequest(parentReportAction);
     const canEditTaxFields = canEdit && !isDistanceRequest;
 
     const canEditAmount = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT);
@@ -168,6 +173,8 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest);
+    const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
+    const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -327,7 +334,7 @@ function MoneyRequestView({
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
-    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt) && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
         ...(transaction?.errorFields?.route ?? transaction?.errors),
@@ -544,6 +551,15 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
+                {shouldShowViewTripDetails && (
+                    <MenuItem
+                        title={translate('travel.viewTripDetails')}
+                        icon={Expensicons.Suitcase}
+                        iconRight={Expensicons.NewWindow}
+                        shouldShowRightIcon
+                        onPress={() => Link.openTravelDotLink(activePolicyID, CONST.TRIP_ID_PATH(tripID))}
+                    />
+                )}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
@@ -598,7 +614,8 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         transaction: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+                const originalMessage =
+                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? -1;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
             },
@@ -606,7 +623,8 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         transactionViolations: {
             key: ({report, parentReportActions}) => {
                 const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
-                const originalMessage = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage : undefined;
+                const originalMessage =
+                    parentReportAction && ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction) : undefined;
                 const transactionID = originalMessage?.IOUTransactionID ?? -1;
                 return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
             },

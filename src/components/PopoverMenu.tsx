@@ -217,7 +217,8 @@ function PopoverMenu({
                     {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                     {currentMenuItems.map((item, menuIndex) => (
                         <FocusableMenuItem
-                            key={item.text}
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={`${item.text}_${menuIndex}`}
                             icon={item.icon}
                             iconWidth={item.iconWidth}
                             iconHeight={item.iconHeight}
@@ -242,6 +243,10 @@ function PopoverMenu({
                             onFocus={() => setFocusedIndex(menuIndex)}
                             success={item.success}
                             containerStyle={item.containerStyle}
+                            shouldRenderTooltip={item.shouldRenderTooltip}
+                            shouldForceRenderingTooltipLeft={item.shouldForceRenderingTooltipLeft}
+                            tooltipWrapperStyle={item.tooltipWrapperStyle}
+                            renderTooltipContent={item.renderTooltipContent}
                         />
                     ))}
                 </View>

@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -27,6 +26,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -65,6 +65,9 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
+
+// video source -> video attributes
+const draftMessageVideoAttributeCache = new Map<string, string>();
 
 function ReportActionItemMessageEdit(
     {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
@@ -105,8 +108,11 @@ function ReportActionItemMessageEdit(
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        const parser = new ExpensiMark();
-        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
+        draftMessageVideoAttributeCache.clear();
+
+        const originalMessage = parseHtmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), undefined, undefined, (videoSource, attrs) => {
+            draftMessageVideoAttributeCache.set(videoSource, attrs);
+        });
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
@@ -297,7 +303,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
