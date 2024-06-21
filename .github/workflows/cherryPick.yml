@@ -56,7 +56,7 @@ jobs:
 
       - name: Fetch history of relevant refs
         run: |
-          git fetch origin main staging --no-tags
+          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Get version bump commit
         id: getVersionBumpCommit

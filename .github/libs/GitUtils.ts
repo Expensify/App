@@ -53,9 +53,10 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise<string>((resolve, reject) => {
