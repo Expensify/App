@@ -3702,17 +3702,15 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
         return '';
     }
 
-    // we start with generic html in case no particular image or video source is matched
-    let attachmentHtml: string = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
-
     // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
     if (file.type?.startsWith('image')) {
-        attachmentHtml = `<img src="${file.source}" alt="${file.name}" data-optimistic-src="${file.source}" />`;
+        return `<img src="${file.source}" alt="${file.name}" data-optimistic-src="${file.source}" />`;
     } else if (file.type?.startsWith('video')) {
-        attachmentHtml = `<video><source src="${file.source}" type="video/mp4" data-optimistic-src="${file.source}" /></video>`;
+        return `<video src="${file.source}" data-optimistic-src="${file.source}">${file.name}</video>`;
+    } else {
+        // For all other types, a generic preview or message is presented. If applicable, a document preview is generated on the backend.
+        return CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
     }
-
-    return `<br /><br />${attachmentHtml}`;
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -3743,7 +3741,7 @@ function buildOptimisticAddCommentReportAction(
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
 
     const attachmentHtml = getUploadingAttachmentHtml(file);
-    const htmlForNewComment = `${commentText}${attachmentHtml}`;
+    const htmlForNewComment = `${commentText}${attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
 
     return {
