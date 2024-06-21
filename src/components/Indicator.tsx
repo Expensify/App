@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +55,7 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
         () => Object.values(cleanPolicies).some(PolicyUtils.hasPolicyError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasCustomUnitsError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasEmployeeListError),
+        () => SubscriptionUtils.hasSubscriptionRedDotError(),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         () => !!loginList && UserUtils.hasLoginListError(loginList),
 
@@ -62,7 +64,7 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
     ];
     const infoCheckingMethods: CheckingMethod[] = [() => !!loginList && UserUtils.hasLoginListInfo(loginList)];
     const shouldShowErrorIndicator = errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
-    const shouldShowInfoIndicator = !shouldShowErrorIndicator && infoCheckingMethods.some((infoCheckingMethod) => infoCheckingMethod());
+    const shouldShowInfoIndicator = !shouldShowErrorIndicator && (infoCheckingMethods.some((infoCheckingMethod) => infoCheckingMethod()) || SubscriptionUtils.hasSubscriptionGreenDotInfo());
 
     const indicatorColor = shouldShowErrorIndicator ? theme.danger : theme.success;
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];

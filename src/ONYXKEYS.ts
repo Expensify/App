@@ -157,6 +157,18 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
+    /** Store the amount of owed money */
+    NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
+
+    /** Store the stripe id status */
+    NVP_PRIVATE_STRIPE_CUSTOMER_ID: 'nvp_private_stripeCustomerID',
+
+    /** Store the billing dispute status */
+    NVP_PRIVATE_BILLING_DISPUTE_PENDING: 'nvp_private_billingDisputePending',
+
+    /** Store the billing status */
+    NVP_PRIVATE_BILLING_STATUS: 'nvp_private_billingStatus',
+
     /** Store retry billing successful status */
     SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL: 'subscriptionRetryBillingStatusSuccessful',
 
@@ -344,6 +356,12 @@ const ONYXKEYS = {
 
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
+
+    /** Indicates whether ClearOutstandingBalance failed */
+    SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED: 'subscriptionRetryBillingStatusFailed',
+
+    /** Indicates whether ClearOutstandingBalance was successful */
+    SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL: 'subscriptionRetryBillingStatusSuccessful',
 
     /** Collection Keys */
     COLLECTION: {
@@ -678,6 +696,20 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
+    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
+    [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: {
+        paymentMethodID: string;
+        intentsID: string;
+        currency: string;
+        status: 'authentication_required' | 'intent_required' | 'succeeded';
+    };
+    [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: number;
+    [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: {
+        action: string;
+        periodMonth: string;
+        periodYear: string;
+        declineReason: 'insufficient_funds' | 'expired_card';
+    };
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
@@ -727,6 +759,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
+    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
+    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;

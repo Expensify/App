@@ -3217,11 +3217,25 @@ export default {
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         billingBanner: {
-            preTrial: {
-                title: 'Start a free trial',
-                subtitle: 'To get started, ',
-                subtitleLink: 'complete your setup checklist here',
-            },
+            outdatedInfo: 'Your payment info is outdated',
+            updatePaymentInformation: 'Please update your payment information.',
+            updateCardDataByDate: ({date}) => `Update your payment card by ${date} to continue using all of your favorite features.`,
+            paymentPastDuePayByDate: ({date}) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption`,
+            paymentPastDue: 'Your payment is past due. Please pay your invoice.',
+            cardCouldNotBeCharged: 'Your card couldn’t be charged',
+            retryMessage: 'Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card.',
+            cardNotFullyAuthenticated: ({cardEnding}) =>
+                `Your payment card hasn’t been fully authenticated. Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
+            cardDeclinedDueToInsufficientFunds: ({amountOwed}) =>
+                `Your payment card was declined due to insufficient funds. Please retry or add a new payment card to clear your ${amountOwed} outstanding balance.`,
+            cardExpired: ({amountOwed}) => `Your payment card expired. Please add a new payment card to clear your ${amountOwed} outstanding balance.`,
+            cardExpiringSoon: 'Your card is expiring soon',
+            cardWillExpireAtTheEndOfMonth:
+                'Your payment card will expire at the end of this month. Click the three-dot menu below to update it and continue using all your favorite features.',
+            cardOnDispute: ({amountOwed, cardEnding}) =>
+                `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
+            succeeded: 'Success!',
+            billedSuccessfully: 'Your card has been  billed successfully.',
         },
         cardSection: {
             title: 'Payment',

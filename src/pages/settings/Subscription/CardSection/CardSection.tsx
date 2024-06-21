@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Section from '@components/Section';
@@ -9,25 +8,30 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
+import BillingBanner from './BillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import CardSectionUtils from './utils';
 
 function CardSection() {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [retryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {initWithStoredValues: false});
     const [retryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
 
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
+    const defaultCard = CardSectionUtils.getCardForSubscriptionBilling();
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const BillingBanner = <PreTrialBillingBanner />;
+    const {title, subtitle, isError, shouldShowRedDotIndicator, shouldShowGreenDotIndicator} = CardSectionUtils.getBillingStatus(
+        translate,
+        preferredLocale,
+        defaultCard?.accountData?.cardNumber ?? '',
+    );
+
+    const shouldShowBanner = !!title || !!subtitle;
 
     return (
         <Section
@@ -36,7 +40,17 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={BillingBanner}
+            banner={
+                shouldShowBanner && (
+                    <BillingBanner
+                        title={title}
+                        subtitle={subtitle}
+                        isError={isError}
+                        shouldShowRedDotIndicator={shouldShowRedDotIndicator}
+                        shouldShowGreenDotIndicator={shouldShowGreenDotIndicator}
+                    />
+                )
+            }
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
