@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
@@ -59,11 +60,11 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? '-1';
     const {translate} = useLocalize();
     const theme = useTheme();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
-    const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
+    const participantAccountIDs = ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction)?.participantAccountIDs ?? [] : [];
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -94,7 +95,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(
-        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? 0, session?.email ?? ''),
+        () => IOU.completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? -1, session?.email ?? ''),
         [reportID, reportAction, draftTransaction, session?.accountID, session?.email],
     );
 
@@ -158,16 +159,16 @@ const WrappedComponent = withOnyx<SplitBillDetailsPageProps, SplitBillDetailsPag
     transaction: {
         key: ({route, reportActions}) => {
             const reportAction = reportActions?.[route.params.reportActionID];
-            const IOUTransactionID =
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
+            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`;
         },
     },
     draftTransaction: {
         key: ({route, reportActions}) => {
             const reportAction = reportActions?.[route.params.reportActionID];
-            const IOUTransactionID =
-                reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && reportAction?.originalMessage?.IOUTransactionID ? reportAction.originalMessage.IOUTransactionID : 0;
+            const originalMessage = reportAction && ReportActionsUtils.isMoneyRequestAction(reportAction) ? ReportActionsUtils.getOriginalMessage(reportAction) : undefined;
+            const IOUTransactionID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && originalMessage?.IOUTransactionID ? originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${IOUTransactionID}`;
         },
     },

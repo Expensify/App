@@ -2,10 +2,8 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -16,7 +14,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,17 +22,14 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
 function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? '-1';
     const styles = useThemeStyles();
-    const isGroupChat = ReportUtils.isGroupChat(report);
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
+    const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID), [policies, report?.policyID]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
-    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !ReportUtils.isInvoiceRoom(report);
     const notificationPreference =
         report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
             ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
@@ -47,8 +41,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.getReportName(report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -67,39 +59,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             description={translate('notificationPreferencesPage.label')}
                             onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID))}
                         />
-                    )}
-                    {shouldShowRoomName && (
-                        <OfflineWithFeedback
-                            pendingAction={report?.pendingFields?.reportName}
-                            errors={report?.errorFields?.reportName}
-                            errorRowStyles={[styles.ph5]}
-                            onClose={() => ReportActions.clearPolicyRoomNameErrors(reportID)}
-                        >
-                            {shouldDisableRename ? (
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {roomNameLabel}
-                                    </Text>
-                                    <DisplayNames
-                                        fullTitle={reportName ?? ''}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                        textStyles={[styles.optionAlternateText, styles.pre]}
-                                        shouldUseFullTitle
-                                    />
-                                </View>
-                            ) : (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={report?.reportName === '' ? reportName : report?.reportName}
-                                    description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(reportID))}
-                                />
-                            )}
-                        </OfflineWithFeedback>
                     )}
                     {shouldShowWriteCapability &&
                         (shouldAllowWriteCapabilityEditing ? (
@@ -125,25 +84,6 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 </Text>
                             </View>
                         ))}
-                    <View style={[styles.ph5]}>
-                        {linkedWorkspace !== null && (
-                            <View style={[styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {translate('workspace.common.workspace')}
-                                </Text>
-                                <DisplayNames
-                                    fullTitle={linkedWorkspace.name}
-                                    tooltipEnabled
-                                    numberOfLines={1}
-                                    textStyles={[styles.optionAlternateText, styles.pre]}
-                                    shouldUseFullTitle
-                                />
-                            </View>
-                        )}
-                    </View>
                     {!!report?.visibility &&
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
