@@ -3169,6 +3169,9 @@ export default {
         taxRequired: 'Missing tax rate',
         hold: 'Hold',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marked this receipt as cash.',

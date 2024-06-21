@@ -30,6 +30,8 @@ import type {
     ReportAction,
     ReportMetadata,
     ReportNameValuePairs,
+    ReportViolation,
+    ReportViolations,
     Session,
     Task,
     Transaction,
@@ -6984,6 +6986,27 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
+function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolation | undefined {
+    if (!violations) {
+        return undefined;
+    }
+
+    return Object.values(CONST.REPORT_VIOLATIONS).find((v) => !!violations[v] && violations[v].includes(reportField.fieldID));
+}
+
+function getFieldViolationTranslation(violation: ReportViolation | undefined, reportField: PolicyReportField): string {
+    if (!violation) {
+        return '';
+    }
+
+    switch (violation) {
+        case 'fieldRequired':
+            return Localize.translateLocal('reportViolations.fieldRequired', reportField.name);
+        default:
+            return '';
+    }
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7258,6 +7281,8 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    getFieldViolationTranslation,
+    getFieldViolation,
 };
 
 export type {

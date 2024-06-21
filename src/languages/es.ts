@@ -3673,6 +3673,9 @@ export default {
         taxRequired: 'Falta la tasa de impuesto',
         hold: 'Bloqueada',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} es obligatorio.`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',

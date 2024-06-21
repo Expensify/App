@@ -3727,6 +3727,10 @@ const CONST = {
         HOLD: 'hold',
     },
 
+    REPORT_VIOLATIONS: {
+        FIELD_REQUIRED: 'fieldRequired',
+    },
+
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',
