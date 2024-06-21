@@ -69,7 +69,7 @@ function CardSection() {
                 subtitleMuted
                 banner={BillingBanner}
             >
-                <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
+                <View style={[styles.mt8, styles.flexRow]}>
                     {!isEmptyObject(defaultCard?.accountData) && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <Icon
