@@ -1,3 +1,4 @@
+import {getUnixTime} from 'date-fns';
 import {isEqual} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
@@ -313,7 +314,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     optimisticData.push(...optimisticDataTransactionViolations);
     optimisticData.push(...optimisticReportActions);
-
+    console.log('dsda', getUnixTime(new Date()));
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -323,7 +324,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
                 ...transaction.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
-                        [dissmissedPersonalDetails.login ?? '']: dissmissedPersonalDetails.accountID,
+                        [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
                     },
                 },
             },
