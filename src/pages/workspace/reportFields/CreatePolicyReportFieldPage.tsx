@@ -125,6 +125,7 @@ function CreatePolicyReportFieldPage({
                                 <MenuItemWithTopDescription
                                     title={translate('common.currentDate')}
                                     description={translate('common.date')}
+                                    rightLabel={translate('common.required')}
                                     interactive={false}
                                 />
                             )}
