@@ -2,25 +2,35 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {TransactionListItemType} from '@components/SelectionList/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type {SearchAccountDetails} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import ActionCell from './ActionCell';
 import UserInfoCell from './UserInfoCell';
 
 type ExpenseItemHeaderNarrowProps = {
-    transactionItem: TransactionListItemType;
     participantFrom: SearchAccountDetails;
     participantTo: SearchAccountDetails;
     participantFromDisplayName: string;
     participantToDisplayName: string;
+    action: SearchTransactionAction;
+    transactionIDs: string[];
+    searchHash: number;
     onButtonPress: () => void;
 };
 
-function ExpenseItemHeaderNarrow({transactionItem, participantFrom, participantFromDisplayName, participantTo, participantToDisplayName, onButtonPress}: ExpenseItemHeaderNarrowProps) {
+function ExpenseItemHeaderNarrow({
+    participantFrom,
+    participantFromDisplayName,
+    participantTo,
+    participantToDisplayName,
+    action,
+    transactionIDs,
+    searchHash,
+    onButtonPress,
+}: ExpenseItemHeaderNarrowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -49,7 +59,9 @@ function ExpenseItemHeaderNarrow({transactionItem, participantFrom, participantF
             </View>
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
-                    transactionItem={transactionItem}
+                    action={action}
+                    transactionIDs={transactionIDs}
+                    searchHash={searchHash}
                     goToItem={onButtonPress}
                 />
             </View>

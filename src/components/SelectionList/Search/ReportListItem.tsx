@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -14,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getSearchParams} from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
@@ -29,10 +29,6 @@ type ReportCellProps = {
     reportItem: ReportListItemType;
 } & CellProps;
 
-type ActionCellProps = {
-    onButtonPress: () => void;
-} & CellProps;
-
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
     const styles = useThemeStyles();
 
@@ -41,21 +37,6 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
-        />
-    );
-}
-
-function ActionCell({onButtonPress}: ActionCellProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-
-    return (
-        <Button
-            text={translate('common.view')}
-            onPress={onButtonPress}
-            small
-            pressOnEnter
-            style={[styles.w100]}
         />
     );
 }
@@ -124,6 +105,9 @@ function ReportListItem<TItem extends ListItem>({
         );
     }
 
+    // every child item comes from the same search hash, so it doesn't matter which one we use, we just need the hash
+    const {searchHash} = reportItem.transactions[0];
+
     return (
         <BaseListItem
             item={item}
@@ -146,11 +130,13 @@ function ReportListItem<TItem extends ListItem>({
             <View style={styles.flex1}>
                 {!isLargeScreenWidth && (
                     <ExpenseItemHeaderNarrow
-                        transactionItem={{action: 'view'}}
                         participantFrom={participantFrom}
                         participantFromDisplayName={participantFromDisplayName}
                         participantTo={participantTo}
                         participantToDisplayName={participantToDisplayName}
+                        action={reportItem.action ?? 'view'}
+                        transactionIDs={[]}
+                        searchHash={searchHash}
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
@@ -176,9 +162,10 @@ function ReportListItem<TItem extends ListItem>({
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
-                                    showTooltip={showTooltip}
-                                    isLargeScreenWidth={isLargeScreenWidth}
-                                    onButtonPress={handleOnButtonPress}
+                                    action={reportItem.action ?? 'view'}
+                                    transactionIDs={[]}
+                                    searchHash={searchHash}
+                                    goToItem={handleOnButtonPress}
                                 />
                             </View>
                         </>

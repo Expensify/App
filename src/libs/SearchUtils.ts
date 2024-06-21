@@ -24,6 +24,9 @@ import * as UserUtils from './UserUtils';
 
 type SortOrder = ValueOf<typeof CONST.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH_TABLE_COLUMNS>;
+type SearchDataContext = {
+    searchHash: number;
+};
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH_TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -121,7 +124,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     return false;
 }
 
-function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], context: SearchDataContext): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -147,6 +150,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                searchHash: context.searchHash,
                 shouldShowCategory: true,
                 shouldShowTag: true,
                 shouldShowTax: true,
@@ -156,7 +160,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): Transac
         });
 }
 
-function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListItemType[] {
+function getReportSections(data: OnyxTypes.SearchResults['data'], context: SearchDataContext): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -194,6 +198,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data']): ReportListIte
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                searchHash: context.searchHash,
                 shouldShowCategory: true,
                 shouldShowTag: true,
                 shouldShowTax: true,
@@ -229,8 +234,8 @@ function getListItem<K extends keyof SearchTypeToItemMap>(type: K): SearchTypeTo
     return searchTypeToItemMap[type].listItem;
 }
 
-function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.SearchResults['data'], type: K): ReturnType<SearchTypeToItemMap[K]['getSections']> {
-    return searchTypeToItemMap[type].getSections(data) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
+function getSections<K extends keyof SearchTypeToItemMap>(data: OnyxTypes.SearchResults['data'], type: K, context: SearchDataContext): ReturnType<SearchTypeToItemMap[K]['getSections']> {
+    return searchTypeToItemMap[type].getSections(data, context) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 
 function getSortedSections<K extends keyof SearchTypeToItemMap>(
@@ -278,20 +283,15 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
-function getTransactionActionCommand(action: Omit<SearchTransactionAction, 'view' | 'done' | 'paid'>): (searchHash: string, reportsAndAmounts: Record<string, number>) => void {
-    if (action === 'pay') {
-        return SearchActions.payMoneyRequest;
-    }
-
-    if (action === 'approve') {
-        return SearchActions.approveMoneyRequest;
-    }
-
+function getTransactionActionCommand(
+    action: Omit<SearchTransactionAction, 'view' | 'done' | 'paid'>,
+): ((searchHash: number, transactionIDList: string[], comment?: string) => void) | undefined {
     if (action === 'hold') {
-        return SearchActions.holdMoneyRequest;
+        return SearchActions.holdMoneyRequestOnSearch;
     }
-
-    return SearchActions.submitMoneyRequest;
+    if (action === 'unhold') {
+        return SearchActions.unholdMoneyRequestOnSearch;
+    }
 }
 
 function getSearchParams() {
@@ -300,4 +300,4 @@ function getSearchParams() {
 }
 
 export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getTransactionActionCommand, getSearchParams, shouldShowYear};
-export type {SearchColumnType, SortOrder};
+export type {SearchColumnType, SortOrder, SearchDataContext};

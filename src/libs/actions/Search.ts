@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -60,24 +60,59 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-// Todo finalize the action methods and api calls
-function payMoneyRequest(searchHash: string, reportsAndAmounts: Record<string, number>) {
-    const optimisticData = {
-        onyxMethod: 'merge',
-        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-        value: {isLoading: true},
-    };
-    const finallyData = {
-        onyxMethod: 'merge',
-        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-        value: {isLoading: false},
+function holdMoneyRequestOnSearch(searchHash: number, transactionIDList: string[], comment?: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {isLoading: true},
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {isLoading: false},
+        },
+    ];
+
+    const commandPayload = {
+        searchHash,
+        transactionIDList,
+        comment,
     };
 
-    API.write('Request', {paymentType, reportsAndAmounts}, {optimisticData, finallyData});
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, commandPayload, {optimisticData, finallyData});
 }
 
-function approveMoneyRequest() {}
-function holdMoneyRequest() {}
-function submitMoneyRequest() {}
+function unholdMoneyRequestOnSearch(searchHash: number, transactionIDList: string[]) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {isLoading: true},
+        },
+    ];
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {isLoading: false},
+        },
+    ];
 
-export {search, createTransactionThread, payMoneyRequest, approveMoneyRequest, holdMoneyRequest, submitMoneyRequest};
+    const commandPayload = {
+        searchHash,
+        transactionIDList,
+    };
+
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, commandPayload, {optimisticData, finallyData});
+}
+
+// These actions will be implemented at a later point
+// function payMoneyRequest() {}
+// function approveMoneyRequest() {}
+// function holdMoneyRequest() {}
+// function submitMoneyRequest() {}
+
+export {search, createTransactionThread, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};

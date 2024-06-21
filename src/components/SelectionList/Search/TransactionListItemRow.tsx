@@ -203,11 +203,13 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
             <View style={containerStyle}>
                 {showItemHeaderOnNarrowLayout && (
                     <ExpenseItemHeaderNarrow
-                        transactionItem={item}
                         participantFrom={item.from}
                         participantFromDisplayName={item.formattedFrom}
                         participantTo={item.to}
                         participantToDisplayName={item.formattedTo}
+                        action={item.action}
+                        transactionIDs={[item.transactionID]}
+                        searchHash={item.searchHash}
                         onButtonPress={onButtonPress}
                     />
                 )}
@@ -343,7 +345,9 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
-                        transactionItem={item}
+                        action={item.action}
+                        transactionIDs={[item.transactionID]}
+                        searchHash={item.searchHash}
                         goToItem={onButtonPress}
                     />
                 </View>

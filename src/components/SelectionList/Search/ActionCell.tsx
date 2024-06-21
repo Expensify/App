@@ -2,7 +2,6 @@ import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {TransactionListItemType} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -11,26 +10,23 @@ import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
     view: 'common.view',
-    // Todo add translation for Review
-    review: 'common.view',
+    review: 'common.view', // Todo fix translation
     done: 'common.done',
     paid: 'iou.settledExpensify',
-    approve: 'iou.approve',
-    pay: 'iou.pay',
-    submit: 'common.submit',
     hold: 'iou.hold',
+    unhold: 'iou.unholdExpense',
 };
 
 type ActionCellProps = {
-    transactionItem: TransactionListItemType;
+    action: SearchTransactionAction;
+    transactionIDs: string[];
+    searchHash: number;
     goToItem: () => void;
 };
 
-function ActionCell({transactionItem, goToItem}: ActionCellProps) {
+function ActionCell({action, transactionIDs, searchHash, goToItem}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const {action, amount} = transactionItem;
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -59,13 +55,16 @@ function ActionCell({transactionItem, goToItem}: ActionCellProps) {
     }
 
     const command = SearchUtils.getTransactionActionCommand(action);
-    const reportsAndAmounts = {[transactionItem.reportID ?? -1]: amount};
 
     return (
         <Button
             text={text}
             onPress={() => {
-                command('', reportsAndAmounts);
+                if (!command) {
+                    return;
+                }
+
+                command(searchHash, transactionIDs, '');
             }}
             small
             pressOnEnter
