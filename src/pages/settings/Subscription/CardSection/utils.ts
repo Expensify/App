@@ -136,7 +136,12 @@ function getCardForSubscriptionBilling(): Fund | undefined {
     return SubscriptionUtils.getCardForSubscriptionBilling();
 }
 
+function shouldShowPreTrialBillingBanner(): boolean {
+    return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
+}
+
 export default {
     getBillingStatus,
     getCardForSubscriptionBilling,
+    shouldShowPreTrialBillingBanner,
 };

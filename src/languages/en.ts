@@ -339,6 +339,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        disable: 'Disable',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1022,7 +1023,6 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
-        disable: 'Disable',
     },
     recoveryCodeForm: {
         error: {
@@ -1400,6 +1400,7 @@ export default {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
+        getStarted: 'Get started',
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
         purpose: {
@@ -2085,7 +2086,7 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
 
@@ -2259,6 +2260,8 @@ export default {
         reportFields: {
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            disableReportFields: 'Disable report fields',
+            disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
         tags: {
             tagName: 'Tag name',
@@ -3233,6 +3236,11 @@ export default {
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             succeeded: 'Success!',
             billedSuccessfully: 'Your card has been  billed successfully.',
+            preTrial: {
+                title: 'Start a free trial',
+                subtitle: 'To get started, ',
+                subtitleLink: 'complete your setup checklist here',
+            },
         },
         cardSection: {
             title: 'Payment',
