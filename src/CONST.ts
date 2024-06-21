@@ -1559,6 +1559,7 @@ const CONST = {
     },
 
     IOU: {
+        MAX_RECENT_REPORTS_TO_SHOW: 5,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -2130,6 +2131,8 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DELETE: 'delete',
+        MARK_AS_INCOMPLETE: 'markAsIncomplete',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3737,6 +3740,14 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+    },
+
+    PROMOTED_ACTIONS: {
+        PIN: 'pin',
+        SHARE: 'share',
+        JOIN: 'join',
+        MESSAGE: 'message',
+        HOLD: 'hold',
     },
 
     THUMBNAIL_IMAGE: {
