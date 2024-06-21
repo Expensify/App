@@ -39,6 +39,7 @@ type ActionCellProps = {
 } & CellProps;
 
 type TotalCellProps = {
+    // eslint-disable-next-line react/no-unused-prop-types
     isChildListItem: boolean;
 } & TransactionCellProps;
 
