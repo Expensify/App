@@ -25,8 +25,8 @@ function ExpenseItemHeaderNarrow({participantFrom, participantFromDisplayName, p
     const theme = useTheme();
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap2]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb4, styles.gap2]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flex1]}>
                 <View style={[styles.mw50]}>
                     <UserInfoCell
                         participant={participantFrom}
