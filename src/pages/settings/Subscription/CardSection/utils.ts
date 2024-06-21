@@ -1,4 +1,5 @@
 import {addMonths, format, startOfMonth} from 'date-fns';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 
 /**
@@ -14,4 +15,11 @@ function getNextBillingDate(): string {
     return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
-export default getNextBillingDate;
+function shouldShowPreTrialBillingBanner(): boolean {
+    return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
+}
+
+export default {
+    shouldShowPreTrialBillingBanner,
+    getNextBillingDate,
+};

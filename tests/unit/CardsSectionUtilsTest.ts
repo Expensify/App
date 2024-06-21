@@ -1,4 +1,4 @@
-import getNextBillingDate from '@src/pages/settings/Subscription/CardSection/utils';
+import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 
 describe('getNextBillingDate', () => {
     beforeAll(() => {
@@ -14,17 +14,17 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is valid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
     });
 
     it('should handle end-of-month edge cases correctly', () => {
-        const nextBillingDate = getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate();
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
 
     it('should handle date when it at the current month', () => {
-        const nextBillingDate = getNextBillingDate();
+        const nextBillingDate = CardSectionUtils.getNextBillingDate();
         const expectedNextBillingDate = 'August 1, 2024';
         expect(nextBillingDate).toBe(expectedNextBillingDate);
     });
@@ -32,6 +32,6 @@ describe('getNextBillingDate', () => {
     it('should return the next billing date when initial date is invalid', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
-        expect(getNextBillingDate()).toEqual(expectedNextBillingDate);
+        expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
     });
 });
