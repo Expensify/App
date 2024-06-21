@@ -267,6 +267,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
                           shouldShowDescriptionOnTop: true,
                           pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
+                          brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress: () => {
                               if (!(netSuiteSubsidiaryList.length > 1)) {
                                   return;
