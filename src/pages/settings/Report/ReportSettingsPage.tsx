@@ -25,7 +25,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOT>;
 
 function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
-    const reportID = report?.reportID ?? '';
+    const reportID = report?.reportID ?? '-1';
     const styles = useThemeStyles();
     const isGroupChat = ReportUtils.isGroupChat(report);
     const {translate} = useLocalize();
