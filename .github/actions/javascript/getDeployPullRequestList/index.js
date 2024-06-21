@@ -11635,13 +11635,97 @@ exports["default"] = CONST;
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
+const versionUpdater = __importStar(__nccwpck_require__(8982));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
+const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
+/**
+ * Check if a tag exists locally or in the remote.
+ */
+function tagExists(tag) {
+    try {
+        // Check if the tag exists locally
+        (0, child_process_1.execSync)(`git show-ref --tags ${tag}`, { stdio: 'ignore' });
+        return true; // Tag exists locally
+    }
+    catch (error) {
+        // Tag does not exist locally, check in remote
+        let shouldRetry = true;
+        let needsRepack = false;
+        let doesTagExist = false;
+        while (shouldRetry) {
+            try {
+                if (needsRepack) {
+                    // We have seen some scenarios where this fixes the git fetch.
+                    // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                    (0, child_process_1.execSync)('git repack -d', { stdio: 'inherit' });
+                }
+                (0, child_process_1.execSync)(`git ls-remote --exit-code --tags origin ${tag}`, { stdio: 'ignore' });
+                doesTagExist = true;
+                shouldRetry = false;
+            }
+            catch (e) {
+                if (!needsRepack) {
+                    console.log('Attempting to repack and retry...');
+                    needsRepack = true;
+                }
+                else {
+                    console.error("Repack didn't help, giving up...");
+                    shouldRetry = false;
+                }
+            }
+        }
+        return doesTagExist;
+    }
+}
+/**
+ * This essentially just calls getPreviousVersion in a loop, until it finds a version for which a tag exists.
+ * It's useful if we manually perform a version bump, because in that case a tag may not exist for the previous version.
+ *
+ * @param tag the current tag
+ * @param level the Semver level to step backward by
+ */
+function getPreviousExistingTag(tag, level) {
+    let previousVersion = versionUpdater.getPreviousVersion(tag, level);
+    let tagExistsForPreviousVersion = false;
+    while (!tagExistsForPreviousVersion) {
+        if (tagExists(previousVersion)) {
+            tagExistsForPreviousVersion = true;
+            break;
+        }
+        console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
+        previousVersion = versionUpdater.getPreviousVersion(previousVersion, level);
+    }
+    return previousVersion;
+}
 /**
  * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
  */
@@ -11684,9 +11768,10 @@ function fetchTag(tag, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
         let stdout = '';
@@ -11756,6 +11841,7 @@ async function getPullRequestsMergedBetween(fromTag, toTag) {
     return pullRequestNumbers;
 }
 exports["default"] = {
+    getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsMergedBetween,
 };
@@ -12255,6 +12341,111 @@ const sanitizeStringForJSONParse = (inputString) => {
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
 };
 exports["default"] = sanitizeStringForJSONParse;
+
+
+/***/ }),
+
+/***/ 8982:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
+};
+exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
+const MAX_INCREMENTS = 99;
+exports.MAX_INCREMENTS = MAX_INCREMENTS;
+function isValidSemverLevel(str) {
+    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
+}
+exports.isValidSemverLevel = isValidSemverLevel;
+/**
+ * Transforms a versions string into a number
+ */
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.split('-');
+    const [major, minor, patch] = version.split('.').map((n) => Number(n));
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
+};
+exports.getVersionNumberFromString = getVersionNumberFromString;
+/**
+ * Transforms version numbers components into a version string
+ */
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+exports.getVersionStringFromNumber = getVersionStringFromNumber;
+/**
+ * Increments a minor version
+ */
+const incrementMinor = (major, minor) => {
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
+};
+exports.incrementMinor = incrementMinor;
+/**
+ * Increments a Patch version
+ */
+const incrementPatch = (major, minor, patch) => {
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+    return incrementMinor(major, minor);
+};
+exports.incrementPatch = incrementPatch;
+/**
+ * Increments a build version
+ */
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        return incrementMinor(major, minor);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        return incrementPatch(major, minor, patch);
+    }
+    if (build < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+    return incrementPatch(major, minor, patch);
+};
+exports.incrementVersion = incrementVersion;
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+exports.getPreviousVersion = getPreviousVersion;
 
 
 /***/ }),
