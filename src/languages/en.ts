@@ -342,6 +342,8 @@ export default {
         finished: 'Finished',
         disable: 'Disable',
         initialValue: 'Initial value',
+        listValues: 'List values',
+        addValue: 'Add value',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2272,6 +2274,10 @@ export default {
             textType: 'Text',
             dateType: 'Date',
             dropdownType: 'List',
+            nameInputSubtitle: 'Choose a name for the report field.',
+            typeInputSubtitle: 'Choose what type of report field to use.',
+            initialValueInputSubtitle: 'Enter a value to show in the field by default.',
+            listInputSubtitle: 'These values will appear in your report field list. Enabled values are selectable by members.',
         },
         tags: {
             tagName: 'Tag name',
