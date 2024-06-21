@@ -115,6 +115,7 @@ Onyx.connect({
 
         billingStatusSuccessful = value;
     },
+    initWithStoredValues: false,
 });
 
 let firstDayFreeTrial: OnyxEntry<string>;
@@ -161,8 +162,6 @@ function hasGracePeriodOverdue(): boolean {
     return !!billingGracePeriod && Date.now() < new Date(billingGracePeriod).getTime();
 }
 
-/// getGracePeriodEndDate - return formatted date
-
 function getAmountOwed(): number {
     return amountOwed ?? 0;
 }
@@ -197,7 +196,6 @@ function hasCardExpiringSoon(): boolean {
     return !billingStatus && card?.accountData?.cardMonth === new Date().getMonth() + 1;
 }
 
-// hasRetryBillingError - based on request response
 function hasRetryBillingError(): boolean {
     return !!billingStatusFailed;
 }
@@ -205,8 +203,6 @@ function hasRetryBillingError(): boolean {
 function isRetryBillingSuccessful(): boolean {
     return !!billingStatusSuccessful;
 }
-
-// hasCardExpiredSoon - based on card
 
 type SubscriptionStatus = {
     status?: string;
