@@ -37,7 +37,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
-            errors.securityCode = 'addPaymentCardPage.error.securityCode';
+            errors.securityCode = translate('addPaymentCardPage.error.securityCode');
         }
 
         return errors;

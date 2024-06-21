@@ -26,7 +26,7 @@ function CardSectionActions() {
             {
                 icon: Expensicons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => {}, // TODO: update with navigation to "add card" screen (https://github.com/Expensify/App/issues/38621)
+                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
             },
             {
                 icon: Expensicons.MoneyCircle,

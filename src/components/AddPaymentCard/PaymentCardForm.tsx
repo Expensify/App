@@ -144,27 +144,27 @@ function PaymentCardForm({
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
         if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
-            errors.nameOnCard = label.error.nameOnCard;
+            errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
         if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = label.error.cardNumber;
+            errors.cardNumber = translate(label.error.cardNumber);
         }
 
         if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
-            errors.expirationDate = label.error.expirationDate;
+            errors.expirationDate = translate(label.error.expirationDate);
         }
 
         if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
-            errors.securityCode = label.error.securityCode;
+            errors.securityCode = translate(label.error.securityCode);
         }
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = label.error.addressStreet;
+            errors.addressStreet = translate(label.error.addressStreet);
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = label.error.addressZipCode;
+            errors.addressZipCode = translate(label.error.addressZipCode);
         }
 
         if (!values.acceptTerms) {
@@ -192,6 +192,7 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_NUMBER}
+                    defaultValue={data?.cardNumber}
                     label={translate(label.defaults.cardNumber)}
                     aria-label={translate(label.defaults.cardNumber)}
                     role={CONST.ROLE.PRESENTATION}
@@ -201,6 +202,7 @@ function PaymentCardForm({
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME_ON_CARD}
+                    defaultValue={data?.nameOnCard}
                     label={translate(label.defaults.nameOnCard)}
                     aria-label={translate(label.defaults.nameOnCard)}
                     role={CONST.ROLE.PRESENTATION}
@@ -210,6 +212,7 @@ function PaymentCardForm({
                 <View style={[styles.flexRow, styles.mt5]}>
                     <View style={[styles.mr2, styles.flex1]}>
                         <InputWrapper
+                            defaultValue={data?.expirationDate}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate(label.defaults.expiration)}
@@ -224,6 +227,7 @@ function PaymentCardForm({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.SECURITY_CODE}
+                            defaultValue={data?.securityCode}
                             label={translate(label.defaults.securityCode)}
                             aria-label={translate(label.defaults.securityCode)}
                             role={CONST.ROLE.PRESENTATION}
@@ -235,6 +239,7 @@ function PaymentCardForm({
                 {!!showAddressField && (
                     <View>
                         <InputWrapper
+                            defaultValue={data?.addressStreet}
                             InputComponent={AddressSearch}
                             inputID={INPUT_IDS.ADDRESS_STREET}
                             label={translate(label.defaults.billingAddress)}
@@ -247,6 +252,7 @@ function PaymentCardForm({
                 )}
                 <InputWrapper
                     InputComponent={TextInput}
+                    defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
                     label={translate('common.zip')}
                     aria-label={translate('common.zip')}
@@ -282,7 +288,7 @@ function PaymentCardForm({
                                 'common.privacyPolicy',
                             )}`}
                             inputID={INPUT_IDS.ACCEPT_TERMS}
-                            defaultValue={false}
+                            defaultValue={!!data?.acceptTerms}
                             LabelComponent={IAcceptTheLabel}
                         />
                     </View>
