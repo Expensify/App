@@ -18,8 +18,11 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type { NetSuiteSubsidiary } from '@src/types/onyx/Policy';
 
 type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
+
+type SubsidiaryListItemWithId = ListItem & { subsidiaryID: string};
 
 function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const {translate} = useLocalize();
@@ -27,21 +30,29 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const currentSubsidiaryName = netsuiteConfig?.subsidiary ?? '';
+    const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? '';
     const policyID = policy?.id ?? '';
 
     const sections =
-        subsidiaryList.map((subsidiary) => ({
+        subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
             text: subsidiary.name,
             keyForList: subsidiary.name,
             isSelected: subsidiary.name === currentSubsidiaryName,
+            subsidiaryID: subsidiary.internalID
         })) ?? [];
 
-    const saveSelection = ({keyForList}: ListItem) => {
+    const saveSelection = ({keyForList, subsidiaryID}: SubsidiaryListItemWithId) => {
         if (!keyForList || keyForList === currentSubsidiaryName) {
             return;
         }
 
-        updateNetSuiteSubsidiary(policyID, keyForList, currentSubsidiaryName);
+        updateNetSuiteSubsidiary(policyID, {
+            subsidiary: keyForList,
+            subsidiaryID
+        }, {
+            subsidiary: currentSubsidiaryName,
+            subsidiaryID: currentSubsidiaryID
+        });
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
     };
 
