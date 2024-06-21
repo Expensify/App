@@ -2,6 +2,8 @@
  * @jest-environment node
  * @jest-config bail=true
  */
+
+/* eslint-disable no-console */
 import * as core from '@actions/core';
 import {execSync} from 'child_process';
 import fs from 'fs';
@@ -20,17 +22,18 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 const mockGetInput = jest.fn();
 
+type ExecSyncError = {stderr: Buffer};
+
 function exec(command: string) {
     try {
         execSync(command, {stdio: 'inherit'});
-        // @ts-ignore
-    } catch (error: {stderr?: string}) {
-        if (error.stderr) {
-            Log.error(error.stderr.toString());
+    } catch (error) {
+        if ((error as ExecSyncError).stderr) {
+            Log.error((error as ExecSyncError).stderr.toString());
         } else {
             Log.error('Error:', error);
         }
-        throw new Error(error);
+        throw new Error(error as string);
     }
 }
 
@@ -47,7 +50,7 @@ function setupGitAsOSBotify() {
 }
 
 function getVersion() {
-    return JSON.parse(fs.readFileSync('package.json', {encoding: 'utf-8'})).version;
+    return JSON.parse(fs.readFileSync('package.json', {encoding: 'utf-8'})).version as string;
 }
 
 function initGitServer() {
@@ -103,6 +106,7 @@ function updateStagingFromMain() {
     try {
         execSync('git rev-parse --verify staging', {stdio: 'ignore'});
         exec('git branch -D staging');
+        // eslint-disable-next-line no-empty
     } catch (e) {}
     exec('git switch -c staging');
     exec('git push --force origin staging');
@@ -123,6 +127,7 @@ function updateProductionFromStaging() {
     try {
         execSync('git rev-parse --verify production', {stdio: 'ignore'});
         exec('git branch -D production');
+        // eslint-disable-next-line no-empty
     } catch (e) {}
 
     exec('git switch -c production');
@@ -218,7 +223,7 @@ function deployStaging() {
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     updateStagingFromMain();
     tagStaging();
-    Log.success(`Deployed ${getVersion} to staging!`);
+    Log.success(`Deployed ${getVersion()} to staging!`);
 }
 
 function deployProduction() {
