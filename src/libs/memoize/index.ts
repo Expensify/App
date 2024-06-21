@@ -38,7 +38,7 @@ class Memoize {
 /**
  * Wraps a function with a memoization layer. Useful for caching expensive calculations.
  * @param fn - Function to memoize
- * @param options - Options for the memoization layer, for more details see `ClientOptions` type.
+ * @param opts - Options for the memoization layer, for more details see `ClientOptions` type.
  * @returns Memoized function with a cache API attached to it.
  */
 function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
