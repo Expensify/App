@@ -56,7 +56,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
-    const {canUseAccountingIntegrations, canUseReportFieldsFeature} = usePermissions();
+    const {canUseReportFieldsFeature} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
     const policyID = policy?.id ?? '';
@@ -191,13 +191,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
-    if (canUseAccountingIntegrations) {
-        sections.push({
-            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
-            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
-            items: integrateItems,
-        });
-    }
+    sections.push({
+        titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+        subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+        items: integrateItems,
+    });
 
     const renderItem = useCallback(
         (item: Item) => (
