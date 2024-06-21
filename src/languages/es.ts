@@ -330,6 +330,7 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        disable: 'Deshabilitar',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1020,7 +1021,6 @@ export default {
         enabled: '¡La autenticación de dos factores está ahora habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
         copy: 'Copiar',
-        disable: 'Deshabilitar',
     },
     recoveryCodeForm: {
         error: {
@@ -1401,6 +1401,7 @@ export default {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
         },
+        getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
         whereYouWork: '¿Dónde trabajas?',
         purpose: {
@@ -2296,6 +2297,8 @@ export default {
         reportFields: {
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
+            disableReportFields: 'Desactivar campos de informe',
+            disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -3722,6 +3725,13 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
+        billingBanner: {
+            preTrial: {
+                title: 'Iniciar una prueba gratuita',
+                subtitle: 'Para empezar, ',
+                subtitleLink: 'completa la lista de configuración aquí',
+            },
+        },
         cardSection: {
             title: 'Pago',
             subtitle: 'Añade una tarjeta de pago para abonar tu suscripción a Expensify',

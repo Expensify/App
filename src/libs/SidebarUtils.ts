@@ -117,8 +117,9 @@ function getOrderedReportIDs(
         }
 
         const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+        const isOnboardedByPersona = currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS);
 
-        if (currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS)) {
+        if (isOnboardedByPersona && isSystemChat && !isInFocusMode) {
             return true;
         }
 
