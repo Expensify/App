@@ -319,7 +319,7 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
             reportAction.childType === CONST.REPORT.TYPE.TASK &&
             reportAction?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
             reportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-            !reportAction?.message?.[0]?.isDeletedParentAction
+            ReportActionsUtils.getReportActionMessage(reportAction)?.isDeletedParentAction
         ) {
             return true;
         }
