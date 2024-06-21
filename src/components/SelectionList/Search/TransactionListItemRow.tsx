@@ -128,12 +128,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem, isChildLis
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
-            style={[
-                styles.optionDisplayName,
-                styles.justifyContentCenter,
-                isLargeScreenWidth ? undefined : styles.textAlignRight,
-                isLargeScreenWidth && isChildListItem ? styles.label : undefined,
-            ]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
 }
@@ -180,7 +175,7 @@ function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: Transa
             icon={Expensicons.Folder}
             showTooltip={showTooltip}
             text={transactionItem?.category}
-            textStyle={[styles.textMicro, styles.minHeight0]}
+            textStyle={[styles.textMicro, styles.mnh0]}
         />
     );
 }
@@ -198,7 +193,7 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
             text={TransactionUtils.getTagForDisplay(transactionItem)}
-            textStyle={[styles.textMicro, styles.minHeight0]}
+            textStyle={[styles.textMicro, styles.mnh0]}
         />
     );
 }
