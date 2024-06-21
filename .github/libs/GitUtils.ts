@@ -2,6 +2,7 @@ import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import * as VERSION_UPDATER from './versionUpdater';
+import type {SemverLevel} from './versionUpdater';
 
 type CommitType = {
     commit: string;
