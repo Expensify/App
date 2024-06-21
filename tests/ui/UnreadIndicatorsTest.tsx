@@ -16,6 +16,7 @@ import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import {getReportActionText} from '@libs/ReportActionsUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -652,7 +653,7 @@ describe('Unread Indicators', () => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                        lastMessageText: lastReportAction?.message?.[0]?.text,
+                        lastMessageText: getReportActionText(lastReportAction),
                         lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,
                     });
