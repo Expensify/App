@@ -491,6 +491,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.link,
         },
 
+        textBold: {
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         textVersion: {
             color: theme.iconColorfulBackground,
             fontSize: variables.fontSizeNormal,
