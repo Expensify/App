@@ -32,6 +32,7 @@ function getBillingStatus(
 
     const endDateFormatted = DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 
+    console.log(status);
     switch (status.status) {
         case SubscriptionUtils.PAYMENT_STATUSES.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
@@ -130,9 +131,9 @@ function getBillingStatus(
 
         case SubscriptionUtils.PAYMENT_STATUSES.GENERIC_API_ERROR:
             return {
-                title: translate('subscription.billingBanner.succeeded'),
-                subtitle: translate('subscription.billingBanner.billedSuccessfully'),
-                isError: false,
+                title: translate('subscription.billingBanner.cardCouldNotBeCharged'),
+                subtitle: translate('subscription.billingBanner.retryMessage'),
+                isError: true,
                 shouldShowRedDotIndicator: status.shouldShowRedDotIndicator,
             };
 

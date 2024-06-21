@@ -233,18 +233,6 @@ function clearUpdateSubscriptionSizeError() {
 
 function clearOutstandingBalance() {
     const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-                value: true,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
-                value: false,
-            },
-        ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -274,6 +262,10 @@ function clearOutstandingBalance() {
     API.write(WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE, null, onyxData);
 }
 
+function resetRetryBillingStatus() {
+    Onyx.merge(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, false);
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -282,4 +274,5 @@ export {
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
     clearOutstandingBalance,
+    resetRetryBillingStatus,
 };

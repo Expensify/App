@@ -169,12 +169,6 @@ const ONYXKEYS = {
     /** Store the billing status */
     NVP_PRIVATE_BILLING_STATUS: 'nvp_private_billingStatus',
 
-    /** Store retry billing successful status */
-    SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL: 'subscriptionRetryBillingStatusSuccessful',
-
-    /** Store retry billing failed status */
-    SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED: 'subscriptionRetryBillingStatusFailed',
-
     /** Store preferred skintone for emoji */
     PREFERRED_EMOJI_SKIN_TONE: 'nvp_expensify_preferredEmojiSkinTone',
 

@@ -3,10 +3,14 @@ import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import * as Subscription from '@userActions/Subscription';
+import CONST from '@src/CONST';
 
 type BillingBannerProps = {
     title?: string;
@@ -20,6 +24,7 @@ type BillingBannerProps = {
 function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator, shouldShowGreenDotIndicator, isTrialActive}: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {translate} = useLocalize();
 
     const backgroundStyle = isTrialActive ? styles.trialBannerBackgroundColor : styles.hoveredComponentBG;
 
@@ -47,6 +52,21 @@ function BillingBanner({title, subtitle, isError, shouldShowRedDotIndicator, sho
                     src={Expensicons.DotIndicator}
                     fill={theme.success}
                 />
+            )}
+            {!isError && (
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        Subscription.resetRetryBillingStatus();
+                    }}
+                    style={[styles.touchableButtonImage]}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={translate('common.close')}
+                >
+                    <Icon
+                        src={Expensicons.Close}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
             )}
         </View>
     );
