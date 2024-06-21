@@ -8,7 +8,7 @@ import {mergeOptions} from './utils';
  * Global memoization class. Use it to orchestrate memoization (e.g. start/stop global monitoring).
  */
 class Memoize {
-    static monitoringEnabled = false;
+    static isMonitoringEnabled = false;
 
     private static memoizedList: Array<{id: string; memoized: Stats}> = [];
 
@@ -17,20 +17,20 @@ class Memoize {
     }
 
     static startMonitoring() {
-        if (this.monitoringEnabled) {
+        if (this.isMonitoringEnabled) {
             return;
         }
-        this.monitoringEnabled = true;
+        this.isMonitoringEnabled = true;
         Memoize.memoizedList.forEach(({memoized}) => {
             memoized.startMonitoring();
         });
     }
 
     static stopMonitoring() {
-        if (!this.monitoringEnabled) {
+        if (!this.isMonitoringEnabled) {
             return;
         }
-        this.monitoringEnabled = false;
+        this.isMonitoringEnabled = false;
         return Memoize.memoizedList.map(({id, memoized}) => ({id, stats: memoized.stopMonitoring()}));
     }
 }
@@ -46,7 +46,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
 
     const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);
 
-    const stats = new MemoizeStats(options.monitor || Memoize.monitoringEnabled);
+    const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 
     const memoized = function memoized(...key: Parameters<Fn>): ReturnType<Fn> {
         const statsEntry = stats.createEntry();
