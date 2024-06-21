@@ -53,7 +53,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
-        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
+        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''} ${containsOnlyEmojis ? 'islarge' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;

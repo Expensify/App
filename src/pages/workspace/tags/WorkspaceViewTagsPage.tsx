@@ -84,6 +84,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [currentPolicyTag, selectedTags, translate],
     );
 
+    const hasDependentTags = useMemo(() => PolicyUtils.hasDependentTags(policy, policyTags), [policy, policyTags]);
+
     const tagListKeyedByName = useMemo(
         () =>
             tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
@@ -234,18 +236,20 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                <View style={[styles.pv4, styles.ph5]}>
-                    <ToggleSettingOptionRow
-                        title={translate('common.required')}
-                        switchAccessibilityLabel={translate('common.required')}
-                        isActive={!!currentPolicyTag?.required}
-                        onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
-                        pendingAction={currentPolicyTag.pendingFields?.required}
-                        errors={currentPolicyTag?.errorFields?.required ?? undefined}
-                        onCloseError={() => Tag.clearPolicyTagListError(policyID, route.params.orderWeight, 'required')}
-                        disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
-                    />
-                </View>
+                {!hasDependentTags && (
+                    <View style={[styles.pv4, styles.ph5]}>
+                        <ToggleSettingOptionRow
+                            title={translate('common.required')}
+                            switchAccessibilityLabel={translate('common.required')}
+                            isActive={!!currentPolicyTag?.required}
+                            onToggle={(on) => Tag.setPolicyTagsRequired(policyID, on, route.params.orderWeight)}
+                            pendingAction={currentPolicyTag.pendingFields?.required}
+                            errors={currentPolicyTag?.errorFields?.required ?? undefined}
+                            onCloseError={() => Tag.clearPolicyTagListError(policyID, route.params.orderWeight, 'required')}
+                            disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
+                        />
+                    </View>
+                )}
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
                     pendingAction={currentPolicyTag.pendingAction}

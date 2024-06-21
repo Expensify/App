@@ -56,13 +56,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {canUseAccountingIntegrations} = usePermissions();
+    const {canUseAccountingIntegrations, canUseReportFieldsFeature} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
     const policyID = policy?.id ?? '';
 
-    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState<boolean>(false);
-    const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState<boolean>(false);
+    const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
+    const [isIntegrateWarningModalOpen, setIsIntegrateWarningModalOpen] = useState(false);
+    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
 
     const spendItems: Item[] = [
         {
@@ -134,6 +135,28 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             },
         },
     ];
+
+    if (canUseReportFieldsFeature) {
+        organizeItems.push({
+            icon: Illustrations.Pencil,
+            titleTranslationKey: 'workspace.moreFeatures.reportFields.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.reportFields.subtitle',
+            isActive: policy?.areReportFieldsEnabled ?? false,
+            disabled: hasAccountingConnection,
+            pendingAction: policy?.pendingFields?.areReportFieldsEnabled,
+            action: (isEnabled: boolean) => {
+                if (hasAccountingConnection) {
+                    setIsOrganizeWarningModalOpen(true);
+                    return;
+                }
+                if (isEnabled) {
+                    Policy.enablePolicyReportFields(policyID, true);
+                    return;
+                }
+                setIsReportFieldsWarningModalOpen(true);
+            },
+        });
+    }
 
     const integrateItems: Item[] = [
         {
@@ -274,6 +297,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     prompt={translate('workspace.moreFeatures.connectionsWarningModal.disconnectText')}
                     confirmText={translate('workspace.moreFeatures.connectionsWarningModal.manageSettings')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.reportFields.disableReportFields')}
+                    isVisible={isReportFieldsWarningModalOpen}
+                    onConfirm={() => {
+                        setIsReportFieldsWarningModalOpen(false);
+                        Policy.enablePolicyReportFields(policyID, false);
+                    }}
+                    onCancel={() => setIsReportFieldsWarningModalOpen(false)}
+                    prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
+                    confirmText={translate('common.disable')}
+                    cancelText={translate('common.cancel')}
+                    danger
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

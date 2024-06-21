@@ -368,6 +368,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}
@@ -389,6 +390,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                             illustration={LottieAnimations.WorkspacePlanet}
                             // We use this style to vertically center the illustration, as the original illustration is not centered
                             illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
+                            titleStyles={styles.textHeadlineH1}
                         />
                     </View>
                 </ScrollView>
@@ -407,6 +409,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack()}
+                    icon={Illustrations.BigRocket}
                 >
                     <Button
                         accessibilityLabel={translate('workspace.new.newWorkspace')}

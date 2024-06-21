@@ -135,6 +135,8 @@ function BaseReportActionContextMenu({
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
 
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
+
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
         (contextAction) =>
@@ -202,8 +204,6 @@ function BaseReportActionContextMenu({
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
-        const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-        const originalReport = ReportUtils.getReport(originalReportID);
         showContextMenu(
             CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -218,8 +218,8 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoom(originalReport),
-            ReportUtils.chatIncludesChronos(originalReport),
+            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
             filteredContextMenuActions,

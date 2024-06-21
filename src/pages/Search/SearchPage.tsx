@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
@@ -20,6 +21,7 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
 
     const {query: rawQuery, policyIDs, sortBy, sortOrder} = route?.params ?? {};
 
@@ -42,7 +44,11 @@ function SearchPage({route}: SearchPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={Search.displayName}>
+        <ScreenWrapper
+            testID={Search.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+        >
             <FullPageNotFoundView
                 shouldForceFullScreen
                 shouldShow={!isValidQuery}
