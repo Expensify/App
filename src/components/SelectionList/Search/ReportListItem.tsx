@@ -118,6 +118,7 @@ function ReportListItem<TItem extends ListItem>({
                 showTooltip={showTooltip}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
+                onCheckboxPress={onCheckboxPress}
                 onSelectRow={() => openReportInRHP(transactionItem)}
                 onDismissError={onDismissError}
                 onFocus={onFocus}
@@ -161,7 +162,7 @@ function ReportListItem<TItem extends ListItem>({
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
                                 <Checkbox
-                                    onPress={() => {}}
+                                    onPress={() => onCheckboxPress?.(item)}
                                     isChecked={item.isSelected}
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}

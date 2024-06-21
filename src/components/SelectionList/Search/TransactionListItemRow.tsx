@@ -303,7 +303,7 @@ function TransactionListItemRow({
                 <Checkbox
                     isChecked={item.isSelected}
                     onPress={() => onCheckboxPress(item)}
-                    disabled={!item.canDelete || !!item.isDisabled || isDisabled}
+                    disabled={!!item.isDisabled || isDisabled}
                     accessibilityLabel={item.text ?? ''}
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                 />

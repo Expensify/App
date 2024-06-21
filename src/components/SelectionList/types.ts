@@ -172,6 +172,8 @@ type TransactionListItemType = ListItem &
          * This is true if at least one transaction in the dataset was created in past years
          */
         shouldShowYear: boolean;
+
+        keyForList: string;
     };
 
 type ReportListItemType = ListItem &

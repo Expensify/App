@@ -3,6 +3,10 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import SelectionList from '@components/SelectionList';
+import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -23,10 +27,6 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import SelectionList from './SelectionList';
-import SearchTableHeader from './SelectionList/SearchTableHeader';
-import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
-import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: SearchQuery;
@@ -47,12 +47,16 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
-    const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
+    const [selectedItems, setSelectedItems] = useState<Record<string, {isSelected: boolean; canDelete: boolean; action: string}>>({});
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+
+    useEffect(() => {
+        setSelectedItems({});
+    }, [query, policyIDs]);
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
@@ -153,20 +157,17 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
     const toggleTransaction = (item: TransactionListItemType | ReportListItemType) => {
-        console.log('item', item);
-
         if (isTransactionListItemType(item)) {
-            // console.log('item', item);
-            // if (!item.canDelete || !item.keyForList) {
-            //     return;
-            // }
+            if (!item.keyForList) {
+                return;
+            }
 
             setSelectedItems((prev) => {
-                if (prev[item.keyForList]) {
-                    const {[item.keyForList]: omittedCategory, ...newCategories} = prev;
-                    return newCategories;
+                if (prev[item.keyForList]?.isSelected) {
+                    const {[item.keyForList]: omittedTransaction, ...transactions} = prev;
+                    return transactions;
                 }
-                return {...prev, [item.keyForList]: true};
+                return {...prev, [item.keyForList]: {isSelected: true, canDelete: item.canDelete, action: item.action}};
             });
 
             return;
@@ -176,17 +177,44 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     };
 
     const toggleAllTransactions = () => {
-        const availableCategories = sortedData.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableCategories.length === Object.keys(selectedItems).length;
-        setSelectedItems(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
+        const areReportItems = searchResults.search.type === 'report';
+        const flattenedItems = areReportItems ? (sortedData as ReportListItemType[]).flatMap((item) => item.transactions) : sortedData;
+        const isAllSelected = flattenedItems.length === Object.keys(selectedItems).length;
+
+        if (isAllSelected) {
+            setSelectedItems({});
+            return;
+        }
+
+        if (areReportItems) {
+            setSelectedItems(
+                Object.fromEntries(
+                    (sortedData as ReportListItemType[]).flatMap((item) =>
+                        item.transactions.map((transaction: TransactionListItemType) => [
+                            transaction.keyForList,
+                            {isSelected: true, canDelete: transaction.canDelete, action: transaction.action},
+                        ]),
+                    ),
+                ),
+            );
+
+            return;
+        }
+
+        setSelectedItems(Object.fromEntries((sortedData as TransactionListItemType[]).map((item) => [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}])));
     };
 
-    const sortedSelectedData = sortedData.map((item) => ({
-        ...item,
-        isSelected: !!selectedItems[item.keyForList],
-    }));
+    const mapToSelectedTransactionItem = (item: TransactionListItemType) => ({...item, isSelected: !!selectedItems[item.keyForList]?.isSelected});
 
-    console.log('selectedItems', selectedItems);
+    const sortedSelectedData = sortedData.map((item) =>
+        isTransactionListItemType(item)
+            ? mapToSelectedTransactionItem(item)
+            : {
+                  ...item,
+                  transactions: item.transactions?.map(mapToSelectedTransactionItem),
+                  isSelected: item.transactions.every((transaction) => !!selectedItems[transaction.keyForList]?.isSelected),
+              },
+    );
 
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
