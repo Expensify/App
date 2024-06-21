@@ -3731,7 +3731,8 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 
 function exportToIntegration(reportID: string, connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
     API.write('Report_Export', {
-        reportIDList: reportID,
+        // TODO: Update it when backend is ready
+        'reportIDList[]': reportID,
         connectionName,
         type: 'MANUAL',
     });
@@ -3739,7 +3740,8 @@ function exportToIntegration(reportID: string, connectionName: ValueOf<typeof CO
 
 function markAsManuallyExported(reportID: string) {
     API.write('MarkAsExported', {
-        reportIDList: reportID,
+        // TODO: Update it when backend is ready
+        'reportIDList[]': reportID,
         markedManually: true,
     });
 }
