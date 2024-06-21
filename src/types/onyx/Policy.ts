@@ -667,19 +667,19 @@ type NetSuiteConnectionData = {
     subsidiaryList: Subsidiary[];
 
     /** Collection of receivable accounts */
-    receivableList: NetSuiteAccount[];
+    receivableList?: NetSuiteAccount[];
 
     /** Collection of vendors */
-    vendors: NetSuiteVendor[];
+    vendors?: NetSuiteVendor[];
 
     /** Collection of invoice items */
-    items: InvoiceItem[];
+    items?: InvoiceItem[];
 
     /** Collection of the payable accounts */
     payableList: NetSuiteAccount[];
 
     /** Collection of tax accounts */
-    taxAccountsList: NetSuiteTaxAccount[];
+    taxAccountsList?: NetSuiteTaxAccount[];
 };
 
 /** NetSuite mapping values */
@@ -721,19 +721,19 @@ type NetSuiteCustomFormIDOptions = {
 /** User configuration for the NetSuite accounting integration. */
 type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Invoice Item Preference */
-    invoiceItemPreference: NetSuiteInvoiceItemPreferenceValues;
+    invoiceItemPreference?: NetSuiteInvoiceItemPreferenceValues;
 
     /** ID of the bank account for NetSuite invoice collections */
-    receivableAccount: string;
+    receivableAccount?: string;
 
     /** ID of the bank account for NetSuite tax posting */
-    taxPostingAccount: string;
+    taxPostingAccount?: string;
 
     /** Whether we should export to the most recent open period if the current one is closed  */
     exportToNextOpenPeriod: boolean;
 
     /** Whether we will include the original foreign amount of a transaction to NetSuite */
-    allowForeignCurrency: boolean;
+    allowForeignCurrency?: boolean;
 
     /** Where to export reimbursable expenses */
     reimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
@@ -768,7 +768,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncApprovalWorkflow: boolean;
 
         /** Whether we import custom lists from NetSuite */
-        syncCustomLists: boolean;
+        syncCustomLists?: boolean;
 
         /** The approval level we set for an Expense Report record created in NetSuite */
         exportReportsTo: NetSuiteExpenseReportApprovalLevels;
@@ -783,7 +783,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncReimbursedReports: boolean;
 
         /** The relevant details of the custom segments we import into Expensify and code onto expenses */
-        customSegments: Array<{
+        customSegments?: Array<{
             /** The name of the custom segment */
             segmentName: string;
 
@@ -801,7 +801,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncPeople: boolean;
 
         /** Whether to enable a new Expense Category into Expensify */
-        enableNewCategories: boolean;
+        enableNewCategories?: boolean;
 
         /** A now unused configuration saying whether a customer had toggled AutoSync yet. */
         hasChosenAutoSyncOption: boolean;
@@ -810,13 +810,13 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         finalApprover: string;
 
         /** Whether to import tax groups from NetSuite */
-        syncTax: boolean;
+        syncTax?: boolean;
 
         /** Whether to import custom segments from NetSuite */
-        syncCustomSegments: boolean;
+        syncCustomSegments?: boolean;
 
         /** The relevant details of the custom lists we import into Expensify and code onto expenses */
-        customLists: Array<{
+        customLists?: Array<{
             /** The name of the custom list in NetSuite */
             listName: string;
 
@@ -847,7 +847,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exporter: string;
 
     /** The transaction date to set upon export */
-    exportDate: NetSuiteExportDateOptions;
+    exportDate?: NetSuiteExportDateOptions;
 
     /** The type of transaction in NetSuite we export non-reimbursable transactions to */
     nonreimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
@@ -856,22 +856,22 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     reimbursablePayableAccount: string;
 
     /** Whether we post Journals as individual separate entries or a single unified entry */
-    journalPostingPreference: NetSuiteJournalPostingPreferences;
+    journalPostingPreference?: NetSuiteJournalPostingPreferences;
 
     /** The Item record to associate with lines on an invoice created via Expensify */
-    invoiceItem: string;
+    invoiceItem?: string;
 
     /** The internaID of the selected subsidiary in NetSuite */
-    subsidiaryID: string;
+    subsidiaryID?: string;
 
     /** The default vendor to use for Transactions in NetSuite */
-    defaultVendor: string;
+    defaultVendor?: string;
 
     /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
-    provincialTaxPostingAccount: string;
+    provincialTaxPostingAccount?: string;
 
     /** The account used for reimbursement in NetSuite */
-    reimbursementAccountID: string;
+    reimbursementAccountID?: string;
 
     /** The account used for approvals in NetSuite */
     approvalAccount: string;
@@ -880,7 +880,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     payableAcct: string;
 
     /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
-    customFormIDOptions: {
+    customFormIDOptions?: {
         /** The custom form selections for reimbursable transactions */
         reimbursable: RequireExactlyOne<NetSuiteCustomFormIDOptions, 'expenseReport' | 'journalEntry' | 'vendorBill'>;
 
@@ -892,10 +892,10 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** The account to use for Invoices export to NetSuite */
-    collectionAccount: string;
+    collectionAccount?: string;
 
     /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
-    suiteTaxEnabled: boolean;
+    suiteTaxEnabled?: boolean;
 
     /** Collection of errors coming from BE */
     errors?: OnyxCommon.Errors;

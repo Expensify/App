@@ -575,6 +575,10 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
+function clearNetSuiteErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
+}
+
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
@@ -3034,6 +3038,7 @@ export {
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
+    clearNetSuiteErrorField,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,

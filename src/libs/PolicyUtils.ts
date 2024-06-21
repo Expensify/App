@@ -461,6 +461,69 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
+    const vendors = policy?.connections?.netsuite.options.data.vendors ?? [];
+
+    return (vendors ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedVendorId === id,
+    }));
+}
+
+function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const payableAccounts = policy?.connections?.netsuite.options.data.payableList ?? [];
+
+    return (payableAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
+    const receivableAccounts = policy?.connections?.netsuite.options.data.receivableList ?? [];
+
+    return (receivableAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
+function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
+    const invoiceItems = policy?.connections?.netsuite.options.data.items ?? [];
+
+    return (invoiceItems ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedItemId === id,
+    }));
+}
+
+function getNetSuiteTaxAccountOptions(policy: Policy | undefined, selectedAccountId: string | undefined): SelectorType[] {
+    const taxAccounts = policy?.connections?.netsuite.options.data.taxAccountsList ?? [];
+
+    return (taxAccounts ?? []).map(({externalID, name}) => ({
+        value: externalID,
+        text: name,
+        keyForList: externalID,
+        isSelected: selectedAccountId === externalID,
+    }));
+}
+
+function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
+    return !!canUseNetSuiteUSATax || CONST.NETSUITE_TAX_COUNTRIES.includes(subsidiaryCountry ?? '');
+}
+
+function canUseProvTaxNetSuite(subsidiaryCountry?: string) {
+    return subsidiaryCountry === '_canada';
+}
+
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.
  * @param workspace1 Details of the first workspace to be compared.
@@ -546,6 +609,13 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    getNetSuiteVendorOptions,
+    canUseTaxNetSuite,
+    canUseProvTaxNetSuite,
+    getNetSuitePayableAccountOptions,
+    getNetSuiteReceivableAccountOptions,
+    getNetSuiteInvoiceItemOptions,
+    getNetSuiteTaxAccountOptions,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,

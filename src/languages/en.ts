@@ -2176,6 +2176,94 @@ export default {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
+        netsuite: {
+            export: 'Export',
+            exportDescription: 'Configure how Expensify data exports to NetSuite.',
+            exportReimbursable: 'Export reimbursable expenses as',
+            exportNonReimbursable: 'Export non-reimbursable expenses as',
+            preferredExporter: 'Preferred exporter',
+            exportInvoices: 'Export invoices to',
+            journalEntriesTaxPostingAccount: 'Journal entries tax posting account',
+            journalEntriesProvTaxPostingAccount: 'Journal entries provincial tax posting account',
+            foreignCurrencyAmount: 'Export foreign currency amount',
+            exportToNextOpenPeriod: 'Export to next open period',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            exportAs: 'Export as',
+            defaultVendor: 'Default vendor',
+            nonReimbursableJournalPostingAccount: 'Non-reimbursable journal posting account',
+            reimbursableJournalPostingAccount: 'Reimbursable journal posting account',
+            journalPostingPreference: {
+                label: 'Journal entries posting preference',
+                values: {
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each individual expense',
+                },
+            },
+            invoiceItem: {
+                label: 'Invoice item',
+                values: {
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: 'Create one for me',
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: 'Select existing',
+                },
+            },
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to NetSuite.',
+                values: {
+                    [CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportDestination: {
+                values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
+                        label: 'Expense reports',
+                        reimbursableDescription: 'Reimbursable expenses will export as expense reports to NetSuite.',
+                        nonReimbursableDescription: 'Non-reimbursable expenses will export as expense reports to NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
+                        label: 'Vendor bills',
+                        reimbursableDescription:
+                            'Reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        nonReimbursableDescription:
+                            'Non-reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
+                        label: 'Journal Entries',
+                        reimbursableDescription:
+                            'Reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        nonReimbursableDescription:
+                            'Non-reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                    },
+                },
+            },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
+            noItemsFound: 'No invoice items found',
+            noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
+        },
         type: {
             free: 'Free',
             control: 'Control',

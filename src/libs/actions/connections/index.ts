@@ -15,6 +15,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 
+type ConnectionNameExceptNetSuite = Exclude<ConnectionName, typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE>;
+
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -40,7 +42,7 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData});
 }
 
-function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionNameExceptNetSuite, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
@@ -165,7 +167,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
     });
 }
 
-function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionName, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
+function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNameExceptNetSuite, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
     policyID: string,
     connectionName: TConnectionName,
     configUpdate: TConfigUpdate,
@@ -238,9 +240,8 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
     // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
     if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
-        return !isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate;
+        return !isSyncInProgress && policy?.connections?.[connectionName]?.verified === false;
     }
-
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 

@@ -317,6 +317,32 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/xero/export/XeroPreferredExporterSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: () =>
         require('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default as React.ComponentType,
+
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: () => require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PREFERRED_EXPORTER_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuitePreferredExporterSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_DATE_SELECT]: () => require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteDateSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesDestinationSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesVendorSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesPayableAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesJournalPostingPreferenceSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteReceivableAccountSelectPage').default as React.ComponentType,
+    // [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT]: () =>
+    //     require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteInvoiceItemPreferenceSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteInvoiceItemSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TAX_POSTING_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTaxPostingAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteProvincialTaxPostingAccountSelectPage').default as React.ComponentType,
+
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
