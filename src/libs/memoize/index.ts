@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import buildArrayCache from './cache/arrayCacheBuilder';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
@@ -69,6 +68,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
         statsEntry.track('cacheSize', cache.size);
         statsEntry.save();
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return cached.value;
     };
 
