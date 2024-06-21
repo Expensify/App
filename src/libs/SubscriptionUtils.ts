@@ -211,8 +211,6 @@ function isRetryBillingSuccessful(): boolean {
 type SubscriptionStatus = {
     status?: string;
     isError?: boolean;
-    shouldShowRedDotIndicator?: boolean;
-    shouldShowGreenDotIndicator?: boolean;
 };
 
 function getSubscriptionStatus(): SubscriptionStatus {
@@ -223,7 +221,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
                 return {
                     status: PAYMENT_STATUSES.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
-                    shouldShowRedDotIndicator: true,
                 };
             }
 
@@ -231,7 +228,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
             if (hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUSES.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
-                    shouldShowRedDotIndicator: true,
                 };
             }
         } else {
@@ -239,8 +235,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
             if (hasGracePeriodOverdue() && !amountOwed) {
                 return {
                     status: PAYMENT_STATUSES.OWNER_OF_POLICY_UNDER_INVOICING,
-
-                    shouldShowRedDotIndicator: true,
                 };
             }
 
@@ -248,7 +242,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
             if (hasGracePeriodOverdue() === false && amountOwed) {
                 return {
                     status: PAYMENT_STATUSES.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
-                    shouldShowRedDotIndicator: true,
                 };
             }
         }
@@ -258,7 +251,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
     if (hasBillingDisputePending()) {
         return {
             status: PAYMENT_STATUSES.BILLING_DISPUTE_PENDING,
-            shouldShowRedDotIndicator: true,
         };
     }
 
@@ -266,7 +258,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
     if (hasCardAuthenticatedError()) {
         return {
             status: PAYMENT_STATUSES.CARD_AUTHENTICATION_REQUIRED,
-            shouldShowRedDotIndicator: true,
         };
     }
 
@@ -274,7 +265,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
     if (hasInsufficientFundsError()) {
         return {
             status: PAYMENT_STATUSES.INSUFFICIENT_FUNDS,
-            shouldShowRedDotIndicator: true,
         };
     }
 
@@ -282,7 +272,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
     if (hasCardExpiredError()) {
         return {
             status: PAYMENT_STATUSES.CARD_EXPIRED,
-            shouldShowRedDotIndicator: true,
         };
     }
 
@@ -290,7 +279,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
     if (hasCardExpiringSoon()) {
         return {
             status: PAYMENT_STATUSES.CARD_EXPIRE_SOON,
-            shouldShowGreenDotIndicator: true,
         };
     }
 
@@ -307,7 +295,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
         return {
             status: PAYMENT_STATUSES.RETRY_BILLING_ERROR,
             isError: true,
-            shouldShowRedDotIndicator: true,
         };
     }
 
@@ -316,7 +303,6 @@ function getSubscriptionStatus(): SubscriptionStatus {
     //     return {
     //         status: PAYMENT_STATUSES.GENERIC_API_ERROR,
     //         isError: true,
-    //         shouldShowRedDotIndicator: true,
     //     };
     // }
 
@@ -324,11 +310,11 @@ function getSubscriptionStatus(): SubscriptionStatus {
 }
 
 function hasSubscriptionRedDotError(): boolean {
-    return getSubscriptionStatus()?.shouldShowRedDotIndicator ?? false;
+    return getSubscriptionStatus()?.isError ?? false;
 }
 
 function hasSubscriptionGreenDotInfo(): boolean {
-    return getSubscriptionStatus()?.shouldShowRedDotIndicator ?? false;
+    return !getSubscriptionStatus()?.isError ?? false;
 }
 
 /**

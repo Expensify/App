@@ -9,9 +9,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import BillingBanner from './BillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import SubscriptionBillingBanner from './CardSectionDataEmpty/BillingBanner/SubscriptionBillingBanner';
 import CardSectionUtils from './utils';
 
 function CardSection() {
@@ -23,11 +23,7 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const {title, subtitle, isError, shouldShowRedDotIndicator, shouldShowGreenDotIndicator} = CardSectionUtils.getBillingStatus(
-        translate,
-        preferredLocale,
-        defaultCard?.accountData?.cardNumber ?? '',
-    );
+    const {title, subtitle, isError, icon, rightIcon} = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
 
     const shouldShowBanner = !!title || !!subtitle;
 
@@ -40,12 +36,13 @@ function CardSection() {
             subtitleMuted
             banner={
                 shouldShowBanner && (
-                    <BillingBanner
+                    <SubscriptionBillingBanner
                         title={title}
                         subtitle={subtitle}
+                        isTrialActive={false}
                         isError={isError}
-                        shouldShowRedDotIndicator={shouldShowRedDotIndicator}
-                        shouldShowGreenDotIndicator={shouldShowGreenDotIndicator}
+                        icon={icon}
+                        rightIcon={rightIcon}
                     />
                 )
             }
