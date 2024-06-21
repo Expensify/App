@@ -758,6 +758,7 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        unhold: 'Unhold',
         holdExpense: 'Hold expense',
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
@@ -1304,6 +1305,9 @@ export default {
                 description: 'Only show unread sorted alphabetically',
             },
         },
+    },
+    reportDetailsPage: {
+        inWorkspace: ({policyName}) => `in ${policyName}`,
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
