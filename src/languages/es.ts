@@ -2307,7 +2307,7 @@ export default {
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
             textType: 'Texto',
             dateType: 'Fecha',
-            dropdownType: 'Desplegable',
+            dropdownType: 'Lista',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

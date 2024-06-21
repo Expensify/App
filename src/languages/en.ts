@@ -2271,7 +2271,7 @@ export default {
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
             textType: 'Text',
             dateType: 'Date',
-            dropdownType: 'Dropdown',
+            dropdownType: 'List',
         },
         tags: {
             tagName: 'Tag name',
