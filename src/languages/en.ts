@@ -3224,6 +3224,13 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            requestRefund: 'Request refund',
+            requestRefundModal: {
+                phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',
+                phrase2:
+                    'Heads up: Downgrading your account means your workspace(s) will be deleted. This action can’t be undone, but you can always create a new workspace if you change your mind.',
+                confirm: 'Delete workspace(s) and downgrade',
+            },
         },
         yourPlan: {
             title: 'Your plan',

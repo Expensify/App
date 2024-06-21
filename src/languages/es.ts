@@ -3728,6 +3728,13 @@ export default {
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
             retryPaymentButton: 'Reintentar el pago',
+            requestRefund: 'Solicitar reembolso',
+            requestRefundModal: {
+                phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
+                phrase2:
+                    'Atención: Bajar tu cuenta de categoría significa que tu(s) espacio(s) de trabajo será(n) eliminado(s). Esta acción no se puede deshacer, pero siempre puedes crear un nuevo espacio de trabajo si cambias de opinión.',
+                confirm: 'Eliminar espacio(s) de trabajo y bajar de categoría',
+            },
         },
         yourPlan: {
             title: 'Tu plan',

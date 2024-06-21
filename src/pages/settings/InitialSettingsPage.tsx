@@ -106,6 +106,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
+    useEffect(() => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+    }, []);
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();
