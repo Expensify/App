@@ -105,6 +105,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionButton: (
+                    // TODO: Will be updated in the Token Input PR
                     <ConnectToXeroButton
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
