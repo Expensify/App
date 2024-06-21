@@ -17,7 +17,6 @@ function SubscriptionBillingBanner({
     subtitle,
     rightIcon,
     icon,
-
     isTrialActive,
     isError,
 }: SubscriptionBillingBannerProps) {
