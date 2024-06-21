@@ -12,6 +12,7 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
     const keyComparator = getEqualityComparator(opts);
 
     function getKeyIndex(key: K) {
+        // We search the array backwards because the most recently added entries are at the end, and our heuristic follows the principles of an LRU cache - that the most recently added entries are most likely to be used again.
         for (let i = cache.length - 1; i >= 0; i--) {
             if (keyComparator(cache[i][0], key)) {
                 return i;
