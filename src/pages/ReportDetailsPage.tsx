@@ -93,6 +93,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         const shouldExcludeHiddenParticipants = !isGroupChat && !isSystemChat;
         return ReportUtils.getParticipantsAccountIDsForDisplay(report, shouldExcludeHiddenParticipants);
     }, [report, isGroupChat, isSystemChat]);
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     // Get the active chat members by filtering out the pending members with delete action
     const activeChatMembers = participants.flatMap((accountID) => {
@@ -216,37 +217,37 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        items.push({
-            key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
-            // TODO: Change to common.export
-            translationKey: 'workspace.qbo.export',
-            icon: Expensicons.Upload,
-            isAnonymousAction: false,
-            action: () => {
-                // TODO: Add correct integration
-                Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', 'xero'));
-            },
-        });
-
+        if (policy && connectedIntegration && isPolicyAdmin) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.EXPORT,
+                translationKey: 'workspace.accounting.export',
+                icon: Expensicons.Upload,
+                isAnonymousAction: false,
+                action: () => {
+                    Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_EXPORT.getRoute(report?.reportID ?? '', connectedIntegration));
+                },
+            });
+        }
         return items;
     }, [
         isSelfDM,
-        isSystemChat,
         isArchivedRoom,
         isGroupChat,
         isDefaultRoom,
-        isThread,
         isChatThread,
         isPolicyEmployee,
-        isPolicyExpenseChat,
-        isPolicyAdmin,
         isUserCreatedPolicyRoom,
         participants.length,
         report,
+        isSystemChat,
+        isPolicyExpenseChat,
         isMoneyRequestReport,
         isInvoiceReport,
+        isThread,
         isChatRoom,
         policy,
+        connectedIntegration,
+        isPolicyAdmin,
         activeChatMembers.length,
         session,
         leaveChat,
