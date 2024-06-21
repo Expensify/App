@@ -12,6 +12,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +20,6 @@ import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrent
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import * as UserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
-import usePrevious from '@hooks/usePrevious';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import getCurrentPosition from '@src/libs/getCurrentPosition';
