@@ -104,7 +104,6 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
 
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
 
-    console.log(requireRouteToDisplayMap);
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView
             interactive={interactive}
