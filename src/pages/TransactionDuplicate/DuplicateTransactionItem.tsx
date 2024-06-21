@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, Transaction} from '@src/types/onyx';
+import type {Transaction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transaction: OnyxEntry<Transaction>;
