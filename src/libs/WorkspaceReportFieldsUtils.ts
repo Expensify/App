@@ -4,7 +4,7 @@ import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
 /**
  * @param reportFieldType Report field type
- * @returns translation key for the unit
+ * @returns translation key for the report type
  */
 function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
     // TODO: Clarify type
@@ -17,6 +17,10 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
     return typeTranslationKeysStrategy[reportFieldType];
 }
 
+/**
+ * @param reportFieldType Report field type
+ * @returns translation key for the report type alternative text
+ */
 function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
     // TODO: Clarify type
     const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
