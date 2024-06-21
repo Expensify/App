@@ -3,11 +3,11 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagList, Report, ReportAction} from '@src/types/onyx';
-import type {ModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as PolicyUtils from './PolicyUtils';
+import * as ReportActionsUtils from './ReportActionsUtils';
 import * as TransactionUtils from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagList> = {};
@@ -112,10 +112,10 @@ function getForDistanceRequest(newDistance: string, oldDistance: string, newAmou
  * If we change this function be sure to update the backend as well.
  */
 function getForReportAction(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>): string {
-    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+    if (!ReportActionsUtils.isModifiedExpenseAction(reportAction)) {
         return '';
     }
-    const reportActionOriginalMessage = reportAction?.originalMessage as ModifiedExpense | undefined;
+    const reportActionOriginalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const policyID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.policyID ?? '-1';
 
     const removalFragments: string[] = [];

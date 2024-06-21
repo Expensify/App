@@ -1,20 +1,15 @@
-import type {ValueOf} from 'type-fest';
+import type {Spread, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
-import type {Decision, OriginalMessageModifiedExpense, OriginalMessageReportPreview} from './OriginalMessage';
 import type OriginalMessage from './OriginalMessage';
+import type {Decision} from './OriginalMessage';
 import type {NotificationPreference} from './Report';
+import type ReportActionName from './ReportActionName';
 import type {Receipt} from './Transaction';
-
-/** Partial content of report action message */
-type ReportActionMessageJSON = {
-    /** Collection of accountIDs from users that were mentioned in report */
-    whisperedTo?: number[];
-};
 
 /** Model of report action message */
 type Message = {
@@ -146,6 +141,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the previous reportAction on the report. It is a string represenation of a 64-bit integer (or null for CREATED actions). */
     previousReportActionID?: string;
 
+    /** The name (or type) of the action */
+    actionName: ReportActionName;
+
     /** Account ID of the actor that created the action */
     actorAccountID?: number;
 
@@ -157,12 +155,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** ISO-formatted datetime */
     created: string;
-
-    /** report action message */
-    message?: Array<Message | undefined>;
-
-    /** report action message */
-    previousMessage?: Array<Message | undefined>;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -270,14 +262,22 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     whisperedToAccountIDs?: number[];
 }>;
 
-/** Model of report action */
-type ReportAction = ReportActionBase & OriginalMessage;
+/**
+ *
+ */
+type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionBase & {
+    /** @deprecated Used in old report actions before migration. Replaced by using getOriginalMessage function. */
+    originalMessage?: OriginalMessage<T>;
 
-/** Model of report preview action */
-type ReportPreviewAction = ReportActionBase & OriginalMessageReportPreview;
+    /** report action message */
+    message?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
 
-/** Model of modifies expense action */
-type ModifiedExpenseAction = ReportActionBase & OriginalMessageModifiedExpense;
+    /** report action message */
+    previousMessage?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
+};
+
+/** */
+type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
 
 /** Record of report actions, indexed by report action ID */
 type ReportActions = Record<string, ReportAction>;
@@ -286,4 +286,4 @@ type ReportActions = Record<string, ReportAction>;
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportPreviewAction, ModifiedExpenseAction, ReportActionMessageJSON};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog};
