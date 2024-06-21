@@ -122,7 +122,7 @@ function CreatePolicyReportFieldPage({
                                 />
                             )}
 
-                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DROPDOWN && (
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
                                 <InputWrapper
                                     InputComponent={TextPicker}
                                     inputID={INPUT_IDS.INITIAL_VALUE}

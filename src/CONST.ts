@@ -4882,7 +4882,7 @@ const CONST = {
     REPORT_FIELD_TYPES: {
         TEXT: 'text',
         DATE: 'date',
-        DROPDOWN: 'dropdown',
+        LIST: 'dropdown',
     },
 } as const;
 

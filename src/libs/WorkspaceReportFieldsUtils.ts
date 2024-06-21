@@ -11,7 +11,7 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
     const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textType',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateType',
-        [CONST.REPORT_FIELD_TYPES.DROPDOWN]: 'workspace.reportFields.dropdownType',
+        [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownType',
     };
 
     return typeTranslationKeysStrategy[reportFieldType];
