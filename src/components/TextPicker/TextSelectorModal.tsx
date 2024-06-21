@@ -68,7 +68,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
                     contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}
                     keyboardShouldPersistTaps="handled"
                 >
-                    {!!subtitle && <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.pre])}>{subtitle}</Text>}
+                    <View style={styles.pb4}>{!!subtitle && <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.pre])}>{subtitle}</Text>}</View>
                     <View style={styles.flex1}>
                         <TextInput
                             // eslint-disable-next-line react/jsx-props-no-spreading
