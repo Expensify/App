@@ -391,6 +391,11 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
+                            if (report?.errorFields?.createChat && parentReportAction) {
+                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction.transactionID, parentReportAction, true);
+                                Navigation.goBack(urlToNavigateBack);
+                                return;
+                            }
                             Transaction.clearError(transaction.transactionID);
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
                         }}
