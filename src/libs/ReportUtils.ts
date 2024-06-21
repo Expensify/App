@@ -430,6 +430,7 @@ type OptionData = {
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
+    isUnsearchableViaParticipants?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -970,6 +971,13 @@ function isOpenInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
  */
 function isChatRoom(report: OnyxEntry<Report>): boolean {
     return isUserCreatedPolicyRoom(report) || isDefaultRoom(report) || isInvoiceRoom(report);
+}
+
+/**
+ * Whether the provided report is not searchable via participant
+ */
+function isUnsearchableViaParticipants(report: OnyxEntry<Report>): boolean {
+    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report) || isInvoiceRoom(report) || isInvoiceRoom(report) || isTripRoom(report);
 }
 
 /**
@@ -5403,11 +5411,10 @@ function shouldReportBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report) &&
             !isInvoiceRoom(report) &&
-            // We omit sending back participants for default rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing default rooms with no participants when searching for reports.
+            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
+            // So we allow showing rooms with no participants when searching for reports.
             // In any other circumstances we should never have default rooms with no participants in Onyx.
-            !isSearchingForReports &&
-            isDefaultRoom(report))
+            (!isSearchingForReports && isUnsearchableViaParticipants(report)))
     ) {
         return false;
     }
@@ -7290,6 +7297,7 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    isUnsearchableViaParticipants
 };
 
 export type {

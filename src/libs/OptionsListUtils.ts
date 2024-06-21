@@ -773,6 +773,7 @@ function createOption(
         policyID: undefined,
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
+        isUnsearchableViaParticipants: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -808,6 +809,8 @@ function createOption(
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
         result.isTripRoom = ReportUtils.isTripRoom(report);
+        result.policyName = ReportUtils.getPolicyName(report);
+        result.isUnsearchableViaParticipants = ReportUtils.isUnsearchableViaParticipants(report);
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -1872,6 +1875,8 @@ function getOptions(
         });
     });
 
+    console.log(">>>> filtered", filteredReportOptions);
+
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
     // - When searching, self DM is put at the top
@@ -1935,12 +1940,22 @@ function getOptions(
             return;
         }
 
-        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
-            return;
+        if (!accountIDs || accountIDs.length === 0) {
+            if (!isSearchingForReports) {
+                if (!isChatRoom) {
+                    return;
+                }
+            }
+
+            if (!ReportUtils.isUnsearchableViaParticipants(report)) {
+                return;
+            }
         }
 
         return option;
     });
+
+    console.log(">>>> allReportOptions", allReportOptions);
 
     const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
@@ -2022,6 +2037,7 @@ function getOptions(
                 const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
 
                 if (!isReportIdSearch && !isSearchMatch) {
+                    console.log(">>> filtering out", reportOption);
                     continue;
                 }
             }
@@ -2446,6 +2462,8 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         optionsToExclude.push({login});
     });
 
+    console.log(">>>> options", options);
+
     const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
         const keys: string[] = [];
         const visibleChatMemberAccountIDs = item.participantsList ?? [];
@@ -2502,7 +2520,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             // - Policy expense chats
             // - Invoice rooms
             // - Trip rooms
-            if (!item.isChatRoom && !item.isPolicyExpenseChat && !item.isTripRoom) {
+            if (!item.isUnsearchableViaParticipants) {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
