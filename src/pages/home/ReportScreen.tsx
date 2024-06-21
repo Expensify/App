@@ -401,16 +401,6 @@ function ReportScreen({
     }, [reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
-        if (!report.reportID) {
-            return;
-        }
-
-        if (report?.errorFields?.notFound) {
-            Report.clearReportNotFoundErrors(report.reportID);
-        }
-    }, [report?.errorFields?.notFound, report.reportID]);
-
-    useEffect(() => {
         if (!report.reportID || !isFocused) {
             return;
         }
