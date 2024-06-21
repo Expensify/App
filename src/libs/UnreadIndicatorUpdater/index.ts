@@ -37,7 +37,7 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator);
 
 const triggerUnreadUpdate = debounce(() => {
-    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
+    const currentReportID = navigationRef?.isReady() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
     const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(getAllReports(), currentReportID);
