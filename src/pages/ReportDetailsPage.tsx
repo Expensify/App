@@ -437,7 +437,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         );
     }, [report, icons, isMoneyRequestReport, isInvoiceReport, isGroupChat, isThread, styles]);
 
-    const iouTransactionID = requestParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction?.originalMessage?.IOUTransactionID ?? '' : '';
+    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '' : '';
 
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
