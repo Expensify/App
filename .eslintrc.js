@@ -214,7 +214,7 @@ module.exports = {
         // Other rules
         curly: 'error',
         'you-dont-need-lodash-underscore/throttle': 'off',
-        // The suggested alternative (structuredClone) is not supported in Hermes
+        // The suggested alternative (structuredClone) is not supported in Hermes:https://github.com/facebook/hermes/issues/684
         'you-dont-need-lodash-underscore/clone-deep': 'off',
         'prefer-regex-literals': 'off',
         'valid-jsdoc': 'off',
