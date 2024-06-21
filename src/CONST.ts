@@ -3735,6 +3735,14 @@ const CONST = {
         REPORT: 'REPORT',
     },
 
+    PROMOTED_ACTIONS: {
+        PIN: 'pin',
+        SHARE: 'share',
+        JOIN: 'join',
+        MESSAGE: 'message',
+        HOLD: 'hold',
+    },
+
     THUMBNAIL_IMAGE: {
         SMALL_SCREEN: {
             SIZE: 250,
