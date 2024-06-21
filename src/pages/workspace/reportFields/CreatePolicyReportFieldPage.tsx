@@ -85,6 +85,7 @@ function CreatePolicyReportFieldPage({
                                 InputComponent={TextPicker}
                                 inputID={INPUT_IDS.NAME}
                                 label={translate('common.name')}
+                                subtitle={translate('workspace.reportFields.nameInputSubtitle')}
                                 description={translate('common.name')}
                                 rightLabel={translate('common.required')}
                                 accessibilityLabel={translate('workspace.editor.nameInputLabel')}
@@ -96,6 +97,7 @@ function CreatePolicyReportFieldPage({
                                 InputComponent={TypeSelector}
                                 inputID={INPUT_IDS.TYPE}
                                 label={translate('common.type')}
+                                subtitle={translate('workspace.reportFields.typeInputSubtitle')}
                                 rightLabel={translate('common.required')}
                                 onTypeSelected={(type) => formRef.current?.resetForm({...inputValues, type, initialValue: type === CONST.REPORT_FIELD_TYPES.DATE ? defaultDate : ''})}
                             />
@@ -105,6 +107,7 @@ function CreatePolicyReportFieldPage({
                                     InputComponent={TextPicker}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
+                                    subtitle={translate('workspace.reportFields.initialValueInputSubtitle')}
                                     description={translate('common.initialValue')}
                                     accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
                                     maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
