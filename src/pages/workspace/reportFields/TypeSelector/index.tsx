@@ -14,6 +14,9 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
     /** Currently selected type */
     value?: string;
 
+    /** Subtitle to display on field */
+    subtitle?: string;
+
     /** Function to call when the user selects a type */
     onInputChange?: (value: string) => void;
 
@@ -21,7 +24,7 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
     onTypeSelected?: (reportFieldType: PolicyReportFieldType) => void;
 };
 
-function TypeSelector({value, label, rightLabel, onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
+function TypeSelector({value, label, rightLabel, subtitle, onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -56,6 +59,7 @@ function TypeSelector({value, label, rightLabel, onInputChange, onTypeSelected}:
                 onClose={hidePickerModal}
                 onTypeSelected={updateTypeInput}
                 label={label ?? ''}
+                subtitle={subtitle ?? ''}
             />
         </View>
     );
