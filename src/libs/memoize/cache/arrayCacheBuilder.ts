@@ -2,7 +2,7 @@ import type {Cache, CacheOpts} from '@libs/memoize/types';
 import {getEqualityComparator} from '@libs/memoize/utils';
 
 /**
- * Builder of the cache using `Array` primitive under the hood.
+ * Builder of the cache using `Array` primitive under the hood. It is an LRU cache, where the most recently accessed elements are at the end of the array, and the least recently accessed elements are at the front.
  * @param opts - Cache options, check `CacheOpts` type for more details.
  * @returns
  */
