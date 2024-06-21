@@ -6968,13 +6968,24 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
-function getIntegrationIcon(integrationName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
+function getIntegrationIcon(integrationName?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
     if (integrationName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return XeroSquare;
     }
     if (integrationName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
         return QBOSquare;
     }
+    return null;
+}
+
+function getIntegrationDisplayName(integrationName?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
+    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        return Localize.translateLocal('workspace.accounting.xero');
+    }
+    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        return Localize.translateLocal('workspace.accounting.qbo');
+    }
+    return '';
 }
 
 function canBeExported(report: OnyxEntry<Report>) {
@@ -6982,7 +6993,6 @@ function canBeExported(report: OnyxEntry<Report>) {
         return false;
     }
     const isCorrectState = [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED, CONST.REPORT.STATUS_NUM.REIMBURSED].some((status) => status === report.statusNum);
-    console.log('canBeExported', isExpenseReport(report), isCorrectState);
     return isExpenseReport(report) && isCorrectState;
 }
 
@@ -7085,6 +7095,7 @@ export {
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
+    getIntegrationDisplayName,
     getLastUpdatedReport,
     getLastVisibleMessage,
     getMoneyRequestOptions,

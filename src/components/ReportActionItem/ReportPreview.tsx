@@ -24,6 +24,7 @@ import ControlSelection from '@libs/ControlSelection';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -37,6 +38,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Transaction, TransactionViolations, UserWallet} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import ExportWithDropdownMenu from './ExportWithDropdownMenu';
 import type {PendingMessageProps} from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
 
@@ -319,6 +321,37 @@ function ReportPreview({
         };
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
+    /*
+     * Manual export part
+     */
+
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
+    const hasIntegrationAutoSync = (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync.enabled) ?? false;
+    const iconToDisplay = ReportUtils.getIntegrationIcon(connectedIntegration);
+    // TODO: Implement the logic to disable the dropdown options
+    const shouldIntegrationDropdownOptionsBeDisabled = false;
+    // TODO: Check if we can merge it with ReportDetailsExportPage options
+    const integrationsDropdownOptions = useMemo(
+        () => [
+            {
+                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+                text: translate('common.export'),
+                icon: iconToDisplay,
+                disabled: shouldIntegrationDropdownOptionsBeDisabled,
+            },
+            {
+                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+                text: translate('workspace.common.markAsExported'),
+                icon: iconToDisplay,
+                disabled: shouldIntegrationDropdownOptionsBeDisabled,
+            },
+        ],
+        [translate, iconToDisplay, shouldIntegrationDropdownOptionsBeDisabled],
+    );
+
+    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+    console.log({shouldShowExportIntegrationButton, hasIntegrationAutoSync, shouldShowPayButton, shouldShowSubmitButton, connectedIntegration});
+
     return (
         <OfflineWithFeedback
             pendingAction={iouReport?.pendingFields?.preview}
@@ -401,7 +434,7 @@ function ReportPreview({
                                         )}
                                     </View>
                                 </View>
-                                {shouldShowSettlementButton && (
+                                {shouldShowSettlementButton && !shouldShowExportIntegrationButton && (
                                     <SettlementButton
                                         formattedAmount={getDisplayAmount() ?? ''}
                                         currency={iouReport?.currency}
@@ -425,6 +458,12 @@ function ReportPreview({
                                         }}
                                         isDisabled={isOffline && !canAllowSettlement}
                                         isLoading={!isOffline && !canAllowSettlement}
+                                    />
+                                )}
+                                {shouldShowExportIntegrationButton && (
+                                    <ExportWithDropdownMenu
+                                        dropdownOptions={integrationsDropdownOptions}
+                                        integrationName={connectedIntegration}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

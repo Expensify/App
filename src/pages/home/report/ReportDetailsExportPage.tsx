@@ -26,7 +26,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const integrationName = route?.params?.integrationName;
     const iconToDisplay = ReportUtils.getIntegrationIcon(integrationName);
     const canBeExported = ReportUtils.canBeExported(report);
-    const integrationText = CONST.POLICY.CONNECTIONS.NAME.QBO ? translate('workspace.accounting.qbo') : translate('workspace.accounting.xero');
+    const integrationText = ReportUtils.getIntegrationDisplayName(integrationName);
 
     const exportSelectorOptions: SelectorType[] = [
         {
@@ -49,7 +49,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
         },
         {
             value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-            text: translate('common.markAsExported'),
+            text: translate('workspace.common.markAsExported'),
             icons: [
                 {
                     source: iconToDisplay,

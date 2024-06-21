@@ -340,8 +340,6 @@ export default {
         drafts: 'Drafts',
         finished: 'Finished',
         export: 'Export',
-        markAsExported: 'Mark as manually entered',
-        exportIntegrationSelected: ({integrationName}: {integrationName: string}) => `Export to ${integrationName}`,
     },
     location: {
         useCurrent: 'Use current location',
@@ -1984,6 +1982,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            markAsExported: 'Mark as manually entered',
+            exportIntegrationSelected: ({integrationName}: {integrationName: string}) => `Export to ${integrationName}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
