@@ -89,7 +89,7 @@ const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentRepo
     if (!parentReportAction) {
         return;
     }
-    const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
+    const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
     if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
         IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
         return;
@@ -116,7 +116,7 @@ function MoneyRequestView({
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'] ?? null;
+    const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
