@@ -100,7 +100,7 @@ function MoneyRequestView({
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, swapForTranslation} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'] ?? null;
@@ -336,10 +336,18 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
-    const errors = {
-        ...(transaction?.errorFields?.route ?? transaction?.errors),
-        ...parentReportAction?.errors,
-    };
+    const errors = useMemo(() => {
+        const combinedErrors = {
+            ...(transaction?.errorFields?.route ?? transaction?.errors),
+            ...parentReportAction?.errors,
+        };
+        return Object.fromEntries(
+            Object.entries(combinedErrors).map(([key, value]) => 
+                // swap for translation for each error message
+                 [key, swapForTranslation(value as string, 'en')]
+            ),
+        );
+    }, [transaction?.errorFields?.route, transaction?.errors, parentReportAction?.errors, swapForTranslation]);
 
     const tagList = policyTagLists.map(({name, orderWeight}, index) => {
         const tagError = getErrorForField(

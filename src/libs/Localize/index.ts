@@ -225,5 +225,22 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
+/**
+ * This function match the message in the translation mapping and return the translation.
+ * @param locale - The locale to translate the message to.
+ * @param message - The message to translate.
+ * @param messageLocale - The locale of the message.
+ * @returns {string} - translation of the message or the original message if no translation found
+ */
+function swapForTranslation(locale: Locale, message: string, messageLocale: Locale): string {
+    const language = messageLocale.substring(0, 2) as 'en' | 'es';
+    const matchedTranslationEntry = Object.entries(translations[language]).find(([, value]) => value === message) as [TranslationPaths, string] | undefined;
+    if (!matchedTranslationEntry) {
+        return message;
+    }
+
+    return translate(locale, matchedTranslationEntry[0]);
+}
+
+export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale, swapForTranslation};
 export type {PhraseParameters, Phrase};

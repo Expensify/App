@@ -30,6 +30,8 @@ type LocaleContextProps = {
     /** Returns translated string for given locale and phrase */
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string;
 
+    swapForTranslation: (message: string, messageLocale: Locale) => string;
+
     /** Formats number formatted according to locale and options */
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
 
@@ -69,6 +71,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
     fromLocaleDigit: () => '',
+    swapForTranslation: () => '',
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
@@ -105,9 +108,12 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 
+    const swapForTranslation = useMemo<LocaleContextProps['swapForTranslation']>(() => (message, messageLocale) => Localize.swapForTranslation(locale, message, messageLocale), [locale]);
+
     const contextValue = useMemo<LocaleContextProps>(
         () => ({
             translate,
+            swapForTranslation,
             numberFormat,
             datetimeToRelative,
             datetimeToCalendarTime,
@@ -118,7 +124,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
             fromLocaleDigit,
             preferredLocale: locale,
         }),
-        [translate, numberFormat, datetimeToRelative, datetimeToCalendarTime, updateLocale, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, locale],
+        [translate, swapForTranslation, numberFormat, datetimeToRelative, datetimeToCalendarTime, updateLocale, formatPhoneNumber, toLocaleDigit, toLocaleOrdinal, fromLocaleDigit, locale],
     );
 
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
