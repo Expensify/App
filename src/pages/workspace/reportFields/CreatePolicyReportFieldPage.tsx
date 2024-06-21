@@ -1,14 +1,16 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setInitialCreateReportFieldsForm} from '@libs/actions/WorkspaceReportFields';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -19,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
-import DateSelector from './DateSelector';
 import TypeSelector from './TypeSelector';
 
 type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
@@ -50,6 +51,10 @@ function CreatePolicyReportFieldPage({
         console.log('validateForm', values);
 
         return errors;
+    }, []);
+
+    useEffect(() => {
+        setInitialCreateReportFieldsForm();
     }, []);
 
     return (
@@ -117,11 +122,10 @@ function CreatePolicyReportFieldPage({
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.DATE && (
-                                <InputWrapper
-                                    InputComponent={DateSelector}
-                                    inputID={INPUT_IDS.INITIAL_VALUE}
-                                    defaultValue={defaultDate}
-                                    label={translate('common.date')}
+                                <MenuItemWithTopDescription
+                                    title={translate('common.currentDate')}
+                                    description={translate('common.date')}
+                                    interactive={false}
                                 />
                             )}
 
