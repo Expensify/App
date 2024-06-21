@@ -2529,7 +2529,7 @@ export default {
                         case 'netSuiteSyncInitData':
                             return 'Retrieving data from NetSuite';
                         case 'netSuiteSyncImportTaxes':
-                            return 'Importing Taxes';
+                            return 'Importing taxes';
                         case 'netSuiteSyncImportItems':
                             return 'Importing items';
                         case 'netSuiteSyncData':
