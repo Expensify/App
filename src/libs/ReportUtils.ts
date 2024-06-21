@@ -9,7 +9,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar, XeroSquare} from '@components/Icon/Expensicons';
+import {FallbackAvatar, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
@@ -6968,16 +6968,30 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
-function getIntegrationIcon(integrationName: string) {
-    return XeroSquare;
+function getIntegrationIcon(integrationName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
+    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        return XeroSquare;
+    }
+    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        return QBOSquare;
+    }
 }
 
 function canBeExported(report: OnyxEntry<Report>) {
-    return true;
+    if (!report?.statusNum) {
+        return false;
+    }
+    const isCorrectState = [CONST.REPORT.STATUS_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED, CONST.REPORT.STATUS_NUM.REIMBURSED].some((status) => status === report.statusNum);
+    console.log('canBeExported', isExpenseReport(report), isCorrectState);
+    return isExpenseReport(report) && isCorrectState;
 }
 
 function isExported(report: OnyxEntry<Report>) {
-    return false;
+    if (!report) {
+        return false;
+    }
+    const reportActions = Object.values(ReportActionsUtils.getAllReportActions(report?.reportID));
+    return reportActions.some((action) => ReportActionsUtils.isExportIntegrationAction(action));
 }
 
 export {

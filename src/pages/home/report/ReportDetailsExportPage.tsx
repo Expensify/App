@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmModal from '@components/ConfirmModal';
 import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -67,21 +68,34 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     ];
 
     return (
-        <SelectionScreen
-            policyID={policyID ?? ''}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={ReportDetailsExportPage.displayName}
-            sections={[{data: exportSelectorOptions}]}
-            listItem={UserListItem}
-            shouldBeBlocked={false}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
-            title="common.export"
-            connectionName={integrationName}
-            onSelectRow={(option) => {
-                option.onPress?.();
-            }}
-        />
+        <>
+            <SelectionScreen
+                policyID={policyID ?? ''}
+                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+                displayName={ReportDetailsExportPage.displayName}
+                sections={[{data: exportSelectorOptions}]}
+                listItem={UserListItem}
+                shouldBeBlocked={false}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                title="common.export"
+                connectionName={integrationName}
+                onSelectRow={(option) => {
+                    option.onPress?.();
+                }}
+            />
+            {shouldShowModal && (
+                <ConfirmModal
+                    title={translate('exportAgainModal.title')}
+                    onConfirm={() => setShouldShowModal(false)}
+                    onCancel={() => setShouldShowModal(false)}
+                    prompt={translate('exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
+                    confirmText={translate('exportAgainModal.confirmText')}
+                    cancelText={translate('exportAgainModal.cancelText')}
+                    isVisible
+                />
+            )}
+        </>
     );
 }
 
