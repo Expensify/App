@@ -19,6 +19,10 @@ type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
+const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
+
+const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
+
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
@@ -29,16 +33,19 @@ Onyx.connect({
         frequentlyUsedEmojis =
             val
                 ?.map((item) => {
-                    const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
-                    return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                    let emoji = item;
+                    if (!item.code) {
+                        emoji = {...emoji, ...findEmojiByName(item.name)};
+                    }
+                    if (!item.name) {
+                        emoji = {...emoji, ...findEmojiByCode(item.code)};
+                    }
+                    const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                    return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
     },
 });
-
-const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
-
-const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
     if (!emoji) {
@@ -213,7 +220,20 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...frequentlyUsedEmojis, ...emojis];
+    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
+        // Frequently used emojis in the old format will have name/types/code stored with them
+        // The back-end may not always have both, so we'll need to fill them in.
+        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByName(frequentlyUsedEmoji.name);
+        }
+        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByCode(frequentlyUsedEmoji.code);
+        }
+
+        return frequentlyUsedEmoji;
+    });
+
+    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 

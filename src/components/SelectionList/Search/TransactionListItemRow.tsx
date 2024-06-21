@@ -39,6 +39,7 @@ type ActionCellProps = {
 } & CellProps;
 
 type TotalCellProps = {
+    // eslint-disable-next-line react/no-unused-prop-types
     isChildListItem: boolean;
 } & TransactionCellProps;
 
@@ -70,7 +71,14 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const StyleUtils = useStyleUtils();
 
     return (
-        <View style={[StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40), StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall), styles.overflowHidden]}>
+        <View
+            style={[
+                StyleUtils.getWidthAndHeightStyle(variables.h36, variables.w40),
+                StyleUtils.getBorderRadiusStyle(variables.componentBorderRadiusSmall),
+                StyleUtils.getBackgroundColorStyle(theme.border),
+                styles.overflowHidden,
+            ]}
+        >
             <ReceiptImage
                 source={tryResolveUrlFromApiRoot(transactionItem?.receipt?.source ?? '')}
                 isEReceipt={transactionItem.hasEReceipt}
@@ -96,25 +104,24 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: Transactio
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={date}
-            style={[styles.label, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
 }
 
-function MerchantCell({transactionItem, showTooltip}: TransactionCellProps) {
+function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
     const description = TransactionUtils.getDescription(transactionItem);
-
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description}
-            style={[styles.label, styles.pre, styles.justifyContentCenter]}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
 }
 
-function TotalCell({showTooltip, isLargeScreenWidth, transactionItem, isChildListItem}: TotalCellProps) {
+function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCellProps) {
     const styles = useThemeStyles();
     const currency = TransactionUtils.getCurrency(transactionItem);
 
@@ -122,7 +129,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, transactionItem, isChildLis
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
-            style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight, isChildListItem ? styles.label : undefined]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
 }
@@ -162,13 +169,14 @@ function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: Transa
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.category}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Folder}
             showTooltip={showTooltip}
             text={transactionItem?.category}
+            textStyle={[styles.textMicro, styles.mnh0]}
         />
     );
 }
@@ -179,13 +187,14 @@ function TagCell({isLargeScreenWidth, showTooltip, transactionItem}: Transaction
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={TransactionUtils.getTagForDisplay(transactionItem)}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
         />
     ) : (
         <TextWithIconCell
             icon={Expensicons.Tag}
             showTooltip={showTooltip}
             text={TransactionUtils.getTagForDisplay(transactionItem)}
+            textStyle={[styles.textMicro, styles.mnh0]}
         />
     );
 }
@@ -201,7 +210,7 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString(taxAmount, currency)}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
+            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
         />
     );
 }
@@ -251,14 +260,14 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                             />
                         </View>
                     </View>
-                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1]}>
+                    <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}
                             isLargeScreenWidth={isLargeScreenWidth}
                             isChildListItem={isChildListItem}
                         />
-                        <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
+                        <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <TypeCell
                                 transactionItem={item}
                                 isLargeScreenWidth={isLargeScreenWidth}
