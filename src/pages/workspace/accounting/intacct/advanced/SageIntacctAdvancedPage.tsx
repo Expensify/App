@@ -106,7 +106,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 pendingAction={pendingFields?.sync?.reimbursementAccountID}
             >
                 <MenuItem
-                    title={data.bankAccounts.find((bankAccount) => bankAccount.id === reimbursementAccountID).name || translate('workspace.sageIntacct.notConfigured')}
+                    title={data.bankAccounts.find((bankAccount) => bankAccount.id === reimbursementAccountID)?.name || translate('workspace.sageIntacct.notConfigured')}
                     description={translate('workspace.sageIntacct.paymentAccount')}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
