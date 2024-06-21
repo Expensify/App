@@ -120,13 +120,6 @@ function getBillingStatus(
                 isError: true,
             };
 
-        case SubscriptionUtils.PAYMENT_STATUSES.GENERIC_API_ERROR:
-            return {
-                title: translate('subscription.billingBanner.succeeded'),
-                subtitle: translate('subscription.billingBanner.billedSuccessfully'),
-                isError: false,
-            };
-
         default:
             return {};
     }
