@@ -314,7 +314,7 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
 
     optimisticData.push(...optimisticDataTransactionViolations);
     optimisticData.push(...optimisticReportActions);
-    console.log('dsda', getUnixTime(new Date()));
+
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
