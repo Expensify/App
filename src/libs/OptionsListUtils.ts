@@ -769,6 +769,7 @@ function createOption(
         isPolicyExpenseChat: false,
         isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
+        isTripRoom: false,
         policyID: undefined,
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
@@ -806,6 +807,7 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
+        result.isTripRoom = ReportUtils.isTripRoom(report);
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -2491,6 +2493,16 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                     values.push(item.subtitle);
                 }
             } else {
+                values = values.concat(getParticipantsLoginsArray(item));
+            }
+
+            // We don't want the following to be searchable by participant:
+            // - Default rooms
+            // - Policy rooms
+            // - Policy expense chats
+            // - Invoice rooms
+            // - Trip rooms
+            if (!item.isChatRoom && !item.isPolicyExpenseChat && !item.isTripRoom) {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 

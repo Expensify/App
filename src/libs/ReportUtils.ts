@@ -411,6 +411,7 @@ type OptionData = {
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
     isDefaultRoom?: boolean;
     isInvoiceRoom?: boolean;
+    isTripRoom?: boolean;
     isExpenseReport?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
