@@ -129,11 +129,13 @@ function BaseReportActionContextMenu({
     const threedotRef = useRef<View>(null);
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
-        if (isEmptyObject(reportActions) || reportActionID === '0') {
+        if (isEmptyObject(reportActions) || reportActionID === '0' || reportActionID === '-1') {
             return;
         }
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
+
+    const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     let filteredContextMenuActions = ContextMenuActions.filter(
@@ -202,8 +204,6 @@ function BaseReportActionContextMenu({
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
-        const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-        const originalReport = ReportUtils.getReport(originalReportID);
         showContextMenu(
             CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -218,8 +218,8 @@ function BaseReportActionContextMenu({
                 checkIfContextMenuActive?.();
                 setShouldKeepOpen(false);
             },
-            ReportUtils.isArchivedRoom(originalReport),
-            ReportUtils.chatIncludesChronos(originalReport),
+            ReportUtils.isArchivedRoomWithID(originalReportID),
+            ReportUtils.chatIncludesChronosWithID(originalReportID),
             undefined,
             undefined,
             filteredContextMenuActions,
@@ -307,7 +307,7 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
     transaction: {
         key: ({reportActions, reportActionID}) => {
             const reportAction = reportActions?.[reportActionID];
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? -1}`;
         },
     },
 })(

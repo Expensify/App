@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -144,7 +144,8 @@ function SettlementButton({
     const {isOffline} = useNetwork();
 
     const session = useSession();
-    const chatReport = ReportUtils.getReport(chatReportID);
+    // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID || -1}`);
     const isInvoiceReport = (!isEmptyObject(iouReport) && ReportUtils.isInvoiceReport(iouReport)) || false;
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
@@ -185,7 +186,7 @@ function SettlementButton({
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
         // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
-        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
+        const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '-1';
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
