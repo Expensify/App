@@ -79,6 +79,15 @@ function ButtonWithDropdownMenu<IValueType>({
             isActive: useKeyboardShortcuts,
         },
     );
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (caretButton.current || !buttonRef?.current || !(shouldAlwaysShowDropdownMenu || options.length > 1)) {
+            return;
+        }
+        caretButton.current = buttonRef.current;
+    }, [buttonRef, options.length, shouldAlwaysShowDropdownMenu]);
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -86,9 +95,7 @@ function ButtonWithDropdownMenu<IValueType>({
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
-                        ref={(ref) => {
-                            caretButton.current = ref;
-                        }}
+                        ref={buttonRef}
                         onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
                         isDisabled={isDisabled || !!selectedItem.disabled}
