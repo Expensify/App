@@ -69,7 +69,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
-    if (isLoadingItems) {
+    if (true) {
         return <TableListItemSkeleton shouldAnimate />;
     }
 

@@ -61,7 +61,7 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
 
                         <Rect
                             x={16}
-                            y={48}
+                            y={56}
                             width={36}
                             height={40}
                             rx={4}
@@ -69,25 +69,25 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListI
                         />
                         <Rect
                             x={64}
-                            y={57}
+                            y={65}
                             width={124}
                             height={8}
                         />
                         <Rect
                             x={64}
-                            y={71}
+                            y={79}
                             width={60}
                             height={8}
                         />
                         <Rect
                             x={windowWidth - 120}
-                            y={57}
+                            y={65}
                             width={80}
                             height={8}
                         />
                         <Rect
                             x={windowWidth - 100}
-                            y={71}
+                            y={79}
                             width={60}
                             height={8}
                         />
