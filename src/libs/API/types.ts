@@ -227,6 +227,7 @@ const WRITE_COMMANDS = {
     UPDATE_SUBSCRIPTION_AUTO_RENEW: 'UpdateSubscriptionAutoRenew',
     UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY: 'UpdateSubscriptionAddNewUsersAutomatically',
     UPDATE_SUBSCRIPTION_SIZE: 'UpdateSubscriptionSize',
+    CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;

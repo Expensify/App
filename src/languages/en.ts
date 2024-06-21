@@ -3234,6 +3234,8 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            success: 'Success!',
+            yourCardHasBeenBilled: 'Your card has been billed successfully.',
         },
         yourPlan: {
             title: 'Your plan',

@@ -20,6 +20,8 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [retryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {initWithStoredValues: false});
+    const [retryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
 
