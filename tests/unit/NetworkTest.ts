@@ -109,7 +109,7 @@ describe('NetworkTests', () => {
             // This should first trigger re-authentication and then a Failed to fetch
             PersonalDetails.openPublicProfilePage(TEST_USER_ACCOUNT_ID);
             return waitForBatchedUpdates()
-                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true}))
+                .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
                 .then(() => {
                     expect(isOffline).toBe(false);
 
@@ -260,7 +260,7 @@ describe('NetworkTests', () => {
         const logHmmmSpy = jest.spyOn(Log, 'hmmm');
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -276,7 +276,7 @@ describe('NetworkTests', () => {
         const logAlertSpy = jest.spyOn(Log, 'alert');
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 Network.post('MockBadNetworkResponse', {param1: 'value1'});
                 return waitForBatchedUpdates();
@@ -292,7 +292,7 @@ describe('NetworkTests', () => {
         const onResolved = jest.fn();
 
         // Given we have a request made while online
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
@@ -313,7 +313,7 @@ describe('NetworkTests', () => {
         // GIVEN a mock that will return a "cancelled" request error
         global.fetch = jest.fn().mockRejectedValue(new DOMException('Aborted', CONST.ERROR.REQUEST_CANCELLED));
 
-        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false, isBackendReachable: true})
+        return Onyx.set(ONYXKEYS.NETWORK, {isOffline: false})
             .then(() => {
                 // WHEN we make a few requests and then cancel them
                 Network.post('MockCommandOne');
