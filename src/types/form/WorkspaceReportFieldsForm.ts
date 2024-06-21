@@ -6,9 +6,11 @@ const INPUT_IDS = {
     NAME: 'name',
     TYPE: 'type',
     INITIAL_VALUE: 'initialValue',
+    LIST_VALUES: 'listValues',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
+type ReportFieldListValue = {name: string; disabled: boolean};
 
 type WorkspaceReportFieldsForm = Form<
     InputID,
@@ -16,8 +18,9 @@ type WorkspaceReportFieldsForm = Form<
         [INPUT_IDS.NAME]: string;
         [INPUT_IDS.TYPE]: PolicyReportFieldType;
         [INPUT_IDS.INITIAL_VALUE]: string;
+        [INPUT_IDS.LIST_VALUES]: Record<string, ReportFieldListValue>;
     }
 >;
 
-export type {WorkspaceReportFieldsForm};
+export type {WorkspaceReportFieldsForm, ReportFieldListValue};
 export default INPUT_IDS;

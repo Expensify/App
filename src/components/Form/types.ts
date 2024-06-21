@@ -22,6 +22,7 @@ import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/su
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
+import type {ReportFieldListValue} from '@src/types/form/WorkspaceReportFieldsForm';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
@@ -53,6 +54,7 @@ type ValueTypeMap = {
     boolean: boolean;
     date: Date;
     country: Country | '';
+    reportFields: Record<string, ReportFieldListValue>;
 };
 type FormValue = ValueOf<ValueTypeMap>;
 
