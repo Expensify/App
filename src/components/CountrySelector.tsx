@@ -66,12 +66,6 @@ function CountrySelector({errorText = '', value: countryCode, onInputChange = ()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryFromUrl, isFocused, onBlur]);
 
-    useEffect(() => {
-        // This will cause the form to revalidate and remove any error related to country name
-        onInputChange(countryCode);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [countryCode]);
-
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon
