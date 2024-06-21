@@ -37,7 +37,7 @@ function extractAttachments(
                 }
 
                 uniqueSources.add(source);
-                const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE].split('/');
+                const splittedUrl = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]?.split('/') ?? [];
                 attachments.unshift({
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
