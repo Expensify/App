@@ -5,8 +5,6 @@ type KeyComparator = <K>(key1: K[], key2: K[]) => boolean;
 type Cache<K, V> = {
     get: (key: K) => {value: V} | undefined;
     set: (key: K, value: V) => void;
-    delete: (key: K) => boolean;
-    clear: () => void;
     snapshot: {
         keys: () => K[];
         values: () => V[];

@@ -46,19 +46,6 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
                 cache.shift();
             }
         },
-        delete(key) {
-            const index = getKeyIndex(key);
-            const entryExists = index !== -1;
-
-            if (entryExists) {
-                cache.splice(index, 1);
-            }
-
-            return entryExists;
-        },
-        clear() {
-            cache.length = 0;
-        },
         snapshot: {
             keys() {
                 return cache.map((entry) => entry[0]);
