@@ -1,3 +1,5 @@
+const path = require('path');
+
 const restrictedImportPaths = [
     {
         name: 'react-native',
@@ -96,7 +98,7 @@ module.exports = {
     plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react', 'testing-library'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
-        project: './tsconfig.json',
+        project: path.resolve(__dirname, './tsconfig.json'),
     },
     env: {
         jest: true,

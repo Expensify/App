@@ -2126,6 +2126,8 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DELETE: 'delete',
+        MARK_AS_INCOMPLETE: 'markAsIncomplete',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3733,6 +3735,14 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+    },
+
+    PROMOTED_ACTIONS: {
+        PIN: 'pin',
+        SHARE: 'share',
+        JOIN: 'join',
+        MESSAGE: 'message',
+        HOLD: 'hold',
     },
 
     THUMBNAIL_IMAGE: {

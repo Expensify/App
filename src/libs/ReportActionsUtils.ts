@@ -1349,6 +1349,19 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
     return currentUserAccountID === reportAction?.actorAccountID;
 }
 
+/**
+ * Get IOU action for a reportID and transactionID
+ */
+function getIOUActionForReportID(reportID: string, transactionID: string): OnyxEntry<ReportAction> {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportActions = getAllReportActions(report?.reportID ?? '');
+    const action = Object.values(reportActions ?? {})?.find((reportAction) => {
+        const IOUTransactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : -1;
+        return IOUTransactionID === transactionID;
+    });
+    return action;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1432,6 +1445,7 @@ export {
     isPolicyChangeLogAction,
     getTextFromHtml,
     isTripPreview,
+    getIOUActionForReportID,
 };
 
 export type {LastVisibleMessage};

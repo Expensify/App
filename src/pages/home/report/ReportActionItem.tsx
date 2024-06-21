@@ -107,7 +107,7 @@ type ReportActionItemProps = {
     report: OnyxTypes.Report;
 
     /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -152,6 +152,9 @@ type ReportActionItemProps = {
 
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Whether context menu should be displayed */
+    shouldDisplayContextMenu?: boolean;
 } & ReportActionItemOnyxProps;
 
 function ReportActionItem({
@@ -174,6 +177,7 @@ function ReportActionItem({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     linkedTransactionRouteError,
+    shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
@@ -327,7 +331,7 @@ function ReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyObject(action.errors)) {
+            if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
                 return;
             }
 
@@ -353,7 +357,7 @@ function ReportActionItem({
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -513,6 +517,7 @@ function ReportActionItem({
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (ReportActionsUtils.isTripPreview(action)) {
@@ -741,6 +746,7 @@ function ReportActionItem({
      * @param hasErrors whether the report action has any errors
      * @returns report action item
      */
+
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
@@ -871,20 +877,22 @@ function ReportActionItem({
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        <MiniReportActionContextMenu
-                            reportID={report.reportID}
-                            reportActionID={action.reportActionID}
-                            anchor={popoverAnchorRef}
-                            originalReportID={originalReportID ?? '-1'}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(report)}
-                            displayAsGroup={displayAsGroup}
-                            disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
-                            isVisible={hovered && draftMessage === undefined && !hasErrors}
-                            draftMessage={draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
-                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                            setIsEmojiPickerActive={setIsEmojiPickerActive}
-                        />
+                        {shouldDisplayContextMenu && (
+                            <MiniReportActionContextMenu
+                                reportID={report.reportID}
+                                reportActionID={action.reportActionID}
+                                anchor={popoverAnchorRef}
+                                originalReportID={originalReportID ?? '-1'}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(report)}
+                                displayAsGroup={displayAsGroup}
+                                disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
+                                isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                draftMessage={draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
+                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                                setIsEmojiPickerActive={setIsEmojiPickerActive}
+                            />
+                        )}
                         <View
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined,
