@@ -45,7 +45,7 @@ const triggerUnreadUpdate = debounce(() => {
     updateUnread(unreadReports.length);
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
 
-navigationRef.addListener('state', () => {
+navigationRef?.addListener('state', () => {
     triggerUnreadUpdate();
 });
 

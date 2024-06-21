@@ -20,6 +20,9 @@ Onyx.connect({
         // Each time a new report is added we will check to see if the user should be switched
         PriorityModeActions.autoSwitchToFocusMode();
 
+        if (!value) {
+            return;
+        }
         Object.values(value).forEach((report) => {
             if (!report) {
                 return;

@@ -3270,13 +3270,6 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
     return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`]);
 }
 
-const archivedTranslation = Localize.translateLocal('common.archived');
-const deletedMessageTranslation = Localize.translateLocal('parentReportAction.deletedMessage');
-const attachmentTranslation = `[${Localize.translateLocal('common.attachment')}]`;
-const hiddenMessageTranslation = Localize.translateLocal('parentReportAction.hiddenMessage');
-const deletedTaskTranslation = Localize.translateLocal('parentReportAction.deletedTask');
-const deletedReportTranslation = Localize.translateLocal('parentReportAction.deletedReport');
-
 /**
  * Get the title for a report.
  */
@@ -3287,32 +3280,32 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): s
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
             if (isArchivedRoom(report)) {
-                formattedName += ` (${archivedTranslation})`;
+                formattedName += ` (${Localize.translateLocal('common.archived')})`;
             }
             return formatReportLastMessageText(formattedName);
         }
 
         if (parentReportAction?.message?.[0]?.isDeletedParentAction) {
-            return deletedMessageTranslation;
+            return Localize.translateLocal('parentReportAction.deletedMessage');
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID, report?.reportID ?? '').replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
-            return attachmentTranslation;
+            return `[${Localize.translateLocal('common.attachment')}]`;
         }
         if (
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN ||
             parentReportAction?.message?.[0]?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE
         ) {
-            return hiddenMessageTranslation;
+            return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, parentReportActionMessage);
         }
         if (parentReportActionMessage && isArchivedRoom(report)) {
-            return `${parentReportActionMessage} (${archivedTranslation})`;
+            return `${parentReportActionMessage} (${Localize.translateLocal('common.archived')})`;
         }
         if (ReportActionsUtils.isModifiedExpenseAction(parentReportAction)) {
             return ModifiedExpenseMessage.getForReportAction(report?.reportID, parentReportAction);
@@ -3326,11 +3319,11 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): s
     }
 
     if (isClosedExpenseReportWithNoExpenses(report)) {
-        return deletedReportTranslation;
+        return Localize.translateLocal('parentReportAction.deletedReport');
     }
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
-        return deletedTaskTranslation;
+        return Localize.translateLocal('parentReportAction.deletedTask');
     }
 
     if (isGroupChat(report)) {
@@ -3354,7 +3347,7 @@ function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): s
     }
 
     if (isArchivedRoom(report)) {
-        formattedName += ` (${archivedTranslation})`;
+        formattedName += ` (${Localize.translateLocal('common.archived')})`;
     }
 
     if (isSelfDM(report)) {
