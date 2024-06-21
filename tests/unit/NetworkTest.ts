@@ -64,7 +64,7 @@ describe('NetworkTests', () => {
 
         // Given a test user login and account ID
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
-            expect(isOffline).toBe(undefined);
+            expect(isOffline).toBe(false);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
             global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));
