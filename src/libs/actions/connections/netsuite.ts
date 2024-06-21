@@ -7,8 +7,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type SubsidiaryParam = {
-    subsidiaryID: string,
-    subsidiary: string
+    subsidiaryID: string;
+    subsidiary: string;
 };
 
 function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
