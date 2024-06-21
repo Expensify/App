@@ -235,18 +235,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
-                {interactive && (
-                    <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                        <Button
-                            onPress={centerMap}
-                            iconFill={theme.icon}
-                            iconStyles={styles.ml1}
-                            medium
-                            icon={Expensicons.Crosshair}
-                            accessibilityLabel={translate('common.center')}
-                        />
-                    </View>
-                )}
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                    <Button
+                        onPress={centerMap}
+                        iconFill={theme.icon}
+                        iconStyles={styles.ml1}
+                        medium
+                        icon={Expensicons.Crosshair}
+                        accessibilityLabel={translate('common.center')}
+                    />
+                </View>
             </View>
         ) : (
             <PendingMapView
