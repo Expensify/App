@@ -85,6 +85,18 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
+const deleteTransaction = (parentReport: OnyxEntry<OnyxTypes.Report>, parentReportAction: OnyxEntry<OnyxTypes.ReportAction>) => {
+    if (!parentReportAction) {
+        return;
+    }
+    const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
+    if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
+        IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
+        return;
+    }
+    IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
+};
+
 function MoneyRequestView({
     report,
     parentReport,
@@ -283,18 +295,6 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, hasViolations, translate, getViolationsForField],
     );
 
-    const deleteTransaction = useCallback(() => {
-        if (!parentReportAction) {
-            return;
-        }
-        const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
-        if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-            IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
-            return;
-        }
-        IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
-    }, [parentReport?.reportID, parentReportAction]);
-
     const distanceRequestFields = canUseP2PDistanceRequests ? (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
@@ -405,7 +405,7 @@ function MoneyRequestView({
                                 return;
                             }
                             if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
-                                deleteTransaction();
+                                deleteTransaction(parentReport, parentReportAction);
                             }
                             Transaction.clearError(transaction.transactionID);
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
