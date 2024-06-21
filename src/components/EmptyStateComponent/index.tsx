@@ -62,7 +62,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
         default:
             HeaderComponent = (
                 <ImageSVG
-                    style={{backgroundColor: 'red', borderTopLeftRadius: 16, borderTopRightRadius: 16}}
+                    style={{borderTopLeftRadius: 16, borderTopRightRadius: 16}}
                     width={400}
                     height={220}
                     src={headerMedia}
