@@ -363,6 +363,8 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
         XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
+        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
+        REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1802,6 +1804,7 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
+                NETSUITE: 'netsuite',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -2128,6 +2131,8 @@ const CONST = {
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
         EXPORT: 'export',
+        DELETE: 'delete',
+        MARK_AS_INCOMPLETE: 'markAsIncomplete',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3735,6 +3740,14 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+    },
+
+    PROMOTED_ACTIONS: {
+        PIN: 'pin',
+        SHARE: 'share',
+        JOIN: 'join',
+        MESSAGE: 'message',
+        HOLD: 'hold',
     },
 
     THUMBNAIL_IMAGE: {
