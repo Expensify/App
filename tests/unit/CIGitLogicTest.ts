@@ -2,19 +2,23 @@
  * @jest-environment node
  * @jest-config bail=true
  */
+import * as core from '@actions/core';
 import {execSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
+import CONST from '@github/libs/CONST';
 import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
-import CONST from '../../.github/libs/CONST';
+import asMutable from '@src/types/utils/asMutable';
 import * as Log from '../../scripts/utils/Logger';
 
-const TEST_DIR = path.resolve(__dirname, '../..');
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
+
+const mockGetInput = jest.fn();
 
 function exec(command: string) {
     try {
@@ -153,21 +157,36 @@ function mergePR(num: number) {
     Log.success(`Merged PR #${num} to main`);
 }
 
-function cherryPickPR(num: number) {
+function cherryPickPR(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
     Log.info(`Cherry-picking PR ${num} to staging...`);
     mergePR(num);
-    const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'});
+    const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
-    const versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'});
+    const versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     checkoutRepo();
     setupGitAsOSBotify();
-    const previousPatchVersion = VersionUpdater.getPreviousVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+
+    mockGetInput.mockReturnValue(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    const previousPatchVersion = getPreviousVersion();
     exec(`git fetch origin main staging --no-tags --shallow-exclude="${previousPatchVersion}"`);
+
     exec('git switch staging');
     exec('git switch -c cherry-pick-staging');
-    exec(`git cherry-pick -x --mainline 1 ${versionBumpCommit}`);
+
+    try {
+        exec(`git cherry-pick -x --mainline 1 ${versionBumpCommit}`);
+    } catch (e) {
+        resolveVersionBumpConflicts();
+    }
+
     setupGitAsHuman();
-    exec(`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`);
+
+    try {
+        exec(`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`);
+    } catch (e) {
+        resolveMergeCommitConflicts();
+    }
+
     setupGitAsOSBotify();
     exec('git switch staging');
     exec(`git merge cherry-pick-staging --no-ff -m "Merge pull request #${num + 1} from Expensify/cherry-pick-staging"`);
@@ -222,19 +241,22 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
     expect(PRs).toStrictEqual(expected);
 }
 
-beforeAll(() => {
-    Log.info('Starting setup');
-    initGitServer();
-    checkoutRepo();
-    Log.success('Setup complete!');
-});
-
-afterAll(() => {
-    fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
-    fs.rmSync(GIT_REMOTE, {recursive: true, force: true});
-});
-
 describe('CIGitLogic', () => {
+    beforeAll(() => {
+        Log.info('Starting setup');
+        initGitServer();
+        checkoutRepo();
+        Log.success('Setup complete!');
+
+        // Mock core module
+        asMutable(core).getInput = mockGetInput;
+    });
+
+    afterAll(() => {
+        fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
+        fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
+    });
+
     test('Merge a pull request while the checklist is unlocked', () => {
         createBasicPR(1);
         mergePR(1);
@@ -429,7 +451,18 @@ Appended content
         exec(`git commit -m "Manually bump version to ${getVersion()} in PR #14"`);
         Log.success('Created manual version bump in PR #14 in branch pr-14');
 
-        cherryPickPR(14);
+        const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
+        cherryPickPR(
+            14,
+            () => {
+                fs.writeFileSync('package.json', packageJSONBefore);
+                exec('git add package.json');
+                exec('git cherry-pick --continue');
+            },
+            () => {
+                exec('git commit --no-edit --allow-empty');
+            },
+        );
 
         // Verify PRs for deploy comments
         assertPRsMergedBetween('4.0.0-0', '7.0.0-0', [14]);
