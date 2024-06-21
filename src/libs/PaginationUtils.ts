@@ -106,7 +106,7 @@ function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages,
 
     // Pages need to be sorted by firstIndex ascending then by lastIndex descending
     const sortedPages = pagesWithIndexes.sort((a, b) => {
-        if (a.firstIndex !== b.firstIndex) {
+        if (a.firstIndex !== b.firstIndex || a.firstID !== b.firstID) {
             if (a.firstID === CONST.PAGINATION_START_ID) {
                 return -1;
             }

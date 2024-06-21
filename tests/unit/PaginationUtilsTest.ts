@@ -486,5 +486,83 @@ describe('PaginationUtils', () => {
             const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
+
+        it('handles page start markers', () => {
+            const sortedItems = createItems([
+                // Given these sortedItems
+                '1',
+                '2',
+            ]);
+            const pages = [
+                // Given these pages
+                ['1', '2'],
+                [CONST.PAGINATION_START_ID, '1'],
+            ];
+            const expectedResult = [
+                // Expect these pages
+                [CONST.PAGINATION_START_ID, '1', '2'],
+            ];
+            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles page end markers', () => {
+            const sortedItems = createItems([
+                // Given these sortedItems
+                '1',
+                '2',
+            ]);
+            const pages = [
+                // Given these pages
+                ['2', CONST.PAGINATION_END_ID],
+                ['1', '2'],
+            ];
+            const expectedResult = [
+                // Expect these pages
+                ['1', '2', CONST.PAGINATION_END_ID],
+            ];
+            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles both page markers', () => {
+            const sortedItems = createItems([
+                // Given these sortedItems
+                '1',
+                '2',
+                '3',
+            ]);
+            const pages = [
+                // Given these pages
+                [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
+                [CONST.PAGINATION_START_ID, '2', CONST.PAGINATION_END_ID],
+            ];
+            const expectedResult = [
+                // Expect these pages
+                [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
+            ];
+            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            expect(result).toStrictEqual(expectedResult);
+        });
+
+        it('handles mixed page markers', () => {
+            const sortedItems = createItems([
+                // Given these sortedItems
+                '1',
+                '2',
+                '3',
+            ]);
+            const pages = [
+                // Given these pages
+                [CONST.PAGINATION_START_ID, '1', '2', '3'],
+                ['2', '3', CONST.PAGINATION_END_ID],
+            ];
+            const expectedResult = [
+                // Expect these pages
+                [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
+            ];
+            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            expect(result).toStrictEqual(expectedResult);
+        });
     });
 });
