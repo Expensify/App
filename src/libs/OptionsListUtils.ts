@@ -335,6 +335,34 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
+let allReportsDraft: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportsDraft = value),
+});
+
+/**
+ * Get the report or draft report given a reportID
+ */
+function getReportOrDraftReport(reportID: string | undefined): OnyxEntry<Report> {
+    if (!allReports && !allReportsDraft) {
+        return undefined;
+    }
+
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+
+    return report ?? draftReport;
+}
+
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
@@ -577,7 +605,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
-    const report = ReportUtils.getReport(option.reportID);
+    const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = ReportUtils.isAdminRoom(report);
     const isAnnounceRoom = ReportUtils.isAnnounceRoom(report);
 
@@ -653,7 +681,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        const iouReport = getReportOrDraftReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '-1']?.find(
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
@@ -774,15 +802,9 @@ function createOption(
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
 
-        // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-        const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([, participant]) => participant && !participant.hidden)
-            .map(([accountID]) => Number(accountID))
-            .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+        const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
         result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
-        result.isOneOnOneChat = isOneOnOneChat;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isGroupChat(report);
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -838,14 +860,8 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    const report = ReportUtils.getReport(participant.reportID);
-
-    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-    const visibleParticipantAccountIDs = Object.entries(report?.participants ?? {})
-        .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
-        .map(([accountID]) => Number(accountID))
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+    const report = getReportOrDraftReport(participant.reportID);
+    const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
     const option = createOption(
         visibleParticipantAccountIDs,
@@ -878,7 +894,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
-    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? getReportOrDraftReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
@@ -1554,11 +1570,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 return;
             }
 
-            // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
             const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-            const accountIDs = Object.keys(report.participants ?? {})
-                .map(Number)
-                .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+            const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
             const isChatRoom = ReportUtils.isChatRoom(report);
             if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
@@ -1591,11 +1604,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 }
 
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
-    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-    const accountIDs = Object.keys(report.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+    const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
@@ -1864,13 +1873,8 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        const isOneOnOneChat = option.isOneOnOneChat;
         const isChatRoom = option.isChatRoom;
-
-        // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-        const accountIDs = Object.keys(report.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+        const accountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;

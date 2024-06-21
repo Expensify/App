@@ -121,7 +121,7 @@
     <% if (htmlWebpackPlugin.options.isWeb) { %>
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
-        <% if (htmlWebpackPlugin.options.isProduction) { %>
+        <% if (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging) { %>
             <!-- Third party scripts -->
             <script async="" src="thirdPartyScripts.js"></script>
             <!-- End Third party scripts -->
@@ -130,7 +130,7 @@
     <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
-    <% if (htmlWebpackPlugin.options.isWeb && htmlWebpackPlugin.options.isProduction) { %>
+    <% if (htmlWebpackPlugin.options.isWeb && (htmlWebpackPlugin.options.isProduction || htmlWebpackPlugin.options.isStaging)) { %>
         <!-- Google Tag Manager (noscript) -->
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N4M3FLJZ" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <!-- End Google Tag Manager (noscript) -->
