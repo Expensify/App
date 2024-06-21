@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.0.0-0",
+  "version": "9.0.0-4",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -53,6 +53,7 @@
     "symbolicate:ios": "npx metro-symbolicate main.jsbundle.map",
     "symbolicate-release:ios": "scripts/release-profile.ts --platform=ios",
     "symbolicate-release:android": "scripts/release-profile.ts --platform=android",
+    "symbolicate-profile": "scripts/symbolicate-profile.ts",
     "test:e2e": "ts-node tests/e2e/testRunner.ts --config ./config.local.ts",
     "test:e2e:dev": "ts-node tests/e2e/testRunner.ts --config ./config.dev.ts",
     "gh-actions-unused-styles": "./.github/scripts/findUnusedKeys.sh",
@@ -291,6 +292,7 @@
     "time-analytics-webpack-plugin": "^0.1.17",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "type-fest": "^4.10.2",
     "typescript": "^5.4.5",
     "wait-port": "^0.2.9",
