@@ -147,10 +147,10 @@ function Expensify({
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Used for the offline indicator appearing when someone is offline or backend is unreachable
-        const unsubscribeNetworkStatus = NetworkConnection.subscribeToNetworkStatus();
+        // Used for the offline indicator appearing when someone is offline
+        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
-        return () => unsubscribeNetworkStatus();
+        return unsubscribeNetInfo;
     }, []);
 
     useEffect(() => {
