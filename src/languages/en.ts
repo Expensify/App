@@ -3235,7 +3235,7 @@ export default {
             cardOnDispute: ({amountOwed, cardEnding}) =>
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             succeeded: 'Success!',
-            billedSuccessfully: 'Your card has been  billed successfully.',
+            billedSuccessfully: 'Your card has been billed successfully.',
             preTrial: {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',
