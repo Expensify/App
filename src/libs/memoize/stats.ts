@@ -28,6 +28,7 @@ class MemoizeStats {
     // See https://en.wikipedia.org/wiki/Moving_average#Cumulative_average
     private calculateCumulativeAvg(avg: number, length: number, value: number) {
         const result = (avg * (length - 1) + value) / length;
+        // If the length is 0, we return the average. For example, when calculating average cache retrieval time, hits may be 0, and in that case we want to return the current average cache retrieval time
         return Number.isFinite(result) ? result : avg;
     }
 
