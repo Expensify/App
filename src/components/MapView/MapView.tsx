@@ -235,17 +235,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
-<<<<<<< HEAD
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <Button
-                        onPress={centerMap}
-                        iconFill={theme.icon}
-                        medium
-                        icon={Expensicons.Crosshair}
-                        accessibilityLabel={translate('common.center')}
-                    />
-                </View>
-=======
                 {interactive && (
                     <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
                         <Button
@@ -258,7 +247,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         />
                     </View>
                 )}
->>>>>>> f7d8cbc (Merge pull request #44117 from Expensify/vit-44074)
             </View>
         ) : (
             <PendingMapView
