@@ -283,7 +283,7 @@ function MoneyRequestView({
         }
         const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
         if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
-            IOU.deleteTrackExpense(parentReport?.reportID ?? '', iouTransactionID, parentReportAction, true);
+            IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
             return;
         }
         IOU.deleteMoneyRequest(iouTransactionID, parentReportAction, true);
