@@ -35,6 +35,12 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
+
     /** Callback to fire when a checkbox is pressed */
     onCheckboxPress?: (item: TItem) => void;
 
@@ -442,6 +448,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** Callback to fire when the item is long pressed */
+    onLongPressRow?: (item: TItem) => void;
+
+    /** Whether Selection Mode is active - used only on small screens */
+    isMobileSelectionModeActive?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

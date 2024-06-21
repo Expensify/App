@@ -8,6 +8,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
@@ -24,10 +25,13 @@ function TableListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    onLongPressRow,
+    isMobileSelectionModeActive,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
@@ -40,6 +44,8 @@ function TableListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
+    const isCheckboxVisible = isSmallScreenWidth ? canSelectMultiple && isMobileSelectionModeActive : canSelectMultiple;
+
     return (
         <BaseListItem
             item={item}
@@ -51,6 +57,7 @@ function TableListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
+            onLongPressRow={onLongPressRow}
             onDismissError={onDismissError}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
@@ -62,7 +69,7 @@ function TableListItem<TItem extends ListItem>({
         >
             {(hovered) => (
                 <>
-                    {canSelectMultiple && (
+                    {isCheckboxVisible && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}

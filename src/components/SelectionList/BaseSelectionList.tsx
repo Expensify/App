@@ -91,6 +91,8 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
+        onLongPressRow,
+        isMobileSelectionModeActive,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -439,6 +441,8 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onSelectRow={() => selectRow(item)}
+                    onLongPressRow={() => onLongPressRow?.(item)}
+                    isMobileSelectionModeActive={isMobileSelectionModeActive}
                     onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}

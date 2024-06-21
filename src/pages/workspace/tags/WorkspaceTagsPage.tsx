@@ -10,6 +10,8 @@ import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
@@ -29,6 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +41,8 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
 type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+
+const MODAL_PADDING = variables.spacing2;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -55,6 +60,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags;
+    const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [longPressedItem, setLongPressedItem] = useState<TagListItem | null>(null);
 
     const fetchTags = useCallback(() => {
         Tag.openPolicyTagsPage(policyID);
@@ -120,6 +128,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }));
     };
 
+    useEffect(() => {
+        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const unselectedTags = Object.fromEntries(availableTags.map((item) => [item.value, false]));
+        if (unselectedTags) {
+            setIsMobileSelectionModeActive(false);
+        }
+    }, [tagList]);
+
     const toggleAllTags = () => {
         const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const isAllSelected = availableTags.length === Object.keys(selectedTags).length;
@@ -154,6 +170,36 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const navigateToCreateTagPage = () => {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
+
+    const openBottomModal = (item: TagListItem) => {
+        if (!isSmallScreenWidth) {
+            return;
+        }
+
+        setLongPressedItem(item);
+        setIsModalVisible(true);
+    };
+
+    const turnOnSelectionMode = () => {
+        setIsMobileSelectionModeActive(true);
+        setIsModalVisible(false);
+        setSelectedTags((prev) => {
+            if (longPressedItem) {
+                return {
+                    ...prev,
+                    [longPressedItem.value]: !prev[longPressedItem.value],
+                };
+            }
+
+            return {
+                ...prev,
+            };
+        });
+    };
+
+    const closeBottomModal = useCallback(() => {
+        setIsModalVisible(false);
+    }, []);
 
     const navigateToTagSettings = (tag: TagListItem) => {
         if (tag.orderWeight !== undefined) {
@@ -344,9 +390,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
+                        onLongPressRow={openBottomModal}
                         shouldDebounceRowSelect={!canSelectMultiple}
                         onSelectAll={toggleAllTags}
                         ListItem={TableListItem}
+                        isMobileSelectionModeActive={isMobileSelectionModeActive}
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
@@ -355,6 +403,39 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         showScrollIndicator={false}
                     />
                 )}
+
+                <Modal
+                    isVisible={isModalVisible}
+                    type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    onClose={closeBottomModal}
+                    innerContainerStyle={{
+                        boxShadow: 'none',
+                        borderRadius: 16,
+                        paddingBottom: 20,
+                        paddingTop: MODAL_PADDING,
+                    }}
+                >
+                    <MenuItem
+                        title="Select"
+                        icon={Expensicons.CheckmarkCircle}
+                        onPress={turnOnSelectionMode}
+                    />
+                    <MenuItem
+                        title="Submit"
+                        icon={Expensicons.Send}
+                        onPress={() => console.log('2')}
+                    />
+                    <MenuItem
+                        title="Hold"
+                        icon={Expensicons.Stopwatch}
+                        onPress={() => console.log('3')}
+                    />
+                    <MenuItem
+                        title="Delete"
+                        icon={Expensicons.Trashcan}
+                        onPress={() => console.log('4')}
+                    />
+                </Modal>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
