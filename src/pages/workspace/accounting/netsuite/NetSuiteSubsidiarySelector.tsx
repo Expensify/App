@@ -83,6 +83,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
                     shouldDebounceRowSelect
                     sections={[{data: sections}]}
                     initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
+                    isNestedInsideScrollView
                 />
             </OfflineWithFeedback>
         </ConnectionLayout>

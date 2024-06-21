@@ -442,6 +442,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
+
+    /** 
+     * Identifies if the list is nested inside ScrollView, to set the scrollEnabled prop
+     * When true, it will set scrollEnabled to false to resolve the following error:
+     * `VirtualizedLists should never be nested inside plain ScrollViews with the same orientation`
+     */
+    isNestedInsideScrollView?: boolean;
+
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
