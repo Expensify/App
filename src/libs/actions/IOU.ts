@@ -3661,8 +3661,8 @@ function trackExpense(
             moneyRequestReportID,
             linkedTrackedExpenseReportAction,
             isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && ReportActionsUtils.isMoneyRequestAction(linkedTrackedExpenseReportAction)
-            ? ReportActionsUtils.getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
-            : undefined,
+                ? ReportActionsUtils.getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+                : undefined,
         ) ?? {};
     const activeReportID = isMoneyRequestReport ? report.reportID : chatReport?.reportID;
 
