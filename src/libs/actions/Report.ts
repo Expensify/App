@@ -477,7 +477,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         lastReadTime: currentTime,
     };
 
-    const report = ReportUtils.getReport(reportID);
+    const report = currentReportData?.[reportID];
 
     if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
@@ -2594,7 +2594,7 @@ function joinRoom(report: OnyxEntry<Report>) {
 }
 
 function leaveGroupChat(reportID: string) {
-    const report = ReportUtils.getReport(reportID);
+    const report = currentReportData?.[reportID];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
         return;
