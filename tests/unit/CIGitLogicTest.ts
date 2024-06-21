@@ -26,6 +26,7 @@ function exec(command: string) {
         } else {
             Log.error('Error:', error);
         }
+        throw new Error(error);
     }
 }
 
@@ -391,5 +392,49 @@ Appended content
 
         // Verify PRs for new checklist
         assertPRsMergedBetween('1.0.2-1', '1.0.3-0', [11]);
+    });
+
+    test('Manual version bump', () => {
+        Log.info('Creating manual version bump in PR #13');
+        checkoutRepo();
+        setupGitAsHuman();
+        exec('git pull');
+        exec('git switch -c "pr-13"');
+        for (let i = 0; i < 3; i++) {
+            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
+        }
+        exec('git add package.json');
+        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #13"`);
+        Log.success('Created manual version bump in PR #13 in branch pr-13');
+
+        mergePR(13);
+        Log.info('Deploying staging...');
+        checkoutRepo();
+        updateStagingFromMain();
+        tagStaging();
+        Log.success(`Deployed v${getVersion()} to staging!`);
+
+        // Verify PRs for deploy comments / release and new checklist
+        assertPRsMergedBetween('1.0.3-0', '4.0.0-0', [13]);
+
+        Log.info('Creating manual version bump in PR #14');
+        checkoutRepo();
+        setupGitAsHuman();
+        exec('git pull');
+        exec('git switch -c "pr-14"');
+        for (let i = 0; i < 3; i++) {
+            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
+        }
+        exec('git add package.json');
+        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #14"`);
+        Log.success('Created manual version bump in PR #14 in branch pr-14');
+
+        cherryPickPR(14);
+
+        // Verify PRs for deploy comments
+        assertPRsMergedBetween('4.0.0-0', '7.0.0-0', [14]);
+
+        // Verify PRs for the deploy checklist
+        assertPRsMergedBetween('1.0.3-0', '7.0.0-0', [13, 14]);
     });
 });
