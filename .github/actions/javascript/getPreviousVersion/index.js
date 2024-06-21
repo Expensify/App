@@ -2815,10 +2815,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(81);
-const versionUpdater = __importStar(__nccwpck_require__(982));
 const CONST_1 = __importDefault(__nccwpck_require__(873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(902));
-const VERSION_UPDATER = __importStar(__nccwpck_require__(982));
+const VersionUpdater = __importStar(__nccwpck_require__(982));
 /**
  * Check if a tag exists locally or in the remote.
  */
@@ -2866,7 +2865,7 @@ function tagExists(tag) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag, level) {
-    let previousVersion = versionUpdater.getPreviousVersion(tag, level);
+    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
@@ -2874,7 +2873,7 @@ function getPreviousExistingTag(tag, level) {
             break;
         }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = versionUpdater.getPreviousVersion(previousVersion, level);
+        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
     }
     return previousVersion;
 }
@@ -2921,7 +2920,7 @@ function fetchTag(tag, shallowExcludeTag = '') {
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
     // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
