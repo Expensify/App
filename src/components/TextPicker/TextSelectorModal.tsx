@@ -6,17 +6,20 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelectorModalProps} from './types';
 import usePaddingStyle from './usePaddingStyle';
 
-function TextSelectorModal({value, description = '', onValueSelected, isVisible, onClose, ...rest}: TextSelectorModalProps) {
+function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, ...rest}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const [currentValue, setValue] = useState(value);
     const paddingStyle = usePaddingStyle();
@@ -65,6 +68,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
                     contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}
                     keyboardShouldPersistTaps="handled"
                 >
+                    {!!subtitle && <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.pre])}>{subtitle}</Text>}
                     <View style={styles.flex1}>
                         <TextInput
                             // eslint-disable-next-line react/jsx-props-no-spreading

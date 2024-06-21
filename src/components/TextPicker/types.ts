@@ -18,7 +18,7 @@ type TextSelectorModalProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'description'> &
+} & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     TextProps;
 
 type TextPickerProps = {
@@ -39,7 +39,7 @@ type TextPickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'description'> &
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description'> &
     TextProps;
 
 export type {TextSelectorModalProps, TextPickerProps};
