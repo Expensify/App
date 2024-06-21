@@ -17,5 +17,15 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
     return typeTranslationKeysStrategy[reportFieldType];
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {getReportFieldTypeTranslationKey};
+function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
+    // TODO: Clarify type
+    const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
+        [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textAlternateText',
+        [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateAlternateText',
+        [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownAlternateText',
+    };
+
+    return typeTranslationKeysStrategy[reportFieldType];
+}
+
+export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey};
