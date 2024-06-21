@@ -33,6 +33,7 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
             />
             {!isMapReady && (
                 <View style={[styles.mapViewOverlay, overlayStyle, requireRouteToDisplayMap && StyleUtils.getBorderRadiusStyle(0)]}>
+                    {/* The "map pending" text should only be shown in the IOU create flow. In the created IOU preview, only the icon should be shown. */}
                     {!requireRouteToDisplayMap ? (
                         <BlockingView
                             icon={Expensicons.EmptyStateRoutePending}
