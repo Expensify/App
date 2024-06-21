@@ -2541,7 +2541,7 @@ export default {
                         case 'netSuiteSyncAccounts':
                             return 'Sincronizando cuentas';
                         case 'netSuiteSyncCurrencies':
-                            return 'Sincronizando monedas';
+                            return 'Sincronizando divisas';
                         case 'netSuiteSyncCategories':
                             return 'Sincronizando categorías';
                         case 'netSuiteSyncImportEmployees':
