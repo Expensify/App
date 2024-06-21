@@ -3698,11 +3698,21 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
 }
 
 function getUploadingAttachmentHtml(file?: FileObject): string {
-    if (!file) {
+    if (!file || typeof file.source !== 'string') {
         return '';
     }
 
-    return CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+    // we start with generic html in case no particular image or video source is matched
+    let attachmentHtml: string = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+
+    // file.type is a known mime type like image/png, image/jpeg, video/mp4 etc.
+    if (file.type?.startsWith('image')) {
+        attachmentHtml = `<img src="${file.source}" alt="${file.name}" data-optimistic-src="${file.source}" />`;
+    } else if (file.type?.startsWith('video')) {
+        attachmentHtml = `<video><source src="${file.source}" type="video/mp4" data-optimistic-src="${file.source}" /></video>`;
+    }
+
+    return `<br /><br />${attachmentHtml}`;
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -3733,7 +3743,7 @@ function buildOptimisticAddCommentReportAction(
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
 
     const attachmentHtml = getUploadingAttachmentHtml(file);
-    const htmlForNewComment = `${commentText}\n${attachmentHtml}`.trim();
+    const htmlForNewComment = `${commentText}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
 
     return {
