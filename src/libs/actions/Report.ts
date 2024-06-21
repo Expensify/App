@@ -2237,6 +2237,9 @@ function clearPolicyRoomNameErrors(reportID: string) {
         pendingFields: {
             reportName: null,
         },
+        errors: {
+            reportName: null,
+        },
     });
 }
 
