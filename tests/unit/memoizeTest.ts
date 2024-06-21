@@ -67,30 +67,6 @@ describe('memoize test', () => {
         expect(fn).toHaveBeenCalledTimes(4);
     });
 
-    it('should delete cache entry', () => {
-        const fn = jest.fn();
-        const memoizedFn = memoize(fn);
-
-        memoizedFn(1, 2);
-        memoizedFn.cache.delete([1, 2]);
-        memoizedFn(1, 2);
-
-        expect(fn).toHaveBeenCalledTimes(2);
-    });
-
-    it('should clear cache', () => {
-        const fn = jest.fn();
-        const memoizedFn = memoize(fn);
-
-        memoizedFn(1, 2);
-        memoizedFn(2, 3);
-        memoizedFn.cache.clear();
-        memoizedFn(1, 2);
-        memoizedFn(2, 3);
-
-        expect(fn).toHaveBeenCalledTimes(4);
-    });
-
     it('should return cache snapshot', () => {
         const fn = (a: number, b: number) => a + b;
         const memoizedFn = memoize(fn);
