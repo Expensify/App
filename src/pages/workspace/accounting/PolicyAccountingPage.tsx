@@ -266,6 +266,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
                           shouldShowDescriptionOnTop: true,
+                          pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
                           onPress: () => {
                               if (!(netSuiteSubsidiaryList.length > 1)) {
                                   return;
