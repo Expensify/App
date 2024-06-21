@@ -9,9 +9,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
-import SubscriptionBillingBanner from './CardSectionDataEmpty/BillingBanner/SubscriptionBillingBanner';
 import CardSectionUtils from './utils';
 
 function CardSection() {
