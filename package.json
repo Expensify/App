@@ -213,7 +213,6 @@
     "@octokit/core": "4.0.4",
     "@octokit/plugin-paginate-rest": "3.1.0",
     "@octokit/plugin-throttling": "4.1.0",
-    "@octokit/rest": "^20.1.1",
     "@react-native-community/eslint-config": "3.2.0",
     "@react-native/babel-preset": "^0.73.21",
     "@react-native/metro-config": "^0.73.5",

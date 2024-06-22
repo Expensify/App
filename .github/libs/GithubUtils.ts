@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 import * as core from '@actions/core';
 import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
-import type {Octokit, Octokit as OctokitCore} from '@octokit/core';
-import type {Constructor} from '@octokit/core/dist-types/types';
+import type {Octokit as OctokitCore} from '@octokit/core';
 import type {graphql} from '@octokit/graphql/dist-types/types';
 import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
@@ -560,18 +559,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-
-declare const GitHubType: (new (...args: unknown[]) => Record<string, unknown>) & {
-    new (...args: unknown[]): Record<string, unknown>;
-    plugins: unknown[];
-} & typeof Octokit &
-    Constructor<
-        RestEndpointMethods & {
-            paginate: PaginateInterface;
-        }
-    >;
-
-export {GitHubType};
 export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};

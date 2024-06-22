@@ -6,22 +6,16 @@ on:
 jobs:
   proposal-police-workflow:
     runs-on: ubuntu-latest
+    if: !contains(fromJSON('["OSBotify", "imgbot[bot]", "melvin-bot[bot]"]'), github.actor)
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup node version
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
 
       # Checks if the comment is created and follows the template OR
       # if the comment is edited and if proposal template is followed.
       # Action type logic can be found in the script files.
       - name: Run ProposalPolice™ Comment Check Script
-        env:
+        uses: ./.github/actions/javascript/proposalPoliceComment
+        with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
-          ISSUE: ${{ toJson(github.event.issue) }}
-          COMMENT: ${{ toJson(github.event.comment) }}
-        run: node .github/actions/javascript/proposalPoliceComment/index.js
