@@ -131,8 +131,6 @@ function IOURequestStepParticipants({
         }
         // set transaction report ID to the selected report ID
         const finalReportID = selectedReportID.current || reportID;
-        IOU.setMoneyRequestReportID(transactionID, finalReportID);
-
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, finalReportID);
         if (isCategorizing) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, finalReportID, iouConfirmationPageRoute));

@@ -377,8 +377,8 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
     }
 }
 
-function setMoneyRequestReportID(transactionID: string, reportID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
+function setMoneyRequestReportID(transactionID: string, reportID: string, isFromGlobalCreate = false) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID, isFromGlobalCreate});
 }
 
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
@@ -6919,6 +6919,15 @@ function unholdRequest(transactionID: string, reportID: string) {
         {optimisticData, successData, failureData},
     );
 }
+
+function navigateToStartStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string) {
+    if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+        return;
+    }
+    IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+}
+
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
     receiptFilename: string | undefined,
@@ -6929,6 +6938,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
+    onFailureCallback?: () => void,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -6936,11 +6946,11 @@ function navigateToStartStepIfScanFileCannotBeRead(
 
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
-        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+        if (onFailureCallback) {
+            onFailureCallback();
             return;
         }
-        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+        navigateToStartStep(requestType, iouType, transactionID, reportID);
     };
     FileUtils.readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
@@ -6971,6 +6981,7 @@ export {
     detachReceipt,
     editMoneyRequest,
     initMoneyRequest,
+    navigateToStartStep,
     navigateToStartStepIfScanFileCannotBeRead,
     payMoneyRequest,
     payInvoice,
