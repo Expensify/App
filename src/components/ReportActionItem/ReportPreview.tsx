@@ -140,7 +140,7 @@ function ReportPreview({
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
-    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const numberOfRequests = allTransactions.length;
