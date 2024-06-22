@@ -240,7 +240,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                             key={item.title}
                             pendingAction={item.pendingAction}
                             errors={item.errors}
-                            errorRowStyles={[styles.mt2]}
+                            errorRowStyles={[styles.ph5]}
                             onClose={item.onCloseError}
                         >
                             <MenuItemWithTopDescription

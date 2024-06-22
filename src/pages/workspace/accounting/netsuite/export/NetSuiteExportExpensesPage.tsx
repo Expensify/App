@@ -148,7 +148,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={item.pendingAction}
                             errors={item.errors}
                             onClose={item.onCloseError}
-                            errorRowStyles={[styles.mt2]}
+                            errorRowStyles={[styles.ph5]}
                         >
                             <MenuItemWithTopDescription
                                 title={item.title}
