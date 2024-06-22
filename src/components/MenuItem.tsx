@@ -434,7 +434,7 @@ function MenuItem(
     }, [title, shouldParseTitle, shouldEscapeText]);
 
     const helperHtml = useMemo(() => {
-        if (!helperText || ! shouldParseHelperText) {
+        if (!helperText || !shouldParseHelperText) {
             return '';
         }
         const parser = new ExpensiMark();
