@@ -101,7 +101,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: config?.pendingFields?.payableAcct,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT),
-            shouldHide: exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             description: translate('workspace.netsuite.reimbursableJournalPostingAccount'),
@@ -111,7 +111,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: config?.pendingFields?.reimbursablePayableAccount,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT),
-            shouldHide: exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
+            shouldHide: !isReimbursable || exportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY,
         },
         {
             description: translate('workspace.netsuite.journalPostingPreference.label'),
