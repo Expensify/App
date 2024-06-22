@@ -13,7 +13,7 @@ import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
-let lastUpdateIDAppliedToClient: number | null = 0;
+let lastUpdateIDAppliedToClient: number | undefined = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
@@ -22,6 +22,8 @@ Onyx.connect({
 // This promise is used to ensure pusher events are always processed in the order they are received,
 // even when such events are received over multiple separate pusher updates.
 let pusherEventsPromise = Promise.resolve();
+
+let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
@@ -71,6 +73,20 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     return pusherEventsPromise;
 }
 
+function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
+    airshipEventsPromise = airshipEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying Airship updates');
+    });
+
+    airshipEventsPromise = updates
+        .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
+        .then(() => {
+            console.debug('[OnyxUpdateManager] Done applying Airship updates');
+        });
+
+    return airshipEventsPromise;
+}
+
 /**
  * @param [updateParams.request] Exists if updateParams.type === 'https'
  * @param [updateParams.response] Exists if updateParams.type === 'https'
@@ -102,14 +118,17 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
         return Promise.resolve();
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
         return applyHTTPSOnyxUpdates(request, response);
     }
-    if ((type === CONST.ONYX_UPDATE_TYPES.PUSHER || type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && updates) {
+    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
         return applyPusherOnyxUpdates(updates);
+    }
+    if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
+        return applyAirshipOnyxUpdates(updates);
     }
 }
 

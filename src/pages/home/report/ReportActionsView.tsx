@@ -164,7 +164,7 @@ function ReportActionsView({
     const parentReportActionForTransactionThread = useMemo(
         () =>
             isEmptyObject(transactionThreadReportActions)
-                ? null
+                ? undefined
                 : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
@@ -216,11 +216,11 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
-                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
+                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
 
                 // Get newer actions based on the newest reportAction for the transaction thread report
                 const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '0', newestActionTransactionThreadReport?.reportActionID ?? '0');
+                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '-1', newestActionTransactionThreadReport?.reportActionID ?? '-1');
             } else {
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }
@@ -250,18 +250,6 @@ function ReportActionsView({
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-
-    useEffect(() => {
-        if (!reportActionID || indexOfLinkedAction > -1) {
-            return;
-        }
-
-        // This function is triggered when a user clicks on a link to navigate to a report.
-        // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
-        Report.openReport(reportID, reportActionID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
@@ -319,11 +307,11 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get older actions based on the oldest reportAction for the current report
                 const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+                Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '-1', oldestActionCurrentReport?.reportActionID ?? '-1');
 
                 // Get older actions based on the oldest reportAction for the transaction thread report
                 const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '-1', oldestActionTransactionThreadReport?.reportActionID ?? '-1');
             } else {
                 // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
                 Report.getOlderActions(reportID, oldestReportAction.reportActionID);
@@ -479,15 +467,17 @@ function ReportActionsView({
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
-        const moneyRequestActions = reportActions.filter(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                action.originalMessage &&
-                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                    Boolean(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
-                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
-        );
+        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '-1', report.reportID);
+        const moneyRequestActions = reportActions.filter((action) => {
+            const originalMessage = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) : undefined;
+            return (
+                ReportActionsUtils.isMoneyRequestAction(action) &&
+                originalMessage &&
+                (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    !!(originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails) ||
+                    originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
+            );
+        });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -512,7 +502,7 @@ function ReportActionsView({
         // Update pending action of created action if we have some requests that are pending
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const createdAction = actions.pop()!;
-        if (moneyRequestActions.filter((action) => Boolean(action.pendingAction)).length > 0) {
+        if (moneyRequestActions.filter((action) => !!action.pendingAction).length > 0) {
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
@@ -557,6 +547,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
+    if (!lodashIsEqual(oldProps.transactionThreadReport, newProps.transactionThreadReport)) {
+        return false;
+    }
+
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }

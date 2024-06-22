@@ -68,6 +68,10 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
                 return;
             }
+            const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+            if (searchValue.trim() && !OptionsListUtils.isSearchStringMatchUserDetails(details, searchValue)) {
+                return;
+            }
 
             const isOwner = policy?.owner === details.login;
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
@@ -104,20 +108,16 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, translate, policy?.approver, isDeletedPolicyEmployee, policy?.owner, policy?.employeeList]);
+    }, [policy?.employeeList, policy?.owner, policy?.approver, isDeletedPolicyEmployee, personalDetails, searchTerm, translate]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
 
         if (searchTerm !== '') {
-            const filteredOptions = [...formattedApprover, ...formattedPolicyEmployeeList].filter((option) => {
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
-                return !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-            });
             return [
                 {
                     title: undefined,
-                    data: filteredOptions,
+                    data: [...formattedApprover, ...formattedPolicyEmployeeList],
                     shouldShow: true,
                 },
             ];
@@ -182,6 +182,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyApprover}
+                        shouldDebounceRowSelect
                         showScrollIndicator
                     />
                 </FullPageNotFoundView>

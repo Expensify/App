@@ -76,9 +76,6 @@ type ReceiptImageProps = (
 
     /** The colod of the fallback icon */
     fallbackIconColor?: string;
-
-    /** Whether the component is hovered */
-    isHovered?: boolean;
 };
 
 function ReceiptImage({
@@ -96,7 +93,6 @@ function ReceiptImage({
     fallbackIconSize,
     shouldUseInitialObjectPosition = false,
     fallbackIconColor,
-    isHovered = false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -114,7 +110,7 @@ function ReceiptImage({
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? ''}
+                    transactionID={transactionID ?? '-1'}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
@@ -134,7 +130,6 @@ function ReceiptImage({
                 fallbackIconSize={fallbackIconSize}
                 fallbackIconColor={fallbackIconColor}
                 objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
-                isHovered={isHovered}
             />
         );
     }

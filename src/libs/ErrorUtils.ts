@@ -38,11 +38,19 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
 }
 
 /**
- * Method used to get an error object with microsecond as the key.
- * @param error - error key or message to be saved
+ * Creates an error object with a timestamp (in microseconds) as the key and the translated error message as the value.
+ * @param error - The translation key for the error message.
  */
-function getMicroSecondOnyxError(error: string, isTranslated = false, errorKey?: number): Errors {
-    return {[errorKey ?? DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
+function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: Localize.translateLocal(error)};
+}
+
+/**
+ * Creates an error object with a timestamp (in microseconds) as the key and the error message as the value.
+ * @param error - The error message.
+ */
+function getMicroSecondOnyxErrorWithMessage(error: string, errorKey?: number): Errors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: error};
 }
 
 /**
@@ -54,15 +62,15 @@ function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorF
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
-function getErrorMessageWithTranslationData(error: Localize.MaybePhraseKey): Localize.MaybePhraseKey {
-    return typeof error === 'string' ? [error, {isTranslated: true}] : error;
+function getErrorMessageWithTranslationData(error: string | null): string {
+    return error ?? '';
 }
 
 type OnyxDataWithErrors = {
     errors?: Errors | null;
 };
 
-function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Localize.MaybePhraseKey {
+function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData> | null): string {
     const errors = onyxData?.errors ?? {};
 
     if (Object.keys(errors).length === 0) {
@@ -70,7 +78,7 @@ function getLatestErrorMessage<TOnyxData extends OnyxDataWithErrors>(onyxData: O
     }
 
     const key = Object.keys(errors).sort().reverse()[0];
-    return getErrorMessageWithTranslationData(errors[key]);
+    return getErrorMessageWithTranslationData(errors[key] ?? '');
 }
 
 function getLatestErrorMessageField<TOnyxData extends OnyxDataWithErrors>(onyxData: OnyxEntry<TOnyxData>): Errors {
@@ -123,20 +131,20 @@ function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorField
 
     const fieldNames = Object.keys(errorFields);
     const latestErrorFields = fieldNames.map((fieldName) => getLatestErrorField(onyxData, fieldName));
-    return latestErrorFields.reduce((acc, error) => ({...acc, ...error}), {});
+    return latestErrorFields.reduce((acc, error) => Object.assign(acc, error), {});
 }
 
 /**
- * Method used to attach already translated message with isTranslated property
+ * Method used to attach already translated message
  * @param errors - An object containing current errors in the form
- * @returns Errors in the form of {timestamp: [message, {isTranslated}]}
+ * @returns Errors in the form of {timestamp: message}
  */
-function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | Errors): Errors {
-    if (!errors || (Array.isArray(errors) && errors.length === 0)) {
+function getErrorsWithTranslationData(errors: Errors): Errors {
+    if (!errors) {
         return {};
     }
 
-    if (typeof errors === 'string' || Array.isArray(errors)) {
+    if (typeof errors === 'string') {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         return {'0': getErrorMessageWithTranslationData(errors)};
     }
@@ -149,21 +157,18 @@ function getErrorsWithTranslationData(errors: Localize.MaybePhraseKey | Errors):
  * @param errors - An object containing current errors in the form
  * @param message - Message to assign to the inputID errors
  */
-function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?: string | null, message?: TKey | Localize.MaybePhraseKey) {
+function addErrorMessage(errors: Errors, inputID?: string | null, message?: string | null) {
     if (!message || !inputID) {
         return;
     }
 
     const errorList = errors;
     const error = errorList[inputID];
-    const translatedMessage = Localize.translateIfPhraseKey(message);
 
     if (!error) {
-        errorList[inputID] = [translatedMessage, {isTranslated: true}];
+        errorList[inputID] = message;
     } else if (typeof error === 'string') {
-        errorList[inputID] = [`${error}\n${translatedMessage}`, {isTranslated: true}];
-    } else if (Array.isArray(error)) {
-        error[0] = `${error[0]}\n${translatedMessage}`;
+        errorList[inputID] = `${error}\n${message}`;
     }
 }
 
@@ -193,7 +198,8 @@ export {
     getLatestErrorFieldForAnyField,
     getLatestErrorMessage,
     getLatestErrorMessageField,
-    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorWithTranslationKey,
+    getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
     isReceiptError,
 };

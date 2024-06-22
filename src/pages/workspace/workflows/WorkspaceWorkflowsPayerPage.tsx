@@ -151,7 +151,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        Policy.setWorkspacePayer(policy?.id ?? '', authorizedPayerEmail);
+        Policy.setWorkspacePayer(policy?.id ?? '-1', authorizedPayerEmail);
         Navigation.goBack();
     };
 
@@ -192,6 +192,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         headerMessage={headerMessage}
                         ListItem={UserListItem}
                         onSelectRow={setPolicyAuthorizedPayer}
+                        shouldDebounceRowSelect
                         showScrollIndicator
                     />
                 </ScreenWrapper>

@@ -65,7 +65,7 @@ Onyx.connect({
         if (!network) {
             return;
         }
-        shouldForceOffline = Boolean(network.shouldForceOffline);
+        shouldForceOffline = !!network.shouldForceOffline;
     },
 });
 
@@ -247,7 +247,7 @@ function subscribe<EventName extends PusherEventName>(
             Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
             let channel = getChannel(channelName);
 
-            if (!channel || !channel.subscribed) {
+            if (!channel?.subscribed) {
                 channel = socket.subscribe(channelName);
                 let isBound = false;
                 channel.bind('pusher:subscription_succeeded', () => {

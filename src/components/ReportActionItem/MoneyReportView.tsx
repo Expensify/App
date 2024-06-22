@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
@@ -43,7 +43,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
     const formattedTotalAmount = CurrencyUtils.convertToDisplayString(totalDisplaySpend, report.currency);
     const formattedOutOfPocketAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, report.currency);
     const formattedCompanySpendAmount = CurrencyUtils.convertToDisplayString(nonReimbursableSpend, report.currency);
-    const isPartiallyPaid = Boolean(report?.pendingFields?.partial);
+    const isPartiallyPaid = !!report?.pendingFields?.partial;
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
         styles.taskTitleMenuItem,
@@ -80,7 +80,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                                     <MenuItemWithTopDescription
                                         description={Str.UCFirst(reportField.name)}
                                         title={fieldValue}
-                                        onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
+                                        onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', reportField.fieldID))}
                                         shouldShowRightIcon
                                         disabled={isFieldDisabled}
                                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
@@ -121,7 +121,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                             </Text>
                         </View>
                     </View>
-                    {Boolean(shouldShowBreakdown) && (
+                    {!!shouldShowBreakdown && (
                         <>
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv1]}>
                                 <View style={[styles.flex1, styles.justifyContentCenter]}>

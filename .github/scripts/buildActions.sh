@@ -44,7 +44,7 @@ for ((i=0; i < ${#GITHUB_ACTIONS[@]}; i++)); do
   ACTION_DIR=$(dirname "$ACTION")
 
   # Build the action in the background
-  ncc build -t "$ACTION" -o "$ACTION_DIR" &
+  npx ncc build --transpile-only --external encoding "$ACTION" -o "$ACTION_DIR" &
   ASYNC_BUILDS[i]=$!
 done
 

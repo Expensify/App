@@ -66,13 +66,11 @@ class GithubUtils {
     static internalOctokit: InternalOctokit | undefined;
 
     /**
-     * Initialize internal octokit
-     *
-     * @private
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
      */
-    static initOctokit() {
+    static initOctokitWithToken(token: string) {
         const Octokit = GitHub.plugin(throttling, paginateRest);
-        const token = core.getInput('GITHUB_TOKEN', {required: true});
 
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit(
@@ -95,6 +93,16 @@ class GithubUtils {
                 },
             }),
         );
+    }
+
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = core.getInput('GITHUB_TOKEN', {required: true});
+        this.initOctokitWithToken(token);
     }
 
     /**
@@ -522,12 +530,32 @@ class GithubUtils {
             .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
 
-    static getArtifactByName(artefactName: string): Promise<OctokitArtifact | undefined> {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            per_page: 100,
-        }).then((artifacts: OctokitArtifact[]) => artifacts.find((artifact) => artifact.name === artefactName));
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName: string): Promise<OctokitArtifact | undefined> {
+        return this.octokit.actions
+            .listArtifactsForRepo({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                per_page: 1,
+                name: artifactName,
+            })
+            .then((response) => response.data.artifacts[0]);
+    }
+
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId: number): Promise<string> {
+        return this.octokit.actions
+            .downloadArtifact({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                artifact_id: artifactId,
+                archive_format: 'zip',
+            })
+            .then((response) => response.url);
     }
 }
 

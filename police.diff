@@ -1,0 +1,889 @@
+diff --git a/.github/.eslintrc.js b/.github/.eslintrc.js
+index d6d39822b7..d1f75405f7 100644
+--- a/.github/.eslintrc.js
++++ b/.github/.eslintrc.js
+@@ -6,5 +6,6 @@ module.exports = {
+         '@lwc/lwc/no-async-await': 'off',
+         'no-await-in-loop': 'off',
+         'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
++        'no-continue': 'off',
+     },
+ };
+diff --git a/.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts b/.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts
+index 76523d0b4d..c88327c97f 100644
+--- a/.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts
++++ b/.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts
+@@ -1,65 +1,105 @@
+-import {context, getOctokit} from '@actions/github';
+-import InitOpenAI from 'openai';
++import {getInput, setFailed} from '@actions/core';
++import {context} from '@actions/github';
++import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEvent} from '@octokit/webhooks-types';
+ import CONST from '@github/libs/CONST';
+-import type {GitHubType} from '@github/libs/GithubUtils';
+-import * as OpenAIUtils from '@github/libs/OpenAIUtils';
++import GithubUtils from '@github/libs/GithubUtils';
++import OpenAIUtils from '@github/libs/OpenAIUtils';
+ 
+-const OpenAI = new InitOpenAI({apiKey: process.env.OPENAI_API_KEY});
++function isCommentCreatedOrEditedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent | IssueCommentEditedEvent {
++    return payload.action === CONST.ACTIONS.CREATED || payload.action === CONST.ACTIONS.EDIT;
++}
++
++function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
++    return payload.action === CONST.ACTIONS.CREATED;
++}
+ 
+-async function processIssueComment(octokit: InstanceType<typeof GitHubType>) {
+-    const payload = context.payload;
+-    const OPENAI_ASSISTANT_ID = process.env.OPENAI_ASSISTANT_ID;
++// Main function to process the workflow event
++async function run() {
++    // Verify this is running for an expected webhook event
++    if (context.eventName !== 'issue_comment') {
++        throw new Error('ProposalPolice™ only supports the issue_comment webhook event');
++    }
++
++    const payload = context.payload as IssueCommentEvent;
+ 
+     // check if the issue is open and the has labels
+     if (payload.issue?.state !== 'open' && !payload.issue?.labels.some((issueLabel: {name: string}) => issueLabel.name === CONST.LABELS.HELP_WANTED)) {
+         return;
+     }
+ 
+-    if (!OPENAI_ASSISTANT_ID) {
+-        console.error('OPENAI_ASSISTANT_ID missing from the environment variables');
++    // Verify that the comment is not empty
++    if (!payload.comment?.body.trim()) {
+         return;
+     }
+ 
+-    if (!payload.comment?.body.trim()) {
++    console.log('ProposalPolice™ Action triggered for comment:', payload.comment?.body);
++    console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
++
++    if (!isCommentCreatedOrEditedEvent(payload)) {
++        console.error('Unsupported action type:', payload?.action);
++        setFailed(new Error(`Unsupported action type ${payload?.action}`));
+         return;
+     }
+-    console.log('Action triggered for comment:', payload.comment?.body);
+ 
+-    let content = '';
++    const prompt = isCommentCreatedEvent(payload)
++        ? `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`
++        : `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
+ 
+-    console.log('-> GitHub Action Type: ', payload.action?.toUpperCase());
++    const assistantResponse = await OpenAIUtils.prompt(prompt);
+ 
+-    if (payload.action === CONST.ACTIONS.CREATED) {
+-        content = `I NEED HELP WITH CASE (1.), CHECK IF COMMENT IS PROPOSAL AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. Comment content: ${payload.comment?.body}`;
+-    } else if (payload.action === CONST.ACTIONS.EDIT) {
+-        content = `I NEED HELP WITH CASE (2.) WHEN A USER THAT POSTED AN INITIAL PROPOSAL OR COMMENT (UNEDITED) THEN EDITS THE COMMENT - WE NEED TO CLASSIFY THE COMMENT BASED IN THE GIVEN INSTRUCTIONS AND IF TEMPLATE IS FOLLOWED AS PER INSTRUCTIONS. IT IS MANDATORY THAT YOU RESPOND ONLY WITH "${CONST.NO_ACTION}" IN CASE THE COMMENT IS NOT A PROPOSAL. \n\nPrevious comment content: ${payload.changes.body?.from}.\n\nEdited comment content: ${payload.comment?.body}`;
+-    }
++    // check if assistant response is either NO_ACTION or "NO_ACTION" strings
++    // as sometimes the assistant response varies
++    const isNoAction = assistantResponse.trim().replaceAll(' ', '_').replaceAll('"', '').toUpperCase() === CONST.NO_ACTION;
+ 
+-    if (content === '') {
+-        console.log('Early return - Comment body content is empty.');
++    // If assistant response is NO_ACTION, do nothing
++    if (isNoAction) {
++        console.log('Detected NO_ACTION for comment, returning early');
+         return;
+     }
+-    console.log('Comment body content for assistant:', content);
+-
+-    // create thread with first user message and run it
+-    const createAndRunResponse = await OpenAI.beta.threads.createAndRun({
+-        /* eslint-disable @typescript-eslint/naming-convention */
+-        assistant_id: OPENAI_ASSISTANT_ID ?? '',
+-        thread: {messages: [{role: 'user', content}]},
+-    });
+-
+-    if (payload.action === CONST.ACTIONS.CREATED) {
+-        await OpenAIUtils.prompt({createAndRunResponse, payload, octokit});
+-    } else if (payload.action === CONST.ACTIONS.EDIT) {
+-        await OpenAIUtils.promptEdit({createAndRunResponse, payload, octokit});
++
++    // if the assistant responded with no action but there's some context in the response
++    if (assistantResponse.includes(`[${CONST.NO_ACTION}]`)) {
++        // extract the text after [NO_ACTION] from assistantResponse since this is a
++        // bot related action keyword
++        const noActionContext = assistantResponse.split(`[${CONST.NO_ACTION}] `)?.[1]?.replace('"', '');
++        console.log('[NO_ACTION] w/ context: ', noActionContext);
++        return;
+     }
+-}
+ 
+-// Main function to process the workflow event
+-async function run() {
+-    // @ts-expect-error - process is not imported
+-    const octokit: InstanceType<typeof GitHubType> = getOctokit(process.env.GITHUB_TOKEN);
+-    await processIssueComment(octokit);
++    if (isCommentCreatedEvent(payload)) {
++        const formattedResponse = assistantResponse
++            // replace {user} from response template with @username
++            .replaceAll('{user}', `@${payload.comment?.user.login}`)
++
++            // replace {proposalLink} from response template with the link to the comment
++            .replaceAll('{proposalLink}', payload.comment?.html_url)
++
++            // remove any double quotes from the final comment because sometimes the assistant's
++            // response contains double quotes / sometimes it doesn't
++            .replaceAll('"', '');
++
++        // Create a comment with the assistant's response
++        console.log('ProposalPolice™ commenting on issue...');
++        await GithubUtils.createComment(CONST.APP_REPO, context.issue.number, formattedResponse);
++    } else {
++        // edit comment if assistant detected substantial changes and if the comment was not edited already by the bot
++        if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
++            // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
++            // bot related action keyword
++            let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
++            // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
++            const date = new Date(payload.comment?.updated_at ?? '');
++            const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
++            extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
++            console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
++            await GithubUtils.octokit.issues.updateComment({
++                ...context.repo,
++                /* eslint-disable @typescript-eslint/naming-convention */
++                comment_id: payload.comment.id,
++                body: `${extractedNotice}\n\n${payload.comment?.body}`,
++            });
++        }
++    }
+ }
+ 
+ run().catch((error) => {
+diff --git a/.github/libs/CONST.ts b/.github/libs/CONST.ts
+index f2d704a41a..3be40ff564 100644
+--- a/.github/libs/CONST.ts
++++ b/.github/libs/CONST.ts
+@@ -28,6 +28,7 @@ const CONST = {
+     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+     NO_ACTION: 'NO_ACTION',
+     OPENAI_POLL_RATE: 1500,
++    OPENAI_POLL_TIMEOUT: 90000,
+ } as const;
+ 
+ export default CONST;
+diff --git a/.github/libs/GithubUtils.ts b/.github/libs/GithubUtils.ts
+index 258048a259..26ff70ec9c 100644
+--- a/.github/libs/GithubUtils.ts
++++ b/.github/libs/GithubUtils.ts
+@@ -1,8 +1,7 @@
+ /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+ import * as core from '@actions/core';
+ import {getOctokitOptions, GitHub} from '@actions/github/lib/utils';
+-import type {Octokit, Octokit as OctokitCore} from '@octokit/core';
+-import type {Constructor} from '@octokit/core/dist-types/types';
++import type {Octokit as OctokitCore} from '@octokit/core';
+ import type {graphql} from '@octokit/graphql/dist-types/types';
+ import type {components as OctokitComponents} from '@octokit/openapi-types/types';
+ import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
+@@ -560,18 +559,4 @@ class GithubUtils {
+ }
+ 
+ export default GithubUtils;
+-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
+-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
+-
+-declare const GitHubType: (new (...args: unknown[]) => Record<string, unknown>) & {
+-    new (...args: unknown[]): Record<string, unknown>;
+-    plugins: unknown[];
+-} & typeof Octokit &
+-    Constructor<
+-        RestEndpointMethods & {
+-            paginate: PaginateInterface;
+-        }
+-    >;
+-
+-export {GitHubType};
+ export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};
+diff --git a/.github/libs/OpenAIUtils.ts b/.github/libs/OpenAIUtils.ts
+index dca95dbc74..df4a14e2d2 100644
+--- a/.github/libs/OpenAIUtils.ts
++++ b/.github/libs/OpenAIUtils.ts
+@@ -1,198 +1,74 @@
+-import {context} from '@actions/github';
+-import InitOpenAI from 'openai';
++import {getInput} from '@actions/core';
++import OpenAI from 'openai';
++import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
+ import CONST from './CONST';
+-import type {GitHubType} from './GithubUtils';
+ 
+-const OpenAI = new InitOpenAI({apiKey: process.env.OPENAI_API_KEY});
++const MAX_POLL_COUNT = Math.floor(CONST.OPENAI_POLL_TIMEOUT / CONST.OPENAI_POLL_RATE);
++
++class OpenAIUtils {
++    private static ai: OpenAI;
++
++    private static assistantID: string;
++
++    static init(apiKey?: string, assistantID?: string) {
++        const key = apiKey ?? getInput('OPENAI_API_KEY', {required: true});
++        if (!key) {
++            throw new Error('Could not initialize OpenAI: no key provided');
++        }
++        this.ai = new OpenAI({apiKey: key});
++        this.assistantID = assistantID ?? getInput('OPENAI_ASSISTANT_ID', {required: true});
++    }
++
++    static get openAI() {
++        if (!this.ai) {
++            this.init();
++        }
++        return this.ai;
++    }
++
++    static async prompt(userMessage: string) {
++        // start a thread run
++        let threadRun = await this.openAI.beta.threads.createAndRun({
++            /* eslint-disable @typescript-eslint/naming-convention */
++            assistant_id: this.assistantID,
++            thread: {messages: [{role: 'user', content: userMessage}]},
++        });
+ 
+-type OpenAIUtilsPrompt = {
+-    createAndRunResponse: InitOpenAI.Beta.Threads.Runs.Run;
+-    payload: typeof context.payload;
+-    octokit: InstanceType<typeof GitHubType>;
+-};
+-
+-async function prompt({createAndRunResponse, payload, octokit}: OpenAIUtilsPrompt) {
+-    return new Promise((resolve, reject) => {
+-        // count calls for debug purposes
+-        let count = 0;
+         // poll for run completion
+-        const intervalID = setInterval(() => {
+-            OpenAI.beta.threads.runs
+-                .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
+-                .then((threadRun) => {
+-                    // return if run is not completed
+-                    if (threadRun.status !== 'completed') {
+-                        return;
+-                    }
+-
+-                    // get assistant response
+-                    OpenAI.beta.threads.messages
+-                        .list(createAndRunResponse.thread_id)
+-                        .then((threadMessages) => {
+-                            // list thread messages content
+-                            threadMessages.data.forEach((message, index) => {
+-                                // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is an 'openai' package type issue
+-                                let assistantResponse = message.content?.[index]?.text?.value as string;
+-                                console.log('issue_comment.created - assistantResponse', assistantResponse);
+-
+-                                if (!assistantResponse) {
+-                                    return console.log('issue_comment.created - assistantResponse is empty');
+-                                }
+-
+-                                // check if assistant response is either NO_ACTION or "NO_ACTION" strings
+-                                // as sometimes the assistant response varies
+-                                const isNoAction = assistantResponse.replaceAll('"', '').toUpperCase() === CONST.NO_ACTION;
+-                                // If assistant response is NO_ACTION, do nothing
+-                                if (isNoAction) {
+-                                    console.log('Detected NO_ACTION for comment, returning early');
+-                                    return;
+-                                }
+-                                // If thread message role is 'user', do nothing
+-                                if (threadMessages.data?.[index]?.role === 'user') {
+-                                    console.log('Detected message role "user", returning early...');
+-                                    return;
+-                                }
+-
+-                                // if the assistant responded with no action but there's some context in the response
+-                                if (assistantResponse.includes(`[${CONST.NO_ACTION}]`)) {
+-                                    // extract the text after [NO_ACTION] from assistantResponse since this is a
+-                                    // bot related action keyword
+-                                    const noActionContext = assistantResponse.split(`[${CONST.NO_ACTION}] `)?.[1]?.replace('"', '');
+-                                    console.log('issue_comment.created - [NO_ACTION] w/ context: ', noActionContext);
+-                                    return;
+-                                }
+-                                // replace {user} from response template with @username
+-                                assistantResponse = assistantResponse.replace('{user}', `@${payload.comment?.user.login as string}`);
+-                                // replace {proposalLink} from response template with the link to the comment
+-                                assistantResponse = assistantResponse.replace('{proposalLink}', payload.comment?.html_url as string);
+-
+-                                // remove any double quotes from the final comment because sometimes the assistant's
+-                                // response contains double quotes / sometimes it doesn't
+-                                assistantResponse = assistantResponse.replace('"', '').replace(/^"|"$/g, '');
+-                                // create a comment with the assistant's response
+-                                console.log('issue_comment.created - proposal-police posts comment');
+-                                octokit.issues.createComment({
+-                                    ...context.repo,
+-                                    /* eslint-disable @typescript-eslint/naming-convention */
+-                                    issue_number: payload.issue?.number ?? -1,
+-                                    body: assistantResponse,
+-                                });
+-
+-                                // resolve the Promise with the response
+-                                resolve({response: assistantResponse});
+-                                // stop polling
+-                                clearInterval(intervalID);
+-                            });
+-                        })
+-                        .catch((error) => {
+-                            console.error('threads.messages.list - error', error);
+-                            reject(error);
+-                            clearInterval(intervalID);
+-                        });
+-
+-                    // stop polling
+-                    clearInterval(intervalID);
+-                })
+-                .catch((error) => {
+-                    console.error('threads.runs.retrieve - error', error);
+-                    reject(error);
+-                    clearInterval(intervalID);
+-                });
+-
+-            // increment count for every threads.runs.retrieve call
+-            count++;
+-            console.log('threads.runs.retrieve - called:', count);
+-        }, CONST.OPENAI_POLL_RATE);
+-    });
+-}
+-
+-async function promptEdit({createAndRunResponse, payload, octokit}: OpenAIUtilsPrompt) {
+-    return new Promise((resolve, reject) => {
+-        // count calls for debug purposes
++        let response = '';
+         let count = 0;
+-
+-        // poll for run completion
+-        const intervalID = setInterval(() => {
+-            OpenAI.beta.threads.runs
+-                .retrieve(createAndRunResponse.thread_id, createAndRunResponse.id)
+-                .then((threadRun) => {
+-                    // return if run is not completed yet
+-                    if (threadRun.status !== 'completed') {
+-                        console.log('issue_comment.edited - run pending completion');
+-                        return;
+-                    }
+-
+-                    // get assistant response
+-                    OpenAI.beta.threads.messages
+-                        .list(createAndRunResponse.thread_id)
+-                        .then((threadMessages) => {
+-                            // list thread messages content
+-                            threadMessages.data.forEach((message, index) => {
+-                                // @ts-expect-error - we do have `text` in content[0] but typescript doesn't know that this is a 'openai' package type issue
+-                                const assistantResponse = message.content?.[index]?.text?.value as string;
+-                                console.log('issue_comment.edited - assistantResponse', assistantResponse);
+-
+-                                if (!assistantResponse) {
+-                                    return console.log('issue_comment.edited - assistantResponse is empty');
+-                                }
+-
+-                                // check if assistant response is either NO_ACTION or "NO_ACTION" strings
+-                                // as sometimes the assistant response varies
+-                                const isNoAction = assistantResponse.replaceAll('"', '').toUpperCase() === CONST.NO_ACTION;
+-                                // If assistant response is NO_ACTION, do nothing
+-                                if (isNoAction) {
+-                                    console.log('Detected NO_ACTION for comment, returning early');
+-                                    return;
+-                                }
+-                                // If thread message role is 'user', do nothing
+-                                if (threadMessages.data?.[index]?.role === 'user') {
+-                                    console.log('Detected message role "user", returning early...');
+-                                    return;
+-                                }
+-
+-                                // edit comment if assistant detected substantial changes and if the comment was not edited already by the bot
+-                                if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
+-                                    // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
+-                                    // bot related action keyword
+-                                    let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
+-                                    // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
+-                                    const date = new Date((payload.comment?.updated_at as string) ?? '');
+-                                    const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
+-                                    extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
+-
+-                                    console.log(`issue_comment.edited - proposal-police edits comment: ${payload.comment?.id}`);
+-                                    octokit.issues.updateComment({
+-                                        ...context.repo,
+-                                        /* eslint-disable @typescript-eslint/naming-convention */
+-                                        comment_id: payload.comment?.id ?? -1,
+-                                        body: `${extractedNotice}\n\n${payload.comment?.body}`,
+-                                    });
+-                                }
+-
+-                                // resolve the Promise with the response
+-                                resolve({response: assistantResponse});
+-                                clearInterval(intervalID);
+-                            });
+-                        })
+-                        .catch((error) => {
+-                            console.error('threads.messages.list - error', error);
+-                            reject(error);
+-                            clearInterval(intervalID);
+-                        });
+-
+-                    clearInterval(intervalID);
+-                })
+-                .catch((error) => {
+-                    console.error('threads.runs.retrieve - error', error);
+-                    reject(error);
+-                    clearInterval(intervalID);
++        while (!response && count < MAX_POLL_COUNT) {
++            // await thread run completion
++            threadRun = await this.openAI.beta.threads.runs.retrieve(threadRun.thread_id, threadRun.id);
++            if (threadRun.status !== 'completed') {
++                count++;
++                await new Promise((resolve) => {
++                    setTimeout(resolve, CONST.OPENAI_POLL_RATE);
+                 });
+-
+-            // increment count for every threads.runs.retrieve call
+-            count++;
+-            console.log('threads.runs.retrieve - called:', count);
+-        }, CONST.OPENAI_POLL_RATE);
+-    });
++                continue;
++            }
++
++            for await (const message of this.openAI.beta.threads.messages.list(threadRun.thread_id)) {
++                if (message.role !== 'assistant') {
++                    continue;
++                }
++                response += message.content
++                    .map((contentBlock) => this.isTextContentBlock(contentBlock))
++                    .join('\n')
++                    .trim();
++                console.log('Parsed assistant response:', response);
++            }
++
++            if (!response) {
++                throw new Error('Assistant response is empty or had no text content. This is unexpected');
++            }
++        }
++        return response;
++    }
++
++    static isTextContentBlock(contentBlock: MessageContent): contentBlock is TextContentBlock {
++        return contentBlock?.type === 'text';
++    }
+ }
+ 
+-export {prompt, promptEdit};
++export default OpenAIUtils;
+diff --git a/.github/workflows/proposalPolice.yml b/.github/workflows/proposalPolice.yml
+index 37d40db372..d381a438f9 100644
+--- a/.github/workflows/proposalPolice.yml
++++ b/.github/workflows/proposalPolice.yml
+@@ -6,22 +6,16 @@ on:
+ jobs:
+   proposal-police-workflow:
+     runs-on: ubuntu-latest
++    if: !contains(fromJSON('["OSBotify", "imgbot[bot]", "melvin-bot[bot]"]'), github.actor)
+     steps:
+       - uses: actions/checkout@v4
+ 
+-      - name: Setup node version
+-        uses: actions/setup-node@v4
+-        with:
+-          node-version: "20"
+-
+       # Checks if the comment is created and follows the template OR
+       # if the comment is edited and if proposal template is followed.
+       # Action type logic can be found in the script files.
+       - name: Run ProposalPolice™ Comment Check Script
+-        env:
++        uses: ./.github/actions/javascript/proposalPoliceComment
++        with:
+           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+           OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+-          ISSUE: ${{ toJson(github.event.issue) }}
+-          COMMENT: ${{ toJson(github.event.comment) }}
+-        run: node .github/actions/javascript/proposalPoliceComment/index.js
+diff --git a/package-lock.json b/package-lock.json
+index 1b2f992189..59e5d2a843 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -160,6 +160,7 @@
+         "@octokit/core": "4.0.4",
+         "@octokit/plugin-paginate-rest": "3.1.0",
+         "@octokit/plugin-throttling": "4.1.0",
++        "@octokit/webhooks-types": "^7.5.1",
+         "@react-native-community/eslint-config": "3.2.0",
+         "@react-native/babel-preset": "^0.73.21",
+         "@react-native/metro-config": "^0.73.5",
+@@ -226,6 +227,7 @@
+         "jest-transformer-svg": "^2.0.1",
+         "memfs": "^4.6.0",
+         "onchange": "^7.1.0",
++        "openai": "^4.47.2",
+         "patch-package": "^8.0.0",
+         "portfinder": "^1.0.28",
+         "prettier": "^2.8.8",
+@@ -258,8 +260,9 @@
+     },
+     "node_modules/@actions/core": {
+       "version": "1.10.0",
++      "resolved": "https://registry.npmjs.org/@actions/core/-/core-1.10.0.tgz",
++      "integrity": "sha512-2aZDDa3zrrZbP5ZYg159sNoLRb61nQ7awl5pSvIq5Qpj81vwDzdMRKzkWJGJuwVvWpvZKx7vspJALyvaaIQyug==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@actions/http-client": "^2.0.1",
+         "uuid": "^8.3.2"
+@@ -267,8 +270,9 @@
+     },
+     "node_modules/@actions/github": {
+       "version": "5.1.1",
++      "resolved": "https://registry.npmjs.org/@actions/github/-/github-5.1.1.tgz",
++      "integrity": "sha512-Nk59rMDoJaV+mHCOJPXuvB1zIbomlKS0dmSIqPGxd0enAXBnOfn4VWF+CGtRCwXZG9Epa54tZA7VIRlJDS8A6g==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@actions/http-client": "^2.0.1",
+         "@octokit/core": "^3.6.0",
+@@ -278,16 +282,18 @@
+     },
+     "node_modules/@actions/github/node_modules/@octokit/auth-token": {
+       "version": "2.5.0",
++      "resolved": "https://registry.npmjs.org/@octokit/auth-token/-/auth-token-2.5.0.tgz",
++      "integrity": "sha512-r5FVUJCOLl19AxiuZD2VRZ/ORjp/4IN98Of6YJoJOkY75CIBuYfmiNHGrDwXr+aLGG55igl9QrxX3hbiXlLb+g==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/types": "^6.0.3"
+       }
+     },
+     "node_modules/@actions/github/node_modules/@octokit/core": {
+       "version": "3.6.0",
++      "resolved": "https://registry.npmjs.org/@octokit/core/-/core-3.6.0.tgz",
++      "integrity": "sha512-7RKRKuA4xTjMhY+eG3jthb3hlZCsOwg3rztWh75Xc+ShDWOfDDATWbeZpAHBNRpm4Tv9WgBMOy1zEJYXG6NJ7Q==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/auth-token": "^2.4.4",
+         "@octokit/graphql": "^4.5.8",
+@@ -300,8 +306,9 @@
+     },
+     "node_modules/@actions/github/node_modules/@octokit/endpoint": {
+       "version": "6.0.12",
++      "resolved": "https://registry.npmjs.org/@octokit/endpoint/-/endpoint-6.0.12.tgz",
++      "integrity": "sha512-lF3puPwkQWGfkMClXb4k/eUT/nZKQfxinRWJrdZaJO85Dqwo/G0yOC434Jr2ojwafWJMYqFGFa5ms4jJUgujdA==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/types": "^6.0.3",
+         "is-plain-object": "^5.0.0",
+@@ -310,8 +317,9 @@
+     },
+     "node_modules/@actions/github/node_modules/@octokit/graphql": {
+       "version": "4.8.0",
++      "resolved": "https://registry.npmjs.org/@octokit/graphql/-/graphql-4.8.0.tgz",
++      "integrity": "sha512-0gv+qLSBLKF0z8TKaSKTsS39scVKF9dbMxJpj3U0vC7wjNWFuIpL/z76Qe2fiuCbDRcJSavkXsVtMS6/dtQQsg==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/request": "^5.6.0",
+         "@octokit/types": "^6.0.3",
+@@ -320,8 +328,9 @@
+     },
+     "node_modules/@actions/github/node_modules/@octokit/plugin-paginate-rest": {
+       "version": "2.21.3",
++      "resolved": "https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-2.21.3.tgz",
++      "integrity": "sha512-aCZTEf0y2h3OLbrgKkrfFdjRL6eSOo8komneVQJnYecAxIej7Bafor2xhuDJOIFau4pk0i/P28/XgtbyPF0ZHw==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/types": "^6.40.0"
+       },
+@@ -331,8 +340,9 @@
+     },
+     "node_modules/@actions/github/node_modules/@octokit/request": {
+       "version": "5.6.3",
++      "resolved": "https://registry.npmjs.org/@octokit/request/-/request-5.6.3.tgz",
++      "integrity": "sha512-bFJl0I1KVc9jYTe9tdGGpAMPy32dLBXXo1dS/YwSCTL/2nd9XeHsY616RE3HPXDVk+a+dBuzyz5YdlXwcDTr2A==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/endpoint": "^6.0.1",
+         "@octokit/request-error": "^2.1.0",
+@@ -344,8 +354,9 @@
+     },
+     "node_modules/@actions/github/node_modules/@octokit/request-error": {
+       "version": "2.1.0",
++      "resolved": "https://registry.npmjs.org/@octokit/request-error/-/request-error-2.1.0.tgz",
++      "integrity": "sha512-1VIvgXxs9WHSjicsRwq8PlR2LR2x6DwsJAaFgzdi0JfJoGSO8mYI/cHJQ+9FbN21aa+DrgNLnwObmyeSC8Rmpg==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/types": "^6.0.3",
+         "deprecation": "^2.0.0",
+@@ -353,11 +364,13 @@
+       }
+     },
+     "node_modules/@actions/http-client": {
+-      "version": "2.0.1",
++      "version": "2.2.1",
++      "resolved": "https://registry.npmjs.org/@actions/http-client/-/http-client-2.2.1.tgz",
++      "integrity": "sha512-KhC/cZsq7f8I4LfZSJKgCvEwfkE8o1538VoBeoGzokVLLnbFDEAdFD3UhoMklxo2un9NJVBdANOresx7vTHlHw==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+-        "tunnel": "^0.0.6"
++        "tunnel": "^0.0.6",
++        "undici": "^5.25.4"
+       }
+     },
+     "node_modules/@ampproject/remapping": {
+@@ -5518,6 +5531,15 @@
+       "resolved": "https://registry.npmjs.org/@fal-works/esbuild-plugin-global-externals/-/esbuild-plugin-global-externals-2.1.2.tgz",
+       "integrity": "sha512-cEee/Z+I12mZcFJshKcCqC8tuX5hG3s+d+9nZ3LabqKF1vKdF41B92pJVCBggjAGORAeOzyyDDKrZwIkLffeOQ=="
+     },
++    "node_modules/@fastify/busboy": {
++      "version": "2.1.1",
++      "resolved": "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.1.tgz",
++      "integrity": "sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==",
++      "dev": true,
++      "engines": {
++        "node": ">=14"
++      }
++    },
+     "node_modules/@formatjs/ecma402-abstract": {
+       "version": "1.15.0",
+       "license": "MIT",
+@@ -7566,8 +7588,9 @@
+     },
+     "node_modules/@octokit/plugin-rest-endpoint-methods": {
+       "version": "5.16.2",
++      "resolved": "https://registry.npmjs.org/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-5.16.2.tgz",
++      "integrity": "sha512-8QFz29Fg5jDuTPXVtey05BLm7OB+M8fnvE64RNegzX7U+5NUXcOcnpTIK0YfSHBg8gYd0oxIq3IZTe9SfPZiRw==",
+       "dev": true,
+-      "license": "MIT",
+       "dependencies": {
+         "@octokit/types": "^6.39.0",
+         "deprecation": "^2.3.1"
+@@ -7654,6 +7677,12 @@
+         "@octokit/openapi-types": "^12.11.0"
+       }
+     },
++    "node_modules/@octokit/webhooks-types": {
++      "version": "7.5.1",
++      "resolved": "https://registry.npmjs.org/@octokit/webhooks-types/-/webhooks-types-7.5.1.tgz",
++      "integrity": "sha512-1dozxWEP8lKGbtEu7HkRbK1F/nIPuJXNfT0gd96y6d3LcHZTtRtlf8xz3nicSJfesADxJyDh+mWBOsdLkqgzYw==",
++      "dev": true
++    },
+     "node_modules/@onfido/react-native-sdk": {
+       "version": "10.6.0",
+       "license": "MIT",
+@@ -12656,6 +12685,30 @@
+         "undici-types": "~5.26.4"
+       }
+     },
++    "node_modules/@types/node-fetch": {
++      "version": "2.6.11",
++      "resolved": "https://registry.npmjs.org/@types/node-fetch/-/node-fetch-2.6.11.tgz",
++      "integrity": "sha512-24xFj9R5+rfQJLRyM56qh+wnVSYhyXC2tkoBndtY0U+vubqNsYXGjufB2nn8Q6gt0LrARwL6UBtMCSVCwl4B1g==",
++      "dev": true,
++      "dependencies": {
++        "@types/node": "*",
++        "form-data": "^4.0.0"
++      }
++    },
++    "node_modules/@types/node-fetch/node_modules/form-data": {
++      "version": "4.0.0",
++      "resolved": "https://registry.npmjs.org/form-data/-/form-data-4.0.0.tgz",
++      "integrity": "sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==",
++      "dev": true,
++      "dependencies": {
++        "asynckit": "^0.4.0",
++        "combined-stream": "^1.0.8",
++        "mime-types": "^2.1.12"
++      },
++      "engines": {
++        "node": ">= 6"
++      }
++    },
+     "node_modules/@types/node-forge": {
+       "version": "1.3.11",
+       "resolved": "https://registry.npmjs.org/@types/node-forge/-/node-forge-1.3.11.tgz",
+@@ -13762,6 +13815,18 @@
+         "node": ">= 6.0.0"
+       }
+     },
++    "node_modules/agentkeepalive": {
++      "version": "4.5.0",
++      "resolved": "https://registry.npmjs.org/agentkeepalive/-/agentkeepalive-4.5.0.tgz",
++      "integrity": "sha512-5GG/5IbQQpC9FpkRGsSvZI5QYeSCzlJHdpBQntCsuTOxhKD8lqKhrleg2Yi7yvMIf82Ycmmqln9U8V9qwEiJew==",
++      "dev": true,
++      "dependencies": {
++        "humanize-ms": "^1.2.1"
++      },
++      "engines": {
++        "node": ">= 8.0.0"
++      }
++    },
+     "node_modules/aggregate-error": {
+       "version": "3.1.0",
+       "license": "MIT",
+@@ -21596,6 +21661,34 @@
+         "node": ">= 6"
+       }
+     },
++    "node_modules/form-data-encoder": {
++      "version": "1.7.2",
++      "resolved": "https://registry.npmjs.org/form-data-encoder/-/form-data-encoder-1.7.2.tgz",
++      "integrity": "sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A==",
++      "dev": true
++    },
++    "node_modules/formdata-node": {
++      "version": "4.4.1",
++      "resolved": "https://registry.npmjs.org/formdata-node/-/formdata-node-4.4.1.tgz",
++      "integrity": "sha512-0iirZp3uVDjVGt9p49aTaqjk84TrglENEDuqfdlZQ1roC9CWlPk6Avf8EEnZNcAqPonwkG35x4n3ww/1THYAeQ==",
++      "dev": true,
++      "dependencies": {
++        "node-domexception": "1.0.0",
++        "web-streams-polyfill": "4.0.0-beta.3"
++      },
++      "engines": {
++        "node": ">= 12.20"
++      }
++    },
++    "node_modules/formdata-node/node_modules/web-streams-polyfill": {
++      "version": "4.0.0-beta.3",
++      "resolved": "https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-4.0.0-beta.3.tgz",
++      "integrity": "sha512-QW95TCTaHmsYfHDybGMwO5IJIM93I/6vTRk+daHTWFPhwh+C8Cg7j7XyKrwrj8Ib6vYXe0ocYNrmzY4xAAN6ug==",
++      "dev": true,
++      "engines": {
++        "node": ">= 14"
++      }
++    },
+     "node_modules/forwarded": {
+       "version": "0.2.0",
+       "license": "MIT",
+@@ -22674,6 +22767,15 @@
+         "node": ">=10.17.0"
+       }
+     },
++    "node_modules/humanize-ms": {
++      "version": "1.2.1",
++      "resolved": "https://registry.npmjs.org/humanize-ms/-/humanize-ms-1.2.1.tgz",
++      "integrity": "sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==",
++      "dev": true,
++      "dependencies": {
++        "ms": "^2.0.0"
++      }
++    },
+     "node_modules/husky": {
+       "version": "1.3.1",
+       "dev": true,
+@@ -28897,6 +28999,25 @@
+         "node": ">= 0.10.5"
+       }
+     },
++    "node_modules/node-domexception": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/node-domexception/-/node-domexception-1.0.0.tgz",
++      "integrity": "sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==",
++      "dev": true,
++      "funding": [
++        {
++          "type": "github",
++          "url": "https://github.com/sponsors/jimmywarting"
++        },
++        {
++          "type": "github",
++          "url": "https://paypal.me/jimmywarting"
++        }
++      ],
++      "engines": {
++        "node": ">=10.5.0"
++      }
++    },
+     "node_modules/node-fetch": {
+       "version": "2.6.7",
+       "license": "MIT",
+@@ -29590,6 +29711,34 @@
+         "url": "https://github.com/sponsors/sindresorhus"
+       }
+     },
++    "node_modules/openai": {
++      "version": "4.52.0",
++      "resolved": "https://registry.npmjs.org/openai/-/openai-4.52.0.tgz",
++      "integrity": "sha512-xmiNcdA9QJ5wffHpZDpIsge6AsPTETJ6h5iqDNuFQ7qGSNtonHn8Qe0VHy4UwLE8rBWiSqh4j+iSvuYZSeKkPg==",
++      "dev": true,
++      "dependencies": {
++        "@types/node": "^18.11.18",
++        "@types/node-fetch": "^2.6.4",
++        "abort-controller": "^3.0.0",
++        "agentkeepalive": "^4.2.1",
++        "form-data-encoder": "1.7.2",
++        "formdata-node": "^4.3.2",
++        "node-fetch": "^2.6.7",
++        "web-streams-polyfill": "^3.2.1"
++      },
++      "bin": {
++        "openai": "bin/cli"
++      }
++    },
++    "node_modules/openai/node_modules/@types/node": {
++      "version": "18.19.38",
++      "resolved": "https://registry.npmjs.org/@types/node/-/node-18.19.38.tgz",
++      "integrity": "sha512-SApYXUF7si4JJ+lO2o6X60OPOnA6wPpbiB09GMCkQ+JAwpa9hxUVG8p7GzA08TKQn5OhzK57rj1wFj+185YsGg==",
++      "dev": true,
++      "dependencies": {
++        "undici-types": "~5.26.4"
++      }
++    },
+     "node_modules/opencollective-postinstall": {
+       "version": "2.0.3",
+       "license": "MIT",
+@@ -36241,6 +36390,18 @@
+       "version": "1.13.6",
+       "license": "MIT"
+     },
++    "node_modules/undici": {
++      "version": "5.28.4",
++      "resolved": "https://registry.npmjs.org/undici/-/undici-5.28.4.tgz",
++      "integrity": "sha512-72RFADWFqKmUb2hmmvNODKL3p9hcB6Gt2DOQMis1SEBaV6a4MH8soBvzg+95CYhCKPFedut2JY9bMfrDl9D23g==",
++      "dev": true,
++      "dependencies": {
++        "@fastify/busboy": "^2.0.0"
++      },
++      "engines": {
++        "node": ">=14.0"
++      }
++    },
+     "node_modules/undici-types": {
+       "version": "5.26.5",
+       "license": "MIT"
+@@ -37005,6 +37166,15 @@
+         "defaults": "^1.0.3"
+       }
+     },
++    "node_modules/web-streams-polyfill": {
++      "version": "3.3.3",
++      "resolved": "https://registry.npmjs.org/web-streams-polyfill/-/web-streams-polyfill-3.3.3.tgz",
++      "integrity": "sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==",
++      "dev": true,
++      "engines": {
++        "node": ">= 8"
++      }
++    },
+     "node_modules/webidl-conversions": {
+       "version": "7.0.0",
+       "license": "BSD-2-Clause",
+diff --git a/package.json b/package.json
+index 54e331f078..cecd689867 100644
+--- a/package.json
++++ b/package.json
+@@ -213,6 +213,7 @@
+     "@octokit/core": "4.0.4",
+     "@octokit/plugin-paginate-rest": "3.1.0",
+     "@octokit/plugin-throttling": "4.1.0",
++    "@octokit/webhooks-types": "^7.5.1",
+     "@react-native-community/eslint-config": "3.2.0",
+     "@react-native/babel-preset": "^0.73.21",
+     "@react-native/metro-config": "^0.73.5",

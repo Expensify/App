@@ -13,6 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -70,7 +71,7 @@ function AvatarWithDisplayName({
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
         actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
     }, [parentReportActions, report]);
 
@@ -129,14 +130,16 @@ function AvatarWithDisplayName({
                         )}
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        <DisplayNames
-                            fullTitle={title}
-                            displayNamesWithTooltips={displayNamesWithTooltips}
-                            tooltipEnabled
-                            numberOfLines={1}
-                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                        />
+                        <CaretWrapper>
+                            <DisplayNames
+                                fullTitle={title}
+                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                tooltipEnabled
+                                numberOfLines={1}
+                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                                shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                            />
+                        </CaretWrapper>
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
@@ -179,7 +182,7 @@ AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
         canEvict: false,
     },
     personalDetails: {

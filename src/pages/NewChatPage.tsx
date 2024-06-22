@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -12,7 +12,7 @@ import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -71,13 +71,14 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             true,
             undefined,
             undefined,
+            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             undefined,
             true,
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
-            Boolean(filteredOptions.userToInvite),
+            !!filteredOptions.userToInvite,
             debouncedSearchTerm.trim(),
             selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
         );
@@ -130,6 +131,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     const personalData = useCurrentUserPersonalDetails();
     const {insets} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const selectionListRef = useRef<SelectionListHandle>(null);
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
         useOptions({
@@ -222,8 +224,10 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 if (isOptionInList) {
                     newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
                 } else {
-                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? ''}];
+                    newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID ?? '-1'}];
                 }
+
+                selectionListRef?.current?.clearInputAfterSelect?.();
 
                 setSelectedOptions(newSelectedOptions);
             }
@@ -303,6 +307,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 keyboardVerticalOffset={variables.contentHeaderHeight + (insets?.top ?? 0) + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             >
                 <SelectionList<OptionsListUtils.Option & ListItem>
+                    ref={selectionListRef}
                     ListItem={UserListItem}
                     sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
                     textInputValue={searchTerm}
@@ -311,6 +316,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
+                    shouldDebounceRowSelect
                     onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
