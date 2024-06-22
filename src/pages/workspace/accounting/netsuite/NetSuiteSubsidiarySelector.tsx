@@ -77,16 +77,15 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             >
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
             </OfflineWithFeedback>
-                <SelectionList
-                    containerStyle={styles.pb0}
-                    ListItem={RadioListItem}
-                    onSelectRow={saveSelection}
-                    shouldDebounceRowSelect
-                    sections={[{data: sections}]}
-                    initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
-                    isNestedInsideScrollView
-                />
-            
+            <SelectionList
+                containerStyle={styles.pb0}
+                ListItem={RadioListItem}
+                onSelectRow={saveSelection}
+                shouldDebounceRowSelect
+                sections={[{data: sections}]}
+                initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
+                isNestedInsideScrollView
+            />
         </ConnectionLayout>
     );
 }
