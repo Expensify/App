@@ -112,14 +112,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
 
-            // Avoid navigationg to the same location
-            if (prevUserPosition.longitude === currentPosition.longitude && prevUserPosition.latitude === currentPosition.latitude) {
-                return;
-            }
+            // Avoid animating the naviagtion to the same location
+            const shouldAnimate = prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude;
 
             mapRef.flyTo({
                 center: [currentPosition.longitude, currentPosition.latitude],
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                animate: shouldAnimate,
             });
         }, [currentPosition, mapRef, prevUserPosition, shouldPanMapToCurrentPosition]);
 
