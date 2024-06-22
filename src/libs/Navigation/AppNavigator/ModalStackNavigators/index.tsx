@@ -26,6 +26,7 @@ import type {
     SplitDetailsNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
     WalletStatementNavigatorParamList,
 } from '@navigation/types';
@@ -394,6 +395,10 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
 });
 
+const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require('../../../../pages/TransactionDuplicate/Review').default as React.ComponentType,
+});
+
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.SEARCH.REPORT_RHP]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
 });
@@ -425,5 +430,6 @@ export {
     SplitDetailsModalStackNavigator,
     TaskModalStackNavigator,
     WalletStatementStackNavigator,
+    TransactionDuplicateStackNavigator,
     SearchReportModalStackNavigator,
 };
