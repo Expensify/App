@@ -107,10 +107,9 @@ module.exports = {
         __DEV__: 'readonly',
     },
     rules: {
+        // TypeScript specific rules
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
-
-        // TypeScript specific rules
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',
@@ -217,6 +216,8 @@ module.exports = {
         // Other rules
         curly: 'error',
         'you-dont-need-lodash-underscore/throttle': 'off',
+        // The suggested alternative (structuredClone) is not supported in Hermes:https://github.com/facebook/hermes/issues/684
+        'you-dont-need-lodash-underscore/clone-deep': 'off',
         'prefer-regex-literals': 'off',
         'valid-jsdoc': 'off',
         'jsdoc/no-types': 'error',
@@ -259,6 +260,7 @@ module.exports = {
         // Remove once no JS files are left
         {
             files: ['*.js', '*.jsx'],
+            extends: ['plugin:@typescript-eslint/disable-type-checked'],
             rules: {
                 '@typescript-eslint/prefer-nullish-coalescing': 'off',
                 '@typescript-eslint/no-unsafe-return': 'off',
