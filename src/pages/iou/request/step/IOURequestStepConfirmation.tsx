@@ -225,7 +225,6 @@ function IOURequestStepConfirmation({
             // 2. after step 1 finishes, navigate back to the start step
             // set the flag to indicate that the receipt file is failed to read to trigger the above steps in antoher useEffect
             setHaveFailedToReadReceipt(true);
-            console.log('Fail to scan receipt');
         };
 
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType, onFailure);
