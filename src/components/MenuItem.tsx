@@ -439,7 +439,7 @@ function MenuItem(
         }
         const parser = new ExpensiMark();
         return parser.replace(helperText, {shouldEscapeText});
-    }, [helperText, shouldParseTitle, shouldEscapeText]);
+    }, [helperText, shouldParseHelperText, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
