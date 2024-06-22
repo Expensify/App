@@ -23,9 +23,11 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
         const items = [];
         for (let i = 0; i < numItems; i++) {
             items.push(
-                <View style={[themeStyles.mr5, itemViewStyle]}>
+                <View
+                    key={`skeletonViewItems${i}`}
+                    style={[themeStyles.mr5, itemViewStyle]}
+                >
                     <SkeletonViewContentLoader
-                        key={`skeletonViewItems${i}`}
                         animate={shouldAnimate}
                         height={itemViewHeight}
                         backgroundColor={theme.skeletonLHNIn}
