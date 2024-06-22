@@ -18039,25 +18039,23 @@ async function run() {
         // Create a comment with the assistant's response
         console.log('ProposalPolice™ commenting on issue...');
         await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, github_1.context.issue.number, formattedResponse);
-    }
-    else {
         // edit comment if assistant detected substantial changes and if the comment was not edited already by the bot
-        if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
-            // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
-            // bot related action keyword
-            let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
-            // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
-            const date = new Date(payload.comment?.updated_at ?? '');
-            const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
-            extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
-            console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
-            await GithubUtils_1.default.octokit.issues.updateComment({
-                ...github_1.context.repo,
-                /* eslint-disable @typescript-eslint/naming-convention */
-                comment_id: payload.comment.id,
-                body: `${extractedNotice}\n\n${payload.comment?.body}`,
-            });
-        }
+    }
+    else if (assistantResponse.includes('[EDIT_COMMENT]') && !payload.comment?.body.includes('Edited by **proposal-police**')) {
+        // extract the text after [EDIT_COMMENT] from assistantResponse since this is a
+        // bot related action keyword
+        let extractedNotice = assistantResponse.split('[EDIT_COMMENT] ')?.[1]?.replace('"', '');
+        // format the github's updated_at like: 2024-01-24 13:15:24 UTC not 2024-01-28 18:18:28.000 UTC
+        const date = new Date(payload.comment?.updated_at ?? '');
+        const formattedDate = `${date.toISOString()?.split('.')?.[0]?.replace('T', ' ')} UTC`;
+        extractedNotice = extractedNotice.replace('{updated_timestamp}', formattedDate);
+        console.log('ProposalPolice™ editing issue comment...', payload.comment.id);
+        await GithubUtils_1.default.octokit.issues.updateComment({
+            ...github_1.context.repo,
+            /* eslint-disable @typescript-eslint/naming-convention */
+            comment_id: payload.comment.id,
+            body: `${extractedNotice}\n\n${payload.comment?.body}`,
+        });
     }
 }
 run().catch((error) => {
