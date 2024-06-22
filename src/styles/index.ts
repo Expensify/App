@@ -369,6 +369,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
+        labelNormal: {
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textLabel: {
             color: theme.text,
             fontSize: variables.fontSizeLabel,

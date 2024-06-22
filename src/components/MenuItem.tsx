@@ -465,7 +465,7 @@ function MenuItem(
             textToWrap = helperHtml;
         }
 
-        return textToWrap ? `<comment>${textToWrap}</comment>` : '';
+        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
     const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
