@@ -219,7 +219,7 @@ Onyx.connect({
     },
 });
 
-let allNextStpes: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
+let allNextSteps: NonNullable<OnyxCollection<OnyxTypes.ReportNextStep>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.NEXT_STEP,
     waitForCollectionCallback: true,

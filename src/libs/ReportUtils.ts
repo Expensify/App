@@ -3263,6 +3263,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, report
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage(reportAction, getReport(reportID), false);
     }
+
     return parseReportActionHtmlToText(reportAction, reportID ?? '', childReportID);
 }
 
