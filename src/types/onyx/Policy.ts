@@ -616,7 +616,7 @@ type AccountTypeValues = '_accountsPayable' | '_otherCurrentLiability' | '_credi
 type NetSuiteAccount = {
     /** GL code assigned to the financial account */
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'GL Code': string;
+    'GL Code'?: string;
 
     /** Name of the account */
     name: string;

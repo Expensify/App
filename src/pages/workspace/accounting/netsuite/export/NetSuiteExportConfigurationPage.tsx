@@ -222,7 +222,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 .filter((item) => !item.shouldHide)
                 .map((item) => {
                     if (item.type === 'divider') {
-                        return <View style={styles.threadDividerLine} />;
+                        return <View style={styles.dividerLine} />;
                     }
                     if (item.type === 'toggle') {
                         const {type, shouldHide, ...rest} = item;

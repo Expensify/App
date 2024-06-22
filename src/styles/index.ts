@@ -2912,6 +2912,15 @@ const styles = (theme: ThemeColors) =>
             marginRight: 20,
         },
 
+        dividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            flexGrow: 1,
+            marginLeft: 20,
+            marginRight: 20,
+            marginVertical: 12,
+        },
+
         unreadIndicatorText: {
             color: theme.unreadIndicator,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
