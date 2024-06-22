@@ -231,7 +231,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                                 key={rest.title}
                                 // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...rest}
-                                wrapperStyle={styles.mv3}
+                                wrapperStyle={[styles.mv3, styles.ph5]}
                             />
                         );
                     }
