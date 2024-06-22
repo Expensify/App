@@ -12,15 +12,15 @@ import {updateNetSuiteSubsidiary} from '@libs/actions/connections/netsuite';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
-type NetSuiteSubsidiarySelectorProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
+type NetSuiteSubsidiarySelectorProps = WithPolicyConnectionsProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
 
 type SubsidiaryListItemWithId = ListItem & {subsidiaryID: string};
 
@@ -92,4 +92,4 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
 
 NetSuiteSubsidiarySelector.displayName = 'NetSuiteSubsidiarySelector';
 
-export default withPolicy(NetSuiteSubsidiarySelector);
+export default withPolicyConnections(NetSuiteSubsidiarySelector);
