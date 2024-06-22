@@ -66,9 +66,6 @@ type ReportScreenOnyxProps = {
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
-    /** An array containing all report actions related to this report, sorted based on a date criterion */
-    sortedAllReportActions: OnyxTypes.ReportAction[];
-
     /** Additional report details */
     reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
 
@@ -117,7 +114,6 @@ function ReportScreen({
     betas = [],
     route,
     reportNameValuePairs,
-    sortedAllReportActions,
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
@@ -154,6 +150,10 @@ function ReportScreen({
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
+    });
+    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`, {
+        canEvict: false,
+        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
@@ -774,11 +774,6 @@ export default withCurrentReportID(
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
-            sortedAllReportActions: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-                canEvict: false,
-                selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
-            },
             reportNameValuePairs: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getReportID(route)}`,
                 allowStaleData: true,
@@ -807,7 +802,6 @@ export default withCurrentReportID(
             ReportScreen,
             (prevProps, nextProps) =>
                 prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
                 lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
                 lodashIsEqual(prevProps.betas, nextProps.betas) &&
                 lodashIsEqual(prevProps.policies, nextProps.policies) &&
