@@ -230,7 +230,7 @@ function getDevicePreferredLocale(): Locale {
  * @param locale - The locale to translate the message to.
  * @param message - The message to translate.
  * @param messageLocale - The locale of the message.
- * @returns {string} - translation of the message or the original message if no translation found
+ * @returns - translation of the message or the original message if no translation found
  */
 function swapForTranslation(locale: Locale, message: string, messageLocale: Locale): string {
     const language = messageLocale.substring(0, 2) as 'en' | 'es';

@@ -355,9 +355,9 @@ function MoneyRequestView({
             ...parentReportAction?.errors,
         };
         return Object.fromEntries(
-            Object.entries(combinedErrors).map(([key, value]) => 
+            Object.entries(combinedErrors).map(([key, value]) =>
                 // swap for translation for each error message
-                 [key, swapForTranslation(value as string, 'en')]
+                [key, swapForTranslation(value as string, 'en')],
             ),
         );
     }, [transaction?.errorFields?.route, transaction?.errors, parentReportAction?.errors, swapForTranslation]);
@@ -417,7 +417,7 @@ function MoneyRequestView({
                                 Navigation.goBack(urlToNavigateBack);
                                 return;
                             }
-                            
+
                             if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
                                 deleteTransaction(parentReport, parentReportAction);
                             }
