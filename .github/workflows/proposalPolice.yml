@@ -6,7 +6,7 @@ on:
 jobs:
   proposal-police-workflow:
     runs-on: ubuntu-latest
-    if: !contains(fromJSON('["OSBotify", "imgbot[bot]", "melvin-bot[bot]"]'), github.actor)
+    if: "!contains(fromJSON('["OSBotify", "imgbot[bot]", "melvin-bot[bot]"]'), github.actor)"
     steps:
       - uses: actions/checkout@v4
 
