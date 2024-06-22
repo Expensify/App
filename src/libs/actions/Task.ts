@@ -132,7 +132,7 @@ function createTaskAndNavigate(
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTimeWithSkew();
-    const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport?.reportAction?.message?.[0]?.text ?? '');
+    const lastCommentText = ReportUtils.formatReportLastMessageText(ReportActionsUtils.getReportActionText(optimisticAddCommentReport.reportAction));
     const optimisticParentReport = {
         lastVisibleActionCreated: optimisticAddCommentReport.reportAction.created,
         lastMessageText: lastCommentText,
@@ -269,7 +269,7 @@ function createTaskAndNavigate(
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
         value: {
             [optimisticAddCommentReport.reportAction.reportActionID]: {
-                errors: ErrorUtils.getMicroSecondOnyxError('task.genericCreateTaskFailureMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('task.genericCreateTaskFailureMessage'),
             },
         },
     });
@@ -347,7 +347,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [completedTaskReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('task.messages.error'),
                 },
             },
         },
@@ -416,7 +416,7 @@ function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [reopenedTaskReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('task.messages.error'),
                 },
             },
         },
@@ -768,9 +768,7 @@ function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes
 
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
-    const participants = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== currentUserAccountID || !isOneOnOneChat);
+    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report);
 
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails), isMultipleParticipant);
@@ -1008,7 +1006,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+    if (!ReportUtils.canWriteInReport(taskReport)) {
         return false;
     }
 
@@ -1016,7 +1014,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 }
 
 function clearTaskErrors(reportID: string) {
-    const report = ReportUtils.getReport(reportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     // Delete the task preview in the parent report
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {

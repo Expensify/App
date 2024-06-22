@@ -84,7 +84,7 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
 
     const failureCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
         acc[category] = {
-            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.createFailureMessage'),
             pendingAction: null,
         };
         return acc;
@@ -202,7 +202,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
                         acc[key] = {
                             ...policyCategories[key],
                             ...categoriesToUpdate[key],
-                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                             pendingFields: {
                                 enabled: null,
                             },
@@ -315,7 +315,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                     [policyCategory.oldName]: {
                         ...policyCategoryToUpdate,
                         name: policyCategory.oldName,
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                         pendingAction: null,
                     },
                 },
@@ -368,7 +368,7 @@ function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolea
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     requiresCategory: !requiresCategory,
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
                     pendingFields: {
                         requiresCategory: null,
                     },
@@ -434,7 +434,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
                 value: categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
                     acc[categoryName] = {
                         pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.deleteFailureMessage'),
                     };
                     return acc;
                 }, {}),
@@ -567,7 +567,7 @@ function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUn
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         pendingFields: {defaultCategory: null},
                     },
                 },
