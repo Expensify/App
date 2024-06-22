@@ -354,6 +354,17 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             .sort((a, b) => localeCompare(a.title, b.title));
     }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms]);
 
+    const getHeaderButton = () => (
+        <Button
+            accessibilityLabel={translate('workspace.new.newWorkspace')}
+            success
+            medium
+            text={translate('workspace.new.newWorkspace')}
+            onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+        />
+    );
+
     if (isEmptyObject(workspaces)) {
         return (
             <ScreenWrapper
@@ -369,14 +380,9 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
                 >
-                    <Button
-                        accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        success
-                        medium
-                        text={translate('workspace.new.newWorkspace')}
-                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                    />
+                    {!isSmallScreenWidth && getHeaderButton()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <FeatureList
@@ -410,14 +416,9 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     onBackButtonPress={() => Navigation.goBack()}
                     icon={Illustrations.BigRocket}
                 >
-                    <Button
-                        accessibilityLabel={translate('workspace.new.newWorkspace')}
-                        success
-                        medium
-                        text={translate('workspace.new.newWorkspace')}
-                        onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
-                    />
+                    {!isSmallScreenWidth && getHeaderButton()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButton()}</View>}
                 <FlatList
                     data={workspaces}
                     renderItem={getMenuItem}
