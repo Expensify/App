@@ -19,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -255,7 +256,7 @@ function ReportActionItemSingle({
                                     delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
-                                    moderationDecision={action?.message?.[0]?.moderationDecision?.decision}
+                                    moderationDecision={getReportActionMessage(action)?.moderationDecision?.decision}
                                 />
                             ))}
                         </PressableWithoutFeedback>

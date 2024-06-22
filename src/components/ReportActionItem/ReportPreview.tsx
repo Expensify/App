@@ -25,6 +25,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -215,7 +216,7 @@ function ReportPreview({
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmount = '';
-        const actionMessage = action.message?.[0]?.text ?? '';
+        const actionMessage = ReportActionsUtils.getReportActionText(action);
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {
