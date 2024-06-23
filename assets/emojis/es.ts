@@ -782,6 +782,10 @@ const esEmojis: EmojisList = {
         name: 'manos_levantadas',
         keywords: ['celebración', 'gesto', 'hurra', 'mano', 'manos levantadas celebrando'],
     },
+    '🫶': {
+        name: 'manos_haciendo_corazón',
+        keywords: ['mano', 'corazón', 'gesto', 'amor'],
+    },
     '👐': {
         name: 'manos_abiertas',
         keywords: ['abiertas', 'manos'],
@@ -797,6 +801,10 @@ const esEmojis: EmojisList = {
     '🙏': {
         name: 'rezo',
         keywords: ['gracias', 'mano', 'oración', 'orar', 'por favor', 'rezar', 'manos en oración'],
+    },
+    '🫵': {
+        name: 'mano_apuntando',
+        keywords: ['mano', 'apuntar', 'espectador', 'gesto'],
     },
     '✍️': {
         name: 'mano_escribiendo',
@@ -877,6 +885,10 @@ const esEmojis: EmojisList = {
     '👄': {
         name: 'labios',
         keywords: ['labios', 'boca'],
+    },
+    '🫦': {
+        name: 'labios_mordiendo',
+        keywords: ['mordiendo', 'labio', 'nervioso', 'coqueteo'],
     },
     '👶': {
         name: 'bebé',
@@ -1338,6 +1350,7 @@ const esEmojis: EmojisList = {
         name: 'guardia_mujer',
         keywords: ['guardia', 'mujer', 'vigilante'],
     },
+
     '🥷': {
         name: 'ninja',
         keywords: ['furtivo', 'guerrero', 'luchador', 'oculto', 'sigilo', 'ninja'],
@@ -1357,6 +1370,10 @@ const esEmojis: EmojisList = {
     '🤴': {
         name: 'príncipe',
         keywords: ['corona', 'príncipe'],
+    },
+    '🫅': {
+        name: 'persona_con_corona',
+        keywords: ['persona', 'corona', 'realeza', 'rey', 'reina'],
     },
     '👸': {
         name: 'princesa',
@@ -1409,6 +1426,14 @@ const esEmojis: EmojisList = {
     '🤰': {
         name: 'embarazada',
         keywords: ['embarazada', 'mujer'],
+    },
+    '🫄': {
+        name: 'persona_embarazada',
+        keywords: ['embarazado', 'persona', 'esperando', 'padre'],
+    },
+    '🫃': {
+        name: 'hombre_embarazado',
+        keywords: ['embarazado', 'hombre', 'esperando', 'padre'],
     },
     '🤱': {
         name: 'amamantar',
@@ -1525,6 +1550,10 @@ const esEmojis: EmojisList = {
     '🧝‍♀️': {
         name: 'elfa',
         keywords: ['mágico', 'mujer', 'elfa'],
+    },
+    '🧌': {
+        name: 'trol',
+        keywords: ['trol', 'mítico', 'criatura', 'fantasía'],
     },
     '🧞': {
         name: 'genio',
@@ -2474,6 +2503,10 @@ const esEmojis: EmojisList = {
         name: 'caracola',
         keywords: ['concha', 'mar', 'concha de mar'],
     },
+    '🪸': {
+        name: 'coral',
+        keywords: ['coral', 'arrecife', 'mar', 'océano', 'marino'],
+    },
     '🐌': {
         name: 'caracol',
         keywords: ['caracola', 'molusco', 'caracol'],
@@ -2562,6 +2595,10 @@ const esEmojis: EmojisList = {
         name: 'flor_marchita',
         keywords: ['flor', 'marchita', 'marchitada', 'marchitarse'],
     },
+    '🪷': {
+        name: 'flor_de_loto',
+        keywords: ['loto', 'flor', 'florecer', 'planta'],
+    },
     '🌺': {
         name: 'hibisco',
         keywords: ['flor', 'hibisco', 'flor de hibisco'],
@@ -2629,6 +2666,14 @@ const esEmojis: EmojisList = {
     '🍃': {
         name: 'hojas',
         keywords: ['hoja', 'revolotear', 'soplar', 'viento', 'hojas revoloteando al viento'],
+    },
+    '🪺': {
+        name: 'nido_con_huevos',
+        keywords: ['nido', 'huevos', 'pájaro', 'hogar'],
+    },
+    '🪹': {
+        name: 'nido_vacío',
+        keywords: ['nido', 'vacío', 'pájaro', 'hogar'],
     },
     '🍇': {
         name: 'uvas',
@@ -2761,6 +2806,10 @@ const esEmojis: EmojisList = {
     '🥜': {
         name: 'cacahuetes',
         keywords: ['cacahuete', 'comida', 'fruto seco', 'verdura', 'cacahuetes'],
+    },
+    '🫘': {
+        name: 'frijoles',
+        keywords: ['frijoles', 'comida', 'legumbre'],
     },
     '🌰': {
         name: 'castaña',
@@ -3053,6 +3102,10 @@ const esEmojis: EmojisList = {
     '🥛': {
         name: 'vaso_de_leche',
         keywords: ['bebida', 'leche', 'vaso', 'vaso de leche'],
+    },
+    '🫗': {
+        name: 'vertiendo_líquido',
+        keywords: ['vertiendo', 'líquido', 'bebida', 'agua'],
     },
     '☕': {
         name: 'café',

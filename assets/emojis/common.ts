@@ -855,6 +855,11 @@ const emojis: PickerEmojis = [
         types: ['🙌🏿', '🙌🏾', '🙌🏽', '🙌🏼', '🙌🏻'],
     },
     {
+        name: 'heart_hands',
+        code: '🫶',
+        types: ['🫶🏿', '🫶🏾', '🫶🏽', '🫶🏼', '🫶🏻'],
+    },
+    {
         name: 'open_hands',
         code: '👐',
         types: ['👐🏿', '👐🏾', '👐🏽', '👐🏼', '👐🏻'],
@@ -873,6 +878,11 @@ const emojis: PickerEmojis = [
         name: 'pray',
         code: '🙏',
         types: ['🙏🏿', '🙏🏾', '🙏🏽', '🙏🏼', '🙏🏻'],
+    },
+    {
+        name: 'index_pointing_at_the_viewer',
+        code: '🫵',
+        types: ['🫵🏿', '🫵🏾', '🫵🏽', '🫵🏼', '🫵🏻'],
     },
     {
         name: 'writing_hand',
@@ -962,6 +972,10 @@ const emojis: PickerEmojis = [
     {
         name: 'lips',
         code: '👄',
+    },
+    {
+        name: 'biting_lip',
+        code: '🫦',
     },
     {
         name: 'baby',
@@ -1564,6 +1578,11 @@ const emojis: PickerEmojis = [
         types: ['🤴🏿', '🤴🏾', '🤴🏽', '🤴🏼', '🤴🏻'],
     },
     {
+        name: 'person_with_crown',
+        code: '🫅',
+        types: ['🫅🏿', '🫅🏾', '🫅🏽', '🫅🏼', '🫅🏻'],
+    },
+    {
         name: 'princess',
         code: '👸',
         types: ['👸🏿', '👸🏾', '👸🏽', '👸🏼', '👸🏻'],
@@ -1627,6 +1646,16 @@ const emojis: PickerEmojis = [
         name: 'pregnant_woman',
         code: '🤰',
         types: ['🤰🏿', '🤰🏾', '🤰🏽', '🤰🏼', '🤰🏻'],
+    },
+    {
+        name: 'pregnant_person',
+        code: '🫄',
+        types: ['🫄🏿', '🫄🏾', '🫄🏽', '🫄🏼', '🫄🏻'],
+    },
+    {
+        name: 'pregnant_man',
+        code: '🫃',
+        types: ['🫃🏿', '🫃🏾', '🫃🏽', '🫃🏼', '🫃🏻'],
     },
     {
         name: 'breast_feeding',
@@ -1772,6 +1801,10 @@ const emojis: PickerEmojis = [
         name: 'elf_woman',
         code: '🧝‍♀️',
         types: ['🧝🏿‍♀️', '🧝🏾‍♀️', '🧝🏽‍♀️', '🧝🏼‍♀️', '🧝🏻‍♀️'],
+    },
+    {
+        name: 'troll',
+        code: '🧌',
     },
     {
         name: 'genie',
@@ -2818,6 +2851,10 @@ const emojis: PickerEmojis = [
         code: '🐚',
     },
     {
+        name: 'coral',
+        code: '🪸',
+    },
+    {
         name: 'snail',
         code: '🐌',
     },
@@ -2906,6 +2943,10 @@ const emojis: PickerEmojis = [
         code: '🥀',
     },
     {
+        name: 'lotus',
+        code: '🪷',
+    },
+    {
         name: 'hibiscus',
         code: '🌺',
     },
@@ -2972,6 +3013,14 @@ const emojis: PickerEmojis = [
     {
         name: 'leaves',
         code: '🍃',
+    },
+    {
+        name: 'nest_with_eggs',
+        code: '🪺',
+    },
+    {
+        name: 'empty_nest',
+        code: '🪹',
     },
     {
         header: true,
@@ -3109,6 +3158,10 @@ const emojis: PickerEmojis = [
     {
         name: 'peanuts',
         code: '🥜',
+    },
+    {
+        name: 'beans',
+        code: '🫘',
     },
     {
         name: 'chestnut',
@@ -3401,6 +3454,10 @@ const emojis: PickerEmojis = [
     {
         name: 'milk_glass',
         code: '🥛',
+    },
+    {
+        name: 'pouring_liquid',
+        code: '🫗',
     },
     {
         name: 'coffee',

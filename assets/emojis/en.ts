@@ -587,6 +587,9 @@ const enEmojis: EmojisList = {
     '🙌': {
         keywords: ['hooray', 'body', 'celebration', 'gesture', 'hand', 'raised'],
     },
+    '🫶': {
+        keywords: ['hand', 'heart', 'gesture', 'love'],
+    },
     '👐': {
         keywords: ['body', 'hand', 'open'],
     },
@@ -598,6 +601,9 @@ const enEmojis: EmojisList = {
     },
     '🙏': {
         keywords: ['please', 'hope', 'wish', 'ask', 'body', 'bow', 'folded', 'gesture', 'hand', 'thanks'],
+    },
+    '🫵': {
+        keywords: ['hand', 'pointing', 'viewer', 'gesture'],
     },
     '✍️': {
         keywords: [],
@@ -658,6 +664,9 @@ const enEmojis: EmojisList = {
     },
     '👄': {
         keywords: ['kiss', 'body', 'mouth'],
+    },
+    '🫦': {
+        keywords: ['biting', 'lip', 'nervous', 'flirt'],
     },
     '👶': {
         keywords: ['child', 'newborn'],
@@ -1019,6 +1028,9 @@ const enEmojis: EmojisList = {
     '🤴': {
         keywords: ['crown', 'royal'],
     },
+    '🫅': {
+        keywords: ['person', 'crown', 'royalty', 'king', 'queen'],
+    },
     '👸': {
         keywords: ['crown', 'royal', 'fairy tale', 'fantasy'],
     },
@@ -1057,6 +1069,12 @@ const enEmojis: EmojisList = {
     },
     '🤰': {
         keywords: ['pregnant', 'woman'],
+    },
+    '🫄': {
+        keywords: ['pregnant', 'person', 'expecting', 'parent'],
+    },
+    '🫃': {
+        keywords: ['pregnant', 'man', 'expecting', 'parent'],
     },
     '🤱': {
         keywords: ['nursing'],
@@ -1144,6 +1162,9 @@ const enEmojis: EmojisList = {
     },
     '🧝‍♀️': {
         keywords: [],
+    },
+    '🧌': {
+        keywords: ['troll', 'mythical', 'creature', 'fantasy'],
     },
     '🧞': {
         keywords: [],
@@ -1856,6 +1877,9 @@ const enEmojis: EmojisList = {
     '🐚': {
         keywords: ['sea', 'beach', 'spiral'],
     },
+    '🪸': {
+        keywords: ['coral', 'reef', 'sea', 'ocean', 'marine'],
+    },
     '🐌': {
         keywords: ['slow'],
     },
@@ -1922,6 +1946,9 @@ const enEmojis: EmojisList = {
     '🥀': {
         keywords: ['flower', 'wilted'],
     },
+    '🪷': {
+        keywords: ['lotus', 'flower', 'bloom', 'plant'],
+    },
     '🌺': {
         keywords: ['flower', 'plant'],
     },
@@ -1972,6 +1999,12 @@ const enEmojis: EmojisList = {
     },
     '🍃': {
         keywords: ['leaf', 'blow', 'flutter', 'plant', 'wind'],
+    },
+    '🪺': {
+        keywords: ['nest', 'eggs', 'bird', 'home'],
+    },
+    '🪹': {
+        keywords: ['nest', 'empty', 'bird', 'home'],
     },
     '🍇': {
         keywords: ['fruit', 'grape', 'plant'],
@@ -2071,6 +2104,9 @@ const enEmojis: EmojisList = {
     },
     '🥜': {
         keywords: ['nut', 'peanut', 'vegetable'],
+    },
+    '🫘': {
+        keywords: ['beans', 'food', 'legume'],
     },
     '🌰': {
         keywords: ['plant'],
@@ -2290,6 +2326,9 @@ const enEmojis: EmojisList = {
     },
     '🥛': {
         keywords: ['drink', 'glass', 'milk'],
+    },
+    '🫗': {
+        keywords: ['pouring', 'liquid', 'drink', 'water'],
     },
     '☕': {
         keywords: ['cafe', 'espresso', 'beverage', 'drink', 'hot', 'steaming', 'tea'],
