@@ -105,12 +105,12 @@ function IOURequestStepDistance({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (!skipConfirmation || !report?.reportID || !!transaction?.isFromGlobalCreate) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+    }, [report, skipConfirmation, policy, transaction?.isFromGlobalCreate]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -224,7 +224,8 @@ function IOURequestStepDistance({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
-            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreate);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
@@ -293,7 +294,7 @@ function IOURequestStepDistance({
                 );
                 return;
             }
-            IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreate);
             navigateToConfirmationPage();
             return;
         }

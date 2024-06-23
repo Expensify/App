@@ -88,14 +88,15 @@ function IOURequestStepAmount({
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
-    // the user will have to add a merchant.
+    // the user will have to add a merchant
+    // or this transaction is globally created (except case of editing split bill), as the user is allowed to re-select participants
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (!skipConfirmation || !report?.reportID || (!!currentTransaction?.isFromGlobalCreate && !isEditingSplitBill)) {
             return false;
         }
 
         return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation]);
+    }, [report, skipConfirmation, isEditingSplitBill, currentTransaction?.isFromGlobalCreate]);
 
     useFocusEffect(
         useCallback(() => {
@@ -183,7 +184,9 @@ function IOURequestStepAmount({
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
-            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const isFromGlobalCreated = !!currentTransaction?.isFromGlobalCreate && !isEditingSplitBill;
+            // if the transaction is not globally created, the participants of the transaction is still set from the report, the participant is not auto-assigned
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreated);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);

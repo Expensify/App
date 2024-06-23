@@ -188,12 +188,13 @@ function IOURequestStepConfirmation({
     const navigateBack = useCallback(() => {
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
+        // enforce the fallback, so the user can re-select the participant
         if (!transaction?.participantsAutoAssigned) {
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, undefined, action));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, transaction?.reportID || reportID, undefined, action), true);
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID, action);
-    }, [transaction, iouType, requestType, transactionID, reportID, action]);
+    }, [transaction, iouType, requestType, transactionID, reportID, action, transaction?.reportID]);
 
     const navigateToAddReceipt = useCallback(() => {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
@@ -203,7 +204,6 @@ function IOURequestStepConfirmation({
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
-    const [haveFailedToReadReceipt, setHaveFailedToReadReceipt] = useState<boolean | undefined>();
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isLocalFile = FileUtils.isLocalFile(receiptPath);
@@ -219,32 +219,8 @@ function IOURequestStepConfirmation({
             setReceiptFile(receipt);
         };
 
-        const onFailure = () => {
-            // if the file is failed to read from disk, we will need to do 2 things:
-            // 1. set the transaction report ID to the selected report ID if they are different
-            // 2. after step 1 finishes, navigate back to the start step
-            // set the flag to indicate that the receipt file is failed to read to trigger the above steps in antoher useEffect
-            setHaveFailedToReadReceipt(true);
-        };
-
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType, onFailure);
+        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename, receiptPath, onSuccess, requestType, iouType, transactionID, reportID, receiptType);
     }, [receiptType, receiptPath, receiptFilename, requestType, iouType, transactionID, reportID, action, transaction?.receipt]);
-
-    // if the receipt local file is failed to read, the transaction report ID will be set to the selected report ID
-    // we will wait for that condition to be satisfied before navigating back to the start step
-    useEffect(() => {
-        if (!haveFailedToReadReceipt) {
-            return;
-        }
-        if (transaction?.reportID !== reportID) {
-            IOU.setMoneyRequestReportID(transactionID, reportID, false);
-            return;
-        }
-        // reset the flag
-        setHaveFailedToReadReceipt(undefined);
-        // navigate back to the start step
-        IOU.navigateToStartStep(requestType, iouType, transactionID, reportID);
-    }, [haveFailedToReadReceipt, requestType, iouType, transactionID, reportID, transaction?.reportID]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string, receiptObj?: Receipt, gpsPoints?: IOU.GpsPoint) => {

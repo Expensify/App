@@ -72,12 +72,12 @@ function IOURequestStepScan({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (!skipConfirmation || !report?.reportID || !!transaction?.isFromGlobalCreate) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+    }, [report, skipConfirmation, policy, transaction?.isFromGlobalCreate]);
 
     const {translate} = useLocalize();
 
@@ -229,7 +229,8 @@ function IOURequestStepScan({
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreate);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);

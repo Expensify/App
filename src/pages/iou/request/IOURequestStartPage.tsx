@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -92,15 +92,14 @@ function IOURequestStartPage({
     );
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
-    // only when the screen is focused
-    useFocusEffect(
-        useCallback(() => {
-            if (transaction?.reportID === reportID) {
-                return;
-            }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
-        }, [transaction, policy, reportID, isFromGlobalCreate]),
-    );
+    // if transaction exists and is created from global create flow, then we should not clear the transaction
+    useEffect(() => {
+        if (transaction?.reportID === reportID || !!transaction?.isFromGlobalCreate) {
+            return;
+        }
+
+        IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
+    }, [transaction, policy, reportID, isFromGlobalCreate]);
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);

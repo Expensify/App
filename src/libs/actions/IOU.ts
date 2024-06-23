@@ -377,10 +377,6 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
     }
 }
 
-function setMoneyRequestReportID(transactionID: string, reportID: string, isFromGlobalCreate = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID, isFromGlobalCreate});
-}
-
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
 }
@@ -6644,7 +6640,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>): Participant[] {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>, shouldSetAsAutoAssigned = true): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -6669,7 +6665,7 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
         participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
     }
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: shouldSetAsAutoAssigned});
 
     return participants;
 }
@@ -6938,7 +6934,6 @@ function navigateToStartStepIfScanFileCannotBeRead(
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
-    onFailureCallback?: () => void,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -6946,11 +6941,11 @@ function navigateToStartStepIfScanFileCannotBeRead(
 
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
-        if (onFailureCallback) {
-            onFailureCallback();
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
             return;
         }
-        navigateToStartStep(requestType, iouType, transactionID, reportID);
+        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
     FileUtils.readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
@@ -6993,7 +6988,6 @@ export {
     sendMoneyWithWallet,
     setCustomUnitRateID,
     setDraftSplitTransaction,
-    setMoneyRequestReportID,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
