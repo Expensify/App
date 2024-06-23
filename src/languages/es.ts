@@ -776,7 +776,11 @@ export default {
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
         confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `Este gasto está bloqueado. ¿Quieres ${Str.pluralize('pagar', 'pagarlo', transactionCount)} de todos modos?`,
+            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
+                'pagar',
+                'pagarlo',
+                transactionCount,
+            )} de todos modos?`,
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
