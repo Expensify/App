@@ -72,6 +72,9 @@ type TransactionViolationData = {
     /** Violation data type */
     type?: ViolationDataType;
 
+    /** Percent Variance for modified amount violations */
+    displayPercentVariance?: number;
+
     /** List of duplicate transactions */
     duplicates?: string[];
 };
@@ -86,9 +89,6 @@ type TransactionViolation = {
 
     /** Additional violation information to provide the user */
     data?: TransactionViolationData;
-
-    /** Percent Variance for modified amount violations */
-    displayPercentVariance?: number;
 };
 
 /** Collection of transaction violations */
