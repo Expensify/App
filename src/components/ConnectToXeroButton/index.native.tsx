@@ -53,7 +53,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    title={translate('workspace.accounting.disconnectTitle', integrationToDisconnect)}
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);

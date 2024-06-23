@@ -2411,7 +2411,7 @@ export default {
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
-            netsuite: 'Net Suite',
+            netsuite: 'NetSuite',
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
@@ -2426,6 +2426,8 @@ export default {
                         return 'Desconectar QuickBooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return 'Desconectar Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'Desconectar Netsuite';
                     default: {
                         return 'Desconectar integración';
                     }
@@ -2437,6 +2439,8 @@ export default {
                         return 'No se puede conectar a QuickBooks Online.';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return 'No se puede conectar a Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'No se puede conectar a NetSuite';
                     default: {
                         return 'No se ha podido conectar a la integración.';
                     }

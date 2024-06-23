@@ -36,7 +36,7 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    title={translate('workspace.accounting.disconnectTitle', integrationToDisconnect)}
                     isVisible
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
@@ -44,7 +44,7 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO, integrationToDisconnect)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

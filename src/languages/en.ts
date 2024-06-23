@@ -2407,7 +2407,7 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
-            netsuite: 'Net Suite',
+            netsuite: 'NetSuite',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -2422,6 +2422,8 @@ export default {
                         return 'Disconnect QuickBooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return 'Disconnect Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'Disconnect NetSuite';
                     default: {
                         return 'Disconnect integration';
                     }
@@ -2433,6 +2435,8 @@ export default {
                         return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return "Can't connect to Xero.";
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return "Can't connec to NetSuite";
                     default: {
                         return "Can't connect to integration.";
                     }

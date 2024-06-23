@@ -39,7 +39,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
             />
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.XERO)}
+                    title={translate('workspace.accounting.disconnectTitle', integrationToDisconnect)}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
@@ -47,7 +47,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO, integrationToDisconnect)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
