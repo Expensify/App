@@ -26,7 +26,6 @@ import type {
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
-    SetWorkspaceAutoReportingParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
     UpdateWorkspaceAvatarParams,
@@ -336,54 +335,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
     if (policyID === lastAccessedWorkspacePolicyID) {
         updateLastAccessedWorkspace(undefined);
     }
-}
-
-function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
-    const policy = getPolicy(policyID);
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                autoReporting: enabled,
-                harvesting: {
-                    enabled,
-                },
-                autoReportingFrequency: frequency,
-                pendingFields: {autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                autoReporting: policy.autoReporting ?? null,
-                harvesting: {
-                    enabled: policy.harvesting?.enabled ?? null,
-                },
-                autoReportingFrequency: policy.autoReportingFrequency ?? null,
-                pendingFields: {autoReporting: null},
-                errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingFields: {autoReporting: null},
-            },
-        },
-    ];
-
-    const params: SetWorkspaceAutoReportingParams = {policyID, enabled};
-
-    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
@@ -1169,14 +1120,6 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
         optimisticData,
         finallyData,
         failureData,
-    });
-}
-
-function clearWorkspaceGeneralSettingsErrors(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        errorFields: {
-            generalSettings: null,
-        },
     });
 }
 
@@ -2168,8 +2111,8 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
                 pendingAction: null,
             },
         },
-        ...employeeWorkspaceChat.onyxOptimisticData,
     ];
+    optimisticData.push(...employeeWorkspaceChat.onyxOptimisticData);
 
     const successData: OnyxUpdate[] = [
         {
@@ -2241,8 +2184,9 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
                 },
             },
         },
-        ...employeeWorkspaceChat.onyxSuccessData,
     ];
+
+    successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
     const failureData: OnyxUpdate[] = [
         {
@@ -2553,6 +2497,10 @@ function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
+    }
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {
@@ -2606,49 +2554,56 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     };
     const policy = getPolicy(policyID);
     const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                tax: {
+                    trackingEnabled: enabled,
+                },
+                pendingFields: {
+                    tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    optimisticData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []));
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    tax: null,
+                },
+            },
+        },
+    ];
+    successData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []));
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                tax: {
+                    trackingEnabled: !enabled,
+                },
+                pendingFields: {
+                    tax: null,
+                },
+            },
+        },
+    ];
+    failureData.push(...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []));
+
     const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    tax: {
-                        trackingEnabled: enabled,
-                    },
-                    pendingFields: {
-                        tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
-            },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []),
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    pendingFields: {
-                        tax: null,
-                    },
-                },
-            },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    tax: {
-                        trackingEnabled: !enabled,
-                    },
-                    pendingFields: {
-                        tax: null,
-                    },
-                },
-            },
-            ...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []),
-        ],
+        optimisticData,
+        successData,
+        failureData,
     };
 
     const parameters: EnablePolicyTaxesParams = {policyID, enabled};
@@ -2990,7 +2945,6 @@ export {
     setUnitForReimburseView,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
-    clearWorkspaceGeneralSettingsErrors,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
     clearAvatarErrors,
@@ -3006,7 +2960,6 @@ export {
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
-    setWorkspaceAutoReporting,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceAutoReportingMonthlyOffset,

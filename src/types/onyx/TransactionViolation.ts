@@ -71,6 +71,9 @@ type TransactionViolationData = {
 
     /** Violation data type */
     type?: ViolationDataType;
+
+    /** List of duplicate transactions */
+    duplicates?: string[];
 };
 
 /** Model of a transaction violation */
