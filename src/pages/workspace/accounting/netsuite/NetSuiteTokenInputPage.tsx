@@ -1,5 +1,5 @@
 function NetSuiteTokenInputPage() {
-  return <>Token Input</>;
+  return <>NetSuite Token Input</>;
 }
 
 NetSuiteTokenInputPage.displayName = 'NetSuiteTokenInputPage';
