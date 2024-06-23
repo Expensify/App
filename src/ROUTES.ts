@@ -823,6 +823,11 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
+    TRANSACTION_DUPLICATE_REVIEW_PAGE: {
+        route: 'r/:threadReportID/duplicates/review',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+    },
+
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

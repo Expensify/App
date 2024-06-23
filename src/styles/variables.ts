@@ -63,7 +63,7 @@ export default {
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
-    fontSizeNormalHeight: getValueUsingPixelRatio(21, 28),
+    fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
@@ -239,12 +239,14 @@ export default {
     eReceiptBackgroundImageMinWidth: 217,
 
     searchTypeColumnWidth: 52,
-
+    w20: 20,
     h36: 36,
     w28: 28,
     w36: 36,
     w40: 40,
     w44: 44,
+    w52: 52,
     w80: 80,
+    w84: 84,
     w96: 96,
 } as const;
