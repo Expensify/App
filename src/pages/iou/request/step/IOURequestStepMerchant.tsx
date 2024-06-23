@@ -75,12 +75,12 @@ function IOURequestStepMerchant({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
-                errors.moneyRequestMerchant = 'common.error.fieldRequired';
+                errors.moneyRequestMerchant = translate('common.error.fieldRequired');
             }
 
             return errors;
         },
-        [isMerchantRequired],
+        [isMerchantRequired, translate],
     );
 
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
