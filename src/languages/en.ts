@@ -2458,15 +2458,19 @@ export default {
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
+                        return `Are you sure you want to disconnect ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'existing integration'} to set up QuickBooks Online?`;
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
+                        return `Are you sure you want to disconnect ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'existing integration'} to set up Xero?`;
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return `Are you sure you want to disconnect ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'existing integration'} to set up NetSuite?`;
                     default: {
                         switch (currentIntegration) {
                             case CONST.POLICY.CONNECTIONS.NAME.QBO:
                                 return 'Are you sure you want to disconnect QuickBooks Online?';
                             case CONST.POLICY.CONNECTIONS.NAME.XERO:
                                 return 'Are you sure you want to disconnect Xero?';
+                            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                                return 'Are you sure you want to disconnect NetSuite?';
                             default: {
                                 return 'Are you sure you want to disconnect this integration?';
                             }
