@@ -1015,8 +1015,10 @@ function MoneyRequestConfirmationList({
             shouldShow: shouldShowCategories,
             isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
-        ...policyTagLists.map(({name, required}, index) => {
+        ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
+            const isMultilevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+            const shouldShow = isMultilevelTags ? shouldShowTags && OptionsListUtils.hasEnabledOptions(tags) : shouldShowTags;
             return {
                 item: (
                     <MenuItemWithTopDescription
@@ -1036,7 +1038,7 @@ function MoneyRequestConfirmationList({
                         rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
                     />
                 ),
-                shouldShow: shouldShowTags,
+                shouldShow,
                 isSupplementary: !isTagRequired,
             };
         }),
