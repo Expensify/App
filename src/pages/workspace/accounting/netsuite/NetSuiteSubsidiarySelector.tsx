@@ -83,7 +83,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
                 onSelectRow={saveSelection}
                 shouldDebounceRowSelect
                 sections={[{data: sections}]}
-                initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
+                initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0]?.keyForList}
                 isNestedInsideScrollView
             />
         </ConnectionLayout>

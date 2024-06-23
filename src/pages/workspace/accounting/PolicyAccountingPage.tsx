@@ -41,6 +41,7 @@ import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 
@@ -105,8 +106,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionButton: (
-                    // TODO: Will be updated in the Token Input PR
-                    <ConnectToXeroButton
+                    <ConnectToNetSuiteButton
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
