@@ -463,35 +463,28 @@ function IOURequestStepScan({
             shouldShowWrapper={!!backTo}
             testID={IOURequestStepScan.displayName}
         >
-            {pdfFile && (
-                <View style={{position: 'absolute', opacity: 0}}>
-                    <PDFThumbnail
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        previewSourceURL={pdfFile.uri ?? ''}
-                        // We don't support scanning password protected PDF receipt
-                        // enabled={!isAttachmentInvalid}
-                        onLoadSuccess={() => {
-                            setPdfFile(null);
-                            setReceiptAndNavigate(pdfFile, true);
-                        }}
-                        onPassword={() => {
-                            // setIsAttachmentInvalid(true);
-                            // setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
-                            // setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                            setPdfFile(null);
-                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
-                        }}
-                        onLoadError={() => {
-                            // setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                            // setIsAttachmentInvalid(true);
-                            // setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                            console.log('EeROR');
-                            setPdfFile(null);
-                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                        }}
-                    />
-                </View>
-            )}
+            <View style={{height: 0, overflow: 'hidden', width: 0, opacity: 0}}>
+                {pdfFile && (
+                    <View style={{height: 1, width: 1}}>
+                        <PDFThumbnail
+                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                            previewSourceURL={pdfFile.uri ?? ''}
+                            onLoadSuccess={() => {
+                                setPdfFile(null);
+                                setReceiptAndNavigate(pdfFile, true);
+                            }}
+                            onPassword={() => {
+                                setPdfFile(null);
+                                Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                            }}
+                            onLoadError={() => {
+                                setPdfFile(null);
+                                Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            }}
+                        />
+                    </View>
+                )}
+            </View>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
                     <ImageSVG
