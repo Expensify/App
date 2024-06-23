@@ -347,7 +347,7 @@ function MoneyRequestView({
     ];
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
-    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
