@@ -647,6 +647,7 @@ function ReportScreen({
         if (!!report.lastReadTime || !ReportUtils.isTaskReport(report)) {
             return;
         }
+        // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         Report.readNewestAction(report.reportID);
     }, [report]);
 
