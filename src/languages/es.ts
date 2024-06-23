@@ -330,6 +330,7 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        disable: 'Deshabilitar',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -762,6 +763,7 @@ export default {
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
         reviewDuplicates: 'Revisar duplicados',
+        keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
         confirmPay: 'Confirmar importe de pago',
@@ -769,6 +771,7 @@ export default {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
+        unhold: 'Desbloqueada',
         holdEducationalTitle: 'Este gasto está',
         whatIsHoldTitle: '¿Qué es Bloquear?',
         whatIsHoldExplain: 'Bloquear es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
@@ -1309,6 +1312,9 @@ export default {
             },
         },
     },
+    reportDetailsPage: {
+        inWorkspace: ({policyName}) => `en ${policyName}`,
+    },
     reportDescriptionPage: {
         roomDescription: 'Descripción de la sala de chat',
         roomDescriptionOptional: 'Descripción de la sala de chat (opcional)',
@@ -1404,6 +1410,7 @@ export default {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
         },
+        getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
         whereYouWork: '¿Dónde trabajas?',
         purpose: {
@@ -2118,7 +2125,7 @@ export default {
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
 
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
-                    'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+                    'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
@@ -2299,6 +2306,8 @@ export default {
         reportFields: {
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
+            disableReportFields: 'Desactivar campos de informe',
+            disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2527,6 +2536,36 @@ export default {
                             return 'Sincronizando los datos de Xero';
                         case 'xeroSyncStep':
                             return 'Cargando datos';
+                        case 'netSuiteSyncConnection':
+                            return 'Iniciando conexión a NetSuite';
+                        case 'netSuiteSyncCustomers':
+                            return 'Importando clientes';
+                        case 'netSuiteSyncInitData':
+                            return 'Recuperando datos de NetSuite';
+                        case 'netSuiteSyncImportTaxes':
+                            return 'Importando impuestos';
+                        case 'netSuiteSyncImportItems':
+                            return 'Importando artículos';
+                        case 'netSuiteSyncData':
+                            return 'Importando datos a Expensify';
+                        case 'netSuiteSyncAccounts':
+                            return 'Sincronizando cuentas';
+                        case 'netSuiteSyncCurrencies':
+                            return 'Sincronizando divisas';
+                        case 'netSuiteSyncCategories':
+                            return 'Sincronizando categorías';
+                        case 'netSuiteSyncImportEmployees':
+                            return 'Importando empleados';
+                        case 'netSuiteSyncReportFields':
+                            return 'Importando datos como campos de informe de Expensify';
+                        case 'netSuiteSyncTags':
+                            return 'Importando datos como etiquetas de Expensify';
+                        case 'netSuiteSyncUpdateConnectionData':
+                            return 'Actualizando información de conexión';
+                        case 'netSuiteSyncNetSuiteReimbursedReports':
+                            return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncExpensifyReimbursedReports':
+                            return 'Marcando facturas y recibos de NetSuite como pagados';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -3672,11 +3711,15 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        keepThisOne: 'Mantener éste',
         hold: 'Bloqueada',
     },
     violationDismissal: {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',
+        },
+        duplicatedTransaction: {
+            manual: 'resuelto el duplicado',
         },
     },
     videoPlayer: {
@@ -3721,11 +3764,18 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
+        billingBanner: {
+            preTrial: {
+                title: 'Iniciar una prueba gratuita',
+                subtitle: 'Para empezar, ',
+                subtitleLink: 'completa la lista de configuración aquí',
+            },
+        },
         cardSection: {
             title: 'Pago',
             subtitle: 'Añade una tarjeta de pago para abonar tu suscripción a Expensify',
             addCardButton: 'Añade tarjeta de pago',
-            cardNextPayment: 'Your next payment date is',
+            cardNextPayment: ({nextPaymentDate}) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Tarjeta terminada en ${cardNumber}`,
             cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
