@@ -3684,7 +3684,8 @@ export default {
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) =>
-            `Recibo obligatorio${formattedLimit ?? category ? ` para importes sobre${formattedLimit ? ` ${formattedLimit}` : ''}${category ? ' el límite de la categoría' : ''}` : ''}`,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            `Recibo obligatorio${formattedLimit || category ? ` para importes sobre${formattedLimit ? ` ${formattedLimit}` : ''}${category ? ' el límite de la categoría' : ''}` : ''}`,
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
