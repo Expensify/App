@@ -659,6 +659,10 @@ const emojis: PickerEmojis = [
         code: '💦',
     },
     {
+        name: 'bubbles',
+        code: '🫧',
+    },
+    {
         name: 'dash',
         code: '💨',
     },
@@ -3304,6 +3308,10 @@ const emojis: PickerEmojis = [
         code: '🥫',
     },
     {
+        name: 'jar',
+        code: '🫙',
+    },
+    {
         name: 'bento',
         code: '🍱',
     },
@@ -3953,6 +3961,10 @@ const emojis: PickerEmojis = [
         code: '🦼',
     },
     {
+        name: 'crutch',
+        code: '🩼',
+    },
+    {
         name: 'auto_rickshaw',
         code: '🛺',
     },
@@ -3971,6 +3983,10 @@ const emojis: PickerEmojis = [
     {
         name: 'roller_skate',
         code: '🛼',
+    },
+    {
+        name: 'wheel',
+        code: '🛞',
     },
     {
         name: 'busstop',
@@ -4043,6 +4059,10 @@ const emojis: PickerEmojis = [
     {
         name: 'ship',
         code: '🚢',
+    },
+    {
+        name: 'ring_buoy',
+        code: '🛟',
     },
     {
         name: 'airplane',
@@ -4478,6 +4498,10 @@ const emojis: PickerEmojis = [
         code: '🎐',
     },
     {
+        name: 'mirror_ball',
+        code: '🪩',
+    },
+    {
         name: 'rice_scene',
         code: '🎑',
     },
@@ -4650,6 +4674,10 @@ const emojis: PickerEmojis = [
         code: '🪁',
     },
     {
+        name: 'playground_slide',
+        code: '🛝',
+    },
+    {
         name: '8ball',
         code: '🎱',
     },
@@ -4664,6 +4692,10 @@ const emojis: PickerEmojis = [
     {
         name: 'nazar_amulet',
         code: '🧿',
+    },
+    {
+        name: 'hamsa',
+        code: '🪬',
     },
     {
         name: 'video_game',
@@ -5079,6 +5111,10 @@ const emojis: PickerEmojis = [
         code: '🔋',
     },
     {
+        name: 'low_battery',
+        code: '🪫',
+    },
+    {
         name: 'electric_plug',
         code: '🔌',
     },
@@ -5289,6 +5325,10 @@ const emojis: PickerEmojis = [
     {
         name: 'credit_card',
         code: '💳',
+    },
+    {
+        name: 'identification_card',
+        code: '🪪',
     },
     {
         name: 'receipt',
@@ -5617,6 +5657,10 @@ const emojis: PickerEmojis = [
     {
         name: 'telescope',
         code: '🔭',
+    },
+    {
+        name: 'x_ray',
+        code: '🩻',
     },
     {
         name: 'satellite',
@@ -6178,6 +6222,10 @@ const emojis: PickerEmojis = [
     {
         name: 'heavy_division_sign',
         code: '➗',
+    },
+    {
+        name: 'heavy_equals_sign',
+        code: '🟰',
     },
     {
         name: 'infinity',

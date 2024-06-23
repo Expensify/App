@@ -464,6 +464,9 @@ const enEmojis: EmojisList = {
     '💦': {
         keywords: ['water', 'workout', 'comic', 'splashing', 'sweat'],
     },
+    '🫧': {
+        keywords: ['bubbles', 'soap', 'water', 'float'],
+    },
     '💨': {
         keywords: ['wind', 'blow', 'fast', 'comic', 'running'],
     },
@@ -2213,6 +2216,9 @@ const enEmojis: EmojisList = {
     '🥫': {
         keywords: [],
     },
+    '🫙': {
+        keywords: ['jar', 'container', 'storage'],
+    },
     '🍱': {
         keywords: ['box'],
     },
@@ -2696,6 +2702,9 @@ const enEmojis: EmojisList = {
     '🦼': {
         keywords: [],
     },
+    '🩼': {
+        keywords: ['crutch', 'support', 'injury', 'aid'],
+    },
     '🛺': {
         keywords: [],
     },
@@ -2710,6 +2719,9 @@ const enEmojis: EmojisList = {
     },
     '🛼': {
         keywords: [],
+    },
+    '🛞': {
+        keywords: ['wheel', 'vehicle', 'transportation'],
     },
     '🚏': {
         keywords: ['bus', 'stop'],
@@ -2764,6 +2776,9 @@ const enEmojis: EmojisList = {
     },
     '🚢': {
         keywords: ['vehicle'],
+    },
+    '🛟': {
+        keywords: ['ring', 'buoy', 'lifesaver', 'safety'],
     },
     '✈️': {
         keywords: ['flight', 'vehicle'],
@@ -3086,6 +3101,9 @@ const enEmojis: EmojisList = {
     '🎐': {
         keywords: ['activity', 'bell', 'celebration', 'chime', 'entertainment', 'wind'],
     },
+    '🪩': {
+        keywords: ['mirror', 'ball', 'disco', 'party'],
+    },
     '🎑': {
         keywords: ['activity', 'celebration', 'ceremony', 'entertainment', 'moon'],
     },
@@ -3215,6 +3233,9 @@ const enEmojis: EmojisList = {
     '🪁': {
         keywords: [],
     },
+    '🛝': {
+        keywords: ['playground', 'slide', 'play', 'park'],
+    },
     '🎱': {
         keywords: ['pool', 'billiards', '8', '8 ball', 'ball', 'billiard', 'eight', 'game'],
     },
@@ -3226,6 +3247,9 @@ const enEmojis: EmojisList = {
     },
     '🧿': {
         keywords: [],
+    },
+    '🪬': {
+        keywords: ['hamsa', 'hand', 'protection', 'luck'],
     },
     '🎮': {
         keywords: ['play', 'controller', 'console', 'entertainment', 'game', 'video game'],
@@ -3533,6 +3557,9 @@ const enEmojis: EmojisList = {
     '🔋': {
         keywords: ['power'],
     },
+    '🪫': {
+        keywords: ['low', 'battery', 'power', 'charge'],
+    },
     '🔌': {
         keywords: ['electric', 'electricity', 'plug'],
     },
@@ -3691,6 +3718,9 @@ const enEmojis: EmojisList = {
     },
     '💳': {
         keywords: ['subscription', 'bank', 'card', 'credit', 'money'],
+    },
+    '🪪': {
+        keywords: ['identification', 'card', 'ID', 'document'],
     },
     '🧾': {
         keywords: [],
@@ -3937,6 +3967,9 @@ const enEmojis: EmojisList = {
     },
     '🔭': {
         keywords: ['tool'],
+    },
+    '🩻': {
+        keywords: ['x-ray', 'medical', 'scan', 'radiology'],
     },
     '📡': {
         keywords: ['signal', 'antenna', 'communication', 'dish'],
@@ -4354,6 +4387,9 @@ const enEmojis: EmojisList = {
     },
     '➗': {
         keywords: ['division', 'math'],
+    },
+    '🟰': {
+        keywords: ['equals', 'sign', 'math', 'symbol'],
     },
     '♾️': {
         keywords: [],

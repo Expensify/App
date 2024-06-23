@@ -618,6 +618,10 @@ const esEmojis: EmojisList = {
         name: 'gotas_de_sudor',
         keywords: ['cómic', 'emoción', 'sudor', 'gotas de sudor'],
     },
+    '🫧': {
+        name: 'burbujas',
+        keywords: ['burbujas', 'jabón', 'agua', 'flotar'],
+    },
     '💨': {
         name: 'guión',
         keywords: ['carrera', 'cómic', 'correr', 'humo', 'salir corriendo'],
@@ -2951,6 +2955,10 @@ const esEmojis: EmojisList = {
         name: 'comida_enlatada',
         keywords: ['conserva', 'lata', 'comida enlatada'],
     },
+    '🫙': {
+        name: 'jarra',
+        keywords: ['jarra', 'contenedor', 'almacenamiento'],
+    },
     '🍱': {
         name: 'bento',
         keywords: ['bento', 'caja', 'comida', 'restaurante', 'caja de bento'],
@@ -3595,6 +3603,10 @@ const esEmojis: EmojisList = {
         name: 'silla_de_ruedas_eléctrica',
         keywords: ['accesibilidad', 'silla de ruedas eléctrica'],
     },
+    '🩼': {
+        name: 'muleta',
+        keywords: ['muleta', 'soporte', 'lesión', 'ayuda'],
+    },
     '🛺': {
         name: 'mototaxi',
         keywords: ['rickshaw', 'tuk tuk', 'mototaxi'],
@@ -3614,6 +3626,10 @@ const esEmojis: EmojisList = {
     '🛼': {
         name: 'patines',
         keywords: ['patín', 'patín de 4 ruedas', 'patín de cuatro ruedas', 'patines'],
+    },
+    '🛞': {
+        name: 'rueda',
+        keywords: ['rueda', 'vehículo', 'transporte'],
     },
     '🚏': {
         name: 'parada_de_autobús',
@@ -3686,6 +3702,10 @@ const esEmojis: EmojisList = {
     '🚢': {
         name: 'barco',
         keywords: ['vehículo', 'barco'],
+    },
+    '🛟': {
+        name: 'aro_salvavidas',
+        keywords: ['aro', 'salvavidas', 'seguridad'],
     },
     '✈️': {
         name: 'avión',
@@ -4115,6 +4135,10 @@ const esEmojis: EmojisList = {
         name: 'campanilla_de_viento',
         keywords: ['campanilla', 'furin', 'viento', 'campanilla de viento'],
     },
+    '🪩': {
+        name: 'bola_de_disco',
+        keywords: ['bola', 'espejo', 'disco', 'fiesta'],
+    },
     '🎑': {
         name: 'espiga_de_arroz',
         keywords: ['celebración', 'contemplación', 'luna', 'tsukimi', 'ceremonia de contemplación de la luna'],
@@ -4287,6 +4311,10 @@ const esEmojis: EmojisList = {
         name: 'cometa',
         keywords: ['juguete', 'planear', 'viento', 'volar', 'cometa'],
     },
+    '🛝': {
+        name: 'resbaladilla',
+        keywords: ['parque', 'resbaladilla', 'jugar', 'parque'],
+    },
     '🎱': {
         name: 'bola_ocho',
         keywords: ['8', 'billar', 'bola ocho', 'juego', 'bola negra de billar'],
@@ -4302,6 +4330,10 @@ const esEmojis: EmojisList = {
     '🧿': {
         name: 'ojo_turco',
         keywords: ['amuleto', 'mal de ojo', 'nazar', 'talismán', 'ojo turco'],
+    },
+    '🪬': {
+        name: 'hamsa',
+        keywords: ['hamsa', 'mano', 'protección', 'suerte'],
     },
     '🎮': {
         name: 'videojuego',
@@ -4711,6 +4743,10 @@ const esEmojis: EmojisList = {
         name: 'batería',
         keywords: ['batería', 'pila'],
     },
+    '🪫': {
+        name: 'batería_baja',
+        keywords: ['bajo', 'batería', 'poder', 'carga'],
+    },
     '🔌': {
         name: 'enchufe_eléctrico',
         keywords: ['corriente', 'electricidad', 'eléctrico', 'enchufe'],
@@ -4922,6 +4958,10 @@ const esEmojis: EmojisList = {
     '💳': {
         name: 'tarjeta_de_crédito',
         keywords: ['crédito', 'tarjeta', 'tarjeta de crédito'],
+    },
+    '🪪': {
+        name: 'tarjeta_de_identificación',
+        keywords: ['identificación', 'tarjeta', 'ID', 'documento'],
     },
     '🧾': {
         name: 'recibo',
@@ -5250,6 +5290,10 @@ const esEmojis: EmojisList = {
     '🔭': {
         name: 'telescopio',
         keywords: ['astronomía', 'instrumento', 'telescopio'],
+    },
+    '🩻': {
+        name: 'rayos_x',
+        keywords: ['rayos x', 'médico', 'escáner', 'radiología'],
     },
     '📡': {
         name: 'antena_de_satélite',
@@ -5806,6 +5850,10 @@ const esEmojis: EmojisList = {
     '➗': {
         name: 'signo_de_división_grueso',
         keywords: ['÷', 'signo', 'signo de división', 'división'],
+    },
+    '🟰': {
+        name: 'signo_igual',
+        keywords: ['igual', 'signo', 'matemáticas', 'símbolo'],
     },
     '♾️': {
         name: 'infinito',
