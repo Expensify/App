@@ -2462,11 +2462,17 @@ export default {
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return `¿Estás seguro de que quieres desconectar ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'integración existente'} para configurar QuickBooks Online?`;
+                        return `¿Estás seguro de que quieres desconectar ${
+                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración existente'
+                        } para configurar QuickBooks Online?`;
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return `¿Estás seguro de que quieres desconectar ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'integración existente'}  para configurar Xero?`;
+                        return `¿Estás seguro de que quieres desconectar ${
+                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración existente'
+                        }  para configurar Xero?`;
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return `¿Estás seguro de que quieres desconectar ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'integración existente'}  para configurar NetSuite?`;
+                        return `¿Estás seguro de que quieres desconectar ${
+                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración existente'
+                        }  para configurar NetSuite?`;
                     default: {
                         switch (currentIntegration) {
                             case CONST.POLICY.CONNECTIONS.NAME.QBO:

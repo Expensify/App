@@ -1810,7 +1810,7 @@ const CONST = {
             NAME_MAP: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
-                xero: 'Xero'
+                xero: 'Xero',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
