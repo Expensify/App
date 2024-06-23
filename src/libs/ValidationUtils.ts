@@ -1,6 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
 import {Str, Url} from 'expensify-common';
-import isDate from 'lodash/isDate';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -89,7 +88,7 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
         return !StringUtils.isEmptyString(value);
     }
 
-    if (isDate(value)) {
+    if (DateUtils.isDate(value)) {
         return isValidDate(value);
     }
     if (Array.isArray(value) || isObject(value)) {
