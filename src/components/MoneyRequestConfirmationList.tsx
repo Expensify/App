@@ -1018,7 +1018,6 @@ function MoneyRequestConfirmationList({
         },
         ...policyTagLists.map(({name, required, tags}, index) => {
             const isTagRequired = required ?? false;
-            const isMultilevelTags = PolicyUtils.isMultiLevelTags(policyTags);
             const shouldShow = isMultilevelTags ? shouldShowTags && OptionsListUtils.hasEnabledOptions(tags) : shouldShowTags;
             return {
                 item: (
