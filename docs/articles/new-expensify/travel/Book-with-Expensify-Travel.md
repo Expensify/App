@@ -20,6 +20,11 @@ There is a flat fee of $15 per trip booked. A single trip can include multiple b
 
 # Book travel
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_6_Light.png){:width="100%"}
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_7_Light.png){:width="100%"}
+
+
 To book travel from the Expensify web app,
 
 1. Click the **Travel** tab.

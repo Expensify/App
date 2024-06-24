@@ -12,6 +12,8 @@ When expenses are sent to you for approval, you have the option to:
 If your workspace does not require expense approvals, or if the expense is sent to you by a friend, you will not need to approve the expense and instead can immediately pay the expense when you are ready.
 {% include end-info.html %}
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_5_Light.png){:width="100%"}
+
 # Approve expenses
 
 When someone sends an expense or a group of expenses to you for approval, you’ll receive the expense in Expensify Chat for the related workspace. Chats with new updates appear with a green dot to the right of the chat message. Concierge also sends you an email notification for the new expense.

@@ -12,6 +12,8 @@ Create, store, or share non-reimbursable expenses with the Track Expenses featur
 1. Click the + icon in the bottom left menu and select **Track Expense**.
 2. Create the expense manually, scan the receipt, or add a distance expense. 
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
+
 {% include info.html %}
 For an in-depth walkthrough on how to create an expense, check out the <a href="[url](https://help.expensify.com/articles/new-expensify/expenses/Create-an-expense)">create an expense</a> article.
 {% include end-info.html %}
