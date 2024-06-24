@@ -1,9 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {ReceiptScan} from '@components/Icon/Expensicons';
@@ -36,7 +38,10 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {MoneyRequestPreviewProps, PendingMessageProps} from './types';
@@ -60,12 +65,14 @@ function MoneyRequestPreviewContent({
     isHovered = false,
     isWhisper = false,
     transactionViolations,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestPreviewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
+    const route = useRoute();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const sessionAccountID = session?.accountID;
@@ -111,11 +118,22 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && isOnHold;
+
+    // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
+    const duplicates = useMemo(
+        () =>
+            transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find(
+                (violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            )?.data?.duplicates ?? [],
+        [transaction?.transactionID, transactionViolations],
+    );
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -145,6 +163,9 @@ function MoneyRequestPreviewContent({
     };
 
     const showContextMenu = (event: GestureResponderEvent) => {
+        if (!shouldDisplayContextMenu) {
+            return;
+        }
         showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
@@ -380,6 +401,17 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
+            {isReviewDuplicateTransactionPage && (
+                <Button
+                    text={translate('violations.keepThisOne')}
+                    success
+                    medium
+                    style={styles.p4}
+                    onPress={() => {
+                        Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', duplicates);
+                    }}
+                />
+            )}
         </PressableWithoutFeedback>
     );
 }

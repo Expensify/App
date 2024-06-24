@@ -32,7 +32,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
 
     // Get mention details based on reportID from tag attribute
     if (!isEmpty(htmlAttributeReportID)) {
-        const report = reports?.[htmlAttributeReportID];
+        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
         reportID = report?.reportID ?? htmlAttributeReportID;
         mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
         // Get mention details from name inside tnode
