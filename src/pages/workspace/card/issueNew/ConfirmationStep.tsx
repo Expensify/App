@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -16,9 +17,13 @@ function ConfirmationStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = () => {};
+    const submit = () => {
+        Navigation.navigate(ROUTES.SETTINGS);
+    };
 
-    const handleBackButtonPress = () => {};
+    const handleBackButtonPress = () => {
+        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME);
+    };
 
     return (
         <ScreenWrapper

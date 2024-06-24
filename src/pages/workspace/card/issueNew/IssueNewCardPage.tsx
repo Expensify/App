@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import AssigneeStep from '@pages/workspace/card/issueNew/AssigneeStep';
 import CardNameStep from '@pages/workspace/card/issueNew/CardNameStep';
@@ -8,9 +9,13 @@ import ConfirmationStep from '@pages/workspace/card/issueNew/ConfirmationStep';
 import LimitStep from '@pages/workspace/card/issueNew/LimitStep';
 import LimitTypeStep from '@pages/workspace/card/issueNew/LimitTypeStep';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 function IssueNewCardPage() {
-    const currentStep = '';
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+
+    const {currentStep} = issueNewCard ?? {};
+
     switch (currentStep) {
         case CONST.EXPENSIFY_CARD.STEP.ASSIGNEE:
             return <AssigneeStep />;
