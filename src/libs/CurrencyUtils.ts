@@ -100,7 +100,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    return convertToFrontendAmountAsInteger(amountAsInt).toFixed(currency ? getCurrencyDecimals(currency) : 2);
+    return convertToFrontendAmountAsInteger(amountAsInt).toFixed(getCurrencyDecimals(currency));
 }
 
 /**
