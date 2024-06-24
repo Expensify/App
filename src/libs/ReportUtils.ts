@@ -5414,7 +5414,8 @@ function shouldReportBeInOptionList({
             // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
             // So we allow showing rooms with no participants when searching for reports.
             // In any other circumstances we should never have default rooms with no participants in Onyx.
-            (!isSearchingForReports && isUnsearchableViaParticipants(report)))
+            !isSearchingForReports &&
+            isUnsearchableViaParticipants(report))
     ) {
         return false;
     }
@@ -7297,7 +7298,7 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
-    isUnsearchableViaParticipants
+    isUnsearchableViaParticipants,
 };
 
 export type {

@@ -1875,8 +1875,6 @@ function getOptions(
         });
     });
 
-    console.log(">>>> filtered", filteredReportOptions);
-
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
     // - When searching, self DM is put at the top
@@ -1955,7 +1953,7 @@ function getOptions(
         return option;
     });
 
-    console.log(">>>> allReportOptions", allReportOptions);
+    console.log('>>>> allReportOptions', allReportOptions);
 
     const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
@@ -2037,7 +2035,6 @@ function getOptions(
                 const isSearchMatch = isSearchStringMatch(searchValue, searchText, participantNames, isChatRoom);
 
                 if (!isReportIdSearch && !isSearchMatch) {
-                    console.log(">>> filtering out", reportOption);
                     continue;
                 }
             }
@@ -2461,8 +2458,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     excludeLogins.forEach((login) => {
         optionsToExclude.push({login});
     });
-
-    console.log(">>>> options", options);
 
     const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
         const keys: string[] = [];
