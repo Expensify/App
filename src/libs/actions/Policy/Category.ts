@@ -374,7 +374,7 @@ function updatePolicyCategoryGLCode(policyID: string, categoryName: string, glCo
                 value: {
                     [categoryName]: {
                         ...policyCategoryToUpdate,
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateGLCodeFailureMessage'),
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateGLCodeFailureMessage'),
                         pendingAction: null,
                     },
                 },
