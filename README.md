@@ -18,7 +18,7 @@
 * [Philosophy](#Philosophy)
 * [Security](#Security)
 * [Internationalization](#Internationalization)
-* [Deploying](#deploying)
+* [Deploying](#deploying)d
 
 #### Additional Reading
 * [API Details](contributingGuides/API.md)
