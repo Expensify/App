@@ -189,8 +189,7 @@
     "react-web-config": "^1.0.0",
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
-    "semver": "^7.5.2",
-    "shim-keyboard-event-key": "^1.0.3"
+    "semver": "^7.5.2"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
