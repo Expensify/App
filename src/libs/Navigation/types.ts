@@ -19,6 +19,7 @@ import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
+import type {SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootStackParamList>;
 
@@ -390,11 +391,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: {
         policyID: string;
-        mapping: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+        mapping: SageIntacctMappingName;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: {
         policyID: string;
-        mapping: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
+        mapping: SageIntacctMappingName;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

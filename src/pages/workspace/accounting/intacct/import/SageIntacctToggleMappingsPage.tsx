@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -13,11 +13,38 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 type SageIntacctToggleMappingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
+
+type DisplayTypeTranslationKeys = {
+    titleKey: TranslationPaths;
+    descriptionKey: TranslationPaths;
+};
+
+function getDisplayTypeTranslationKeys(displayType?: SageIntacctMappingValue): DisplayTypeTranslationKeys | undefined {
+    switch (displayType) {
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT: {
+            return {titleKey: 'workspace.intacct.employeeDefault', descriptionKey: 'workspace.intacct.employeeDefaultDescription'};
+        }
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG: {
+            return {titleKey: 'workspace.common.tags', descriptionKey: 'workspace.intacct.displayedAsTagDescription'};
+        }
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD: {
+            return {titleKey: 'workspace.common.reportFields', descriptionKey: 'workspace.intacct.displayedAsReportFieldDescription'};
+        }
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE: {
+            return undefined;
+        }
+        default: {
+            return undefined;
+        }
+    }
+}
 
 function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPageProps) {
     const {translate} = useLocalize();
@@ -28,6 +55,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const policyID = policy?.id ?? '-1';
 
     const mappings = policy?.connections?.intacct?.config?.mappings;
+    const translationKeys = getDisplayTypeTranslationKeys(mappings?.[mapping]);
     const [importDepartments, setImportDepartments] = useState(mappings?.[mapping] && mappings?.[mapping] !== CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
     const updateFunction = SageIntacctConnection.getUpdateFunctionForMapping(mapping);
 
@@ -67,25 +95,29 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                     }
                 }}
             />
-            <OfflineWithFeedback pendingAction={mappings?.pendingFields?.[mapping]}>
-                <MenuItemWithTopDescription
-                    title="Sage Intacct employee default"
-                    description={translate('workspace.common.displayedAs')}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mapping))}
-                    // brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-            <Text
-                style={[styles.textLabelSupporting, styles.ph5]}
-                numberOfLines={2}
-            >
-                The employee’s default department will be applied to their expenses in Sage Intacct if one exists.
-            </Text>
+            {importDepartments && (
+                <View>
+                    <OfflineWithFeedback pendingAction={mappings?.pendingFields?.[mapping]}>
+                        <MenuItemWithTopDescription
+                            title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
+                            description={translate('workspace.common.displayedAs')}
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mapping))}
+                            brickRoadIndicator={mappings?.errorFields?.[mapping] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
+                    <Text
+                        style={[styles.textLabelSupporting, styles.ph5]}
+                        numberOfLines={2}
+                    >
+                        {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
+                    </Text>
+                </View>
+            )}
         </ConnectionLayout>
     );
 }
 
-SageIntacctToggleMappingsPage.displayName = 'PolicySageIntacctImportPage';
+SageIntacctToggleMappingsPage.displayName = 'SageIntacctToggleMappingsPage';
 
 export default SageIntacctToggleMappingsPage;

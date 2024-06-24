@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,70 +10,52 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+
+function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
+    switch (displayType) {
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT: {
+            return 'workspace.intacct.employeeDefault';
+        }
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG: {
+            return 'workspace.accounting.importTypes.TAG';
+        }
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD: {
+            return 'workspace.accounting.importTypes.REPORT_FIELD';
+        }
+        case CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE: {
+            return undefined;
+        }
+        default: {
+            return undefined;
+        }
+    }
+}
 
 function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? '-1';
-    const {importCustomers, importTaxRates, importTrackingCategories, pendingFields, errorFields} = policy?.connections?.xero?.config ?? {};
+    const sageIntacctConfig = policy?.connections?.intacct?.config;
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
-    const sections = useMemo(
-        () => [
-            {
-                description: 'Departments',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS)),
-                title: 'Sage Intacct employee default',
-                hasError: !!errorFields?.enableNewCategories,
-                pendingAction: pendingFields?.enableNewCategories,
-            },
-            {
-                description: 'Classes',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES)),
-                hasError: !!errorFields?.importTrackingCategories,
-                pendingAction: pendingFields?.importTrackingCategories,
-            },
-            {
-                description: 'Locations',
-                action: () => {
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS));
-                },
-                hasError: !!errorFields?.importCustomers,
-                title: 'Imported, displayed as tags',
-                pendingAction: pendingFields?.importCustomers,
-            },
-            {
-                description: 'Customers',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS)),
-                hasError: !!errorFields?.importTaxRates,
-                title: 'Imported, displayed as report fields',
-                pendingAction: pendingFields?.importTaxRates,
-            },
-            {
-                description: 'Projects (jobs)',
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS)),
-                hasError: !!errorFields?.importTaxRates,
-                pendingAction: pendingFields?.importTaxRates,
-            },
-        ],
-        [
-            translate,
-            errorFields?.enableNewCategories,
-            errorFields?.importTrackingCategories,
-            errorFields?.importCustomers,
-            errorFields?.importTaxRates,
-            pendingFields?.enableNewCategories,
-            pendingFields?.importTrackingCategories,
-            pendingFields?.importCustomers,
-            pendingFields?.importTaxRates,
-            importTrackingCategories,
-            importCustomers,
-            importTaxRates,
-            policyID,
-        ],
+    const mapingItems = useMemo(
+        () =>
+            Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping: SageIntacctMappingName) => {
+                const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
+                return {
+                    description: translate('workspace.common.mappingTitle', mapping, true),
+                    action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
+                    title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
+                    hasError: !!sageIntacctConfig?.mappings?.errorFields?.[mapping],
+                    pendingAction: sageIntacctConfig?.mappings?.pendingFields?.[mapping],
+                };
+            }),
+        [policyID, sageIntacctConfig?.mappings, translate],
     );
 
     return (
@@ -110,7 +91,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 onToggle={() => {}}
             />
 
-            {sections.map((section) => (
+            {mapingItems.map((section) => (
                 <OfflineWithFeedback
                     key={section.description}
                     pendingAction={section.pendingAction}

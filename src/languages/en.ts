@@ -1997,7 +1997,7 @@ export default {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
                         return startsWithBigLetter ? 'Customers' : 'customers';
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
-                        return startsWithBigLetter ? 'Projects' : 'projects';
+                        return startsWithBigLetter ? 'Projects (jobs)' : 'projects (jobs)';
                     default:
                         return startsWithBigLetter ? 'Mapping' : 'mapping';
                 }
@@ -2196,6 +2196,9 @@ export default {
         },
         intacct: {
             employeeDefault: 'Sage Intacct employee default',
+            employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
+            displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
+            displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
             toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
             toggleImportTitleSecondPart: ' in Expensify.',
         },

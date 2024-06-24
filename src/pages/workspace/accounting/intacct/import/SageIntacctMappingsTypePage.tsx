@@ -79,6 +79,6 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
     );
 }
 
-SageIntacctMappingsTypePage.displayName = 'PolicySageIntacctImportPage';
+SageIntacctMappingsTypePage.displayName = 'SageIntacctMappingsTypePage';
 
 export default SageIntacctMappingsTypePage;
