@@ -6366,7 +6366,7 @@ function unapproveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             pendingFields: {
-                partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
         },
     };
