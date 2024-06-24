@@ -81,7 +81,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                                 [settingName]: null,
                             },
                             errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -137,6 +137,7 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
             value: {
                 stageInProgress: isQBOConnection ? CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO : CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_XERO,
                 connectionName,
+                timestamp: new Date().toISOString(),
             },
         },
     ];
@@ -198,7 +199,9 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
                         config: {
                             ...configCurrentData,
                             pendingFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, null])),
-                            errorFields: Object.fromEntries(Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')])),
+                            errorFields: Object.fromEntries(
+                                Object.keys(configUpdate).map((settingName) => [settingName, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')]),
+                            ),
                         },
                     },
                 },
@@ -233,6 +236,11 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 }
 
 function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
+    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return !isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate;
+    }
+
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 

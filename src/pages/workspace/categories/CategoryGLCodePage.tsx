@@ -27,7 +27,7 @@ type WorkspaceEditCategoryGLCodePageOnyxProps = {
     policyCategories: OnyxEntry<PolicyCategories>;
 };
 
-type EditCategoryPageProps = WorkspaceEditCategoryGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GLCODE>;
+type EditCategoryPageProps = WorkspaceEditCategoryGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GL_CODE>;
 
 function CategoryGLCodePage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();

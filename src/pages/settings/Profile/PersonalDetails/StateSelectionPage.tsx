@@ -1,5 +1,5 @@
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import _ from 'lodash';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -65,11 +65,11 @@ function StateSelectionPage() {
                     Navigation.goBack();
                 } else {
                     // "backTo" provided: navigate back to "backTo" with state parameter.
-                    Navigation.goBack(appendParam(backTo, 'state', option.value) as Route);
+                    Navigation.goBack(appendParam(backTo, 'state', option.value));
                 }
             } else if (!_.isEmpty(backTo)) {
                 // Most common case: Navigation stack has multiple routes and "backTo" is defined: navigate to "backTo" with state parameter.
-                Navigation.navigate(appendParam(backTo, 'state', option.value) as Route);
+                Navigation.navigate(appendParam(backTo, 'state', option.value));
             } else {
                 // This is a fallback block and should never execute if StateSelector is correctly appending the "backTo" route.
                 // Navigation stack has multiple routes but no "backTo" defined: default back navigation.
