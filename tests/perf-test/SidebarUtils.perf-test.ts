@@ -3,6 +3,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {ChatReportSelector} from '@hooks/useReportIDs';
+import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +62,7 @@ const allReportActions = Object.fromEntries(
                 message: [
                     {
                         moderationDecision: {
-                            decision: reportActions[key].message?.[0]?.moderationDecision?.decision,
+                            decision: getReportActionMessage(reportActions[key])?.moderationDecision?.decision,
                         },
                     },
                 ],
