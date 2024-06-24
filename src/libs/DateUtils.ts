@@ -83,6 +83,10 @@ Onyx.connect({
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
+function isDate(arg: unknown): arg is Date {
+    return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
 /**
  * Get the day of the week that the week starts on
  */
@@ -803,6 +807,7 @@ function doesDateBelongToAPastYear(date: string): boolean {
 }
 
 const DateUtils = {
+    isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,

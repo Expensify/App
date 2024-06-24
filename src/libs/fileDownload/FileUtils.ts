@@ -252,6 +252,13 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
     });
 }
 
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -264,5 +271,6 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
     validateImageForCorruption,
 };
