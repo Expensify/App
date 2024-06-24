@@ -244,6 +244,7 @@ function MultiGestureCanvas({
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
                 <View
                     collapsable={false}
+                    onTouchEnd={(e) => e.preventDefault()}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}
                 >
                     <Animated.View
