@@ -83,7 +83,7 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
-    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, currentPlaybackSpeed, updatePlaybackSpeed, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -358,6 +358,11 @@ function BaseVideoPlayer({
                                                     playVideo();
                                                 }
                                                 onVideoLoaded?.(e);
+                                                const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+                                                if (typeof source === 'number' || !source || source.uri !== sourceURL) {
+                                                    return;
+                                                }
+                                                updatePlaybackSpeed(currentPlaybackSpeed);
                                             }}
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
