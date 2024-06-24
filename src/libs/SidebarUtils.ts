@@ -353,7 +353,9 @@ function getOptionData({
                 result.alternateText += `${preposition} ${roomName}`;
             }
             if (lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
-                result.alternateText = `${lastActorDisplayName} set the room description to : ${lastActionOriginalMessage?.description}`.trim();
+                result.alternateText = `${lastActorDisplayName} ${Localize.translate(preferredLocale, 'roomChangeLog.updateRoomDescription')} ${
+                    lastActionOriginalMessage?.description
+                }`.trim();
             }
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');

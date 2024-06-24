@@ -3363,4 +3363,7 @@ export default {
         additionalInfoTitle: 'What software are you moving to and why?',
         additionalInfoInputLabel: 'Your response',
     },
+    roomChangeLog: {
+        updateRoomDescription: 'set the room description to:',
+    },
 } satisfies TranslationBase;
