@@ -17,7 +17,9 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
+    OpenPolicyProfilePageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -2770,6 +2772,18 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
+function openPolicyProfilePage(policyID: string) {
+    const params: OpenPolicyProfilePageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
+}
+
+function openPolicyInitialPage(policyID: string) {
+    const params: OpenPolicyInitialPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE, params);
+}
+
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = getPolicy(policyID);
     const originalCustomTaxName = policy?.taxRates?.name;
@@ -2973,6 +2987,8 @@ export {
     enablePolicyWorkflows,
     enableDistanceRequestTax,
     openPolicyMoreFeaturesPage,
+    openPolicyProfilePage,
+    openPolicyInitialPage,
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
