@@ -483,7 +483,7 @@ describe('Unread Indicators', () => {
                 // Verify the new line indicator is present, and it's before the action with ID 4
                 const unreadIndicator = getUnreadIndicator();
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('4');
 
                 // simulate delete comment event from Pusher
@@ -504,7 +504,7 @@ describe('Unread Indicators', () => {
                 // Verify the new line indicator is now before the action with ID 5
                 waitFor(() => {
                     const unreadIndicator = getUnreadIndicator();
-                    const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                    const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                     expect(reportActionID).toBe('5');
                 }),
             );
