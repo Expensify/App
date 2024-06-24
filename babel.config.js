@@ -3,7 +3,7 @@ require('dotenv').config();
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPlugins = [
+let defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
 
@@ -17,6 +17,19 @@ const defaultPlugins = [
     // Keep it last
     'react-native-reanimated/plugin',
 ];
+
+// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
+// ignore it for desktop builds.
+if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
+    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
+    defaultPlugins.push([
+        '@fullstory/babel-plugin-annotate-react',
+        {
+            'react-native-web': true,
+            native: true,
+        },
+    ]);
+}
 
 const webpack = {
     presets: defaultPresets,
@@ -42,7 +55,6 @@ const metro = {
             '@fullstory/babel-plugin-annotate-react',
             {
                 native: true,
-                setFSTagName: true,
             },
         ],
 

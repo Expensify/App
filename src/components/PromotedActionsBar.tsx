@@ -1,14 +1,18 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import * as Localize from '@libs/Localize';
+import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
+import * as Session from '@userActions/Session';
+import CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
-import ConfirmModal from './ConfirmModal';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
 import * as Expensicons from './Icon/Expensicons';
 
@@ -16,41 +20,69 @@ type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type ReportPromotedAction = (report: OnyxReport) => PromotedAction;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.SHARE | typeof CONST.PROMOTED_ACTIONS.JOIN;
 
-type PromotedActionsType = {
-    pin: ReportPromotedAction;
+type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
+    message: (params: {accountID?: number; login?: string}) => PromotedAction;
+} & {
+    hold: (params: {isTextHold: boolean; reportAction: ReportAction | undefined}) => PromotedAction;
 };
 
 const PromotedActions = {
     pin: (report) => ({
-        key: 'pin',
+        key: CONST.PROMOTED_ACTIONS.PIN,
         ...HeaderUtils.getPinMenuItem(report),
+    }),
+    share: (report) => ({
+        key: CONST.PROMOTED_ACTIONS.SHARE,
+        ...HeaderUtils.getShareMenuItem(report),
+    }),
+    join: (report) => ({
+        key: CONST.PROMOTED_ACTIONS.JOIN,
+        icon: Expensicons.ChatBubbles,
+        text: Localize.translateLocal('common.join'),
+        onSelected: Session.checkIfActionIsAllowed(() => {
+            Navigation.dismissModal();
+            ReportActions.joinRoom(report);
+        }),
+    }),
+    message: ({accountID, login}) => ({
+        key: CONST.PROMOTED_ACTIONS.MESSAGE,
+        icon: Expensicons.CommentBubbles,
+        text: Localize.translateLocal('common.message'),
+        onSelected: () => {
+            // The accountID might be optimistic, so we should use the login if we have it
+            if (login) {
+                ReportActions.navigateToAndOpenReport([login]);
+                return;
+            }
+            if (accountID) {
+                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
+            }
+        },
+    }),
+    hold: ({isTextHold, reportAction}) => ({
+        key: CONST.PROMOTED_ACTIONS.HOLD,
+        icon: Expensicons.Stopwatch,
+        text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
+        onSelected: () => {
+            Navigation.dismissModal();
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+        },
     }),
 } satisfies PromotedActionsType;
 
 type PromotedActionsBarProps = {
-    /** The report of actions */
-    report?: OnyxReport;
-
     /** The list of actions to show */
     promotedActions: PromotedAction[];
 
     /** The style of the container */
     containerStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * Whether to show the `Leave` button.
-     * @deprecated Remove this prop when @src/pages/ReportDetailsPage.tsx is updated
-     */
-    shouldShowLeaveButton?: boolean;
 };
 
-function PromotedActionsBar({report, promotedActions, containerStyle, shouldShowLeaveButton}: PromotedActionsBarProps) {
+function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
-    const {translate} = useLocalize();
 
     if (promotedActions.length === 0) {
         return null;
@@ -58,40 +90,6 @@ function PromotedActionsBar({report, promotedActions, containerStyle, shouldShow
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {/* TODO: Remove the `Leave` button when @src/pages/ReportDetailsPage.tsx is updated */}
-            {shouldShowLeaveButton && report && (
-                // The `Leave` button is left to make the component backward compatible with the existing code.
-                // After the `Leave` button is moved to the `MenuItem` list, this block can be removed.
-                <View style={[styles.flex1]}>
-                    <ConfirmModal
-                        danger
-                        title={translate('groupChat.lastMemberTitle')}
-                        isVisible={isLastMemberLeavingGroupModalVisible}
-                        onConfirm={() => {
-                            setIsLastMemberLeavingGroupModalVisible(false);
-                            ReportActions.leaveGroupChat(report.reportID);
-                        }}
-                        onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
-                        prompt={translate('groupChat.lastMemberWarning')}
-                        confirmText={translate('common.leave')}
-                        cancelText={translate('common.cancel')}
-                    />
-                    <Button
-                        onPress={() => {
-                            if (Object.keys(report?.participants ?? {}).length === 1) {
-                                setIsLastMemberLeavingGroupModalVisible(true);
-                                return;
-                            }
-
-                            ReportActions.leaveGroupChat(report.reportID);
-                        }}
-                        icon={Expensicons.Exit}
-                        style={styles.flex1}
-                        medium
-                        text={translate('common.leave')}
-                    />
-                </View>
-            )}
             {promotedActions.map(({key, onSelected, ...props}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}

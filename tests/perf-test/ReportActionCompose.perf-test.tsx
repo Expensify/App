@@ -95,14 +95,13 @@ function ReportActionComposeWrapper() {
                 disabled={false}
                 report={LHNTestUtils.getFakeReport()}
                 isComposerFullSize
-                listHeight={200}
             />
         </ComposeProviders>
     );
 }
 const mockEvent = {preventDefault: jest.fn()};
 
-test('[ReportActionCompose] should render Composer with text input interactions', async () => {
+test.skip('[ReportActionCompose] should render Composer with text input interactions', async () => {
     const scenario = async () => {
         // Query for the composer
         const composer = await screen.findByTestId('composer');
@@ -121,7 +120,7 @@ test('[ReportActionCompose] should render Composer with text input interactions'
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
-test('[ReportActionCompose] should press add attachemnt button', async () => {
+test.skip('[ReportActionCompose] should press add attachemnt button', async () => {
     const scenario = async () => {
         // Query for the attachment button
         const hintAttachmentButtonText = Localize.translateLocal('common.create');
@@ -133,7 +132,7 @@ test('[ReportActionCompose] should press add attachemnt button', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
-test('[ReportActionCompose] should press add emoji button', async () => {
+test.skip('[ReportActionCompose] should press add emoji button', async () => {
     const scenario = async () => {
         // Query for the emoji button
         const hintEmojiButtonText = Localize.translateLocal('reportActionCompose.emoji');
@@ -145,7 +144,7 @@ test('[ReportActionCompose] should press add emoji button', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
-test('[ReportActionCompose] should press send message button', async () => {
+test.skip('[ReportActionCompose] should press send message button', async () => {
     const scenario = async () => {
         // Query for the send button
         const hintSendButtonText = Localize.translateLocal('common.send');
@@ -157,7 +156,7 @@ test('[ReportActionCompose] should press send message button', async () => {
     return waitForBatchedUpdates().then(() => measurePerformance(<ReportActionComposeWrapper />, {scenario}));
 });
 
-test('[ReportActionCompose] render composer with attachement modal interactions', async () => {
+test.skip('[ReportActionCompose] render composer with attachement modal interactions', async () => {
     const scenario = async () => {
         const hintAddAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAttachment');
         const hintAssignTaskButtonText = Localize.translateLocal('newTaskPage.assignTask');

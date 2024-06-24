@@ -1,10 +1,9 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchAccountDetails, SearchPersonalDetails, SearchPolicyDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -127,6 +126,9 @@ type ListItem = {
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
 
+    /** Element to render below the ListItem */
+    footerContent?: ReactNode;
+
     /** Whether item pressable wrapper should be focusable */
     tabIndex?: 0 | -1;
 };
@@ -139,6 +141,21 @@ type TransactionListItemType = ListItem &
         /** The personal details of the user paying the request */
         to: SearchAccountDetails;
 
+        /** final and formatted "from" value used for displaying and sorting */
+        formattedFrom: string;
+
+        /** final and formatted "to" value used for displaying and sorting */
+        formattedTo: string;
+
+        /** final and formatted "total" value used for displaying and sorting */
+        formattedTotal: number;
+
+        /** final and formatted "merchant" value used for displaying and sorting */
+        formattedMerchant: string;
+
+        /** final "date" value used for sorting */
+        date: string;
+
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
@@ -150,6 +167,11 @@ type TransactionListItemType = ListItem &
 
         /** Whether we should show the tax column */
         shouldShowTax: boolean;
+
+        /** Whether we should show the transaction year.
+         * This is true if at least one transaction in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &
@@ -260,6 +282,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll?: () => void;
 
+    /**
+     * Callback that should return height of the specific item
+     * Only use this if we're handling some non-standard items, most of the time the default value is correct
+     */
+    getItemHeight?: (item: TItem) => number;
+
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
@@ -270,7 +298,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: MaybePhraseKey;
+    textInputHint?: string;
 
     /** Value for the text input */
     textInputValue?: string;
@@ -344,6 +372,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
     listFooterContent?: React.JSX.Element | null;
 
+    /** Content to display if the list is empty */
+    listEmptyContent?: React.JSX.Element | null;
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 
@@ -365,6 +396,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom header to show right above list */
     customListHeader?: ReactNode;
 
+    /** When customListHeader is provided, this should be its height needed for correct list scrolling */
+    customListHeaderHeight?: number;
+
     /** Styles for the list header wrapper */
     listHeaderWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -376,6 +410,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles for the section title */
     sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /** This may improve scroll performance for large lists */
+    removeClippedSubviews?: boolean;
 
     /**
      * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
@@ -409,6 +446,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
+    clearInputAfterSelect?: () => void;
 };
 
 type ItemLayout = {
@@ -433,65 +471,17 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
-type CellProps = {
-    showTooltip: boolean;
-    keyForList: string;
-    isLargeScreenWidth: boolean;
-};
-
-type TransactionCellProps = {
-    transactionItem: TransactionListItemType;
-} & CellProps;
-
-type ReceiptCellProps = {
-    transactionItem: TransactionListItemType;
-    isHovered?: boolean;
-} & CellProps;
-
-type DateCellProps = {
-    date: string;
-} & CellProps;
-
-type MerchantCellProps = {
-    merchant: string;
-    description: string;
-} & TransactionCellProps;
-
-type UserCellProps = {
-    participant: Partial<SearchPolicyDetails & SearchPersonalDetails>;
-} & CellProps;
-
-type CurrencyCellProps = {
-    amount: number;
-    currency: string;
-} & CellProps;
-
-type ActionCellProps = {
-    item: TransactionListItemType;
-    onSelectRow: (item: TransactionListItemType) => void;
-} & CellProps;
-
-type TypeCellProps = {
-    typeIcon: IconAsset;
-} & CellProps;
-
 export type {
-    ActionCellProps,
     BaseListItemProps,
     BaseSelectionListProps,
     ButtonOrCheckBoxRoles,
-    CellProps,
     CommonListItemProps,
-    CurrencyCellProps,
-    DateCellProps,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
     ItemLayout,
     ListItem,
     ListItemProps,
-    MerchantCellProps,
     RadioListItemProps,
-    ReceiptCellProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
@@ -499,11 +489,8 @@ export type {
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
-    TransactionCellProps,
     TransactionListItemProps,
     TransactionListItemType,
-    TypeCellProps,
-    UserCellProps,
     UserListItemProps,
     ValidListItem,
 };
