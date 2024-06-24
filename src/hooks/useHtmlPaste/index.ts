@@ -109,11 +109,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
 
             event.preventDefault();
 
-            const types = event.clipboardData?.types;
             const TEXT_HTML = 'text/html';
 
             // If paste contains HTML
-            if (types && types.includes(TEXT_HTML)) {
+            if (event.clipboardData?.types?.includes(TEXT_HTML)) {
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
