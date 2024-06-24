@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type MenuListItem = ListItem & {
-    value: ValueOf<typeof CONST.XERO_EXPORT_DATE>;
+    value: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 };
 
 function SageIntacctDatePage({policy}: WithPolicyProps) {
@@ -44,7 +44,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== exportDate) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {exportDate: row.value});
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {exportDate: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },

@@ -65,7 +65,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
                               }
                             : {nonReimbursableVendor: value};
                 }
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, settingValue);
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, settingValue);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },

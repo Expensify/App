@@ -1347,6 +1347,10 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_CONFIG: {
+        EXPORT: 'export',
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',

@@ -55,7 +55,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== reimbursable) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {reimbursable: row.value});
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {reimbursable: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
@@ -112,7 +112,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {
+                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {
                                 reimbursableExpenseReportDefaultVendor: null,
                             });
                             setIsSwitchOn(!isSwitchOn);

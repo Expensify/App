@@ -64,9 +64,9 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {exporter: row.value});
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
         [policyID, exportConfiguration],
     );

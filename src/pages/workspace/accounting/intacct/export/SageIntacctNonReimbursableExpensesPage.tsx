@@ -57,7 +57,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value === config?.export.nonReimbursable) {
                 return;
             }
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {nonReimbursable: row.value});
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {nonReimbursable: row.value});
         },
         [config?.export.nonReimbursable, policyID],
     );
@@ -136,7 +136,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {
+                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {
                                 nonReimbursableCreditCardChargeDefaultVendor: null,
                             });
                             setIsSwitchOn(!isSwitchOn);
