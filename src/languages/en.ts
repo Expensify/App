@@ -2074,8 +2074,8 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                accountSelectDescription: "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
-                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.',
+                accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
+                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in QuickBooks Online.",
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -2145,8 +2145,8 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero bill payment account',
                 xeroInvoiceCollectionAccount: 'Xero invoice collections account',
-                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.',
-                xeroBillPaymentAccountDescription: "Choose a bank account for reimbursements and we'll create the payment in Xero.",
+                xeroBillPaymentAccountDescription: "Choose where to pay bills from and we'll create the payment in Xero.",
+                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in Xero.",
             },
             exportDate: {
                 label: 'Export date',
