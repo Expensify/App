@@ -4622,7 +4622,13 @@ function buildOptimisticChatReport(
     return optimisticChatReport;
 }
 
-function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string, optimisticReportID?: string) {
+function buildOptimisticGroupChatReport(
+    participantAccountIDs: number[],
+    reportName: string,
+    avatarUri: string,
+    optimisticReportID?: string,
+    notificationPreference?: NotificationPreference,
+) {
     return buildOptimisticChatReport(
         participantAccountIDs,
         reportName,
@@ -4633,7 +4639,7 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
         undefined,
         undefined,
         undefined,
-        undefined,
+        notificationPreference,
         undefined,
         undefined,
         undefined,
@@ -5387,8 +5393,6 @@ function shouldReportBeInOptionList({
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -5401,6 +5405,10 @@ function shouldReportBeInOptionList({
             !isGroupChat(report) &&
             !isInvoiceRoom(report))
     ) {
+        return false;
+    }
+
+    if (participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
         return false;
     }
 
@@ -6143,8 +6151,19 @@ function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
-function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (isDefaultRoom(report) || isArchivedRoom(report) || isThread(report) || isMoneyRequestReport(report) || isPolicyExpenseChat(report)) {
+function shouldDisableRename(report: OnyxEntry<Report>): boolean {
+    if (
+        isDefaultRoom(report) ||
+        isArchivedRoom(report) ||
+        isPublicRoom(report) ||
+        isThread(report) ||
+        isMoneyRequest(report) ||
+        isMoneyRequestReport(report) ||
+        isPolicyExpenseChat(report) ||
+        isInvoiceRoom(report) ||
+        isInvoiceReport(report) ||
+        isSystemChat(report)
+    ) {
         return true;
     }
 
@@ -6152,13 +6171,10 @@ function shouldDisableRename(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
         return false;
     }
 
-    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
-    // which means this has to be a public room we want to disable renaming for
-    if (!policy) {
+    if (isDeprecatedGroupDM(report) || isTaskReport(report)) {
         return true;
     }
 
-    // If there is a linked workspace, that means the user is a member of the workspace the report is in and is allowed to rename.
     return false;
 }
 
@@ -6835,8 +6851,9 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
         return false;
     }
 
+    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReport(report);
     // Anyone viewing these chat types is already a participant and therefore cannot join
-    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report)) {
+    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report) || isExpenseChat) {
         return false;
     }
 
