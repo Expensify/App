@@ -222,6 +222,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
+    const unapproveExpenseReportOrShowModal = () => {
+        // TODO: show modal if report is exported to accounting
+    };
+
     const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
@@ -360,7 +364,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 icon: Expensicons.Exit,
                 translationKey: 'iou.unapprove',
                 isAnonymousAction: false,
-                action: () => {},
+                action: () => unapproveExpenseReportOrShowModal(),
             });
         }
         return items;
