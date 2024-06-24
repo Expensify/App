@@ -135,7 +135,7 @@ function BankAccountStep({
                         </View>
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink onPress={() => Link.openExternalLink(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         <Button

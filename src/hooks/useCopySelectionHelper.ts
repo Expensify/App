@@ -1,7 +1,7 @@
-import {ExpensiMark} from 'expensify-common';
 import {useEffect} from 'react';
 import Clipboard from '@libs/Clipboard';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
 import SelectionScraper from '@libs/SelectionScraper';
 import CONST from '@src/CONST';
 
@@ -10,12 +10,11 @@ function copySelectionToClipboard() {
     if (!selection) {
         return;
     }
-    const parser = new ExpensiMark();
     if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(parser.htmlToMarkdown(selection));
+        Clipboard.setString(parseHtmlToMarkdown(selection));
         return;
     }
-    Clipboard.setHtml(selection, parser.htmlToText(selection));
+    Clipboard.setHtml(selection, parseHtmlToText(selection));
 }
 
 export default function useCopySelectionHelper() {

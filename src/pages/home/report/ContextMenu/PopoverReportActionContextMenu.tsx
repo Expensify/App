@@ -265,10 +265,11 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         callbackWhenDeleteModalHide.current = () => (onComfirmDeleteModal.current = runAndResetCallback(onComfirmDeleteModal.current));
         const reportAction = reportActionRef.current;
         if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+            const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
             if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-                IOU.deleteTrackExpense(reportIDRef.current, reportAction?.originalMessage?.IOUTransactionID ?? '-1', reportAction);
+                IOU.deleteTrackExpense(reportIDRef.current, originalMessage?.IOUTransactionID ?? '-1', reportAction);
             } else {
-                IOU.deleteMoneyRequest(reportAction?.originalMessage?.IOUTransactionID ?? '-1', reportAction);
+                IOU.deleteMoneyRequest(originalMessage?.IOUTransactionID ?? '-1', reportAction);
             }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);

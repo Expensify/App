@@ -15,7 +15,7 @@ function ProcessMoneyRequestHoldPage() {
     const {translate} = useLocalize();
 
     const onConfirm = useCallback(() => {
-        IOU.setShownHoldUseExplanation();
+        IOU.dismissHoldUseExplanation();
         Navigation.goBack();
     }, []);
 

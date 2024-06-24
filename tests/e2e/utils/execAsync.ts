@@ -28,7 +28,7 @@ export default (command: string, env: NodeJS.ProcessEnv = {}): PromiseWithAbort 
             },
             (error, stdout) => {
                 if (error) {
-                    if (error && error.killed) {
+                    if (error?.killed) {
                         resolve();
                     } else {
                         Logger.error(`failed with error: ${error.message}`);

@@ -20,6 +20,7 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
+import Log from '@libs/Log';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
@@ -91,6 +92,8 @@ function Composer(
         | {
               start: number;
               end?: number;
+              positionX?: number;
+              positionY?: number;
           }
         | undefined
     >({
@@ -104,11 +107,22 @@ function Composer(
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
 
+    // Those useEffects track changes of `shouldClear` and `onClear` independently.
+    useEffect(() => {
+        Log.info('[Composer] `shouldClear` value changed', true, {shouldClear});
+    }, [shouldClear]);
+
+    useEffect(() => {
+        Log.info('[Composer] `onClear` value changed', true, {shouldClear});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onClear]);
+
     useEffect(() => {
         if (!shouldClear) {
             return;
         }
         textInput.current?.clear();
+        Log.info('[Composer] `textInput` cleared', true, {shouldClear});
         onClear();
     }, [shouldClear, onClear]);
 

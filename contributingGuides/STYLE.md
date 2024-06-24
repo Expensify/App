@@ -48,7 +48,6 @@
     - [Forwarding refs](#forwarding-refs)
     - [Hooks and HOCs](#hooks-and-hocs)
     - [Stateless components vs Pure Components vs Class based components vs Render Props](#stateless-components-vs-pure-components-vs-class-based-components-vs-render-props---when-to-use-what)
-    - [Composition](#composition)
     - [Use Refs Appropriately](#use-refs-appropriately)
     - [Are we allowed to use [insert brand new React feature]?](#are-we-allowed-to-use-insert-brand-new-react-feature-why-or-why-not)
 - [React Hooks: Frequently Asked Questions](#react-hooks-frequently-asked-questions)
@@ -1093,51 +1092,6 @@ function Component({someProp}: ComponentProps) {
 Class components are DEPRECATED. Use function components and React hooks.
 
 [https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function](https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function)
-
-### Composition 
-
-Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
-
-> Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
-
-From React's documentation -
->Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
->If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
-
-  ```ts
-  // BAD
-  export default compose(
-      withCurrentUserPersonalDetails,
-      withReportOrNotFound(),
-      withOnyx<ComponentProps, ComponentOnyxProps>({
-          session: {
-              key: ONYXKEYS.SESSION,
-          },
-      }),
-  )(Component);
-
-  // GOOD
-  export default withCurrentUserPersonalDetails(
-      withReportOrNotFound()(
-          withOnyx<ComponentProps, ComponentOnyxProps>({
-              session: {
-                  key: ONYXKEYS.SESSION,
-              },
-          })(Component),
-      ),
-  );
-
-  // GOOD - alternative to HOC nesting
-  const ComponentWithOnyx = withOnyx<ComponentProps, ComponentOnyxProps>({
-      session: {
-          key: ONYXKEYS.SESSION,
-      },
-  })(Component);
-  const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
-  export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
-  ```
-
-**Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 
 ### Use Refs Appropriately
 

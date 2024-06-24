@@ -86,6 +86,7 @@ function EditReportFieldPage({route, policy, report}: EditReportFieldPageProps) 
 
     const handleReportFieldDelete = () => {
         ReportActions.deleteReportField(report.reportID, reportField);
+        setIsDeleteModalVisible(false);
         Navigation.dismissModal(report?.reportID);
     };
 

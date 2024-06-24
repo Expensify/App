@@ -70,6 +70,9 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
 
     /** Whether a message is a whisper */
     isWhisper?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 type NoPendingProps = {shouldShow: false};

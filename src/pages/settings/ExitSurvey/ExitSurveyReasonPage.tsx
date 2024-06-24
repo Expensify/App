@@ -60,7 +60,7 @@ function ExitSurveyReasonPage({draftReason}: ExitSurveyReasonPageOnyxProps) {
                 validate={() => {
                     const errors: Errors = {};
                     if (!reason) {
-                        errors[INPUT_IDS.REASON] = 'common.error.fieldRequired';
+                        errors[INPUT_IDS.REASON] = translate('common.error.fieldRequired');
                     }
                     return errors;
                 }}

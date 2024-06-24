@@ -59,6 +59,9 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 function MoneyRequestAction({
@@ -75,11 +78,11 @@ function MoneyRequestAction({
     isHovered = false,
     style,
     isWhisper = false,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
     const isSplitBillAction = ReportActionsUtils.isSplitBillAction(action);
     const isTrackExpenseAction = ReportActionsUtils.isTrackExpenseAction(action);
 
@@ -132,6 +135,7 @@ function MoneyRequestAction({
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
             isHovered={isHovered}
             isWhisper={isWhisper}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
         />
     );
 }

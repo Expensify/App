@@ -2719,20 +2719,316 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
 const fs_1 = __nccwpck_require__(147);
+const GitUtils_1 = __importDefault(__nccwpck_require__(547));
 const versionUpdater = __importStar(__nccwpck_require__(982));
-const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
-if (!semverLevel || !Object.values(versionUpdater.SEMANTIC_VERSION_LEVELS).includes(semverLevel)) {
-    core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
+function run() {
+    const semverLevel = core.getInput('SEMVER_LEVEL', { required: true });
+    if (!semverLevel || !versionUpdater.isValidSemverLevel(semverLevel)) {
+        core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
+    }
+    const { version: currentVersion } = JSON.parse((0, fs_1.readFileSync)('./package.json', 'utf8'));
+    if (!currentVersion) {
+        core.setFailed('Error: Could not read package.json');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const previousVersion = GitUtils_1.default.getPreviousExistingTag(currentVersion, semverLevel);
+    core.setOutput('PREVIOUS_VERSION', previousVersion);
+    return previousVersion;
 }
-const { version: currentVersion } = JSON.parse((0, fs_1.readFileSync)('./package.json', 'utf8'));
-if (!currentVersion) {
-    core.setFailed('Error: Could not read package.json');
+if (require.main === require.cache[eval('__filename')]) {
+    run();
 }
-const previousVersion = versionUpdater.getPreviousVersion(currentVersion ?? '', semverLevel);
-core.setOutput('PREVIOUS_VERSION', previousVersion);
+exports["default"] = run;
+
+
+/***/ }),
+
+/***/ 873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const GIT_CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+    DATE_FORMAT_STRING: 'yyyy-MM-dd',
+    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
+    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
+    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    POLL_RATE: 10000,
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
+};
+exports["default"] = CONST;
+
+
+/***/ }),
+
+/***/ 547:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const child_process_1 = __nccwpck_require__(81);
+const CONST_1 = __importDefault(__nccwpck_require__(873));
+const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(902));
+const VersionUpdater = __importStar(__nccwpck_require__(982));
+/**
+ * Check if a tag exists locally or in the remote.
+ */
+function tagExists(tag) {
+    try {
+        // Check if the tag exists locally
+        (0, child_process_1.execSync)(`git show-ref --tags ${tag}`, { stdio: 'ignore' });
+        return true; // Tag exists locally
+    }
+    catch (error) {
+        // Tag does not exist locally, check in remote
+        let shouldRetry = true;
+        let needsRepack = false;
+        let doesTagExist = false;
+        while (shouldRetry) {
+            try {
+                if (needsRepack) {
+                    // We have seen some scenarios where this fixes the git fetch.
+                    // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                    (0, child_process_1.execSync)('git repack -d', { stdio: 'inherit' });
+                }
+                (0, child_process_1.execSync)(`git ls-remote --exit-code --tags origin ${tag}`, { stdio: 'ignore' });
+                doesTagExist = true;
+                shouldRetry = false;
+            }
+            catch (e) {
+                if (!needsRepack) {
+                    console.log('Attempting to repack and retry...');
+                    needsRepack = true;
+                }
+                else {
+                    console.error("Repack didn't help, giving up...");
+                    shouldRetry = false;
+                }
+            }
+        }
+        return doesTagExist;
+    }
+}
+/**
+ * This essentially just calls getPreviousVersion in a loop, until it finds a version for which a tag exists.
+ * It's useful if we manually perform a version bump, because in that case a tag may not exist for the previous version.
+ *
+ * @param tag the current tag
+ * @param level the Semver level to step backward by
+ */
+function getPreviousExistingTag(tag, level) {
+    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let tagExistsForPreviousVersion = false;
+    while (!tagExistsForPreviousVersion) {
+        if (tagExists(previousVersion)) {
+            tagExistsForPreviousVersion = true;
+            break;
+        }
+        console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
+        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+    }
+    return previousVersion;
+}
+/**
+ * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ */
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                (0, child_process_1.execSync)(command);
+            }
+            command = `git fetch origin tag ${tag} --no-tags`;
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+            console.log(`Running command: ${command}`);
+            (0, child_process_1.execSync)(command);
+            shouldRetry = false;
+        }
+        catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            }
+            else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
+        }
+    }
+}
+/**
+ * Get merge logs between two tags (inclusive) as a JavaScript object.
+ */
+function getCommitHistoryAsJSON(fromTag, toTag) {
+    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    return new Promise((resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
+        console.log(`Running command: git ${args.join(' ')}`);
+        const spawnedProcess = (0, child_process_1.spawn)('git', args);
+        spawnedProcess.on('message', console.log);
+        spawnedProcess.stdout.on('data', (chunk) => {
+            console.log(chunk.toString());
+            stdout += chunk.toString();
+        });
+        spawnedProcess.stderr.on('data', (chunk) => {
+            console.error(chunk.toString());
+            stderr += chunk.toString();
+        });
+        spawnedProcess.on('close', (code) => {
+            if (code !== 0) {
+                return reject(new Error(`${stderr}`));
+            }
+            resolve(stdout);
+        });
+        spawnedProcess.on('error', (err) => reject(err));
+    }).then((stdout) => {
+        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
+        // Then remove newlines, format as JSON and convert to a proper JS object
+        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        return JSON.parse(json);
+    });
+}
+/**
+ * Parse merged PRs, excluding those from irrelevant branches.
+ */
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    commits.forEach((commit) => {
+        const author = commit.authorName;
+        if (author === CONST_1.default.OS_BOTIFY) {
+            return;
+        }
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!Array.isArray(match) || match.length < 2) {
+            return;
+        }
+        const pr = Number.parseInt(match[1], 10);
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+        mergedPRs.add(pr);
+    });
+    return Array.from(mergedPRs);
+}
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ */
+async function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
+}
+exports["default"] = {
+    getPreviousExistingTag,
+    getValidMergedPRs,
+    getPullRequestsMergedBetween,
+};
+
+
+/***/ }),
+
+/***/ 902:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/* eslint-disable @typescript-eslint/naming-convention */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const replacer = (str) => ({
+    '\\': '\\\\',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\r': '\\r',
+    '\f': '\\f',
+    '"': '\\"',
+}[str] ?? '');
+/**
+ * Replace any characters in the string that will break JSON.parse for our Git Log output
+ *
+ * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
+ * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
+ */
+const sanitizeStringForJSONParse = (inputString) => {
+    if (typeof inputString !== 'string') {
+        throw new TypeError('Input must me of type String');
+    }
+    // Replace any newlines and escape backslashes
+    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+};
+exports["default"] = sanitizeStringForJSONParse;
 
 
 /***/ }),
@@ -2743,7 +3039,7 @@ core.setOutput('PREVIOUS_VERSION', previousVersion);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = exports.isValidSemverLevel = void 0;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
@@ -2753,6 +3049,10 @@ const SEMANTIC_VERSION_LEVELS = {
 exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
 const MAX_INCREMENTS = 99;
 exports.MAX_INCREMENTS = MAX_INCREMENTS;
+function isValidSemverLevel(str) {
+    return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
+}
+exports.isValidSemverLevel = isValidSemverLevel;
 /**
  * Transforms a versions string into a number
  */
@@ -2843,6 +3143,14 @@ exports.getPreviousVersion = getPreviousVersion;
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 81:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 

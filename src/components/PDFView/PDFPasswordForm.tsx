@@ -47,13 +47,13 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return 'attachmentView.passwordIncorrect';
+            return translate('attachmentView.passwordIncorrect');
         }
         if (validationErrorText) {
             return validationErrorText;
         }
         return '';
-    }, [isPasswordInvalid, validationErrorText]);
+    }, [isPasswordInvalid, validationErrorText, translate]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -90,7 +90,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             return true;
         }
         if (!password) {
-            setValidationErrorText('attachmentView.passwordRequired');
+            setValidationErrorText(translate('attachmentView.passwordRequired'));
         }
         return false;
     };

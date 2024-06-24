@@ -52,6 +52,7 @@ function SearchPageBottomTab() {
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
             style={styles.pv0}
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
                 shouldShow={!isValidQuery}

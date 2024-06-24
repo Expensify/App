@@ -409,7 +409,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  */
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
-    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
+    if (!session || !currentUrl?.includes('exitTo')) {
         return;
     }
 

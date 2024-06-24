@@ -3,7 +3,6 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
 import RadioButton from './RadioButton';
@@ -29,7 +28,7 @@ type RadioButtonWithLabelProps = {
     hasError?: boolean;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 };
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;

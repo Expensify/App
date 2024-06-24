@@ -173,7 +173,7 @@ function ExpensifyCardPage({
                             <DotIndicatorMessage
                                 style={styles.pageWrapper}
                                 textStyles={styles.walletLockedMessage}
-                                messages={{error: 'cardPage.cardLocked'}}
+                                messages={{error: translate('cardPage.cardLocked')}}
                                 type="error"
                             />
                         )}

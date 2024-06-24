@@ -4,7 +4,6 @@ import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import compose from '@libs/compose';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {WithPolicyOnyxProps, WithPolicyProps} from './withPolicy';
@@ -49,7 +48,7 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
 
     WithPolicyAndFullscreenLoading.displayName = `WithPolicyAndFullscreenLoading`;
 
-    return compose(
+    return withPolicy(
         withOnyx<TProps & RefAttributes<TRef>, WithPolicyAndFullscreenLoadingOnyxProps>({
             isLoadingReportData: {
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
@@ -57,9 +56,8 @@ export default function withPolicyAndFullscreenLoading<TProps extends WithPolicy
             personalDetails: {
                 key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             },
-        }),
-        withPolicy,
-    )(forwardRef(WithPolicyAndFullscreenLoading));
+        })(forwardRef(WithPolicyAndFullscreenLoading)),
+    );
 }
 
 export type {WithPolicyAndFullscreenLoadingProps};

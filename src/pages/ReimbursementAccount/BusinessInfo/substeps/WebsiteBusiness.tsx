@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -34,16 +34,6 @@ type WebsiteBusinessProps = WebsiteBusinessOnyxProps & SubStepProps;
 const COMPANY_WEBSITE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE;
 const STEP_FIELDS = [COMPANY_WEBSITE_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
-        errors.website = 'bankAccount.error.website';
-    }
-
-    return errors;
-};
-
 function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing}: WebsiteBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -51,6 +41,18 @@ function WebsiteBusiness({reimbursementAccount, user, session, onNext, isEditing
     const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.website && !ValidationUtils.isValidWebsite(values.website)) {
+                errors.website = translate('bankAccount.error.website');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
         onNext,

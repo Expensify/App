@@ -24,6 +24,23 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
     const reportID = report.reportID;
     const isFocused = useIsFocused();
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
+
+    useEffect(
+        () => () => {
+            if (!didSubscribeToReportTypingEvents.current) {
+                return;
+            }
+
+            // unsubscribe from report typing events when the component unmounts
+            didSubscribeToReportTypingEvents.current = false;
+            InteractionManager.runAfterInteractions(() => {
+                Report.unsubscribeFromReportChannel(reportID);
+            });
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
+
     useEffect(() => {
         // Ensures any optimistic report that is being created (ex: a thread report) gets created and initialized successfully before subscribing
         if (route?.params?.reportID !== reportID) {

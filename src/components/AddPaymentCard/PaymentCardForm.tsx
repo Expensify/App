@@ -138,35 +138,35 @@ function PaymentCardForm({
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
 
-    const validate = (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(formValues, REQUIRED_FIELDS);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
+        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
-        if (formValues.nameOnCard && !ValidationUtils.isValidLegalName(formValues.nameOnCard)) {
-            errors.nameOnCard = label.error.nameOnCard;
+        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+            errors.nameOnCard = translate('addDebitCardPage.error.invalidName');
         }
 
-        if (formValues.cardNumber && !ValidationUtils.isValidDebitCard(formValues.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = label.error.cardNumber;
+        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+            errors.cardNumber = translate('addDebitCardPage.error.debitCardNumber');
         }
 
-        if (formValues.expirationDate && !ValidationUtils.isValidExpirationDate(formValues.expirationDate)) {
-            errors.expirationDate = label.error.expirationDate;
+        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+            errors.expirationDate = translate('addDebitCardPage.error.expirationDate');
         }
 
-        if (formValues.securityCode && !ValidationUtils.isValidSecurityCode(formValues.securityCode)) {
-            errors.securityCode = label.error.securityCode;
+        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+            errors.securityCode = translate('addDebitCardPage.error.securityCode');
         }
 
-        if (formValues.addressStreet && !ValidationUtils.isValidAddress(formValues.addressStreet)) {
-            errors.addressStreet = label.error.addressStreet;
+        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+            errors.addressStreet = translate('addDebitCardPage.error.addressStreet');
         }
 
-        if (formValues.addressZipCode && !ValidationUtils.isValidZipCode(formValues.addressZipCode)) {
-            errors.addressZipCode = label.error.addressZipCode;
+        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+            errors.addressZipCode = translate('addDebitCardPage.error.addressZipCode');
         }
 
-        if (!formValues.acceptTerms) {
-            errors.acceptTerms = 'common.error.acceptTerms';
+        if (!values.acceptTerms) {
+            errors.acceptTerms = translate('common.error.acceptTerms');
         }
 
         return errors;
@@ -285,6 +285,7 @@ function PaymentCardForm({
                                 inputStyle={isHovered && styles.cursorPointer}
                                 hideFocusedState
                                 caretHidden
+                                disableKeyboard
                             />
                         )}
                     </Hoverable>

@@ -183,7 +183,7 @@ function ReportCardLostPage({
                         <FormAlertWithSubmitButton
                             isAlertVisible={shouldShowAddressError}
                             onSubmit={handleSubmitSecondStep}
-                            message="reportCardLostOrDamaged.addressError"
+                            message={translate('reportCardLostOrDamaged.addressError')}
                             isLoading={formData?.isLoading}
                             buttonText={isDamaged ? translate('reportCardLostOrDamaged.shipNewCardButton') : translate('reportCardLostOrDamaged.deactivateCardButton')}
                         />
@@ -201,7 +201,7 @@ function ReportCardLostPage({
                         <FormAlertWithSubmitButton
                             isAlertVisible={shouldShowReasonError}
                             onSubmit={handleSubmitFirstStep}
-                            message="reportCardLostOrDamaged.reasonError"
+                            message={translate('reportCardLostOrDamaged.reasonError')}
                             buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
                         />
                     </>

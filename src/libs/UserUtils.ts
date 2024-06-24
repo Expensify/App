@@ -212,7 +212,6 @@ export {
     generateAccountID,
     getAvatar,
     getAvatarUrl,
-    getDefaultAvatar,
     getDefaultAvatarURL,
     getFullSizeAvatar,
     getLoginListBrickRoadIndicator,

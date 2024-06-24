@@ -6,13 +6,16 @@ import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Subscription from '@userActions/Subscription';
+import type {FeedbackSurveyOptionID} from '@src/CONST';
 
 function DisableAutoRenewSurveyPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const handleSubmit = () => {
-        // TODO API call to submit feedback will be implemented in next phase
+    const handleSubmit = (key: FeedbackSurveyOptionID, additionalNote?: string) => {
+        Subscription.updateSubscriptionAutoRenew(false, key, additionalNote);
+        Navigation.goBack();
     };
 
     return (

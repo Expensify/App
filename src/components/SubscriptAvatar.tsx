@@ -27,8 +27,8 @@ type SubIcon = {
 };
 
 type SubscriptAvatarProps = {
-    /** Avatar URL or icon */
-    mainAvatar?: IconType;
+    /** Avatar icon */
+    mainAvatar: IconType;
 
     /** Subscript avatar URL or icon */
     secondaryAvatar?: IconType;

@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useEffect} from 'react';
+import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
 import type {ComposerRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions';
@@ -26,11 +27,26 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
 
         // We need to wait for the component to be mounted before focusing
         setTimeout(() => {
-            if (!(ref && 'current' in ref)) {
-                return;
-            }
+            const setFocus = () => {
+                if (!(ref && 'current' in ref)) {
+                    return;
+                }
 
-            ref.current?.focus(true);
+                ref.current?.focus(true);
+
+                setTimeout(() => {
+                    // and actually let's verify that the keyboard is visible
+                    if (Keyboard.isVisible()) {
+                        return;
+                    }
+
+                    ref.current?.blur();
+                    setFocus();
+                    // 500ms is enough time for any keyboard to open
+                }, 500);
+            };
+
+            setFocus();
         }, 1);
     }, [ref]);
 

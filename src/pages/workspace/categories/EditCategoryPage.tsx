@@ -37,14 +37,14 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
             const newCategoryName = values.categoryName.trim();
 
             if (!newCategoryName) {
-                errors.categoryName = 'workspace.categories.categoryRequiredError';
+                errors.categoryName = translate('workspace.categories.categoryRequiredError');
             } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
-                errors.categoryName = 'workspace.categories.existingCategoryError';
+                errors.categoryName = translate('workspace.categories.existingCategoryError');
             }
 
             return errors;
         },
-        [policyCategories, currentCategoryName],
+        [policyCategories, currentCategoryName, translate],
     );
 
     const editCategory = useCallback(

@@ -1,17 +1,20 @@
+import {getUnixTime} from 'date-fns';
 import {isEqual} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import * as API from '@libs/API';
-import type {GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
+import type {DismissViolationParams, GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, RecentWaypoint, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -30,6 +33,18 @@ Onyx.connect({
         }
         const transactionID = CollectionUtils.extractCollectionItemID(key);
         allTransactions[transactionID] = transaction;
+    },
+});
+
+const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    callback: (transactionViolation, key) => {
+        if (!key || !transactionViolation) {
+            return;
+        }
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        allTransactionViolation[transactionID] = transactionViolation;
     },
 });
 
@@ -270,6 +285,99 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
+/**
+ * Dismisses the duplicate transaction violation for the provided transactionIDs
+ * and updates the transaction to include the dismissed violation in the comment.
+ */
+function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmissedPersonalDetails: PersonalDetails | CurrentUserPersonalDetails) {
+    const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
+    const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
+    const transactionsReportActions = currentTransactions.map((transaction) => ReportActionsUtils.getIOUActionForReportID(transaction.reportID ?? '', transaction.transactionID ?? ''));
+    const optimisticDissmidedViolationReportActions = transactionsReportActions.map(() =>
+        buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}),
+    );
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const optimisticReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        value: {
+            [optimisticDissmidedViolationReportActions[index].reportActionID]: optimisticDissmidedViolationReportActions[index] as ReportAction,
+        },
+    }));
+    const optimisticDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+        value: transactionViolations.violations?.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+    }));
+
+    optimisticData.push(...optimisticDataTransactionViolations);
+    optimisticData.push(...optimisticReportActions);
+
+    const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        value: {
+            ...transaction,
+            comment: {
+                ...transaction.comment,
+                dismissedViolations: {
+                    duplicatedTransaction: {
+                        [dissmissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
+                    },
+                },
+            },
+        },
+    }));
+
+    optimisticData.push(...optimisticDataTransactions);
+
+    const failureDataTransactionViolations: OnyxUpdate[] = currentTransactionViolations.map((transactionViolations) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionViolations.transactionID}`,
+        value: transactionViolations.violations?.map((violation) => violation),
+    }));
+
+    const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        value: {
+            ...transaction,
+        },
+    }));
+
+    const failureReportActions: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
+        value: {
+            [optimisticDissmidedViolationReportActions[index].reportActionID]: null,
+        },
+    }));
+
+    failureData.push(...failureDataTransactionViolations);
+    failureData.push(...failureDataTransaction);
+    failureData.push(...failureReportActions);
+
+    const params: DismissViolationParams = {
+        name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        transactionIDList: transactionIDs.join(','),
+    };
+
+    API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {
+        optimisticData,
+        failureData,
+    });
+}
+
+function setReviewDuplicatesKey(transactionID: string, transactionIDs: string[]) {
+    Onyx.merge(`${ONYXKEYS.REVIEW_DUPLICATES}`, {
+        [transactionID]: {
+            duplicates: transactionIDs,
+        },
+    });
+}
+
 function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null, errorFields: {route: null}});
 }
@@ -322,4 +430,4 @@ function markAsCash(transactionID: string, transactionThreadReportID: string) {
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash};
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash, dismissDuplicateTransactionViolation, setReviewDuplicatesKey};

@@ -7,7 +7,6 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import type {MaybePhraseKey} from '@libs/Localize';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
@@ -33,7 +32,7 @@ type MagicCodeInputProps = {
     shouldDelayFocus?: boolean;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Specifies autocomplete hints for the system, so it can provide autofill */
     autoComplete: AutoCompleteVariant;

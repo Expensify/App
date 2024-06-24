@@ -36,16 +36,19 @@ function WorkspaceTaxesSettingsCustomTaxName({
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME> = {};
-        const customTaxName = values[INPUT_IDS.NAME];
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME> = {};
+            const customTaxName = values[INPUT_IDS.NAME];
 
-        if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
-            errors.name = 'workspace.taxes.error.customNameRequired';
-        }
+            if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
+                errors.name = translate('workspace.taxes.error.customNameRequired');
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     const submit = ({name}: WorkspaceTaxCustomName) => {
         setPolicyCustomTaxName(policyID, name);

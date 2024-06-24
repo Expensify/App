@@ -182,7 +182,7 @@ function createPolicyDistanceRate(policyID: string, customUnitID: string, custom
                     [customUnitID]: {
                         rates: {
                             [customUnitRate.customUnitRateID ?? '']: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -288,7 +288,7 @@ function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomU
                 customUnits: {
                     [currentCustomUnit.customUnitID]: {
                         ...currentCustomUnit,
-                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         pendingFields: {attributes: null},
                     },
                 },
@@ -319,7 +319,7 @@ function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit,
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {rate: null},
-                errorFields: {rate: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {rate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -390,7 +390,7 @@ function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit,
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {enabled: null},
-                errorFields: {enabled: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {enabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -461,7 +461,7 @@ function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rat
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingAction: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             };
         } else {
             optimisticRates[rateID] = currentRates[rateID];
@@ -535,7 +535,7 @@ function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUni
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {taxClaimablePercentage: null},
-                errorFields: {taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {taxClaimablePercentage: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }
@@ -606,7 +606,7 @@ function updateDistanceTaxRate(policyID: string, customUnit: CustomUnit, customU
             failureRates[rateID] = {
                 ...currentRates[rateID],
                 pendingFields: {taxRateExternalID: null},
-                errorFields: {taxRateExternalID: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                errorFields: {taxRateExternalID: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             };
         }
     }

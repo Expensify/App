@@ -62,6 +62,9 @@ type TransactionViolationData = {
 
     /** Whether the current violation is `pending RTER` */
     pendingPattern?: boolean;
+
+    /** List of duplicate transactions */
+    duplicates?: string[];
 };
 
 /** Model of a transaction violation */
