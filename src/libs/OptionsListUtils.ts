@@ -2510,7 +2510,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             // We don't want the following to be searchable by participant:
             // - Default rooms
             // - Policy rooms
-            // - Policy expense chats
             // - Invoice rooms
             // - Trip rooms
             if (!item.isUnsearchableViaParticipants) {
