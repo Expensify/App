@@ -444,8 +444,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
 
-    const shouldShowHoldAction = caseID !== CASES.MONEY_REPORT && !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+    const shouldShowHoldAction = caseID !== CASES.MONEY_REPORT && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
 
     const canJoin = !isExpenseReport && ReportUtils.canJoinChat(report, parentReportAction, policy);
 
