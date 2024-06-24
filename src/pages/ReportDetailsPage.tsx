@@ -447,7 +447,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowHoldAction = caseID !== CASES.MONEY_REPORT && !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
 
-    const canJoin = !isExpenseReport && ReportUtils.canJoinChat(report, parentReportAction, policy);
+    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
