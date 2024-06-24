@@ -146,7 +146,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const {login} = useCurrentUserPersonalDetails();
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
     const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
@@ -292,7 +291,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             routeName: SCREENS.WORKSPACE.MEMBERS,
         },
         ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
-        ...(isFreeGroupPolicy && shouldShowProtectedItems ? protectedFreePolicyMenuItems : []),
     ];
 
     const prevPolicy = usePrevious(policy);
