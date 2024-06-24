@@ -1,7 +1,8 @@
 import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stack';
-import {screen, waitFor} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
+import {Dimensions, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measurePerformance} from 'reassure';
@@ -27,7 +28,6 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
-import PusherHelper from '../utils/PusherHelper';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -40,6 +40,26 @@ jest.mock('@src/libs/API', () => ({
     makeRequestWithSideEffects: jest.fn(),
     read: jest.fn(),
 }));
+
+jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
+    runAfterInteractions: () => ({
+        cancel: jest.fn(),
+    }),
+    createInteractionHandle: jest.fn(),
+    clearInteractionHandle: jest.fn(),
+}));
+
+jest.mock('react-native', () => {
+    const actualReactNative = jest.requireActual('react-native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actualReactNative,
+        Dimensions: {
+            ...actualReactNative.Dimensions,
+            addEventListener: jest.fn(),
+        },
+    };
+});
 
 jest.mock('react-native-reanimated', () => {
     const actualNav = jest.requireActual('react-native-reanimated/mock');
@@ -115,17 +135,41 @@ beforeAll(() =>
     }),
 );
 
-// Initialize the network key for OfflineWithFeedback
+type MockListener = {
+    remove: jest.Mock;
+    callback?: () => void;
+};
+
+const mockListener: MockListener = {remove: jest.fn()};
+let mockCancel: jest.Mock;
+let mockRunAfterInteractions: jest.Mock;
+
 beforeEach(() => {
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-});
 
-// Clear out Onyx after each test so that each test starts with a clean state
-afterEach(() => {
-    Onyx.clear();
-    PusherHelper.teardown();
+    // Reset mocks before each test
+    (Dimensions.addEventListener as jest.Mock).mockClear();
+    mockListener.remove.mockClear();
+
+    // Mock the implementation of addEventListener to return the mockListener
+    (Dimensions.addEventListener as jest.Mock).mockImplementation((event, callback) => {
+        if (event === 'change') {
+            mockListener.callback = callback;
+            return mockListener;
+        }
+        return {remove: jest.fn()};
+    });
+
+    // Mock the implementation of InteractionManager.runAfterInteractions
+    mockCancel = jest.fn();
+    mockRunAfterInteractions = jest.fn().mockReturnValue({cancel: mockCancel});
+
+    jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation(mockRunAfterInteractions);
+
+    // Initialize the network key for OfflineWithFeedback
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    Onyx.clear().then(waitForBatchedUpdates);
 });
 
 const policies = createCollection(
@@ -164,58 +208,110 @@ function ReportScreenWrapper(props: ReportScreenWrapperProps) {
 }
 
 const report = {...createRandomReport(1), policyID: '1'};
-const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
+const reportActions = ReportTestUtils.getMockedReportActionsMap(10);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
-test.skip('[ReportScreen] should render ReportScreen', () => {
-    const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
+test('[ReportScreen] should render ReportScreen', async () => {
+    const {addListener} = TestHelper.createAddListenerMock();
     const scenario = async () => {
-        /**
-         * First make sure ReportScreen is mounted, so that we can trigger
-         * the transitionEnd event manually.
-         *
-         * If we don't do that, then the transitionEnd event will be triggered
-         * before the ReportScreen is mounted, and the test will fail.
-         */
         await screen.findByTestId('ReportScreen');
-        await waitFor(triggerTransitionEnd);
+    };
 
-        // Query for the composer
+    const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
+
+    await waitForBatchedUpdates();
+    const reportCollectionDataSet: ReportCollectionDataSet = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+    };
+    const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+    };
+
+    Onyx.multiSet({
+        [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+        [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+        [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
+        [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+        ...reportCollectionDataSet,
+        ...reportActionsCollectionDataSet,
+    });
+    await measurePerformance(
+        <ReportScreenWrapper
+            navigation={navigation}
+            route={mockRoute}
+        />,
+        {scenario},
+    );
+});
+
+test('[ReportScreen] should render composer', async () => {
+    const {addListener} = TestHelper.createAddListenerMock();
+    const scenario = async () => {
         await screen.findByTestId('composer');
+    };
 
-        // Query for the report list
+    const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
+
+    await waitForBatchedUpdates();
+
+    const reportCollectionDataSet: ReportCollectionDataSet = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+    };
+
+    const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+    };
+    Onyx.multiSet({
+        [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+        [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+        [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
+        [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+        ...reportCollectionDataSet,
+        ...reportActionsCollectionDataSet,
+    });
+    await measurePerformance(
+        <ReportScreenWrapper
+            navigation={navigation}
+            route={mockRoute}
+        />,
+        {scenario},
+    );
+});
+
+test('[ReportScreen] should render report list', async () => {
+    const {addListener} = TestHelper.createAddListenerMock();
+    const scenario = async () => {
         await screen.findByTestId('report-actions-list');
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
 
-    return waitForBatchedUpdates()
-        .then(() => {
-            const reportCollectionDataSet: ReportCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
-            };
+    await waitForBatchedUpdates();
 
-            const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
-            };
+    const reportCollectionDataSet: ReportCollectionDataSet = {
+        [`${ONYXKEYS.COLLECTION.REPORT}${mockRoute.params.reportID}`]: report,
+    };
 
-            return Onyx.multiSet({
-                [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
-                [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
-                [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
-                [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
-                ...reportCollectionDataSet,
-                ...reportActionsCollectionDataSet,
-            });
-        })
-        .then(() =>
-            measurePerformance(
-                <ReportScreenWrapper
-                    navigation={navigation}
-                    route={mockRoute}
-                />,
-                {scenario},
-            ),
-        );
+    const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockRoute.params.reportID}`]: reportActions,
+    };
+
+    Onyx.multiSet({
+        [ONYXKEYS.IS_SIDEBAR_LOADED]: true,
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+        [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+        [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
+        [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+        ...reportCollectionDataSet,
+        ...reportActionsCollectionDataSet,
+    });
+    await measurePerformance(
+        <ReportScreenWrapper
+            navigation={navigation}
+            route={mockRoute}
+        />,
+        {scenario},
+    );
 });

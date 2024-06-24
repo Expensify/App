@@ -234,7 +234,7 @@ export default {
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
-            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar..',
+            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -2299,8 +2299,14 @@ export default {
             },
         },
         reportFields: {
+            addField: 'Añadir campo',
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
+            emptyReportFields: {
+                title: 'No has creado ningún campo de informe',
+                subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
+            },
+            subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando desees solicitar información adicional',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
