@@ -92,7 +92,7 @@ function MultiGestureCanvas({
     // Adding together zoom scale and the initial scale to fit the content into the canvas
     // Using the minimum content scale, so that the image is not bigger than the canvas
     // and not smaller than needed to fit
-    const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
+    const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale, zoomScale.value]);
 
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
