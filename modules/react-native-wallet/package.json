@@ -1,0 +1,9 @@
+{
+  "name": "react-native-wallet",
+  "version": "0.0.1",
+  "description": "Package to return the necessary parameters and call native methods for adding a card to the wallet",
+  "main": "src/index",
+  "author": "brunovjk",
+  "license": "UNLICENSED",
+  "homepage": "#readme"
+}

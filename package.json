@@ -190,7 +190,8 @@
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
     "semver": "^7.5.2",
-    "shim-keyboard-event-key": "^1.0.3"
+    "shim-keyboard-event-key": "^1.0.3",
+    "react-native-wallet": "file:./modules/react-native-wallet"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",

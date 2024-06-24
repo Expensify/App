@@ -1516,6 +1516,25 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
+  - react-native-wallet (0.0.1):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-webview (13.6.4):
     - glog
     - hermes-engine
@@ -2162,6 +2181,7 @@ DEPENDENCIES:
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
+  - react-native-wallet (from `../node_modules/react-native-wallet`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2373,6 +2393,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
+  react-native-wallet:
+    :path: "../node_modules/react-native-wallet"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-nativeconfig:
@@ -2569,6 +2591,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 9d79895b60b8be151fdf6faef9d2d0591eeecc63
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
+  react-native-wallet: 9a1b091ab3696e8a686475998140068e3cdd659b
   react-native-webview: f8ab7a37905b2366a3e849ce5992b9724f6a528d
   React-nativeconfig: d7af5bae6da70fa15ce44f045621cf99ed24087c
   React-NativeModulesApple: 0123905d5699853ac68519607555a9a4f5c7b3ac
