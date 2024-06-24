@@ -1926,6 +1926,14 @@ const CONST = {
             FIXED: 'fixed',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD_TYPE: 'CardType',
+            LIMIT_TYPE: 'LimitType',
+            LIMIT: 'Limit',
+            CARD_NAME: 'CardName',
+            CONFIRMATION: 'Confirmation',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
