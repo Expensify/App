@@ -1187,7 +1187,6 @@ function isOldDotReportAction(action: ReportAction): boolean {
         CONST.REPORT.ACTIONS.TYPE.SHARE,
         CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
