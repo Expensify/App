@@ -369,7 +369,7 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
-    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require('../../../../pages/TransactionDuplicate/Review').default as React.ComponentType,
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require<ReactComponentModule>('../../../../pages/TransactionDuplicate/Review').default,
 });
 
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
