@@ -35,11 +35,11 @@ type ActionCellProps = {
 
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
     const styles = useThemeStyles();
-        
+
     let total = reportItem?.total ?? 0;
 
     if (total) {
-        total *= (reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1);
+        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1;
     }
 
     return (
@@ -83,7 +83,7 @@ function ReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-    
+
     if (reportItem.transactions.length === 0) {
         return;
     }
