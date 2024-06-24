@@ -7018,6 +7018,10 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
+function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7292,6 +7296,7 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    findPolicyExpenseChatByPolicyID,
 };
 
 export type {

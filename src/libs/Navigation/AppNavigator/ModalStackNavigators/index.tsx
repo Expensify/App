@@ -378,6 +378,10 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
     [SCREENS.SEARCH.REPORT_RHP]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
 });
 
+const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+    [SCREENS.RESTRICTED_ACTION_ROOT]: () => require('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default as React.ComponentType,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     EditRequestStackNavigator,
@@ -407,4 +411,5 @@ export {
     WalletStatementStackNavigator,
     TransactionDuplicateStackNavigator,
     SearchReportModalStackNavigator,
+    RestrictedActionModalStackNavigator,
 };
