@@ -4,11 +4,12 @@ import {ThreadNames} from '@perf-profiler/types';
 import type {Measure} from '@perf-profiler/types';
 
 let measures: Measure[] = [];
-let polling = {
+const POLLING_STOPPED = {
     stop: (): void => {
         throw new Error('Cannot stop polling on a stopped profiler');
     },
 };
+let polling = POLLING_STOPPED;
 
 const start = (bundleId: string) => {
     // clear our measurements results
@@ -23,6 +24,7 @@ const start = (bundleId: string) => {
 
 const stop = () => {
     polling.stop();
+    polling = POLLING_STOPPED;
 
     const average = getAverageCpuUsagePerProcess(measures);
     const uiThread = average.find(({processName}) => processName === ThreadNames.ANDROID.UI)?.cpuUsage;
