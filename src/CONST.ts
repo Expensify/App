@@ -2144,6 +2144,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        UNAPPROVE: 'unapprove',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
