@@ -2263,8 +2263,14 @@ export default {
             },
         },
         reportFields: {
+            addField: 'Add field',
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            emptyReportFields: {
+                title: "You haven't created any report fields",
+                subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
+            },
+            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
