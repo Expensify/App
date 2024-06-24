@@ -6377,7 +6377,7 @@ function unapproveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
         value: optimisticNextStep,
     };
 
-    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, optimisticChatReportData];
+    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
 
     const successData: OnyxUpdate[] = [
         {
