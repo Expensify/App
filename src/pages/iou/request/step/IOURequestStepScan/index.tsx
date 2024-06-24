@@ -275,7 +275,7 @@ function IOURequestStepScan({
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-             // In case the transaction is globally created, we just set the participants from the report, but we won't set `participantAutoAssigned=true` for the transaction
+            // In case the transaction is globally created, we just set the participants from the report, but we won't set `participantAutoAssigned=true` for the transaction
             // and we won't skip the confirmation step, allowing participants to be re-selected
             const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreate);
