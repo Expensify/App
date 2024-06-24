@@ -801,6 +801,10 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
+function getTransaction(transactionID: string): OnyxEntry<Transaction> {
+    return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
@@ -868,6 +872,7 @@ export {
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
+    getTransaction,
 };
 
 export type {TransactionChanges};
