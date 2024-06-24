@@ -68,7 +68,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-    const isCategorizeAction = CONST.IOU.ACTION.CATEGORIZE == action;
+    const isCategorizeAction = CONST.IOU.ACTION.CATEGORIZE === action;
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
     useEffect(() => {
