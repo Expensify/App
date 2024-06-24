@@ -1,20 +1,7 @@
-import type {ValueOf} from 'type-fest';
+import type { ValueOf } from 'type-fest';
 import type CONST from '@src/CONST';
-import type {
-    ChangeFieldParams,
-    ChangePolicyParams,
-    ChangeTypeParams,
-    DelegateSubmitParams,
-    ExportedToIntegrationParams,
-    ForwardedParams,
-    IntegrationsMessageParams,
-    MarkedReimbursedParams,
-    MarkReimbursedFromIntegrationParams,
-    ShareParams,
-    StripePaidParams,
-    UnapprovedParams,
-    UnshareParams,
-} from '@src/languages/types';
+import type { ChangeFieldParams, ChangePolicyParams, DelegateSubmitParams, ExportedToIntegrationParams, IntegrationsMessageParams, MarkReimbursedFromIntegrationParams, ShareParams, UnshareParams } from '@src/languages/types';
+
 
 /**
  *
@@ -72,20 +59,17 @@ type OriginalMessageChangePolicy = {
     originalMessage: ChangePolicyParams & Record<string, unknown>;
 };
 
-// verify
-/**
- *
- */
-type OriginalMessageChangeType = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE;
-    /**
-     *
-     */
-    originalMessage: ChangeTypeParams & Record<string, unknown>;
-};
+// Currently lacking Params
+// type OriginalMessageChangeType = {
+//     /**
+//      *
+//      */
+//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE;
+//     /**
+//      *
+//      */
+//     originalMessage: ChangeTypeParams & Record<string, unknown>;
+// };
 
 /**
  *
@@ -129,20 +113,17 @@ type OriginalMessageExportedToIntegration = {
     originalMessage: ExportedToIntegrationParams & Record<string, unknown>;
 };
 
-// verify
-/**
- *
- */
-type OriginalMessagePolicyTask = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
-    /**
-     *
-     */
-    originalMessage: ForwardedParams & Record<string, unknown>;
-};
+// Currently lacking Params
+// type OriginalMessagePolicyTask = {
+//     /**
+//      *
+//      */
+//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED;
+//     /**
+//      *
+//      */
+//     originalMessage: ForwardedParams & Record<string, unknown>;
+// };
 
 /**
  *
@@ -186,20 +167,17 @@ type OriginalMessageManagerDetachReceipt = {
     originalMessage: Record<string, unknown>;
 };
 
-// verify
-/**
- *
- */
-type OriginalMessageMarkedReimbursed = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED;
-    /**
-     *
-     */
-    originalMessage: MarkedReimbursedParams & Record<string, unknown>;
-};
+// Currently lacking Params
+// type OriginalMessageMarkedReimbursed = {
+//     /**
+//      *
+//      */
+//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED;
+//     /**
+//      *
+//      */
+//     originalMessage: MarkedReimbursedParams & Record<string, unknown>;
+// };
 
 /**
  *
@@ -327,20 +305,17 @@ type OriginalMessageUnshare = {
     originalMessage: UnshareParams & Record<string, unknown>;
 };
 
-// verify
-/**
- *
- */
-type OriginalMessageStripePaid = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID;
-    /**
-     *
-     */
-    originalMessage: StripePaidParams & Record<string, unknown>;
-};
+// Currently lacking Params
+// type OriginalMessageStripePaid = {
+//     /**
+//      *
+//      */
+//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID;
+//     /**
+//      *
+//      */
+//     originalMessage: StripePaidParams & Record<string, unknown>;
+// };
 
 /**
  *
@@ -356,20 +331,17 @@ type OriginalMessageTakeControl = {
     originalMessage: Record<string, unknown>;
 };
 
-// verify
-/**
- *
- */
-type OriginalMessageUnapproved = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED;
-    /**
-     *
-     */
-    originalMessage: UnapprovedParams & Record<string, unknown>;
-};
+// Currently lacking Params
+// type OriginalMessageUnapproved = {
+//     /**
+//      *
+//      */
+//     actionName: typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED;
+//     /**
+//      *
+//      */
+//     originalMessage: UnapprovedParams & Record<string, unknown>;
+// };
 
 /**
  *
