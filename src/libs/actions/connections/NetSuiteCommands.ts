@@ -71,6 +71,7 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
                     netsuite: {
                         options: {
                             config: {
+                                [settingName]: settingValue ?? null,
                                 pendingFields: {
                                     [settingName]: null,
                                 },
