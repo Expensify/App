@@ -15,7 +15,7 @@ import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 type MockedReportActionItemSingleProps = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
@@ -170,19 +170,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
         ],
         originalMessage: {
             whisperedTo: [],
-            childReportID: `${reportActionID}`,
-            emojiReactions: {
-                heart: {
-                    createdAt: '2023-08-28 15:27:52',
-                    users: {
-                        1: {
-                            skinTones: {
-                                '-1': '2023-08-28 15:27:52',
-                            },
-                        },
-                    },
-                },
-            },
             html: 'hey',
             lastModified: '2023-08-28 15:28:12.432',
         },
@@ -246,7 +233,7 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
+function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     return {
         ...getFakeReportAction(actor, millisecondsInThePast),
         actionName,

@@ -252,18 +252,6 @@ function ReportActionsView({
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
-        if (!reportActionID || indexOfLinkedAction > -1) {
-            return;
-        }
-
-        // This function is triggered when a user clicks on a link to navigate to a report.
-        // For each link click, we retrieve the report data again, even though it may already be cached.
-        // There should be only one openReport execution per page start or navigating
-        Report.openReport(reportID, reportActionID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, indexOfLinkedAction]);
-
-    useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
             openReportIfNecessary();
@@ -480,14 +468,16 @@ function ReportActionsView({
         }
 
         const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '-1', report.reportID);
-        const moneyRequestActions = reportActions.filter(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                action.originalMessage &&
-                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                    !!(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
-                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
-        );
+        const moneyRequestActions = reportActions.filter((action) => {
+            const originalMessage = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) : undefined;
+            return (
+                ReportActionsUtils.isMoneyRequestAction(action) &&
+                originalMessage &&
+                (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    !!(originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails) ||
+                    originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
+            );
+        });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(

@@ -2,11 +2,11 @@ import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
 import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepRecord from '@src/types/utils/DeepRecord';
 
-const flattenActionNamesValues = (actionNames: DeepRecord<string, ActionName>): ActionName[] => {
-    let result: ActionName[] = [];
+const flattenActionNamesValues = (actionNames: DeepRecord<string, ReportActionName>): ReportActionName[] => {
+    let result: ReportActionName[] = [];
     Object.values(actionNames).forEach((value) => {
         if (typeof value === 'object') {
             result = result.concat(flattenActionNamesValues(value));
@@ -26,7 +26,7 @@ const getRandomDate = (): string => {
     return formattedDate;
 };
 
-const deprecatedReportActions: ActionName[] = [
+const deprecatedReportActions: ReportActionName[] = [
     CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
@@ -37,7 +37,7 @@ export default function createRandomReportAction(index: number): ReportAction {
     return {
         // We need to assert the type of actionName so that rest of the properties are inferred correctly
         actionName: rand(
-            flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ActionName) => !deprecatedReportActions.includes(actionType)),
+            flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType)),
         ) as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         reportActionID: index.toString(),
         previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
