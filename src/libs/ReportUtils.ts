@@ -3154,28 +3154,6 @@ function getModifiedExpenseOriginalMessage(
     return originalMessage;
 }
 
-const ORIGINAL_MESSAGE_FIELDS = ['comment', 'created', 'merchant', 'amount', 'currency', 'category', 'tag', 'taxCode', 'taxAmount', 'billable'] as const;
-
-/**
- * Detect and return a modified field name based on the original message.
- *
- * At the moment, we only allow changing one transaction field at a time.
- * @param originalMessage
- */
-function getOriginalMessageModifiedField({originalMessage}: OriginalMessage): string {
-    if (typeof originalMessage !== 'object' || originalMessage === null) {
-        return '';
-    }
-
-    for (const field of ORIGINAL_MESSAGE_FIELDS) {
-        if (field in originalMessage) {
-            return field;
-        }
-    }
-
-    return '';
-}
-
 /**
  * Check if original message is an object and can be used as a ChangeLog type
  * @param originalMessage
@@ -7302,7 +7280,6 @@ export {
     isDraftReport,
     changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
-    getOriginalMessageModifiedField,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
 };
