@@ -56,7 +56,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             break;
         case 'animation':
             <View>
-                <Text>123</Text>
+                <Text>Animation</Text>
             </View>;
             break;
         default:
