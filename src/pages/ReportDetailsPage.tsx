@@ -669,6 +669,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
+                    // TODO: Replace with the connected accounting integration name
                     prompt={translate('iou.unapproveWithIntegrationWarning', 'Xero')}
                     onConfirm={() => {
                         setIsUnapproveModalVisible(false);
