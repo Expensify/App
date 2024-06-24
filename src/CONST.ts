@@ -363,6 +363,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
         XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
+        NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
     },
     BUTTON_STATES: {
@@ -562,10 +563,8 @@ const CONST = {
     EMPTY_ARRAY,
     EMPTY_OBJECT,
     USE_EXPENSIFY_URL,
-    STATUS_EXPENSIFY_URL: 'https://status.expensify.com',
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
-    GOOGLE_CLOUD_URL: 'https://clients3.google.com/generate_204',
     IMAGE_BASE64_MATCH: 'base64',
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
@@ -942,6 +941,7 @@ const CONST = {
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
+        UNREAD_UPDATE_DEBOUNCE_TIME: 300,
     },
     SEARCH_TABLE_COLUMNS: {
         RECEIPT: 'receipt',
@@ -1061,7 +1061,7 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-        BACKEND_CHECK_INTERVAL_MS: 60 * 1000,
+        RECHECK_INTERVAL_MS: 60 * 1000,
         MAX_REQUEST_RETRIES: 10,
         NETWORK_STATUS: {
             ONLINE: 'online',
@@ -1073,7 +1073,7 @@ const CONST = {
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
     DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_NETWORK_DATA: {isOffline: false, isBackendReachable: true},
+    DEFAULT_NETWORK_DATA: {isOffline: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -1555,6 +1555,7 @@ const CONST = {
     },
 
     IOU: {
+        MAX_RECENT_REPORTS_TO_SHOW: 5,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -1800,6 +1801,7 @@ const CONST = {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
+                NETSUITE: 'netsuite',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -1832,6 +1834,21 @@ const CONST = {
                 XERO_SYNC_IMPORT_TAX_RATES: 'xeroSyncImportTaxRates',
                 XERO_CHECK_CONNECTION: 'xeroCheckConnection',
                 XERO_SYNC_TITLE: 'xeroSyncTitle',
+                NETSUITE_SYNC_CONNECTION: 'netSuiteSyncConnection',
+                NETSUITE_SYNC_CUSTOMERS: 'netSuiteSyncCustomers',
+                NETSUITE_SYNC_INIT_DATA: 'netSuiteSyncInitData',
+                NETSUITE_SYNC_IMPORT_TAXES: 'netSuiteSyncImportTaxes',
+                NETSUITE_SYNC_IMPORT_ITEMS: 'netSuiteSyncImportItems',
+                NETSUITE_SYNC_DATA: 'netSuiteSyncData',
+                NETSUITE_SYNC_ACCOUNTS: 'netSuiteSyncAccounts',
+                NETSUITE_SYNC_CURRENCIES: 'netSuiteSyncCurrencies',
+                NETSUITE_SYNC_CATEGORIES: 'netSuiteSyncCategories',
+                NETSUITE_SYNC_IMPORT_EMPLOYEES: 'netSuiteSyncImportEmployees',
+                NETSUITE_SYNC_REPORT_FIELDS: 'netSuiteSyncReportFields',
+                NETSUITE_SYNC_TAGS: 'netSuiteSyncTags',
+                NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
+                NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
+                NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -2126,6 +2143,8 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        DELETE: 'delete',
+        MARK_AS_INCOMPLETE: 'markAsIncomplete',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
@@ -3733,6 +3752,14 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+    },
+
+    PROMOTED_ACTIONS: {
+        PIN: 'pin',
+        SHARE: 'share',
+        JOIN: 'join',
+        MESSAGE: 'message',
+        HOLD: 'hold',
     },
 
     THUMBNAIL_IMAGE: {

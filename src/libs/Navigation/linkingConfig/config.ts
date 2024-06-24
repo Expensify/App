@@ -681,6 +681,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
+                    screens: {
+                        [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
+                            exact: true,
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
                         [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
