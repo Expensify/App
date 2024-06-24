@@ -2193,11 +2193,7 @@ export default {
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
-                memberTitle: (workspaceName: string) => `${workspaceName} doesn' have any categories enabled.`,
                 subtitle: 'Add a category to organize your spend.',
-                otherWorkspace: 'Categorize this expense by choosing a different workspace, or ',
-                askYourAdmin: 'ask your admin',
-                enableForThisWorkspace: ' to enable categories for this workspace.',
             },
             updateFailureMessage: 'An error occurred while updating the category, please try again.',
             createFailureMessage: 'An error occurred while creating the category, please try again.',

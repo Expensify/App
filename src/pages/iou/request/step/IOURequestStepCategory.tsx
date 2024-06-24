@@ -1,20 +1,17 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect} from 'react';
-import type {ReactNode} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
-import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -88,8 +85,6 @@ function IOURequestStepCategory({
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const transactionCategory = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction)?.category;
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -156,36 +151,6 @@ function IOURequestStepCategory({
         navigateBack();
     };
 
-    const renderCategoriesEmptyStateSection = (): ReactNode => (
-        <View style={[styles.pageWrapper, styles.workspaceSection, styles.ph8, shouldUseNarrowLayout ? styles.pv10 : styles.pv12, styles.flex1, styles.justifyContentCenter]}>
-            <Icon
-                src={Illustrations.EmptyStateExpenses}
-                width={184}
-                height={116}
-            />
-
-            <View style={[styles.w100, styles.pt5]}>
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mh1, styles.flexShrink1]}>
-                    <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>
-                        {isAdmin ? translate('workspace.categories.emptyCategories.title') : translate('workspace.categories.emptyCategories.memberTitle', policy?.name ?? '')}
-                    </Text>
-                </View>
-
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mt1, styles.mh1]}>
-                    {isAdmin ? (
-                        <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{translate('workspace.categories.emptyCategories.subtitle')}</Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>
-                            {translate('workspace.categories.emptyCategories.otherWorkspace')}
-                            <TextLink onPress={() => {}}>{translate('workspace.categories.emptyCategories.askYourAdmin')}</TextLink>
-                            {translate('workspace.categories.emptyCategories.enableForThisWorkspace')}
-                        </Text>
-                    )}
-                </View>
-            </View>
-        </View>
-    );
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.category')}
@@ -203,23 +168,27 @@ function IOURequestStepCategory({
             )}
             {shouldShowEmptyState && (
                 <View style={[styles.flex1]}>
-                    {renderCategoriesEmptyStateSection()}
+                    <WorkspaceEmptyStateSection
+                        shouldStyleAsCard={false}
+                        icon={Illustrations.EmptyStateExpenses}
+                        title={translate('workspace.categories.emptyCategories.title')}
+                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                        containerStyle={[styles.flex1, styles.justifyContentCenter]}
+                    />
                     <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                         <Button
                             large
                             success
                             style={[styles.w100]}
                             onPress={() =>
-                                isAdmin
-                                    ? Navigation.navigate(
-                                          ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                              policy?.id ?? '-1',
-                                              ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
-                                          ),
-                                      )
-                                    : Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID ?? '-1', undefined, action))
+                                Navigation.navigate(
+                                    ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                        policy?.id ?? '-1',
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '-1', backTo, reportActionID),
+                                    ),
+                                )
                             }
-                            text={isAdmin ? translate('workspace.categories.editCategories') : translate('common.buttonConfirm')}
+                            text={translate('workspace.categories.editCategories')}
                             pressOnEnter
                         />
                     </FixedFooter>
