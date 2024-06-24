@@ -224,6 +224,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const unapproveExpenseReportOrShowModal = () => {
         // TODO: show modal if report is exported to accounting
+        IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
     };
 
     const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
