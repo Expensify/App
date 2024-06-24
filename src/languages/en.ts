@@ -788,6 +788,7 @@ export default {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        unapprove: 'Unapprove',
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',

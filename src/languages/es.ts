@@ -784,6 +784,7 @@ export default {
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
+        unapprove: 'Desaprobar',
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
