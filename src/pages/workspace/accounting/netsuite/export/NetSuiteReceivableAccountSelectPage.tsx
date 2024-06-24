@@ -32,11 +32,11 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
     const updateReceivableAccount = useCallback(
         ({value}: SelectorType) => {
             if (config?.receivableAccount !== value) {
-                Connections.updateNetSuiteReceivableAccount(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, config?.receivableAccount);
+                Connections.updateNetSuiteReceivableAccount(policyID, value, config?.receivableAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [policyID, policy?.connections?.netsuite.tokenSecret, config?.receivableAccount],
+        [policyID, config?.receivableAccount],
     );
 
     const listEmptyContent = useMemo(

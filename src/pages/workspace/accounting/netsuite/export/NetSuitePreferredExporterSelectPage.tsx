@@ -64,11 +64,11 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== config?.exporter) {
-                Connections.updateNetSuiteExporter(policyID, policy?.connections?.netsuite.tokenSecret ?? '', row.value, config?.exporter ?? '');
+                Connections.updateNetSuiteExporter(policyID, row.value, config?.exporter ?? '');
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [config?.exporter, policyID, policy?.connections?.netsuite.tokenSecret],
+        [config?.exporter, policyID],
     );
 
     const headerContent = useMemo(

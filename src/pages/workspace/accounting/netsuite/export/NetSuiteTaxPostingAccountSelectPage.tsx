@@ -37,11 +37,11 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
     const updateTaxAccount = useCallback(
         ({value}: SelectorType) => {
             if (config?.taxPostingAccount !== value) {
-                Connections.updateNetSuiteTaxPostingAccount(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, config?.taxPostingAccount);
+                Connections.updateNetSuiteTaxPostingAccount(policyID, value, config?.taxPostingAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [policyID, policy?.connections?.netsuite.tokenSecret, config?.taxPostingAccount],
+        [policyID, config?.taxPostingAccount],
     );
 
     const listEmptyContent = useMemo(

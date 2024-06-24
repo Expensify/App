@@ -29,11 +29,11 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
     const updateInvoiceItem = useCallback(
         ({value}: SelectorType) => {
             if (config?.invoiceItem !== value) {
-                Connections.updateNetSuiteInvoiceItem(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, config?.invoiceItem);
+                Connections.updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [policyID, policy?.connections?.netsuite.tokenSecret, config?.invoiceItem],
+        [policyID, config?.invoiceItem],
     );
 
     const listEmptyContent = useMemo(

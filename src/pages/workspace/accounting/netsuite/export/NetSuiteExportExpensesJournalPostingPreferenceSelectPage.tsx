@@ -40,11 +40,11 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
     const selectPostingPreference = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.journalPostingPreference) {
-                Connections.updateNetSuiteJournalPostingPreference(policyID, policy?.connections?.netsuite.tokenSecret ?? '', row.value, config?.journalPostingPreference);
+                Connections.updateNetSuiteJournalPostingPreference(policyID, row.value, config?.journalPostingPreference);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
-        [config?.journalPostingPreference, params.expenseType, policy?.connections?.netsuite.tokenSecret, policyID],
+        [config?.journalPostingPreference, params.expenseType, policyID],
     );
 
     return (

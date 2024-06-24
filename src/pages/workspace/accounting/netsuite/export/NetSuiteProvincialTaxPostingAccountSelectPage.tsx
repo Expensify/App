@@ -38,11 +38,11 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     const updateTaxAccount = useCallback(
         ({value}: SelectorType) => {
             if (config?.provincialTaxPostingAccount !== value) {
-                Connections.updateNetSuiteProvincialTaxPostingAccount(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, config?.provincialTaxPostingAccount);
+                Connections.updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [policyID, policy?.connections?.netsuite.tokenSecret, config?.provincialTaxPostingAccount],
+        [policyID, config?.provincialTaxPostingAccount],
     );
 
     const listEmptyContent = useMemo(

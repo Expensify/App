@@ -43,14 +43,14 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
         (row: MenuListItem) => {
             if (row.value !== currentValue) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursableExpensesExportDestination(policyID, policy?.connections?.netsuite.tokenSecret ?? '', row.value, currentValue ?? 'EXPENSE_REPORT');
+                    Connections.updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentValue ?? 'EXPENSE_REPORT');
                 } else {
-                    Connections.updateNetSuiteNonReimbursableExpensesExportDestination(policyID, policy?.connections?.netsuite.tokenSecret ?? '', row.value, currentValue ?? 'VENDOR_BILL');
+                    Connections.updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentValue ?? 'VENDOR_BILL');
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
-        [currentValue, isReimbursable, params.expenseType, policy?.connections?.netsuite.tokenSecret, policyID],
+        [currentValue, isReimbursable, params.expenseType, policyID],
     );
 
     return (

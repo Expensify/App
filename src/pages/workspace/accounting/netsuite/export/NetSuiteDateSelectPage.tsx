@@ -44,11 +44,11 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== config?.exportDate) {
-                Connections.updateNetSuiteExportDate(policyID, policy?.connections?.netsuite.tokenSecret ?? '', row.value, config?.exportDate);
+                Connections.updateNetSuiteExportDate(policyID, row.value, config?.exportDate);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [config?.exportDate, policy?.connections?.netsuite.tokenSecret, policyID],
+        [config?.exportDate, policyID],
     );
 
     return (

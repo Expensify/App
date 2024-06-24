@@ -178,8 +178,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.foreignCurrencyAmount'),
             isActive: !!config?.allowForeignCurrency,
             switchAccessibilityLabel: translate('workspace.netsuite.foreignCurrencyAmount'),
-            onToggle: () =>
-                Connections.updateNetSuiteAllowForeignCurrency(policyID, policy?.connections?.netsuite.tokenSecret ?? '', !config?.allowForeignCurrency, config?.allowForeignCurrency),
+            onToggle: () => Connections.updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
             pendingAction: config?.pendingFields?.allowForeignCurrency,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
@@ -193,13 +192,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             isActive: !!config?.exportToNextOpenPeriod,
             switchAccessibilityLabel: translate('workspace.netsuite.exportToNextOpenPeriod'),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
-            onToggle: () =>
-                Connections.updateNetSuiteExportToNextOpenPeriod(
-                    policyID,
-                    policy?.connections?.netsuite.tokenSecret ?? '',
-                    !config?.exportToNextOpenPeriod,
-                    config?.exportToNextOpenPeriod ?? false,
-                ),
+            onToggle: () => Connections.updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false),
             pendingAction: config?.pendingFields?.exportToNextOpenPeriod,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
         },

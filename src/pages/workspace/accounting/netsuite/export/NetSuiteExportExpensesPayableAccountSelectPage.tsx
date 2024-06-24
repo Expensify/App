@@ -41,14 +41,14 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
         ({value}: SelectorType) => {
             if (currentValue !== value) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, currentValue ?? '');
+                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentValue ?? '');
                 } else {
-                    Connections.updateNetSuitePayableAcct(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, currentValue ?? '');
+                    Connections.updateNetSuitePayableAcct(policyID, value, currentValue ?? '');
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
-        [currentValue, policyID, params.expenseType, isReimbursable, policy?.connections?.netsuite.tokenSecret],
+        [currentValue, policyID, params.expenseType, isReimbursable],
     );
 
     const listEmptyContent = useMemo(

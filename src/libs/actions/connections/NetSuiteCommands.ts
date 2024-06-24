@@ -87,31 +87,28 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     return {optimisticData, failureData, successData};
 }
 
-function updateNetSuiteExporter(policyID: string, tokenSecret: string, exporter: string, oldExporter: string) {
+function updateNetSuiteExporter(policyID: string, exporter: string, oldExporter: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.EXPORTER, exporter, oldExporter);
 
     const parameters = {
         policyID,
         email: exporter,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORTER, parameters, onyxData);
 }
 
-function updateNetSuiteExportDate(policyID: string, tokenSecret: string, date: ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>, oldDate?: ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>) {
+function updateNetSuiteExportDate(policyID: string, date: ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>, oldDate?: ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.EXPORT_DATE, date, oldDate);
 
     const parameters = {
         policyID,
         value: date,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_DATE, parameters, onyxData);
 }
 
 function updateNetSuiteReimbursableExpensesExportDestination(
     policyID: string,
-    tokenSecret: string,
     destination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>,
     oldDestination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>,
 ) {
@@ -120,14 +117,12 @@ function updateNetSuiteReimbursableExpensesExportDestination(
     const parameters = {
         policyID,
         value: destination,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
 }
 
 function updateNetSuiteNonReimbursableExpensesExportDestination(
     policyID: string,
-    tokenSecret: string,
     destination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>,
     oldDestination: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>,
 ) {
@@ -136,47 +131,42 @@ function updateNetSuiteNonReimbursableExpensesExportDestination(
     const parameters = {
         policyID,
         value: destination,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION, parameters, onyxData);
 }
 
-function updateNetSuiteDefaultVendor(policyID: string, tokenSecret: string, vendorID: string, oldVendorID?: string) {
+function updateNetSuiteDefaultVendor(policyID: string, vendorID: string, oldVendorID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR, vendorID, oldVendorID);
 
     const parameters = {
         policyID,
         vendorID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_DEFAULT_VENDOR, parameters, onyxData);
 }
 
-function updateNetSuiteReimbursablePayableAccount(policyID: string, tokenSecret: string, bankAccountID: string, oldBankAccountID: string) {
+function updateNetSuiteReimbursablePayableAccount(policyID: string, bankAccountID: string, oldBankAccountID: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT, bankAccountID, oldBankAccountID);
 
     const parameters = {
         policyID,
         bankAccountID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_REIMBURSABLE_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuitePayableAcct(policyID: string, tokenSecret: string, bankAccountID: string, oldBankAccountID: string) {
+function updateNetSuitePayableAcct(policyID: string, bankAccountID: string, oldBankAccountID: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.PAYABLE_ACCT, bankAccountID, oldBankAccountID);
 
     const parameters = {
         policyID,
         bankAccountID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_PAYABLE_ACCT, parameters, onyxData);
 }
 
 function updateNetSuiteJournalPostingPreference(
     policyID: string,
-    tokenSecret: string,
     postingPreference: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
     oldPostingPreference?: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
 ) {
@@ -185,73 +175,66 @@ function updateNetSuiteJournalPostingPreference(
     const parameters = {
         policyID,
         value: postingPreference,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
 }
 
-function updateNetSuiteReceivableAccount(policyID: string, tokenSecret: string, bankAccountID: string, oldBankAccountID?: string) {
+function updateNetSuiteReceivableAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT, bankAccountID, oldBankAccountID);
 
     const parameters = {
         policyID,
         bankAccountID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_RECEIVABLE_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuiteInvoiceItem(policyID: string, tokenSecret: string, itemID: string, oldItemID?: string) {
+function updateNetSuiteInvoiceItem(policyID: string, itemID: string, oldItemID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM, itemID, oldItemID);
 
     const parameters = {
         policyID,
         itemID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_INVOICE_ITEM, parameters, onyxData);
 }
 
-function updateNetSuiteTaxPostingAccount(policyID: string, tokenSecret: string, bankAccountID: string, oldBankAccountID?: string) {
+function updateNetSuiteTaxPostingAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT, bankAccountID, oldBankAccountID);
 
     const parameters = {
         policyID,
         bankAccountID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TAX_POSTING_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuiteProvincialTaxPostingAccount(policyID: string, tokenSecret: string, bankAccountID: string, oldBankAccountID?: string) {
+function updateNetSuiteProvincialTaxPostingAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT, bankAccountID, oldBankAccountID);
 
     const parameters = {
         policyID,
         bankAccountID,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuiteAllowForeignCurrency(policyID: string, tokenSecret: string, value: boolean, oldValue?: boolean) {
+function updateNetSuiteAllowForeignCurrency(policyID: string, value: boolean, oldValue?: boolean) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY, value, oldValue);
 
     const parameters = {
         policyID,
         enabled: value,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY, parameters, onyxData);
 }
 
-function updateNetSuiteExportToNextOpenPeriod(policyID: string, tokenSecret: string, value: boolean, oldValue: boolean) {
+function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, oldValue: boolean) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD, value, oldValue);
 
     const parameters = {
         policyID,
         enabled: value,
-        authToken: tokenSecret,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }

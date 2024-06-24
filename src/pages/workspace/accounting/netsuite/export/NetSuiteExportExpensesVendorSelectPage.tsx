@@ -39,11 +39,11 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (config?.defaultVendor !== value) {
-                Connections.updateNetSuiteDefaultVendor(policyID, policy?.connections?.netsuite.tokenSecret ?? '', value, config?.defaultVendor);
+                Connections.updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
-        [config?.defaultVendor, policyID, params.expenseType, policy?.connections?.netsuite.tokenSecret],
+        [config?.defaultVendor, policyID, params.expenseType],
     );
 
     const listEmptyContent = useMemo(
