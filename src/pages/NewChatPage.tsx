@@ -71,6 +71,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             true,
             undefined,
             undefined,
+            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             undefined,
             true,
         );
