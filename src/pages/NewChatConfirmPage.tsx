@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -15,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -45,7 +46,7 @@ function navigateToEditChatName() {
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
     const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
-    const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
+    const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
@@ -104,10 +105,33 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current, true);
+        Report.navigateToAndOpenReport(logins, true, undefined, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
     }, [newGroupDraft]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
+
+    useEffect(() => {
+        if (!stashedLocalAvatarImage) {
+            return;
+        }
+
+        const onSuccess = (file: File) => {
+            setAvatarFile(file);
+        };
+
+        const onFailure = () => {
+            setAvatarFile(undefined);
+            Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+        };
+
+        // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
+        // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
+        FileUtils.readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
+
+        // we only need to run this when the component re-mounted
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <ScreenWrapper testID={NewChatConfirmPage.displayName}>
             <HeaderWithBackButton
@@ -119,12 +143,12 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
                     source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
-                        fileRef.current = image;
-                        Report.setGroupDraft({avatarUri: image?.uri ?? ''});
+                        setAvatarFile(image);
+                        Report.setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
                     }}
                     onImageRemoved={() => {
-                        fileRef.current = undefined;
-                        Report.setGroupDraft({avatarUri: null});
+                        setAvatarFile(undefined);
+                        Report.setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
                     size={CONST.AVATAR_SIZE.XLARGE}
                     avatarStyle={styles.avatarXLarge}

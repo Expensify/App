@@ -102,7 +102,10 @@ const ROUTES = {
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_SUBSCRIPTION: 'settings/subscription',
-    SETTINGS_SUBSCRIPTION_SIZE: 'settings/subscription/subscription-size',
+    SETTINGS_SUBSCRIPTION_SIZE: {
+        route: 'settings/subscription/subscription-size',
+        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize}` as const,
+    },
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
@@ -773,6 +776,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
+    WORKSPACE_REPORT_FIELDS: {
+        route: 'settings/workspaces/:policyID/reportFields',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -820,6 +827,11 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
+    TRANSACTION_DUPLICATE_REVIEW_PAGE: {
+        route: 'r/:threadReportID/duplicates/review',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+    },
+
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,

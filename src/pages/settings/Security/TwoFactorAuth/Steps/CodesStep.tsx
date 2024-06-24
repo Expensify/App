@@ -135,7 +135,7 @@ function CodesStep({account, backTo}: CodesStepProps) {
                         text={translate('common.next')}
                         onPress={() => {
                             if (!account?.codesAreCopied) {
-                                setError('twoFactorAuth.errorStepCodes');
+                                setError(translate('twoFactorAuth.errorStepCodes'));
                                 return;
                             }
                             setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY);
