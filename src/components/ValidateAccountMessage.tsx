@@ -11,6 +11,10 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 function ValidateAccountMessage () {
 
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
 }
 
 export default ValidateAccountMessage;
