@@ -356,6 +356,9 @@ const ONYXKEYS = {
 
     /** Indicates whether ClearOutstandingBalance was successful */
     SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL: 'subscriptionRetryBillingStatusSuccessful',
+    
+    /** Stores info during review duplicates flow */
+    REVIEW_DUPLICATES: 'reviewDuplicates',
 
     /** Collection Keys */
     COLLECTION: {
@@ -753,6 +756,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
     [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
+    [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;

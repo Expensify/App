@@ -1,4 +1,4 @@
-import {fromUnixTime} from 'date-fns';
+import {fromUnixTime, addMonths, format, startOfMonth} from 'date-fns';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import DateUtils from '@libs/DateUtils';
@@ -129,6 +129,19 @@ function getCardForSubscriptionBilling(): Fund | undefined {
     return SubscriptionUtils.getCardForSubscriptionBilling();
 }
 
+/**
+ * Get the next billing date.
+ *
+ * @returns - The next billing date in 'yyyy-MM-dd' format.
+ */
+function getNextBillingDate(): string {
+    const today = new Date();
+
+    const nextBillingDate = startOfMonth(addMonths(today, 1));
+
+    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+}
+
 function shouldShowPreTrialBillingBanner(): boolean {
     return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
 }
@@ -137,4 +150,5 @@ export default {
     getBillingStatus,
     getCardForSubscriptionBilling,
     shouldShowPreTrialBillingBanner,
+    getNextBillingDate,
 };
