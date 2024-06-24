@@ -35,11 +35,17 @@ type ActionCellProps = {
 
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
     const styles = useThemeStyles();
+        
+    let total = reportItem?.total ?? 0;
+
+    if (total) {
+        total *= (reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1);
+    }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
+            text={CurrencyUtils.convertToDisplayString(total, reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
@@ -77,7 +83,7 @@ function ReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-
+    
     if (reportItem.transactions.length === 0) {
         return;
     }
