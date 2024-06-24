@@ -50,6 +50,7 @@ function ListValuesSelector({value, label, subtitle, onInputChange}: ListValuesS
                 isVisible={isPickerVisible}
                 label={label ?? ''}
                 subtitle={subtitle ?? ''}
+                values={value ?? {}}
                 onClose={hidePickerModal}
                 onValueAdded={updateReportFields}
             />
