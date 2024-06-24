@@ -1,22 +1,18 @@
-import type {View} from 'react-native';
+import type {StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import {Animated, StyleSheet} from 'react-native';
-import roundToNearestMultipleOfFour from '@libs/roundToNearestMultipleOfFour';
 import FontUtils from '@styles/utils/FontUtils';
 // eslint-disable-next-line no-restricted-imports
 import type StyleUtilGenerator from '@styles/utils/generators/types';
-// eslint-disable-next-line no-restricted-imports
-import positioning from '@styles/utils/positioning';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 // eslint-disable-next-line no-restricted-imports
 import titleBarHeight from '@styles/utils/titleBarHeight';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {GetTooltipStylesStyleUtil} from './types';
-
-/** This defines the proximity with the edge of the window in which tooltips should not be displayed.
- * If a tooltip is too close to the edge of the screen, we'll shift it towards the center. */
-const GUTTER_WIDTH = variables.gutterWidth;
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
+import computeHorizontalShift, {GUTTER_WIDTH} from './computeHorizontalShift';
+import isOverlappingAtTop from './isOverlappingAtTop';
+import tooltipPlatformStyle from './tooltipPlatformStyles';
 
 /** The height of a tooltip pointer */
 const POINTER_HEIGHT = 4;
@@ -24,81 +20,33 @@ const POINTER_HEIGHT = 4;
 /** The width of a tooltip pointer */
 const POINTER_WIDTH = 12;
 
-/**
- * Compute the amount the tooltip needs to be horizontally shifted in order to keep it from displaying in the gutters.
- *
- * @param windowWidth - The width of the window.
- * @param xOffset - The distance between the left edge of the window
- *                           and the left edge of the wrapped component.
- * @param componentWidth - The width of the wrapped component.
- * @param tooltipWidth - The width of the tooltip itself.
- * @param [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
- *                                         A positive value shifts it to the right,
- *                                         and a negative value shifts it to the left.
- */
-function computeHorizontalShift(windowWidth: number, xOffset: number, componentWidth: number, tooltipWidth: number, manualShiftHorizontal: number): number {
-    // First find the left and right edges of the tooltip (by default, it is centered on the component).
-    const componentCenter = xOffset + componentWidth / 2 + manualShiftHorizontal;
-    const tooltipLeftEdge = componentCenter - tooltipWidth / 2;
-    const tooltipRightEdge = componentCenter + tooltipWidth / 2;
+type TooltipStyles = {
+    animationStyle: ViewStyle;
+    rootWrapperStyle: ViewStyle;
+    textStyle: TextStyle;
+    pointerWrapperStyle: ViewStyle;
+    pointerStyle: ViewStyle;
+};
 
-    if (tooltipLeftEdge < GUTTER_WIDTH) {
-        // Tooltip is in left gutter, shift right by a multiple of four.
-        return roundToNearestMultipleOfFour(GUTTER_WIDTH - tooltipLeftEdge);
-    }
+type TooltipParams = {
+    tooltip: View | HTMLDivElement | null;
+    currentSize: Animated.Value;
+    windowWidth: number;
+    xOffset: number;
+    yOffset: number;
+    tooltipTargetWidth: number;
+    tooltipTargetHeight: number;
+    maxWidth: number;
+    tooltipContentWidth?: number;
+    tooltipWrapperHeight?: number;
+    manualShiftHorizontal?: number;
+    manualShiftVertical?: number;
+    shouldForceRenderingBelow?: boolean;
+    wrapperStyle: StyleProp<ViewStyle>;
+    anchorAlignment?: TooltipAnchorAlignment;
+};
 
-    if (tooltipRightEdge > windowWidth - GUTTER_WIDTH) {
-        // Tooltip is in right gutter, shift left by a multiple of four.
-        return roundToNearestMultipleOfFour(windowWidth - GUTTER_WIDTH - tooltipRightEdge);
-    }
-
-    // Tooltip is not in the gutter, so no need to shift it horizontally
-    return 0;
-}
-
-/**
- * Determines if there is an overlapping element at the top of a given coordinate.
- *                    (targetCenterX, y)
- *                            |
- *                            v
- *                        _ _ _ _ _
- *                       |         |
- *                       |         |
- *                       |         |
- *                       |         |
- *                       |_ _ _ _ _|
- *
- * @param tooltip - The reference to the tooltip's root element
- * @param xOffset - The distance between the left edge of the window
- *                           and the left edge of the wrapped component.
- * @param yOffset - The distance between the top edge of the window
- *                           and the top edge of the wrapped component.
- * @param tooltipTargetWidth - The width of the tooltip's target
- * @param tooltipTargetHeight - The height of the tooltip's target
- */
-function isOverlappingAtTop(tooltip: View | HTMLDivElement, xOffset: number, yOffset: number, tooltipTargetWidth: number, tooltipTargetHeight: number) {
-    if (typeof document.elementFromPoint !== 'function') {
-        return false;
-    }
-
-    // Use the x center position of the target to prevent wrong element returned by elementFromPoint
-    // in case the target has a border radius or is a multiline text.
-    const targetCenterX = xOffset + tooltipTargetWidth / 2;
-    const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
-
-    // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!elementAtTargetCenterX || ('contains' in tooltip && tooltip.contains(elementAtTargetCenterX))) {
-        return false;
-    }
-
-    const rectAtTargetCenterX = elementAtTargetCenterX.getBoundingClientRect();
-
-    // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
-    // and less than the bottom of the element. Also ensure the tooltip target is not completely inside the elementAtTargetCenterX by vertical direction
-    const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom && yOffset + tooltipTargetHeight > rectAtTargetCenterX.bottom;
-
-    return isOverlappingAtTargetCenterX;
-}
+type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};
 
 /**
  * Generate styles for the tooltip component.
@@ -166,6 +114,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         let pointerWrapperTop = 0;
         let pointerWrapperLeft = 0;
         let pointerAdditionalStyle = {};
+        let opacity = 0;
 
         if (isTooltipSizeReady) {
             // Determine if the tooltip should display below the wrapped component.
@@ -258,6 +207,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             }
 
             pointerAdditionalStyle = shouldShowBelow ? styles.flipUpsideDown : {};
+
+            // React Native's measure() is asynchronous, we temporarily hide the tooltip until its bound is calculated
+            opacity = 100;
         }
 
         return {
@@ -268,7 +220,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 transform: [{scale}],
             },
             rootWrapperStyle: {
-                ...positioning.pFixed,
+                ...tooltipPlatformStyle,
                 backgroundColor: theme.heading,
                 borderRadius: variables.componentBorderRadiusSmall,
                 ...tooltipVerticalPadding,
@@ -278,6 +230,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 maxWidth,
                 top: rootWrapperTop,
                 left: rootWrapperLeft,
+                opacity,
                 ...customWrapperStyle,
 
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
@@ -293,9 +246,10 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 textAlign: 'center',
             },
             pointerWrapperStyle: {
-                ...positioning.pFixed,
+                ...tooltipPlatformStyle,
                 top: pointerWrapperTop,
                 left: pointerWrapperLeft,
+                opacity,
             },
             pointerStyle: {
                 width: 0,

@@ -297,6 +297,12 @@ type MenuItemBaseProps = {
     /** Additional styles for tooltip wrapper */
     tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Any additional amount to manually adjust the horizontal position of the tooltip */
+    tooltipShiftHorizontal?: number;
+
+    /** Any additional amount to manually adjust the vertical position of the tooltip */
+    tooltipShiftVertical?: number;
+
     /** Render custom content inside the tooltip. */
     renderTooltipContent?: () => ReactNode;
 };
@@ -386,6 +392,8 @@ function MenuItem(
         shouldRenderTooltip = false,
         tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
+        tooltipShiftHorizontal = 0,
+        tooltipShiftVertical = 0,
         renderTooltipContent,
     }: MenuItemProps,
     ref: PressableRef,
@@ -494,8 +502,8 @@ function MenuItem(
                 anchorAlignment={tooltipAnchorAlignment}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
-                shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}
-                shiftVertical={styles.popoverMenuItem.paddingVertical / 2}
+                shiftHorizontal={tooltipShiftHorizontal}
+                shiftVertical={tooltipShiftVertical}
             >
                 <View>
                     <Hoverable>
