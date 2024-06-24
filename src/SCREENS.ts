@@ -289,6 +289,7 @@ const SCREENS = {
         TAGS_EDIT: 'Tags_Edit',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
+        REPORT_FIELDS: 'Workspace_ReportFields',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',

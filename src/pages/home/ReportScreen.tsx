@@ -155,6 +155,9 @@ function ReportScreen({
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const wasLoadingApp = usePrevious(isLoadingApp);
+    const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
@@ -386,7 +389,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty());
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
         !isCurrentReportLoadedFromOnyx ||
@@ -394,14 +397,30 @@ function ReportScreen({
         isLoading;
 
     const currentReportIDFormRoute = route.params?.reportID;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
-            shouldHideReport ||
-            (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
-        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute],
-    );
+    const shouldShowNotFoundPage = useMemo((): boolean => {
+        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+        if (isLoadingApp !== false) {
+            return false;
+        }
+
+        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
+        // showing the Not Found page
+        if (finishedLoadingApp) {
+            return false;
+        }
+
+        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            return true;
+        }
+
+        if (shouldHideReport) {
+            return true;
+        }
+
+        return !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
+    }, [isLoadingApp, finishedLoadingApp, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute]);
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -431,12 +450,24 @@ function ReportScreen({
             return;
         }
 
+        /**
+         * Since OpenReport is a write, the response from OpenReport will get dropped while the app is
+         * still loading. This usually happens when signing in and deeplinking to a report. Instead,
+         * we'll fetch the report after the app finishes loading.
+         *
+         * This needs to be a strict equality check since isLoadingApp is initially undefined until the
+         * value is loaded from Onyx
+         */
+        if (isLoadingApp !== false) {
+            return;
+        }
+
         if (!shouldFetchReport(report)) {
             return;
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute]);
+    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -631,6 +662,18 @@ function ReportScreen({
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
 
+    // If we deeplinked to the report after signing in, we need to fetch the report after the app is done loading
+    useEffect(() => {
+        if (!finishedLoadingApp) {
+            return;
+        }
+
+        fetchReportIfNeeded();
+
+        // This should only run once when the app is done loading
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finishedLoadingApp]);
+
     const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
         fetchReport();
@@ -720,7 +763,6 @@ function ReportScreen({
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
-                                testID="report-actions-view-wrapper"
                             >
                                 {!shouldShowSkeleton && (
                                     <ReportActionsView

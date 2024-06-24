@@ -22,6 +22,7 @@ type PolicyRoute = RouteProp<
     NavigatorsParamList,
     | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
     | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.PROFILE
     | typeof SCREENS.WORKSPACE.BILLS
     | typeof SCREENS.WORKSPACE.MORE_FEATURES
     | typeof SCREENS.WORKSPACE.MEMBERS
