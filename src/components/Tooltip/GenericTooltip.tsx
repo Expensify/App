@@ -29,7 +29,10 @@ function GenericTooltip({
     shiftVertical = 0,
     shouldForceRenderingBelow = false,
     wrapperStyle = {},
-    shouldForceRenderingLeft = false,
+    anchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     shouldForceAnimate = false,
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
@@ -164,7 +167,7 @@ function GenericTooltip({
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
                     wrapperStyle={wrapperStyle}
-                    shouldForceRenderingLeft={shouldForceRenderingLeft}
+                    anchorAlignment={anchorAlignment}
                 />
             )}
 

@@ -1,4 +1,5 @@
 import type {Animated, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 
 type TooltipStyles = {
     animationStyle: ViewStyle;
@@ -24,6 +25,7 @@ type TooltipParams = {
     shouldForceRenderingBelow?: boolean;
     shouldForceRenderingLeft?: boolean;
     wrapperStyle: StyleProp<ViewStyle>;
+    anchorAlignment?: TooltipAnchorAlignment;
 };
 
 type GetTooltipStylesStyleUtil = {getTooltipStyles: (props: TooltipParams) => TooltipStyles};

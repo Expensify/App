@@ -19,6 +19,7 @@ import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
+import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -290,8 +291,8 @@ type MenuItemBaseProps = {
     /** Whether to show the tooltip */
     shouldRenderTooltip?: boolean;
 
-    /** Whether to align the tooltip left */
-    shouldForceRenderingTooltipLeft?: boolean;
+    /** Anchor alignment of the tooltip */
+    tooltipAnchorAlignment?: TooltipAnchorAlignment;
 
     /** Additional styles for tooltip wrapper */
     tooltipWrapperStyle?: StyleProp<ViewStyle>;
@@ -383,7 +384,7 @@ function MenuItem(
         onBlur,
         avatarID,
         shouldRenderTooltip = false,
-        shouldForceRenderingTooltipLeft = false,
+        tooltipAnchorAlignment,
         tooltipWrapperStyle = {},
         renderTooltipContent,
     }: MenuItemProps,
@@ -490,7 +491,7 @@ function MenuItem(
             )}
             <EducationalTooltip
                 shouldRender={shouldRenderTooltip}
-                shouldForceRenderingLeft={shouldForceRenderingTooltipLeft}
+                anchorAlignment={tooltipAnchorAlignment}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}

@@ -25,7 +25,6 @@ function BaseGenericTooltip({
     maxWidth = 0,
     renderTooltipContent,
     shouldForceRenderingBelow = false,
-    shouldForceRenderingLeft = false,
     wrapperStyle = {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
@@ -66,7 +65,6 @@ function BaseGenericTooltip({
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
                 shouldForceRenderingBelow,
-                shouldForceRenderingLeft,
                 wrapperStyle,
             }),
         [
@@ -83,7 +81,6 @@ function BaseGenericTooltip({
             shiftHorizontal,
             shiftVertical,
             shouldForceRenderingBelow,
-            shouldForceRenderingLeft,
             wrapperStyle,
         ],
     );

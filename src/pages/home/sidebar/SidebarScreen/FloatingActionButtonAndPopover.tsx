@@ -471,8 +471,11 @@ function FloatingActionButtonAndPopover(
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
-                                  shouldRenderTooltip: quickAction?.isFirstQuickAction,
-                                  shouldForceRenderingTooltipLeft: true,
+                                  shouldRenderTooltip: true,
+                                  tooltipAnchorAlignment: {
+                                      vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                      horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                  },
                                   renderTooltipContent: renderQuickActionTooltip,
                                   tooltipWrapperStyle: styles.quickActionTooltipWrapper,
                               },
