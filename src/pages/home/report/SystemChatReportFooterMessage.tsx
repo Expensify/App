@@ -1,5 +1,5 @@
 import React, {useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -8,7 +8,6 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as ReportInstance from '@userActions/Report';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -34,13 +33,15 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const adminChatReport = useMemo(() => {
+    const adminChatReportID = useMemo(() => {
         const adminPolicy = activePolicyID
-            ? PolicyUtils.getPolicy(activePolicyID ?? '')
+            ? PolicyUtils.getPolicy(activePolicyID)
             : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
 
-        return ReportUtils.getReport(String(adminPolicy?.chatReportIDAdmins));
+        return String(adminPolicy?.chatReportIDAdmins ?? -1);
     }, [activePolicyID, policies]);
+
+    const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);
 
     const content = useMemo(() => {
         switch (choice) {
@@ -48,7 +49,7 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
                 return (
                     <>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}>
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? '-1'))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
                         {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}
@@ -70,7 +71,14 @@ function SystemChatReportFooterMessage({choice, policies, activePolicyID}: Syste
             containerStyles={[styles.chatFooterBanner]}
             shouldShowIcon
             icon={Expensicons.Lightbulb}
-            content={<Text suppressHighlighting>{content}</Text>}
+            content={
+                <Text
+                    suppressHighlighting
+                    style={styles.flex1}
+                >
+                    {content}
+                </Text>
+            }
         />
     );
 }
@@ -86,6 +94,5 @@ export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFoot
     },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        initialValue: null,
     },
 })(SystemChatReportFooterMessage);

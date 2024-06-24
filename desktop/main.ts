@@ -13,9 +13,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
+import type {CreateDownloadQueue, DownloadItem} from './createDownloadQueue';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
 
-const createDownloadQueue = require('./createDownloadQueue').default;
+const createDownloadQueue: CreateDownloadQueue = require('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
@@ -617,7 +618,7 @@ const mainWindow = (): Promise<void> => {
 
                 const downloadQueue = createDownloadQueue();
                 ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
-                    const downloadItem = {
+                    const downloadItem: DownloadItem = {
                         ...downloadData,
                         win: browserWindow,
                     };
