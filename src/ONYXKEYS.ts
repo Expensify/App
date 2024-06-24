@@ -157,9 +157,6 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
-    /** Store the amount of owed money */
-    NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
-
     /** Store the stripe id status */
     NVP_PRIVATE_STRIPE_CUSTOMER_ID: 'nvp_private_stripeCustomerID',
 
@@ -191,7 +188,7 @@ const ONYXKEYS = {
     NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
 
     /** The amount owed by the workspace’s owner. */
-    NVP_PRIVATE_AMOUNT_OWNED: 'nvp_private_amountOwed',
+    NVP_PRIVATE_AMOUNT_OWED: 'nvp_private_amountOwed',
 
     /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
     NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
@@ -351,14 +348,11 @@ const ONYXKEYS = {
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
+    /** Indicates the result of ClearOutstandingBalance, it can either be success or failed */
+    SUBSCRIPTION_RETRY_BILLING_STATUS: 'subscriptionRetryBillingStatus',
+
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
-
-    /** Indicates whether ClearOutstandingBalance failed */
-    SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED: 'subscriptionRetryBillingStatusFailed',
-
-    /** Indicates whether ClearOutstandingBalance was successful */
-    SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL: 'subscriptionRetryBillingStatusSuccessful',
 
     /** Collection Keys */
     COLLECTION: {
@@ -693,22 +687,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
-    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
-    [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: {
-        paymentMethodID: string;
-        intentsID: string;
-        currency: string;
-        status: 'authentication_required' | 'intent_required' | 'succeeded';
-    };
+    [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: OnyxTypes.StripeCustomerID;
     [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: number;
-    [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: {
-        action: string;
-        periodMonth: string;
-        periodYear: string;
-        declineReason: 'insufficient_funds' | 'expired_card';
-    };
-    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
-    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
+    [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: OnyxTypes.BillingStatus;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
@@ -756,13 +737,12 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
+    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS]: OnyxTypes.RetryBillingStatus;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
-    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
-    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
-    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: number;
+    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
 };
 

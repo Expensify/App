@@ -62,9 +62,9 @@ function Indicator({reimbursementAccount, policies, bankAccountList, fundList, u
         // Wallet term errors that are not caused by an IOU (we show the red brick indicator for those in the LHN instead)
         () => Object.keys(walletTerms?.errors ?? {}).length > 0 && !walletTerms?.chatReportID,
     ];
-    const infoCheckingMethods: CheckingMethod[] = [() => !!loginList && UserUtils.hasLoginListInfo(loginList)];
+    const infoCheckingMethods: CheckingMethod[] = [() => !!loginList && UserUtils.hasLoginListInfo(loginList), () => SubscriptionUtils.hasSubscriptionGreenDotInfo()];
     const shouldShowErrorIndicator = errorCheckingMethods.some((errorCheckingMethod) => errorCheckingMethod());
-    const shouldShowInfoIndicator = !shouldShowErrorIndicator && (infoCheckingMethods.some((infoCheckingMethod) => infoCheckingMethod()) || SubscriptionUtils.hasSubscriptionGreenDotInfo());
+    const shouldShowInfoIndicator = !shouldShowErrorIndicator && infoCheckingMethods.some((infoCheckingMethod) => infoCheckingMethod());
 
     const indicatorColor = shouldShowErrorIndicator ? theme.danger : theme.success;
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];

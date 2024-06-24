@@ -150,7 +150,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
                 [ONYXKEYS.COLLECTION.POLICY]: null,
             });
         });
@@ -228,7 +228,7 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 0,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
@@ -239,7 +239,7 @@ describe('SubscriptionUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 8010,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();

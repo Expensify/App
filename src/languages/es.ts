@@ -3780,6 +3780,11 @@ export default {
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             succeeded: 'Éxito!',
             billedSuccessfully: 'Tu tarjeta fue facturada correctamente.',
+            preTrial: {
+                title: 'Iniciar una prueba gratuita',
+                subtitle: 'Para empezar, ',
+                subtitleLink: 'completa la lista de configuración aquí',
+            },
         },
         cardSection: {
             title: 'Pago',

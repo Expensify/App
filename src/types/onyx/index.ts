@@ -4,6 +4,7 @@ import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
+import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
@@ -66,12 +67,14 @@ import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
+import type RetryBillingStatus from './RetryBillingStatus';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type StripeCustomerID from './StripeCustomerID';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -190,4 +193,7 @@ export type {
     ReviewDuplicates,
     PrivateSubscription,
     BillingGraceEndPeriod,
+    RetryBillingStatus,
+    StripeCustomerID,
+    BillingStatus,
 };

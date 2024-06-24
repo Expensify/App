@@ -1,20 +1,18 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import * as Subscription from '@userActions/Subscription';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import BillingBanner from './BillingBanner';
+import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
+import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import CardSectionUtils from './utils';
@@ -23,23 +21,33 @@ function CardSection() {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isOffline} = useNetwork();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const defaultCard = CardSectionUtils.getCardForSubscriptionBilling();
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
+    const {title, subtitle, isError, icon, rightIcon} = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
+
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
-    const {title, subtitle, isError, shouldShowRedDotIndicator, shouldShowGreenDotIndicator, isRetryAvailable} = CardSectionUtils.getBillingStatus(
-        translate,
-        preferredLocale,
-        defaultCard?.accountData?.cardNumber ?? '',
-    );
 
-    const shouldShowBanner = !!title || !!subtitle;
+    let BillingBanner: React.ReactNode | undefined;
+    if (!CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+        BillingBanner = <PreTrialBillingBanner />;
+    } else if (title && subtitle) {
+        BillingBanner = (
+            <SubscriptionBillingBanner
+                title={title}
+                subtitle={subtitle}
+                isTrialActive={false}
+                isError={isError}
+                icon={icon}
+                rightIcon={rightIcon}
+            />
+        );
+    }
 
     return (
         <Section
@@ -48,17 +56,7 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={
-                shouldShowBanner && (
-                    <BillingBanner
-                        title={title}
-                        subtitle={subtitle}
-                        isError={isError}
-                        shouldShowRedDotIndicator={shouldShowRedDotIndicator}
-                        shouldShowGreenDotIndicator={shouldShowGreenDotIndicator}
-                    />
-                )
-            }
+            banner={BillingBanner}
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (
@@ -84,19 +82,7 @@ function CardSection() {
                         <CardSectionActions />
                     </>
                 )}
-                {!isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-                {!isRetryAvailable && (
-                    <Button
-                        text={translate('subscription.cardSection.retryPaymentButton')}
-                        isDisabled={isOffline}
-                        onPress={() => {
-                            Subscription.clearOutstandingBalance();
-                        }}
-                        style={styles.w100}
-                        success
-                        large
-                    />
-                )}
+                {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
         </Section>
     );
