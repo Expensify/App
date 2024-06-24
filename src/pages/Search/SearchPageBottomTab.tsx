@@ -21,8 +21,8 @@ type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SC
 const defaultSearchProps = {
     query: '' as SearchQuery,
     policyIDs: undefined,
-    sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE,
-    sortOrder: CONST.SORT_ORDER.DESC,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
 };
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -44,14 +44,15 @@ function SearchPageBottomTab() {
 
     const query = rawQuery as SearchQuery;
 
-    const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
+    const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL));
 
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
             style={styles.pv0}
+            offlineIndicatorStyle={styles.mtAuto}
         >
             <FullPageNotFoundView
                 shouldShow={!isValidQuery}
