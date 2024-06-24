@@ -566,6 +566,19 @@ Onyx.connect({
     },
 });
 
+let allReportsViolations: OnyxCollection<ReportViolations>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportsViolations = value;
+    },
+});
+
 function getLastUpdatedReport(): OnyxEntry<Report> {
     return lastUpdatedReport;
 }
@@ -7011,11 +7024,11 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
 }
 
 function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolation | undefined {
-    if (!violations) {
+    if (!violations || !reportField) {
         return undefined;
     }
 
-    return Object.values(CONST.REPORT_VIOLATIONS).find((v) => !!violations[v] && violations[v].includes(reportField.fieldID));
+    return Object.values(CONST.REPORT_VIOLATIONS).find((v) => !!violations[v] && violations[v][reportField.fieldID]);
 }
 
 function getFieldViolationTranslation(violation: ReportViolation | undefined, reportField: PolicyReportField): string {
@@ -7029,6 +7042,14 @@ function getFieldViolationTranslation(violation: ReportViolation | undefined, re
         default:
             return '';
     }
+}
+
+function getReportViolations(reportID: string) {
+    if (!allReportsViolations) {
+        return undefined;
+    }
+
+    return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
 }
 
 export {
@@ -7307,6 +7328,7 @@ export {
     getChatUsedForOnboarding,
     getFieldViolationTranslation,
     getFieldViolation,
+    getReportViolations,
 };
 
 export type {

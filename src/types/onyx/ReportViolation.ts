@@ -9,7 +9,7 @@ type ReportViolation = ValueOf<typeof CONST.REPORT_VIOLATIONS>;
 /**
  *
  */
-type ReportViolations = Record<ReportViolation, string[]>;
+type ReportViolations = Record<ReportViolation, Record<string, Record<string, unknown> | null>>;
 
 export type {ReportViolation};
 export default ReportViolations;
