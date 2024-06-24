@@ -143,7 +143,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.invoiceItem.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.invoiceItemPreference ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.invoiceItemPreference ? translate(`workspace.netsuite.invoiceItem.values.${config.invoiceItemPreference}`) : undefined,
+            title: config?.invoiceItemPreference ? translate(`workspace.netsuite.invoiceItem.values.${config.invoiceItemPreference}.label`) : undefined,
             pendingAction: config?.pendingFields?.invoiceItemPreference,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE),

@@ -2245,8 +2245,14 @@ export default {
             invoiceItem: {
                 label: 'Invoice item',
                 values: {
-                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: 'Create one for me',
-                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: 'Select existing',
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: {
+                        label: 'Create one for me',
+                        description: 'We\'ll create an "Expensify invoice line item" for you upon export (if one doesn’t exist already).',
+                    },
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
+                        label: 'Select existing',
+                        description: "We'll tie invoices from Expensify to the item selected below.",
+                    },
                 },
             },
             exportDate: {

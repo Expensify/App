@@ -1,4 +1,5 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -6,6 +7,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
@@ -29,7 +31,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
 
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
         value: postingPreference,
-        text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}`),
+        text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
         keyForList: postingPreference,
         isSelected: config?.invoiceItemPreference === postingPreference,
     }));
@@ -46,12 +48,22 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
         [config?.invoiceItemPreference, policyID],
     );
 
+    const headerContent = useMemo(
+        () => (
+            <View style={[styles.pb2, styles.ph5]}>
+                <Text style={[styles.pb2, styles.textNormal]}>{translate(`workspace.netsuite.invoiceItem.values.${config?.invoiceItemPreference ?? 'create'}.description`)}</Text>
+            </View>
+        ),
+        [styles.pb2, styles.ph5, styles.textNormal, translate, config?.invoiceItemPreference],
+    );
+
     return (
         <SelectionScreen
             displayName={NetSuiteInvoiceItemPreferenceSelectPage.displayName}
             title="workspace.netsuite.invoiceItem.label"
             sections={[{data}]}
             listItem={RadioListItem}
+            headerContent={headerContent}
             onSelectRow={(selection: SelectorType) => selectInvoicePreference(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
