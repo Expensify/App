@@ -1367,13 +1367,7 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
  */
 function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: string) {
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
-    return Object.values(chatReportActions).find(
-        (action: ReportAction) =>
-            action?.originalMessage &&
-            action?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER &&
-            action.originalMessage.transactionID === transactionID &&
-            isActionableTrackExpense(action),
-    );
+    return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
 export {

@@ -1580,8 +1580,6 @@ function getDeleteTrackExpenseInformation(
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
-    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
-    const actionableWhisperReportAction = Object.values(chatReportActions).find((action) => action?.reportActionID === actionableWhisperReportActionID);
     let transactionThread = null;
     if (transactionThreadID) {
         transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
@@ -1709,15 +1707,15 @@ function getDeleteTrackExpenseInformation(
     }
 
     if (actionableWhisperReportActionID) {
-        const actionableWhisperOriginalMessage = ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction);
-        if (actionableWhisperOriginalMessage && 'resolution' in actionableWhisperOriginalMessage) {
+        const actionableWhisperReportAction = ReportActionsUtils.getReportAction(chatReportID, actionableWhisperReportActionID);
+        if (ReportActionsUtils.isActionableTrackExpense(actionableWhisperReportAction)) {
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
                 value: {
                     [actionableWhisperReportActionID]: {
                         originalMessage: {
-                            resolution: actionableWhisperOriginalMessage?.resolution,
+                            resolution: ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction)?.resolution,
                         },
                     },
                 },
