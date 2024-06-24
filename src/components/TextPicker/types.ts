@@ -18,6 +18,9 @@ type TextSelectorModalProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Whether to clear the input value when the modal closes */
+    shouldClearOnClose?: boolean;
 } & Pick<MenuItemBaseProps, 'subtitle' | 'description'> &
     TextProps;
 

@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TextSelectorModalProps} from './types';
 import usePaddingStyle from './usePaddingStyle';
 
-function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, ...rest}: TextSelectorModalProps) {
+function TextSelectorModal({value, description = '', subtitle, onValueSelected, isVisible, onClose, shouldClearOnClose, ...rest}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -26,6 +26,13 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const hide = useCallback(() => {
+        onClose();
+        if (shouldClearOnClose) {
+            setValue('');
+        }
+    }, [onClose, shouldClearOnClose]);
 
     useFocusEffect(
         useCallback(() => {
@@ -47,8 +54,8 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
-            onClose={onClose}
-            onModalHide={onClose}
+            onClose={hide}
+            onModalHide={hide}
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
@@ -62,7 +69,7 @@ function TextSelectorModal({value, description = '', subtitle, onValueSelected, 
             >
                 <HeaderWithBackButton
                     title={description}
-                    onBackButtonPress={onClose}
+                    onBackButtonPress={hide}
                 />
                 <ScrollView
                     contentContainerStyle={[styles.flex1, styles.mh5, styles.mb5]}
