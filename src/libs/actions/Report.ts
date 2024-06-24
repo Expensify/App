@@ -225,7 +225,6 @@ Onyx.connect({
     callback: (value) => (reportMetadata = value),
 });
 
-const allReports: OnyxCollection<Report> = {};
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
 let reportIDDeeplinkedFromOldDot: string | undefined;
@@ -739,7 +738,7 @@ function openReport(
     const optimisticReport = reportActionsExist(reportID)
         ? {}
         : {
-              reportName: allReports?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
+              reportName: ReportConnection.getAllReports()?.[reportID]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
           };
 
     const optimisticData: OnyxUpdate[] = [
@@ -1008,7 +1007,7 @@ function navigateToAndOpenChildReport(childReportID = '-1', parentReportAction: 
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[parentReportID];
+        const parentReport = ReportConnection.getAllReports()?.[parentReportID];
         // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
         const childReportChatType = parentReport && ReportUtils.isSelfDM(parentReport) ? undefined : parentReport?.chatType;
         const newChat = ReportUtils.buildOptimisticChatReport(
@@ -1182,7 +1181,8 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
     }, null);
 
     // If no action created date is provided, use the last action's from other user
-    const actionCreationTime = reportActionCreated || (latestReportActionFromOtherUsers?.created ?? allReports?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
+    const actionCreationTime =
+        reportActionCreated || (latestReportActionFromOtherUsers?.created ?? ReportConnection.getAllReports()?.[reportID]?.lastVisibleActionCreated ?? DateUtils.getDBTime(0));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -1284,6 +1284,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         return;
     }
 
+    const allReports = ReportConnection.getAllReports();
     if (allReports && report?.reportID) {
         allReports[report.reportID] = report;
 
@@ -1686,7 +1687,7 @@ function toggleSubscribeToChildReport(childReportID = '-1', parentReportAction: 
         }
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction?.actorAccountID)])];
-        const parentReport = allReports?.[parentReportID];
+        const parentReport = ReportConnection.getAllReports()?.[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
             ReportActionsUtils.getReportActionText(parentReportAction),
@@ -2263,7 +2264,7 @@ function shouldShowReportActionNotification(reportID: string, action: ReportActi
     }
 
     // We don't want to send a local notification if the user preference is daily, mute or hidden.
-    const notificationPreference = allReports?.[reportID]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
+    const notificationPreference = ReportConnection.getAllReports()?.[reportID]?.notificationPreference ?? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
     if (notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS) {
         Log.info(`${tag} No notification because user preference is to be notified: ${notificationPreference}`);
         return false;
@@ -2315,7 +2316,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
 
     Log.info('[LocalNotification] Creating notification');
 
-    const report = allReports?.[reportID] ?? null;
+    const report = ReportConnection.getAllReports()?.[reportID] ?? null;
     if (!report) {
         Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {reportID, reportActionID: reportAction.reportActionID});
         return;
@@ -2538,7 +2539,7 @@ function getCurrentUserAccountID(): number {
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const reportID = currentReport?.reportID;
-    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(allReports ?? {}) as Report[], reportMetadata);
+    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(ReportConnection.getAllReports() ?? {}) as Report[], reportMetadata);
 
     // We want to filter out the current report, hidden reports and empty chats
     const filteredReportsByLastRead = sortedReportsByLastRead.filter(
