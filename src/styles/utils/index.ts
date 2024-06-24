@@ -22,7 +22,6 @@ import FontUtils from './FontUtils';
 import createModalStyleUtils from './generators/ModalStyleUtils';
 import createReportActionContextMenuStyleUtils from './generators/ReportActionContextMenuStyleUtils';
 import createTooltipStyleUtils from './generators/TooltipStyleUtils';
-import getAutoCompleteSuggestionContainerPosition from './getAutoCompleteSuggestionContainerPosition';
 import getContextMenuItemStyles from './getContextMenuItemStyles';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSignInBgStyles from './getSignInBgStyles';
@@ -858,13 +857,11 @@ const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyles(itemsHeight: number, shouldBeDisplayedBelowParentContainer: boolean, isEditComposer: boolean, containerHeight: number): ViewStyle {
+function getAutoCompleteSuggestionContainerStyles(itemsHeight: number): ViewStyle {
     'worklet';
 
     const borderWidth = CONST.AUTO_COMPLETE_SUGGESTER.BORDER_WIDTH;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
-    const suggestionsPadding = isEditComposer ? CONST.AUTO_COMPLETE_SUGGESTER.EDIT_SUGGESTER_PADDING : CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING;
-    const positionStyles = getAutoCompleteSuggestionContainerPosition(height, suggestionsPadding, shouldBeDisplayedBelowParentContainer, borderWidth, shouldPreventScroll, containerHeight);
 
     return {
         height,

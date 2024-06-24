@@ -7,7 +7,6 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {useSuggestionsContext} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import CONST from '@src/CONST';
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
 import type {RenderSuggestionMenuItemProps} from './types';
@@ -22,8 +21,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     suggestions,
     keyExtractor,
     measuredHeightOfSuggestionRows,
-    shouldBeDisplayedBelowParentContainer = false,
-    containerHeight,
 }: ExternalProps<TSuggestion>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -31,7 +28,6 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
     const scrollRef = useRef<FlatList<TSuggestion>>(null);
-    const {activeID} = useSuggestionsContext();
     /**
      * Render a suggestion menu item component.
      */
@@ -55,7 +51,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
 
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: fadeInOpacity.value,
-        ...StyleUtils.getAutoCompleteSuggestionContainerStyles(rowHeight.value, shouldBeDisplayedBelowParentContainer, !!activeID, containerHeight ?? 0),
+        ...StyleUtils.getAutoCompleteSuggestionContainerStyles(rowHeight.value),
     }));
 
     useEffect(() => {

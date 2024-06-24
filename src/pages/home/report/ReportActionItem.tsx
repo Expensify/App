@@ -679,7 +679,7 @@ function ReportActionItem({
                                     (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)
                                 }
                                 isGroupPolicyReport={isGroupPolicyReport}
-                                policyID={policy?.id}
+                                policyID={report?.policyID}
                             />
                         )}
                     </AttachmentContext.Provider>

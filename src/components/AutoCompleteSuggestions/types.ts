@@ -42,12 +42,6 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Measures the parent container's position and dimensions. Also add a cursor coordinates */
     measureParentContainerAndReportCursor?: (props: MeasureParentContainerAndCursorCallback) => void;
-
-    /** Whether suggestion should be displayed below the parent container or not */
-    shouldBeDisplayedBelowParentContainer?: boolean;
-
-    /** The height of container */
-    containerHeight?: number;
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps, MeasureParentContainerAndCursorCallback, MeasureParentContainerAndCursor};

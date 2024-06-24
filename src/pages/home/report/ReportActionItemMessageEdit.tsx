@@ -1,5 +1,4 @@
 import {PortalHost} from '@gorhom/portal';
-import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -7,6 +6,7 @@ import {DeviceEventEmitter, findNodeHandle, InteractionManager, Keyboard, Native
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
@@ -62,9 +62,6 @@ type ReportActionItemMessageEditProps = {
     /** The policyID of the report */
     policyID?: string;
 
-    /** If current composer is connected with report from group policy */
-    isGroupPolicyReport: boolean;
-
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -106,7 +103,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
+    const [selection, setSelection] = useState<TextSelection>({start: 0, end: 0, positionX: 0, positionY: 0});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -267,11 +264,13 @@ function ReportActionItemMessageEdit(
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
-                setSelection({
+                const position = Math.max(selection.end ?? 0 + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                setSelection((prevSelection) => ({
                     start: position,
                     end: position,
-                });
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
             }
 
             draftRef.current = newDraft;
@@ -504,7 +503,7 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
-                            onSelectionChange={(e) => {
+                            onSelectionChange={(e: CustomSelectionChangeEvent) => {
                                 suggestionsRef.current?.onSelectionChange?.(e);
                                 setSelection(e.nativeEvent.selection);
                             }}
@@ -516,7 +515,7 @@ function ReportActionItemMessageEdit(
                             suggestionsRef={suggestionsRef}
                             updateDraft={updateDraft}
                             measureParentContainer={measureContainer}
-                            isGroupPolicyReport={isGroupPolicyReport}
+                            isGroupPolicyReport={!!isGroupPolicyReport}
                             policyID={policyID}
                         />
                     </View>
