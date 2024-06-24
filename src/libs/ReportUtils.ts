@@ -775,6 +775,13 @@ function isReportApproved(reportOrID: OnyxInputOrEntry<Report> | string | EmptyO
 }
 
 /**
+ * Checks if the supplied report has been manually reimbursed
+ */
+function isReportManuallyReimbursed(report: OnyxEntry<Report>): boolean {
+    return report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+}
+
+/**
  * Checks if the supplied report is an expense report in Open state and status.
  */
 function isOpenExpenseReport(report: OnyxInputOrEntry<Report> | EmptyObject): boolean {
@@ -7224,6 +7231,7 @@ export {
     isPublicAnnounceRoom,
     isPublicRoom,
     isReportApproved,
+    isReportManuallyReimbursed,
     isReportDataReady,
     isReportFieldDisabled,
     isReportFieldOfTypeTitle,
