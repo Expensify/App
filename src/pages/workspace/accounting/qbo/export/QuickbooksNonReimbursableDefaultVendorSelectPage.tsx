@@ -1,5 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -12,6 +14,7 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -25,7 +28,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const sections = useMemo(() => {
         const data: CardListItem[] =
             vendors?.map((vendor) => ({
@@ -34,7 +37,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
                 keyForList: vendor.name,
                 isSelected: vendor.id === nonReimbursableBillDefaultVendor,
             })) ?? [];
-        return [{data}];
+        return data.length ? [{data}] : [];
     }, [nonReimbursableBillDefaultVendor, vendors]);
 
     const selectVendor = useCallback(
@@ -45,6 +48,20 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
         [nonReimbursableBillDefaultVendor, policyID],
+    );
+
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.qbo.noAccountsFound')}
+                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
     );
 
     return (
@@ -61,7 +78,8 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
                     ListItem={RadioListItem}
                     onSelectRow={selectVendor}
                     shouldDebounceRowSelect
-                    initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
+                    initiallyFocusedOptionKey={sections[0]?.data.find((mode) => mode.isSelected)?.keyForList}
+                    listEmptyContent={listEmptyContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -7,7 +7,9 @@ import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReportAction from './ReportAction';
+import type {ViolationName} from './TransactionViolation';
 
+/** Model of waypoint */
 type Waypoint = {
     /** The name associated with the address of the waypoint */
     name?: string;
@@ -43,80 +45,256 @@ type Waypoint = {
     keyForList?: string;
 };
 
+/**
+ * Collection of waypoints, indexed by `waypoint${index}`
+ * where `index` corresponds to the position of the waypoint in the list
+ */
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
+/** Model of transaction comment */
 type Comment = {
+    /** Content of the transaction comment */
     comment?: string;
+
+    /** Whether the transaction is on hold */
     hold?: string;
+
+    /** Collection of waypoints associated with the transaction */
     waypoints?: WaypointCollection;
+
+    /** Whether the transaction comment is loading */
     isLoading?: boolean;
-    type?: string;
+
+    /** Type of the transaction */
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
+
+    /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
+
+    /** Source of the transaction which when specified matches `split` */
     source?: string;
+
+    /** ID of the original transaction */
     originalTransactionID?: string;
+
+    /** In split transactions this is a collection of participant split data */
     splits?: Split[];
+
+    /** Violations that were dismissed */
+    dismissedViolations?: Record<ViolationName, Record<string, string | number>>;
 };
 
+/** Model of transaction custom unit */
 type TransactionCustomUnit = {
+    /** ID of the custom unit */
     customUnitID?: string;
+
+    /** ID of the custom unit rate */
     customUnitRateID?: string;
+
+    /** Custom unit amount */
     quantity?: number;
-    name?: string;
+
+    /** Name of the custom unit */
+    name?: ValueOf<typeof CONST.CUSTOM_UNITS>;
+
+    /** Default rate for custom unit */
     defaultP2PRate?: number;
 };
 
+/** Types of geometry */
 type GeometryType = 'LineString';
 
+/** Geometry data */
 type Geometry = {
+    /** Matrix of points, indexed by their coordinates */
     coordinates: number[][] | null;
+
+    /** Type of connections between coordinates */
     type?: GeometryType;
 };
 
+/** Accepted receipt paths */
 type ReceiptSource = string;
 
+/** Model of receipt */
 type Receipt = {
-    receiptID?: number;
-    path?: string;
+    /** Name of receipt file */
     name?: string;
+
+    /** Path of the receipt file */
     source?: ReceiptSource;
+
+    /** Name of receipt file */
     filename?: string;
+
+    /** Current receipt scan state */
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+
+    /** Type of the receipt file */
     type?: string;
+
+    /** Collection of reservations */
+    reservationList?: Reservation[];
 };
 
+/** Model of route */
 type Route = {
+    /** Distance amount of the route */
     distance: number | null;
+
+    /** Route geometry data */
     geometry: Geometry;
 };
 
+/** Collection of routes, indexed by `route${index}` where `index` is the position of the route in the list */
 type Routes = Record<string, Route>;
 
-type ReceiptError = {error?: string; source: string; filename: string};
+/** Model of receipt error */
+type ReceiptError = {
+    /** Path of the receipt file */
+    source: string;
 
+    /** Name of the receipt file */
+    filename: string;
+};
+
+/** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
 type ReceiptErrors = Record<string, ReceiptError>;
 
+/** Tax rate data */
 type TaxRateData = {
-    name: string;
+    /** Tax rate percentage */
     value: string;
+
+    /** Tax rate code */
     code?: string;
 };
 
+/** Model of tax rate */
 type TaxRate = {
+    /** Default name of the tax rate */
     text: string;
+
+    /** Key of the tax rate to index it on options list */
     keyForList: string;
-    searchText: string;
-    tooltipText: string;
-    isDisabled?: boolean;
+
+    /** Data of the tax rate */
     data?: TaxRateData;
 };
 
+/** Model of reservation */
+type Reservation = {
+    /** ID of the reservation */
+    reservationID?: string;
+
+    /** Details about the start of the reservation */
+    start: ReservationTimeDetails;
+
+    /** Details about the end of the reservation */
+    end: ReservationTimeDetails;
+
+    /** Type of reservation */
+    type: ReservationType;
+
+    /** In flight reservations, this represents the details of the airline company */
+    company?: Company;
+
+    /** Collection of passenger confirmations */
+    confirmations?: ReservationConfirmation[];
+
+    /** In flight and car reservations, this represents the number of passengers */
+    numPassengers?: number;
+
+    /** In hotel reservations, this represents the number of rooms reserved */
+    numberOfRooms?: number;
+
+    /** In flight reservations, this represents the details of the route */
+    route?: {
+        /** Route airline code */
+        airlineCode: string;
+
+        /** Passenger class */
+        class?: string;
+
+        /** Passenger seat number */
+        number: string;
+    };
+
+    /** In car reservations, this represents the car dealership name */
+    vendor?: string;
+
+    /** In car reservations, this represents the details of the car */
+    carInfo?: CarInfo;
+};
+
+/** Model of trip reservation time details */
+type ReservationTimeDetails = {
+    /** Date timestamp */
+    date: string;
+
+    /** In hotel reservations, this is the address of the hotel */
+    address?: string;
+
+    /** In car reservations, this is the location of the car dealership */
+    location?: string;
+
+    /** In flight reservations, this is the long name of the airport */
+    longName?: string;
+
+    /** In flight reservations, this is the short name of the airport */
+    shortName?: string;
+
+    /** Timezone offset */
+    timezoneOffset?: string;
+};
+
+/** Model of airline company details */
+type Company = {
+    /** Long name of airline company */
+    longName: string;
+
+    /** Short name of airline company */
+    shortName?: string;
+
+    /** Phone number of airline company support */
+    phone?: string;
+};
+
+/** Model of reservation confirmation */
+type ReservationConfirmation = {
+    /** Passenger name */
+    name: string;
+
+    /** Reservation code */
+    value: string;
+};
+
+/** Model of car details */
+type CarInfo = {
+    /** Name of the car */
+    name?: string;
+
+    /** Engine type */
+    engine?: string;
+};
+
+/** Types of reservations */
+type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
+
+/** Participant split data */
 type SplitShare = {
+    /** Amount to be split with participant */
     amount: number;
+
+    /** Whether the split was modified */
     isModified?: boolean;
 };
 
+/** Record of participant split data, indexed by their `accountID` */
 type SplitShares = Record<number, SplitShare | null>;
 
+/** Model of transaction */
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
@@ -241,6 +419,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Holds the accountIDs of accounts who paid the split, for now only supports a single payer */
         splitPayerAccountIDs?: number[];
 
+        /** Whether the user input should be kept */
+        shouldShowOriginalAmount?: boolean;
+
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
@@ -253,17 +434,28 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     keyof Comment
 >;
 
+/** Keys of pending transaction fields */
 type TransactionPendingFieldsKey = KeysOfUnion<Transaction['pendingFields']>;
 
+/** Additional transaction changes data */
 type AdditionalTransactionChanges = {
+    /** Content of modified comment */
     comment?: string;
+
+    /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
+
+    /** Previous amount before changes */
     oldAmount?: number;
+
+    /** Previous currency before changes */
     oldCurrency?: string;
 };
 
+/** Model of transaction changes  */
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+/** Collection of mock transactions, indexed by `transactions_${transactionID}` */
 type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
 export default Transaction;
@@ -278,6 +470,9 @@ export type {
     TransactionPendingFieldsKey,
     TransactionChanges,
     TaxRate,
+    Reservation,
+    ReservationTimeDetails,
+    ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
     SplitShare,

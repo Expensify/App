@@ -39,10 +39,12 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
     | typeof SCREENS.WORKSPACE.ADDRESS
+    | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
+    | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '';
+    return route?.params?.policyID ?? '-1';
 }
 
 type WithPolicyOnyxProps = {

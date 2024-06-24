@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -6,8 +6,8 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {CustomUnit, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -16,6 +16,11 @@ import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
+
+type WorkspaceDetails = {
+    policyID: string | undefined;
+    name: string;
+};
 
 let allPolicies: OnyxCollection<Policy>;
 
@@ -29,9 +34,9 @@ Onyx.connect({
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
+function getActivePolicies(policies: OnyxCollection<Policy> | null): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
-        (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
+        (policy): policy is Policy => !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
 }
 
@@ -85,6 +90,21 @@ function getNumericValue(value: number | string, toLocaleDigit: (arg: string) =>
     return numValue.toFixed(CONST.CUSTOM_UNITS.RATE_DECIMALS);
 }
 
+/**
+ * Retrieves the distance custom unit object for the given policy
+ */
+function getCustomUnit(policy: OnyxEntry<Policy> | EmptyObject) {
+    return Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+}
+
+/**
+ * Retrieves custom unit rate object from the given customUnitRateID
+ */
+function getCustomUnitRate(policy: OnyxEntry<Policy> | EmptyObject, customUnitRateID: string): Rate | EmptyObject {
+    const distanceUnit = getCustomUnit(policy);
+    return distanceUnit?.rates[customUnitRateID] ?? {};
+}
+
 function getRateDisplayValue(value: number, toLocaleDigit: (arg: string) => string): string {
     const numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
@@ -117,7 +137,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<t
 function shouldShowPolicy(policy: OnyxEntry<Policy>, isOffline: boolean): boolean {
     return (
         !!policy &&
-        (policy?.isPolicyExpenseChatEnabled || Boolean(policy?.isJoinRequestPending)) &&
+        (policy?.type !== CONST.POLICY.TYPE.PERSONAL || !!policy?.isJoinRequestPending) &&
         (isOffline || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0)
     );
 }
@@ -130,7 +150,8 @@ function isExpensifyTeam(email: string | undefined): boolean {
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.role === CONST.POLICY.ROLE.ADMIN;
+const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUserLogin?: string): boolean =>
+    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
 
 /**
  * Checks if the policy is a free group policy.
@@ -142,7 +163,7 @@ const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): b
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxEntry<Policy> | EmptyObject, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors if includeMemberWithErrors is false, and get the login email from the personalDetail object using the accountID.
@@ -272,7 +293,7 @@ function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
 }
 
 function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean): boolean {
-    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const distanceUnit = getCustomUnit(policy);
     const customUnitID = distanceUnit?.customUnitID ?? 0;
     const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && policy?.tax?.trackingEnabled;
     const isTaxEnabledForDistance = isPolicyTaxTrackingEnabled && policy?.customUnits?.[customUnitID]?.attributes?.taxEnabled;
@@ -284,14 +305,14 @@ function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Po
  * Checks if policy's scheduled submit / auto reporting frequency is "instant".
  * Note: Free policies have "instant" submit always enabled.
  */
-function isInstantSubmitEnabled(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function isInstantSubmitEnabled(policy: OnyxInputOrEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.FREE || (policy?.autoReporting === true && policy?.autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
 }
 
 /**
  * Checks if policy's approval mode is "optional", a.k.a. "Submit & Close"
  */
-function isSubmitAndClose(policy: OnyxEntry<Policy> | EmptyObject): boolean {
+function isSubmitAndClose(policy: OnyxInputOrEntry<Policy> | EmptyObject): boolean {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 }
 
@@ -303,7 +324,7 @@ function extractPolicyIDFromPath(path: string) {
  * Whether the policy has active accounting integration connections
  */
 function hasAccountingConnections(policy: OnyxEntry<Policy>) {
-    return Boolean(policy?.connections);
+    return !isEmptyObject(policy?.connections);
 }
 
 function getPathWithoutPolicyID(path: string) {
@@ -336,10 +357,10 @@ function canEditTaxRate(policy: Policy, taxID: string): boolean {
 
 function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, featureName: PolicyFeatureName): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
-        return Boolean(policy?.tax?.trackingEnabled);
+        return !!policy?.tax?.trackingEnabled;
     }
 
-    return Boolean(policy?.[featureName]);
+    return !!policy?.[featureName];
 }
 
 function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
@@ -393,14 +414,21 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 }
 
 /** Return active policies where current user is an admin */
-function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null): Policy[] {
     const activePolicies = getActivePolicies(policies);
     return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
 /** Whether the user can send invoice */
-function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
+function canSendInvoice(policies: OnyxCollection<Policy> | null): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
+}
+
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -431,6 +459,40 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
         keyForList: id,
         isSelected: isMatchFound ? selectedBankAccountId === id : index === 0,
     }));
+}
+
+/**
+ * Sort the workspaces by their name, while keeping the selected one at the beginning.
+ * @param workspace1 Details of the first workspace to be compared.
+ * @param workspace2 Details of the second workspace to be compared.
+ * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
+ */
+const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: WorkspaceDetails, selectedWorkspaceID: string | undefined): number => {
+    if (workspace1.policyID === selectedWorkspaceID) {
+        return -1;
+    }
+    if (workspace2.policyID === selectedWorkspaceID) {
+        return 1;
+    }
+    return workspace1.name?.toLowerCase().localeCompare(workspace2.name?.toLowerCase() ?? '') ?? 0;
+};
+
+/**
+ * Takes removes pendingFields and errorFields from a customUnit
+ */
+function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
+    const cleanedCustomUnit = {...customUnit};
+
+    delete cleanedCustomUnit.pendingFields;
+    delete cleanedCustomUnit.errorFields;
+
+    return cleanedCustomUnit;
+}
+
+function navigateWhenEnableFeature(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
 export {
@@ -479,10 +541,16 @@ export {
     shouldShowPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
+    hasDependentTags,
     getXeroTenants,
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    getCustomUnit,
+    getCustomUnitRate,
+    sortWorkspacesBySelected,
+    removePendingFieldsFromCustomUnit,
+    navigateWhenEnableFeature,
 };
 
 export type {MemberEmailsToAccountIDs};

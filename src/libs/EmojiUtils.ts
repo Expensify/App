@@ -1,5 +1,5 @@
 import {getUnixTime} from 'date-fns';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +19,10 @@ type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
 type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
+const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
+
+const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
+
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
@@ -29,16 +33,19 @@ Onyx.connect({
         frequentlyUsedEmojis =
             val
                 ?.map((item) => {
-                    const emoji = Emojis.emojiCodeTableWithSkinTones[item.code];
-                    return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                    let emoji = item;
+                    if (!item.code) {
+                        emoji = {...emoji, ...findEmojiByName(item.name)};
+                    }
+                    if (!item.name) {
+                        emoji = {...emoji, ...findEmojiByCode(item.code)};
+                    }
+                    const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                    return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
                 })
                 .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
     },
 });
-
-const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
-
-const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
 const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
     if (!emoji) {
@@ -210,7 +217,20 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis): EmojiPickerL
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...frequentlyUsedEmojis, ...emojis];
+    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
+        // Frequently used emojis in the old format will have name/types/code stored with them
+        // The back-end may not always have both, so we'll need to fill them in.
+        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByName(frequentlyUsedEmoji.name);
+        }
+        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
+            return findEmojiByCode(frequentlyUsedEmoji.code);
+        }
+
+        return frequentlyUsedEmoji;
+    });
+
+    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
     return addSpacesToEmojiCategories(mergedEmojis);
 }
 
@@ -433,7 +453,7 @@ function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_CO
 /**
  * Retrieve preferredSkinTone as Number to prevent legacy 'default' String value
  */
-const getPreferredSkinToneIndex = (value: string | number | null): number => {
+const getPreferredSkinToneIndex = (value: OnyxEntry<string | number>): number => {
     if (value !== null && Number.isInteger(Number(value))) {
         return Number(value);
     }
@@ -519,13 +539,13 @@ const enrichEmojiReactionWithTimestamps = (emoji: ReportActionReaction, emojiNam
  */
 function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReactions, skinTone?: number) {
     if (skinTone === undefined) {
-        return Boolean(usersReactions[accountID]);
+        return !!usersReactions[accountID];
     }
     const userReaction = usersReactions[accountID];
     if (!userReaction?.skinTones || !Object.values(userReaction?.skinTones ?? {}).length) {
         return false;
     }
-    return Boolean(userReaction.skinTones[skinTone]);
+    return !!userReaction.skinTones[skinTone];
 }
 
 /**

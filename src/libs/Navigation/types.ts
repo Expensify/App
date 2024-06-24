@@ -193,17 +193,21 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORY_CREATE]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.TAG_CREATE]: {
         policyID: string;
@@ -213,6 +217,14 @@ type SettingsNavigatorParamList = {
         rateID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATE_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT]: {
+        policyID: string;
+        rateID: string;
+    };
+    [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
         policyID: string;
         rateID: string;
     };
@@ -237,6 +249,11 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+        canChangeSize: 0 | 1;
+    };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
     };
@@ -404,9 +421,8 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
-        reportID?: string;
-    };
+    [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -420,6 +436,7 @@ type ProfileNavigatorParamList = {
     [SCREENS.PROFILE_ROOT]: {
         accountID: string;
         reportID: string;
+        login?: string;
         backTo: Routes;
     };
 };
@@ -432,11 +449,10 @@ type ReportDetailsNavigatorParamList = {
 };
 
 type ReportSettingsNavigatorParamList = {
-    [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
-    [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
-    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
+    [SCREENS.REPORT_SETTINGS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NAME]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {reportID: string};
+    [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: {reportID: string};
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
         reportID: string;
     };
@@ -720,6 +736,12 @@ type PrivateNotesNavigatorParamList = {
     };
 };
 
+type TransactionDuplicateNavigatorParamList = {
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
+        threadReportID: string;
+    };
+};
+
 type LeftModalNavigatorParamList = {
     [SCREENS.LEFT_MODAL.CHAT_FINDER]: undefined;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
@@ -733,6 +755,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: NavigatorScreenParams<ReportDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_SETTINGS]: NavigatorScreenParams<ReportSettingsNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
@@ -751,6 +774,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
@@ -799,6 +823,7 @@ type FullScreenNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
         policyID: string;
+        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.MORE_FEATURES]: {
         policyID: string;
@@ -840,7 +865,13 @@ type WelcomeVideoModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: {policyID?: string};
+    [SCREENS.SEARCH.BOTTOM_TAB]: {
+        query: string;
+        policyID?: string;
+        offset?: number;
+        sortBy?: SearchColumnType;
+        sortOrder?: SortOrder;
+    };
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
@@ -982,5 +1013,6 @@ export type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
 };

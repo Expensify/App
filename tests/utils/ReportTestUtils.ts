@@ -1,10 +1,10 @@
 import type {ReportAction, ReportActions} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 import createRandomReportAction from './collections/reportActions';
 
-const actionNames: ActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
+const actionNames: ReportActionName[] = ['ADDCOMMENT', 'IOU', 'REPORTPREVIEW', 'CLOSED'];
 
-const getFakeReportAction = (index: number, actionName?: ActionName): ReportAction =>
+const getFakeReportAction = (index: number, actionName?: ReportActionName): ReportAction =>
     ({
         actionName,
         actorAccountID: index,
@@ -19,7 +19,6 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
                 html: 'hey',
                 isDeletedParentAction: false,
                 isEdited: false,
-                reactions: [],
                 text: 'test',
                 type: 'TEXT',
                 whisperedTo: [],
@@ -31,6 +30,8 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
             // IOUReportID: index,
             linkedReportID: index.toString(),
             whisperedTo: [],
+            reason: '',
+            violationName: '',
         },
         pendingAction: null,
         person: [
@@ -42,22 +43,20 @@ const getFakeReportAction = (index: number, actionName?: ActionName): ReportActi
         ],
         reportActionID: index.toString(),
         previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
-        reportActionTimestamp: 1696243169753,
         sequenceNumber: 0,
         shouldShow: true,
-        timestamp: 1696243169,
     } as ReportAction);
 
 const getMockedSortedReportActions = (length = 100): ReportAction[] =>
     Array.from({length}, (element, index): ReportAction => {
-        const actionName: ActionName = index === 0 ? 'CREATED' : 'ADDCOMMENT';
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : 'ADDCOMMENT';
         return getFakeReportAction(index + 1, actionName);
     }).reverse();
 
 const getMockedReportActionsMap = (length = 100): ReportActions => {
     const mockReports: ReportActions[] = Array.from({length}, (element, index): ReportActions => {
         const reportID = index + 1;
-        const actionName: ActionName = index === 0 ? 'CREATED' : actionNames[index % actionNames.length];
+        const actionName: ReportActionName = index === 0 ? 'CREATED' : actionNames[index % actionNames.length];
         const reportAction = {
             ...createRandomReportAction(reportID),
             actionName,

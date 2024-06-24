@@ -47,12 +47,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
-    const policyID = route.params.policyID ?? '';
+    const policyID = route.params.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = Boolean(policy?.connections?.quickbooksOnline);
+    const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [PolicyUtils.getTagLists(policyTags), PolicyUtils.isMultiLevelTags(policyTags)], [policyTags]);
     const canSelectMultiple = !isMultiLevelTags;
 
@@ -174,12 +174,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
         if (selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-                    {!isThereAnyAccountingConnection && !isMultiLevelTags && (
+                    {!hasAccountingConnections && !isMultiLevelTags && (
                         <Button
                             medium
                             success
@@ -204,7 +204,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
-        if (!isThereAnyAccountingConnection) {
+        if (!hasAccountingConnections) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
@@ -290,6 +290,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </View>
     );
 
+    const hasVisibleTag = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -329,14 +331,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length === 0 && !isLoading && (
+                {!hasVisibleTag && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.tags.emptyTags.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {hasVisibleTag && !isLoading && (
                     <SelectionList
                         canSelectMultiple={canSelectMultiple}
                         sections={[{data: tagList, isDisabled: false}]}
@@ -348,7 +350,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => Tag.clearPolicyTagErrors(policyID, item.value)}
+                        onDismissError={(item) => !isMultiLevelTags && Tag.clearPolicyTagErrors(policyID, item.value, 0)}
                         listHeaderContent={isSmallScreenWidth ? getHeaderText() : null}
                         showScrollIndicator={false}
                     />

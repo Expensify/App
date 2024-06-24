@@ -1,4 +1,5 @@
-import React, {useMemo, useRef, useState} from 'react';
+import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -109,17 +110,27 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseXeroIntegration} = usePermissions();
+    const {canUseXeroIntegration, canUseNetSuiteIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+    const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
 
-    const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+    const lastSyncProgressDate = parseISO(connectionSyncProgress?.timestamp ?? '');
+    const isSyncInProgress =
+        !!connectionSyncProgress?.stageInProgress &&
+        connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
+        isValid(lastSyncProgressDate) &&
+        differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
+        (name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration) && !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration),
+    );
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
+    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
+    const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
@@ -144,6 +155,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         [translate, policyID, isOffline, connectedIntegration],
     );
 
+    useEffect(() => {
+        setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
+    }, [formattedDate]);
+
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
@@ -163,7 +178,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration);
+        const shouldShowSynchronizationError = hasSynchronizationError(policy, connectedIntegration, isSyncInProgress);
         const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
@@ -176,9 +191,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
-                    : translate('workspace.accounting.lastSync'),
+                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress) : datetimeToRelative,
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
@@ -216,7 +229,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                               if (!(tenants.length > 1)) {
                                   return;
                               }
-                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? '-1'));
                           },
                           pendingAction: policy?.connections?.xero?.config?.pendingFields?.tenantID,
                           brickRoadIndicator: policy?.connections?.xero?.config?.errorFields?.tenantID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -270,6 +283,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         policyConnectedToXero,
         currentXeroOrganizationName,
         tenants.length,
+        datetimeToRelative,
         accountingIntegrations,
         currentXeroOrganization?.id,
     ]);

@@ -86,12 +86,11 @@ function GenericPressable(
             if (shouldUseHapticsOnLongPress) {
                 HapticFeedback.longPress();
             }
-            if (ref && 'current' in ref) {
+            if (ref && 'current' in ref && nextFocusRef) {
                 ref.current?.blur();
+                Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
             onLongPress(event);
-
-            Accessibility.moveAccessibilityFocus(nextFocusRef);
         },
         [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
     );
@@ -107,14 +106,20 @@ function GenericPressable(
             if (shouldUseHapticsOnPress) {
                 HapticFeedback.press();
             }
-            if (ref && 'current' in ref) {
+            if (ref && 'current' in ref && nextFocusRef) {
                 ref.current?.blur();
+                Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
-            const onPressResult = onPress(event);
-            Accessibility.moveAccessibilityFocus(nextFocusRef);
-            return onPressResult;
+            return onPress(event);
         },
         [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled],
+    );
+
+    const voidOnPressHandler = useCallback(
+        (...args: Parameters<typeof onPressHandler>) => {
+            onPressHandler(...args);
+        },
+        [onPressHandler],
     );
 
     const onKeyboardShortcutPressHandler = useCallback(
@@ -160,8 +165,8 @@ function GenericPressable(
             aria-disabled={isDisabled}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
-            onMagicTap={!isDisabled ? onPressHandler : undefined}
-            onAccessibilityTap={!isDisabled ? onPressHandler : undefined}
+            onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
+            onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}

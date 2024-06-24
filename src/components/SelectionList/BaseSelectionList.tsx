@@ -30,6 +30,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
 import type {BaseSelectionListProps, ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle} from './types';
 
+const getDefaultItemHeight = () => variables.optionRowHeight;
+
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
@@ -40,6 +42,7 @@ function BaseSelectionList<TItem extends ListItem>(
         onCheckboxPress,
         onSelectAll,
         onDismissError,
+        getItemHeight = getDefaultItemHeight,
         textInputLabel = '',
         textInputPlaceholder = '',
         textInputValue = '',
@@ -56,6 +59,7 @@ function BaseSelectionList<TItem extends ListItem>(
         headerContent,
         footerContent,
         listFooterContent,
+        listEmptyContent,
         showScrollIndicator = true,
         showLoadingPlaceholder = false,
         showConfirmButton = false,
@@ -70,6 +74,7 @@ function BaseSelectionList<TItem extends ListItem>(
         isLoadingNewOptions = false,
         onLayout,
         customListHeader,
+        customListHeaderHeight = 0,
         listHeaderWrapperStyle,
         isRowMultilineSupported = false,
         textInputRef,
@@ -84,6 +89,8 @@ function BaseSelectionList<TItem extends ListItem>(
         onEndReachedThreshold,
         windowSize = 5,
         updateCellsBatchingPeriod = 50,
+        removeClippedSubviews = true,
+        shouldDelayFocus = true,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -103,6 +110,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
+    const isEmptyList = sections.length === 0;
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -121,7 +129,8 @@ function BaseSelectionList<TItem extends ListItem>(
         const disabledArrowKeyOptionsIndexes: number[] = [];
         let disabledIndex = 0;
 
-        let offset = 0;
+        // need to account that the list might have some extra content above it
+        let offset = customListHeader ? customListHeaderHeight : 0;
         const itemLayouts = [{length: 0, offset}];
 
         const selectedOptions: TItem[] = [];
@@ -151,7 +160,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 disabledIndex += 1;
 
                 // Account for the height of the item in getItemLayout
-                const fullItemHeight = variables.optionRowHeight;
+                const fullItemHeight = getItemHeight(item);
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
 
@@ -183,7 +192,7 @@ function BaseSelectionList<TItem extends ListItem>(
             itemLayouts,
             allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    }, [canSelectMultiple, sections]);
+    }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, getItemHeight]);
 
     const [slicedSections, ShowMoreButtonInstance] = useMemo(() => {
         let remainingOptionsLimit = CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage;
@@ -256,12 +265,16 @@ function BaseSelectionList<TItem extends ListItem>(
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
-        isActive: true,
+        isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
         },
         isFocused,
     });
+
+    const clearInputAfterSelect = useCallback(() => {
+        onChangeText?.('');
+    }, [onChangeText]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
@@ -284,6 +297,10 @@ function BaseSelectionList<TItem extends ListItem>(
                     // If we're selecting an item, scroll to it's position at the top, so we can see it
                     scrollToIndex(Math.max(selectedOptionsCount - 1, 0), true);
                 }
+            }
+
+            if (shouldShowTextInput) {
+                clearInputAfterSelect();
             }
         }
 
@@ -496,27 +513,28 @@ function BaseSelectionList<TItem extends ListItem>(
         };
     }, [debouncedSelectFocusedOption, shouldDebounceRowSelect]);
 
+    /** Function to focus text input */
+    const focusTextInput = useCallback(() => {
+        if (!innerTextInputRef.current) {
+            return;
+        }
+
+        innerTextInputRef.current.focus();
+    }, []);
+
     /** Focuses the text input when the component comes into focus and after any navigation animations finish. */
     useFocusEffect(
         useCallback(() => {
-            if (!textInputAutoFocus) {
-                return;
-            }
-            if (shouldShowTextInput) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    if (!innerTextInputRef.current) {
-                        return;
-                    }
-                    innerTextInputRef.current.focus();
-                }, CONST.ANIMATED_TRANSITION);
-            }
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
+            if (textInputAutoFocus && shouldShowTextInput) {
+                if (shouldDelayFocus) {
+                    focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+                } else {
+                    focusTextInput();
                 }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, [shouldShowTextInput, textInputAutoFocus]),
+            }
+
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, [shouldShowTextInput, textInputAutoFocus, shouldDelayFocus, focusTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
@@ -582,7 +600,7 @@ function BaseSelectionList<TItem extends ListItem>(
         [flattenedSections.allOptions, setFocusedIndex, updateAndScrollToFocusedIndex],
     );
 
-    useImperativeHandle(ref, () => ({scrollAndHighlightItem}), [scrollAndHighlightItem]);
+    useImperativeHandle(ref, () => ({scrollAndHighlightItem, clearInputAfterSelect}), [scrollAndHighlightItem, clearInputAfterSelect]);
 
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, shouldDebounceRowSelect ? debouncedSelectFocusedOption : selectFocusedOption, {
@@ -667,6 +685,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         <>
                             {!listHeaderContent && header()}
                             <SectionList
+                                removeClippedSubviews={removeClippedSubviews}
                                 ref={listRef}
                                 sections={slicedSections}
                                 stickySectionHeadersEnabled={false}
@@ -694,8 +713,11 @@ function BaseSelectionList<TItem extends ListItem>(
                                 testID="selection-list"
                                 onLayout={onSectionListLayout}
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
+                                ListHeaderComponent={listHeaderContent}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
-                                ListHeaderComponent={listHeaderContent && listHeaderContent}
+                                ListEmptyComponent={listEmptyContent}
+                                contentContainerStyle={isEmptyList && listEmptyContent ? styles.flexGrow1 : undefined}
+                                scrollEnabled={!isEmptyList || !listEmptyContent}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />
