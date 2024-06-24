@@ -417,6 +417,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         taxID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CODE]: {
+        policyID: string;
+        taxID: string;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type NewChatNavigatorParamList = {

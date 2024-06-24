@@ -213,6 +213,7 @@ export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicy
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as UpdatePolicyTaxCodeParams} from './UpdatePolicyTaxCodeParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';

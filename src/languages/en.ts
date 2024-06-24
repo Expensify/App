@@ -2322,6 +2322,8 @@ export default {
                 enableMultiple: 'Enable rates',
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
+            taxCode: 'Tax code',
+            updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again.',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
