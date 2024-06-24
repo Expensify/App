@@ -331,7 +331,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
     API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
 }
 
-function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string) {
+function updatePolicyCategoryGLCode(policyID: string, categoryName: string, glCode: string) {
     const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName] ?? {};
 
     const onyxData: OnyxData = {
@@ -650,7 +650,7 @@ export {
     setWorkspaceRequiresCategory,
     createPolicyCategory,
     renamePolicyCategory,
-    setPolicyCategoryGLCode,
+    updatePolicyCategoryGLCode,
     clearCategoryErrors,
     enablePolicyCategories,
     setPolicyDistanceRatesDefaultCategory,
