@@ -10,11 +10,11 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
+import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -47,7 +47,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
                 <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', isReimbursable)}</Text>
             </View>
         ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
     );
 
     const updateDefaultVendor = useCallback(
@@ -65,7 +65,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
                               }
                             : {nonReimbursableVendor: value};
                 }
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, settingValue);
+                updateSageIntacctDefaultVendor(policyID, settingValue);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },

@@ -10,12 +10,12 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updateSageIntacctDefaultVendor, updateSageIntacctExportNonReimbursableExpense} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
@@ -57,7 +57,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value === config?.export.nonReimbursable) {
                 return;
             }
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {nonReimbursable: row.value});
+            updateSageIntacctExportNonReimbursableExpense(policyID, row.value);
         },
         [config?.export.nonReimbursable, policyID],
     );
@@ -131,12 +131,12 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     {creditCardAccount}
                     <ToggleSettingOptionRow
                         title={translate('workspace.sageIntacct.defaultVendor')}
-                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription')}
+                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription', false)}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {
+                            updateSageIntacctDefaultVendor(policyID, {
                                 nonReimbursableCreditCardChargeDefaultVendor: null,
                             });
                             setIsSwitchOn(!isSwitchOn);

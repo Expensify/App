@@ -8,12 +8,12 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctCreditCards} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
+import {updateSageIntacctExportNonReimbursableAccount} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -39,9 +39,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const updateCreditCardAccount = useCallback(
         ({value}: SelectorType) => {
             if (value !== nonReimbursableAccount) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {
-                    nonReimbursableAccount: value,
-                });
+                updateSageIntacctExportNonReimbursableAccount(policyID, value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },

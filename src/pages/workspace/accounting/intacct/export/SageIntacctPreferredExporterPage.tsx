@@ -8,11 +8,11 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import {updateSageIntacctExporter} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -64,7 +64,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {exporter: row.value});
+                updateSageIntacctExporter(policyID, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },

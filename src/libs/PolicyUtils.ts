@@ -489,6 +489,7 @@ function getSageIntacctCreditCards(policy: Policy | undefined, selectedAccount: 
 
     return (creditCards ?? []).map(({name}) => ({
         value: name,
+        text: name,
         keyForList: name,
         isSelected: isMatchFound && name === selectedAccount,
     }));

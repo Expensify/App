@@ -10,11 +10,11 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updateSageIntacctDefaultVendor, updateSageIntacctExportReimbursableExpense} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
@@ -55,7 +55,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     const selectExportDate = useCallback(
         (row: MenuListItem) => {
             if (row.value !== reimbursable) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {reimbursable: row.value});
+                updateSageIntacctExportReimbursableExpense(policyID, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
         },
@@ -107,14 +107,12 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                 <View>
                     <ToggleSettingOptionRow
                         title={translate('workspace.sageIntacct.defaultVendor')}
-                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription')}
+                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription', true)}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, {
-                                reimbursableExpenseReportDefaultVendor: null,
-                            });
+                            updateSageIntacctDefaultVendor(policyID, {reimbursableExpenseReportDefaultVendor: null});
                             setIsSwitchOn(!isSwitchOn);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}
