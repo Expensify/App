@@ -10,6 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -32,6 +33,7 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
+import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderProps = {
@@ -90,6 +92,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
@@ -110,15 +113,20 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
-
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
+
+    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
+    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
+
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep =
         !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !allHavePendingRTERViolation && !hasScanningReceipt;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
+    const shouldShowAnyButton =
+        shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation || shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
@@ -208,6 +216,28 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
+    // TODO: This is a temporary solution to show the integration icon in the dropdown menu
+    const iconToDisplay = ReportUtils.getIntegrationIcon(connectedIntegration);
+    const shouldIntegrationDropdownOptionsBeDisabled = false;
+
+    const integrationsDropdownOptions = useMemo(
+        () => [
+            {
+                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+                text: translate('common.export'),
+                icon: iconToDisplay,
+                disabled: shouldIntegrationDropdownOptionsBeDisabled,
+            },
+            {
+                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+                text: translate('workspace.common.markAsExported'),
+                icon: iconToDisplay,
+                disabled: shouldIntegrationDropdownOptionsBeDisabled,
+            },
+        ],
+        [iconToDisplay, shouldIntegrationDropdownOptionsBeDisabled, translate],
+    );
+
     return (
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
@@ -242,6 +272,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
                             isDisabled={isOffline && !canAllowSettlement}
                             isLoading={!isOffline && !canAllowSettlement}
+                        />
+                    </View>
+                )}
+                {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <ExportWithDropdownMenu
+                            dropdownOptions={integrationsDropdownOptions}
+                            integrationName={connectedIntegration}
                         />
                     </View>
                 )}
@@ -317,6 +355,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
+                {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <ExportWithDropdownMenu
+                            dropdownOptions={integrationsDropdownOptions}
+                            integrationName={connectedIntegration}
+                        />
+                    </View>
+                )}
+
                 {shouldShowSubmitButton && shouldUseNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <Button
@@ -390,6 +437,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 danger
                 shouldEnableNewFocusManagement
             />
+            {/* TODO: Add ConfirmModal, verify if it can be reused */}
         </View>
     );
 }

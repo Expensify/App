@@ -327,7 +327,7 @@ function ReportPreview({
      */
 
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
-    const hasIntegrationAutoSync = (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync.enabled) ?? false;
+    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectedIntegration);
     // TODO: Implement the logic to disable the dropdown options
     const shouldIntegrationDropdownOptionsBeDisabled = false;

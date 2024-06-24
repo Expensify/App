@@ -499,6 +499,10 @@ function getConnectedIntegration(policy: Policy | undefined) {
     return Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
 }
 
+function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync.enabled) ?? false;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -528,6 +532,7 @@ export {
     hasAccountingConnections,
     hasCustomUnitsError,
     hasEmployeeListError,
+    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,
