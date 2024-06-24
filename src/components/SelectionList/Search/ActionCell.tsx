@@ -19,12 +19,12 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action: SearchTransactionAction;
-    transactionIDs: string[];
+    transactionIDs?: string[];
     searchHash: number;
     goToItem: () => void;
 };
 
-function ActionCell({action, transactionIDs, searchHash, goToItem}: ActionCellProps) {
+function ActionCell({action, transactionIDs = [], searchHash, goToItem}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -64,7 +64,7 @@ function ActionCell({action, transactionIDs, searchHash, goToItem}: ActionCellPr
                     return;
                 }
 
-                command(searchHash, transactionIDs, '');
+                command(searchHash, transactionIDs);
             }}
             small
             pressOnEnter

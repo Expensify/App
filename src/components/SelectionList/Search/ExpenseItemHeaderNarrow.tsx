@@ -16,7 +16,7 @@ type ExpenseItemHeaderNarrowProps = {
     participantFromDisplayName: string;
     participantToDisplayName: string;
     action: SearchTransactionAction;
-    transactionIDs: string[];
+    transactionIDs?: string[];
     searchHash: number;
     onButtonPress: () => void;
 };
