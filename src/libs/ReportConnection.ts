@@ -34,10 +34,12 @@ Onyx.connect({
     },
 });
 
+// This function is used to get all reports
 function getAllReports() {
     return allReports;
 }
 
+// This function is used to get all reports name map
 function getAllReportsNameMap() {
     return reportIDToNameMap;
 }
