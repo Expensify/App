@@ -138,3 +138,6 @@ web-build/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Storage location for downloaded app source maps (see scripts/symbolicate-profile.ts)
+.sourcemaps/

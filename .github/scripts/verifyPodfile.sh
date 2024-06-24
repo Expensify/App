@@ -39,10 +39,9 @@ fi
 
 info "Ensuring correct version of cocoapods is used..."
 
-# Extract versions from Gemfile
-POD_VERSION_REQUIREMENTS=$(grep 'cocoapods' Gemfile | grep -o "'.*'" | tr -d "'" | tr -d ',' | awk '{print $2, $3}')
-POD_VERSION_REQUIREMENTS_2=$(grep 'cocoapods' Gemfile | grep -o "'.*'" | tr -d "'" | tr -d ',' | awk '{print $4, $5}')
-info "Pod version requirements from Gemfile: $POD_VERSION_REQUIREMENTS, $POD_VERSION_REQUIREMENTS_2"
+POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?';
+POD_VERSION_FROM_GEMFILE="$(sed -nr "s/gem \"cocoapods\", \"= $POD_VERSION_REGEX\"/\1/p" Gemfile)"
+info "Pod version from Gemfile: $POD_VERSION_FROM_GEMFILE"
 
 # Extract version from Podfile.lock
 POD_VERSION_FROM_PODFILE_LOCK=$(grep 'COCOAPODS' ios/Podfile.lock | awk '{print $2}')
