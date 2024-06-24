@@ -83,7 +83,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
-    const [errorMessage, setErrorMessage] = useState<'onboarding.purpose.errorSelection' | 'onboarding.purpose.errorContinue' | ''>('');
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -110,11 +110,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const handleOuterClick = useCallback(() => {
         if (!selectedPurpose) {
-            setErrorMessage('onboarding.purpose.errorSelection');
+            setErrorMessage(translate('onboarding.purpose.errorSelection'));
         } else {
-            setErrorMessage('onboarding.purpose.errorContinue');
+            setErrorMessage(translate('onboarding.purpose.errorContinue'));
         }
-    }, [selectedPurpose]);
+    }, [selectedPurpose, setErrorMessage, translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
@@ -147,14 +147,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
-                                setErrorMessage('onboarding.purpose.errorSelection');
+                                setErrorMessage(translate('onboarding.purpose.errorSelection'));
                                 return;
                             }
                             setErrorMessage('');
                             saveAndNavigate();
                         }}
                         message={errorMessage}
-                        isAlertVisible={Boolean(errorMessage)}
+                        isAlertVisible={!!errorMessage}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>

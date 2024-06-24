@@ -60,10 +60,12 @@ function IOURequestStepMerchant({
 
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && isEditing;
+    const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
+    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || isTypeInvoice || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -73,12 +75,12 @@ function IOURequestStepMerchant({
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
 
             if (isMerchantRequired && !value.moneyRequestMerchant) {
-                errors.moneyRequestMerchant = 'common.error.fieldRequired';
+                errors.moneyRequestMerchant = translate('common.error.fieldRequired');
             }
 
             return errors;
         },
-        [isMerchantRequired],
+        [isMerchantRequired, translate],
     );
 
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -146,18 +148,18 @@ export default withWritableReportOrNotFound(
         withOnyx<IOURequestStepMerchantProps, IOURequestStepMerchantOnyxProps>({
             splitDraftTransaction: {
                 key: ({route}) => {
-                    const transactionID = route.params.transactionID ?? 0;
+                    const transactionID = route.params.transactionID ?? -1;
                     return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
                 },
             },
             policy: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
             },
             policyCategories: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
             },
             policyTags: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
             },
         })(IOURequestStepMerchant),
     ),

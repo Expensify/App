@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import Log from '@src/libs/Log';
 import CheckForPreviousReportActionID from '@src/libs/migrations/CheckForPreviousReportActionID';
@@ -50,7 +50,7 @@ describe('Migrations', () => {
                         2: {reportActionID: '2', created: '', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, reportID: '1'},
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet(reportActionsCollectionDataSet)
@@ -92,7 +92,7 @@ describe('Migrations', () => {
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet(reportActionsCollectionDataSet)
@@ -139,7 +139,7 @@ describe('Migrations', () => {
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet({
@@ -189,7 +189,7 @@ describe('Migrations', () => {
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet({
@@ -262,10 +262,10 @@ describe('Migrations', () => {
         it('Should move individual draft to a draft collection of report', () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = 'a' as unknown as OnyxEntry<OnyxTypes.ReportActionsDrafts>;
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`] = 'b' as unknown as OnyxEntry<OnyxTypes.ReportActionsDrafts>;
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = 'a' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`] = 'b' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`] = {3: 'c'};
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`] = 'd' as unknown as OnyxEntry<OnyxTypes.ReportActionsDrafts>;
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`] = 'd' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
 
             return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
@@ -320,7 +320,7 @@ describe('Migrations', () => {
         it("Shouldn't move empty individual draft to a draft collection of report", () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = '' as unknown as OnyxEntry<OnyxTypes.ReportActionsDrafts>;
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = '' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`] = {};
 
             return Onyx.multiSet(setQueries)

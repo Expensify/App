@@ -44,9 +44,9 @@ function PersonalInfo({reimbursementAccount, reimbursementAccountDraft, onBackBu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policyID = reimbursementAccount?.achData?.policyID ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             BankAccounts.updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);
