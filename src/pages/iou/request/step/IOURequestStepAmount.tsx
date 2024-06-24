@@ -180,9 +180,12 @@ function IOURequestStepAmount({
             return;
         }
 
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
+        // If a reportID exists in the report object and the transaction is not globally created, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
+
+        // In case the transaction is globally created, we just set the participants from the report, but we won't set `participantAutoAssigned=true` for the transaction
+        // and we won't skip the confirmation step, allowing participant to be re-selected
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const isFromGlobalCreated = !!currentTransaction?.isFromGlobalCreate && !isEditingSplitBill;
             // if the transaction is not globally created, the participants of the transaction is still set from the report, the participant is not auto-assigned

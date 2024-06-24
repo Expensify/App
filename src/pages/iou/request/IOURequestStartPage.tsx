@@ -114,9 +114,13 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
+            if(!!transaction?.isFromGlobalCreate) {
+                IOU.initMoneyRequest(transaction.reportID, policy, transaction.isFromGlobalCreate, newIOUType);
+                return;
+            }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
-        [policy, reportID, isFromGlobalCreate, transaction?.iouRequestType],
+        [policy, reportID, isFromGlobalCreate, transaction?.reportID, transaction?.isFromGlobalCreate, transaction?.iouRequestType],
     );
 
     if (!transaction?.transactionID) {
