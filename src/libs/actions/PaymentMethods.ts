@@ -6,7 +6,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -258,6 +258,73 @@ function addSubscriptionPaymentCard(cardData: {
 }
 
 /**
+ * Calls the API to add a new card for GBP currency with 3ds.
+ *
+ */
+function addPaymentCardGBP(cardData: {
+    cardNumber: string;
+    cardYear: string;
+    cardMonth: string;
+    cardCVV: string;
+    addressName: string;
+    addressZip: string;
+    currency: ValueOf<typeof CONST.CURRENCY>;
+}) {
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
+
+    const parameters: AddPaymentCardParams = {
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+        currency,
+        isP2PDebitCard: false,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
+        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
+    });
+}
+
+/**
+ * Clear 3ds flow - when verification will be finished
+ *
+ */
+function clearPaymentCard3dsVerification() {
+    Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, '');
+}
+
+/**
  * Resets the values for the add debit card form back to their initial states
  */
 function clearDebitCardFormErrorAndSubmit() {
@@ -433,6 +500,7 @@ export {
     kycWallRef,
     continueSetup,
     addSubscriptionPaymentCard,
+    addPaymentCardGBP,
     clearDebitCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
@@ -444,4 +512,5 @@ export {
     clearAddPaymentMethodError,
     clearWalletError,
     clearWalletTermsError,
+    clearPaymentCard3dsVerification,
 };

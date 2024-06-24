@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
+import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +42,7 @@ function AddPaymentCard() {
             currency: currency ?? CONST.CURRENCY.USD,
         };
         if (currency === CONST.CURRENCY.GBP) {
-            // TODO add AddPaymentCardGBP flow as a follow up
+            PaymentMethods.addPaymentCardGBP(cardData);
             return;
         }
         PaymentMethods.addSubscriptionPaymentCard(cardData);
@@ -86,6 +87,7 @@ function AddPaymentCard() {
                     }
                 />
             </View>
+            <CardAuthenticationModal headerTitle={translate('subscription.authenticatePaymentCard')} />
         </ScreenWrapper>
     );
 }

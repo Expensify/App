@@ -47,6 +47,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivateStripeCustomer from './PrivateStripeCustomer';
 import type PrivateSubscription from './PrivateSubscription';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
@@ -188,4 +189,5 @@ export type {
     SearchResults,
     PrivateSubscription,
     BillingGraceEndPeriod,
+    PrivateStripeCustomer,
 };
