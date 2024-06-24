@@ -2036,7 +2036,7 @@ export default {
             },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
-            exportInvoicesDescription: 'Invoices will export to this account in QuickBooks Online.',
+            exportInvoicesDescription: 'Use this account when exporting invoices to QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
@@ -2150,7 +2150,7 @@ export default {
             },
             exportDate: {
                 label: 'Export date',
-                description: 'Use this date when exporting reports to Xero.',
+                description: 'Use this date when exporting purchase bills to Xero.',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -2168,7 +2168,7 @@ export default {
             },
             invoiceStatus: {
                 label: 'Purchase bill status',
-                description: 'Choose a status for purchase bills exported to Xero.',
+                description: 'Use this status when exporting purchase bills to Xero.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
