@@ -1,6 +1,6 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +15,14 @@ type ListItemSkeletonProps = {
     itemViewHeight?: number;
 };
 
+const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
+    if (!style) {
+        return 0;
+    }
+    const flattenStyle = style instanceof Array ? Object.assign({}, ...style) : style;
+    return Number((flattenStyle.marginVertical || 0) + (flattenStyle.marginTop || 0) + (flattenStyle.marginBottom || 0));
+};
+
 function ItemListSkeletonView({
     shouldAnimate = true,
     renderSkeletonItem,
@@ -27,13 +35,36 @@ function ItemListSkeletonView({
     const themeStyles = useThemeStyles();
 
     const [numItems, setNumItems] = useState(fixedNumItems ?? 0);
+
+    const totalItemHeight = itemViewHeight + getVerticalMargin(itemViewStyle);
+
+    const handleLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            if (fixedNumItems) {
+                return;
+            }
+
+            const totalHeight = event.nativeEvent.layout.height;
+
+            const newNumItems = Math.ceil(totalHeight / totalItemHeight);
+
+            if (newNumItems !== numItems) {
+                setNumItems(newNumItems);
+            }
+        },
+        [fixedNumItems, numItems, totalItemHeight],
+    );
+
     const skeletonViewItems = useMemo(() => {
         const items = [];
         for (let i = 0; i < numItems; i++) {
             const opacity = gradientOpacity ? 1 - i / numItems : 1;
             items.push(
-                <View style={{opacity}}>
-                    <View style={[themeStyles.mr5, itemViewStyle]}>
+                <View
+                    key={`skeletonContainer${i}`}
+                    style={{opacity}}
+                >
+                    <View style={itemViewStyle}>
                         <SkeletonViewContentLoader
                             key={`skeletonViewItems${i}`}
                             animate={shouldAnimate}
@@ -48,21 +79,12 @@ function ItemListSkeletonView({
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacity, itemViewHeight, itemViewStyle]);
+    }, [numItems, shouldAnimate, theme, renderSkeletonItem, gradientOpacity, itemViewHeight, itemViewStyle]);
+
     return (
         <View
             style={[themeStyles.flex1, themeStyles.overflowHidden]}
-            onLayout={(event) => {
-                if (fixedNumItems) {
-                    return;
-                }
-
-                const newNumItems = Math.ceil(event.nativeEvent.layout.height / itemViewHeight);
-                if (newNumItems === numItems) {
-                    return;
-                }
-                setNumItems(newNumItems);
-            }}
+            onLayout={handleLayout}
         >
             <View>{skeletonViewItems}</View>
         </View>

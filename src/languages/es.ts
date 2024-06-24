@@ -2843,6 +2843,10 @@ export default {
                 title: 'No hay nada que ver aquí',
                 subtitle: 'Por favor intenta crear algo usando el botón verde.',
             },
+            emptyState: {
+                title: 'Sin gastos de exposición',
+                subtitle: 'Intenta crear algo utilizando el botón verde.',
+            },
         },
         groupedExpenses: 'gastos agrupados',
     },

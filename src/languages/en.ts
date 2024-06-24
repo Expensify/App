@@ -2804,6 +2804,10 @@ export default {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
             },
+            emptyState: {
+                title: 'No expenses to display',
+                subtitle: 'Try creating something using the green + button.',
+            },
         },
         groupedExpenses: 'grouped expenses',
     },

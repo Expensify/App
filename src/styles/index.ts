@@ -5056,6 +5056,11 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
         }),
+
+        emptyStateHeader: {
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

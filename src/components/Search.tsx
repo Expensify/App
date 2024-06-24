@@ -3,6 +3,7 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -23,11 +24,11 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import EmptyStateComponent from './EmptyStateComponent';
+import LottieAnimations from './LottieAnimations';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
 import SearchRowSkeleton from './Skeletons/SearchRowSkeleton';
-import TableRowSkeleton from './Skeletons/TableRowSkeleton';
 
 type SearchProps = {
     query: SearchQuery;
@@ -50,6 +51,7 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
@@ -105,12 +107,11 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         return (
             <EmptyStateComponent
                 SkeletonComponent={SearchRowSkeleton}
-                headerMediaType="video"
-                headerMedia="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
-                titleText="Issue and manage your Expensify Cards"
-                subtitleText="Start by issuing your first virtual or physical card."
-                buttonAction={() => Navigation.navigate(ROUTES.CONCIERGE)}
-                buttonText="Go to Workspaces"
+                headerMediaType="animation"
+                headerMedia={LottieAnimations.Coin}
+                headerStyles={styles.activeComponentBG}
+                titleText={translate('search.searchResults.emptyState.title')}
+                subtitleText={translate('search.searchResults.emptyState.subtitle')}
             />
         );
     }

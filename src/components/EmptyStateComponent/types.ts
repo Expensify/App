@@ -1,3 +1,4 @@
+import type {StyleProp, ViewStyle} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
@@ -12,6 +13,7 @@ type SharedProps<T> = {
     subtitleText: string;
     buttonText?: string;
     buttonAction?: () => void;
+    headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
 };
 

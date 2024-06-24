@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
+import Lottie from '@components/Lottie';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +20,7 @@ type VideoLoadedEventType = {
     };
 };
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, titleText, subtitleText}: EmptyStateComponentProps) {
+function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, titleText, subtitleText, headerStyles}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const isSmallScreenWidth = getIsSmallScreenWidth();
 
@@ -55,19 +56,21 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             );
             break;
         case 'animation':
-            <View>
-                <Text>Animation</Text>
-            </View>;
-            break;
-        default:
             HeaderComponent = (
-                <ImageSVG
-                    style={{borderTopLeftRadius: 16, borderTopRightRadius: 16}}
-                    width={400}
-                    height={220}
-                    src={headerMedia}
+                <Lottie
+                    source={headerMedia}
+                    autoPlay
+                    loop
+                    style={styles.confirmationAnimation}
                 />
             );
+            break;
+        case 'illustration':
+            HeaderComponent = <ImageSVG src={headerMedia} />;
+            break;
+        default:
+            HeaderComponent = null;
+            break;
     }
 
     return (
@@ -80,16 +83,18 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             </View>
             <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
                 <View style={[styles.emptyStateContent(isSmallScreenWidth)]}>
-                    {HeaderComponent}
+                    <View style={[styles.emptyStateHeader, headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{titleText}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.mb5]}>{subtitleText}</Text>
-                        <Button
-                            success
-                            onPress={buttonAction}
-                        >
-                            {buttonText}
-                        </Button>
+                        {buttonText && buttonAction && (
+                            <Button
+                                success
+                                onPress={buttonAction}
+                            >
+                                {buttonText}
+                            </Button>
+                        )}
                     </View>
                 </View>
             </View>
