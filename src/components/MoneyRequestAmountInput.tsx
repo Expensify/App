@@ -106,7 +106,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number, currency?: string): string => CurrencyUtils.convertToFrontendAmountAsString(amount);
+const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmountAsString(amount);
 
 function MoneyRequestAmountInput(
     {
@@ -208,7 +208,7 @@ function MoneyRequestAmountInput(
 
     useEffect(() => {
         const shouldExitEarly = !currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput;
-        const frontendAmount = onFormatAmount(amount, currency);
+        const frontendAmount = onFormatAmount ? onFormatAmount(amount, currency) : defaultOnFormatAmount(amount, currency);
 
         if (shouldResetAmount) {
             setCurrentAmount(frontendAmount);
