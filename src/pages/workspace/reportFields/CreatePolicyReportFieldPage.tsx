@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import ListValuesSelector from './ListValuesSelector';
 import TypeSelector from './TypeSelector';
 
 type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
@@ -40,6 +41,7 @@ function CreatePolicyReportFieldPage({
     const submitForm = useCallback(({name, type, initialValue}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
         // eslint-disable-next-line no-console
         console.log('submitForm', name, type, initialValue);
+
         Navigation.goBack();
     }, []);
 
@@ -132,14 +134,10 @@ function CreatePolicyReportFieldPage({
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
                                 <InputWrapper
-                                    InputComponent={TextPicker}
-                                    inputID={INPUT_IDS.INITIAL_VALUE}
-                                    label={translate('common.initialValue')}
-                                    description={translate('common.initialValue')}
-                                    accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
-                                    maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
-                                    multiline={false}
-                                    role={CONST.ROLE.PRESENTATION}
+                                    InputComponent={ListValuesSelector}
+                                    inputID={INPUT_IDS.LIST_VALUES}
+                                    subtitle={translate('workspace.reportFields.listInputSubtitle')}
+                                    label={translate('common.listValues')}
                                 />
                             )}
                         </View>

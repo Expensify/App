@@ -11,6 +11,7 @@ const INPUT_IDS = {
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 type ReportFieldListValue = {name: string; disabled: boolean};
+type ReportFieldListValues = Record<string, ReportFieldListValue>;
 
 type WorkspaceReportFieldsForm = Form<
     InputID,
@@ -18,9 +19,9 @@ type WorkspaceReportFieldsForm = Form<
         [INPUT_IDS.NAME]: string;
         [INPUT_IDS.TYPE]: PolicyReportFieldType;
         [INPUT_IDS.INITIAL_VALUE]: string;
-        [INPUT_IDS.LIST_VALUES]: Record<string, ReportFieldListValue>;
+        [INPUT_IDS.LIST_VALUES]: ReportFieldListValues;
     }
 >;
 
-export type {WorkspaceReportFieldsForm, ReportFieldListValue};
+export type {WorkspaceReportFieldsForm, ReportFieldListValue, ReportFieldListValues};
 export default INPUT_IDS;
