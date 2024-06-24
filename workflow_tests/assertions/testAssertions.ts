@@ -38,20 +38,4 @@ function assertJestJobExecuted(workflowResult: Step[], didExecute = true, timesE
     });
 }
 
-function assertShellTestsJobExecuted(workflowResult: Step[], didExecute = true) {
-    const steps = [
-        createStepAssertion('Checkout', true, null, 'SHELLTESTS', 'Checkout', [], []),
-        createStepAssertion('Setup Node', true, null, 'SHELLTESTS', 'Setup Node', [], []),
-        createStepAssertion('Test CI git logic', true, null, 'SHELLTESTS', 'Test CI git logic', [], []),
-    ] as const;
-
-    steps.forEach((expectedStep) => {
-        if (didExecute) {
-            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-        } else {
-            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
-        }
-    });
-}
-
-export default {assertJestJobExecuted, assertShellTestsJobExecuted};
+export default {assertJestJobExecuted};
