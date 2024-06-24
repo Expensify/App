@@ -1,7 +1,7 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -16,7 +16,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -24,7 +23,6 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -32,13 +30,13 @@ import type {PolicyReportField} from '@src/types/onyx/Policy';
 
 type ReportFieldForList = ListItem & {value: string; fieldID: string};
 
-type WorkspaceTagsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceReportFieldsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
 function WorkspaceReportFieldsPage({
     route: {
         params: {policyID},
     },
-}: WorkspaceTagsPageProps) {
+}: WorkspaceReportFieldsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -52,14 +50,6 @@ function WorkspaceReportFieldsPage({
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([key]) => key !== 'text_title'));
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
-
-    const fetchTags = useCallback(() => {
-        Tag.openPolicyTagsPage(policyID);
-    }, [policyID]);
-
-    const {isOffline} = useNetwork({onReconnect: fetchTags});
-
-    useFocusEffect(fetchTags);
 
     useEffect(() => {
         if (isFocused) {
@@ -91,7 +81,7 @@ function WorkspaceReportFieldsPage({
         setSelectedReportFields(updatedReportFields);
     };
 
-    const isLoading = !isOffline && reportFieldsList === undefined;
+    const isLoading = reportFieldsList === undefined;
     const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
 
     const getHeaderButtons = () => (
