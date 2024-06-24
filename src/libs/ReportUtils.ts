@@ -3043,12 +3043,12 @@ function getModifiedExpenseOriginalMessage(
 
 const ORIGINAL_MESSAGE_FIELDS = ['comment', 'created', 'merchant', 'amount', 'currency', 'category', 'tag', 'taxCode', 'taxAmount', 'billable'] as const;
 
-// /**
-//  * Detect and return a modified field name based on the original message.
-//  *
-//  * At the moment, we only allow changing one transaction field at a time.
-//  * @param originalMessage
-//  */
+/**
+ * Detect and return a modified field name based on the original message.
+ *
+ * At the moment, we only allow changing one transaction field at a time.
+ * @param originalMessage
+ */
 function getOriginalMessageModifiedField({originalMessage}: OriginalMessage): string {
     if (typeof originalMessage !== 'object' || originalMessage === null) {
         return '';
