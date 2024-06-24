@@ -6,39 +6,40 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
-import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import {getSageIntacctActiveDefaultVendor} from '@libs/PolicyUtils';
+import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
 };
 
+function getDefaultVendorName(defaultVendor: string, vendors: SageIntacctDataElementWithValue[]): string {
+    return vendors.find((vendor) => vendor.id === defaultVendor)?.value ?? defaultVendor;
+}
+
 function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const {
-        data: intacctData,
-        config: {export: exportConfig, pendingFields, errorFields},
-    } = policy?.connections?.intacct ?? {};
+    const {data: intacctData, config} = policy?.connections?.intacct ?? {};
 
-    const [isSwitchOn, setIsSwitchOn] = useState(!!exportConfig.nonReimbursableCreditCardChargeDefaultVendor);
+    const [isSwitchOn, setIsSwitchOn] = useState(!!config?.export.nonReimbursableCreditCardChargeDefaultVendor);
 
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({
         value: expenseType,
         text: translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${expenseType}`),
         keyForList: expenseType,
-        isSelected: exportConfig.nonReimbursable === expenseType,
+        isSelected: config?.export.nonReimbursable === expenseType,
     }));
 
     const headerContent = useMemo(
@@ -51,22 +52,22 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     const selectNonReimbursableExpense = useCallback(
-        (row: SelectorType) => {
-            if (row.value === exportConfig.nonReimbursable) {
+        (row: MenuListItem) => {
+            if (row.value === config?.export.nonReimbursable) {
                 return;
             }
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {nonReimbursable: row.value});
         },
-        [exportConfig.nonReimbursable, policyID],
+        [config?.export.nonReimbursable, policyID],
     );
 
-    const activeDefaultVendor = getSageIntacctActiveDefaultVendor(policy);
+    const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
     const defaultVendorSection = {
         description: translate('workspace.sageIntacct.defaultVendor'),
-        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DEFAULT_VENDOR.getRoute(policyID)),
-        title: activeDefaultVendor ? intacctData.vendors.find((vendor) => vendor.id === activeDefaultVendor).value : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!errorFields?.exporter,
-        pendingAction: pendingFields?.export,
+        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, 'non-reimbursable')),
+        title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
+        hasError: !!config?.errorFields?.exporter,
+        pendingAction: config?.pendingFields?.export,
     };
 
     const defaultVendor = (
@@ -87,11 +88,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     const creditCardAccountSection = {
         description: translate('workspace.sageIntacct.creditCardAccount'),
         action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
-        title: exportConfig.nonReimbursableAccount
-            ? intacctData.creditCards.find((creditCard) => creditCard.id === exportConfig.nonReimbursableAccount).name
-            : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!errorFields?.exporter,
-        pendingAction: pendingFields?.export,
+        title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
+        hasError: !!config?.errorFields?.exporter,
+        pendingAction: config?.pendingFields?.export,
     };
 
     const creditCardAccount = (
@@ -125,8 +124,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             />
-            {exportConfig.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && defaultVendor}
-            {exportConfig.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && (
+            {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && defaultVendor}
+            {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && (
                 <View>
                     {creditCardAccount}
                     <ToggleSettingOptionRow

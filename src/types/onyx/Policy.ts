@@ -594,6 +594,79 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
+/**
+ * Connection data for Sage Intacct
+ */
+type SageIntacctConnectionData = {
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
+
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+};
+
+/**
+ * Connection config for Sage Intacct
+ */
+type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Sage Intacct credentials */
+    credentials: {
+        /** Sage Intacct companyID */
+        companyID: string;
+    };
+
+    /** Sage Intacct export configs */
+    export: {
+        /** Current export status */
+        exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+        /** The e-mail of the exporter */
+        exporter: string;
+
+        /** TODO: Will be handled in another issue */
+        nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** TODO: Will be handled in another issue */
+        nonReimbursableAccount: string;
+
+        /** */
+        nonReimbursableCreditCardChargeDefaultVendor: string | null;
+
+        /** */
+        nonReimbursableVendor: string | null;
+
+        /** TODO: Will be handled in another issue */
+        reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** */
+        reimbursableExpenseReportDefaultVendor: string | null;
+    };
+
+    /** Collection of Sage Intacct config errors */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** Data stored about subsidiaries from NetSuite  */
 type Subsidiary = {
     /** ID of the subsidiary */
@@ -952,7 +1025,7 @@ type NetSuiteConnection = {
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
-    lastSync?: ConnectionLastSync;
+    lastSync?: ConnectionLxastSync;
 
     /** Data imported from integration */
     data?: ConnectionData;
@@ -971,6 +1044,9 @@ type Connections = {
 
     /** NetSuite integration connection */
     netsuite: NetSuiteConnection;
+
+    /** Sage Intacct integration connection */
+    intacct: Connection<SageIntacctConnectionData, SageIntacctConnectiosConfig>;
 };
 
 /** Names of integration connections */
@@ -1314,4 +1390,5 @@ export type {
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,
+    SageIntacctDataElementWithValue,
 };

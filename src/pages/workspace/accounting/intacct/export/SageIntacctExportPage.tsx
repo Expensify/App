@@ -22,21 +22,21 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
             {
                 description: translate('workspace.sageIntacct.preferredExporter'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID)),
-                title: exportConfig.exporter || translate('workspace.sageIntacct.notConfigured'),
+                title: exportConfig?.exporter ?? translate('workspace.sageIntacct.notConfigured'),
                 hasError: !!errorFields?.exporter,
                 pendingAction: pendingFields?.export,
             },
             {
                 description: translate('workspace.sageIntacct.exportDate.label'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID)),
-                title: exportConfig.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : translate(`workspace.sageIntacct.notConfigured`),
+                title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : translate(`workspace.sageIntacct.notConfigured`),
                 hasError: !!errorFields?.exportDate,
                 pendingAction: pendingFields?.export,
             },
             {
                 description: translate('workspace.sageIntacct.reimbursableExpenses.label'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)),
-                title: exportConfig.reimbursable
+                title: exportConfig?.reimbursable
                     ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
                 hasError: !!errorFields?.reimbursable,
@@ -45,7 +45,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
             {
                 description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)),
-                title: exportConfig.nonReimbursable
+                title: exportConfig?.nonReimbursable
                     ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
                 hasError: !!errorFields?.nonReimbursable,
@@ -59,7 +59,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctExportPage.displayName}
             headerTitle="workspace.accounting.export"
-            headerSubtitle={credentials.companyID}
+            headerSubtitle={credentials?.companyID}
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}

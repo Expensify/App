@@ -461,7 +461,7 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
+function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: string | null | undefined): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
 
@@ -473,25 +473,24 @@ function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: str
     }));
 }
 
-function getSageIntacctActiveDefaultVendor(policy: Policy | undefined): string | null {
+function getSageIntacctNonReimbursableActiveDefaultVendor(policy: Policy | undefined): string | null | undefined {
     const {
         nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
-        nonReimbursableExpenseReportDefaultVendor: expenseReportDefaultVendor,
+        nonReimbursableVendor: expenseReportDefaultVendor,
         nonReimbursable,
     } = policy?.connections?.intacct?.config.export ?? {};
 
     return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
 }
 
-function getSageIntacctCreditCards(policy: Policy | undefined, selectedAccountId: string | undefined): SelectorType[] {
+function getSageIntacctCreditCards(policy: Policy | undefined, selectedAccount: string | undefined): SelectorType[] {
     const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
-    const isMatchFound = creditCards?.some(({id}) => id === selectedAccountId);
+    const isMatchFound = creditCards?.some(({name}) => name === selectedAccount);
 
-    return (creditCards ?? []).map(({id, name}) => ({
-        value: id,
-        text: name,
-        keyForList: id,
-        isSelected: isMatchFound && selectedAccountId === id,
+    return (creditCards ?? []).map(({name}) => ({
+        value: name,
+        keyForList: name,
+        isSelected: isMatchFound && name === selectedAccount,
     }));
 }
 
@@ -581,7 +580,7 @@ export {
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
     getSageIntacctVendors,
-    getSageIntacctActiveDefaultVendor,
+    getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,
     getCustomUnit,
     getCustomUnitRate,

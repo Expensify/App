@@ -42,7 +42,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     );
 
     const selectExportDate = useCallback(
-        (row: SelectorType) => {
+        (row: MenuListItem) => {
             if (row.value !== exportDate) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.XERO_CONFIG.EXPORT, {exportDate: row.value});
             }
