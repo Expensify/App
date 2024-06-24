@@ -800,15 +800,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): Imag
 /**
  * Gets the style for the container of the empty state background image that overlap the created report action
  */
-function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
-        return {
-            position: 'absolute',
-            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-            width: '100%',
-        };
-    }
-
+function getReportWelcomeBackgroundContainerStyle(): ViewStyle {
     return {
         position: 'absolute',
         top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
