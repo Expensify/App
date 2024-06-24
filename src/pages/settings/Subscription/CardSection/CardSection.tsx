@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Section from '@components/Section';
@@ -8,20 +9,18 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import { useOnyx } from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import CardSectionUtils from './utils';
-import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 
 function CardSection() {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const defaultCard = CardSectionUtils.getCardForSubscriptionBilling();
@@ -30,11 +29,25 @@ function CardSection() {
 
     const {title, subtitle, isError, icon, rightIcon} = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
 
-    const shouldShowBanner = !!title || !!subtitle;
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
-    const BillingBanner = <PreTrialBillingBanner />;
+
+    let BillingBanner: React.ReactNode | undefined;
+    if (!CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+        BillingBanner = <PreTrialBillingBanner />;
+    } else if (title && subtitle) {
+        BillingBanner = (
+            <SubscriptionBillingBanner
+                title={title}
+                subtitle={subtitle}
+                isTrialActive={false}
+                isError={isError}
+                icon={icon}
+                rightIcon={rightIcon}
+            />
+        );
+    }
 
     return (
         <Section
@@ -43,18 +56,7 @@ function CardSection() {
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
-            banner={
-                shouldShowBanner && (
-                    <SubscriptionBillingBanner
-                        title={title}
-                        subtitle={subtitle}
-                        isTrialActive={false}
-                        isError={isError}
-                        icon={icon}
-                        rightIcon={rightIcon}
-                    />
-                )
-            }
+            banner={BillingBanner}
         >
             <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                 {!isEmptyObject(defaultCard?.accountData) && (

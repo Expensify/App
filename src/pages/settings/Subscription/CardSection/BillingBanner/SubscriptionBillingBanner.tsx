@@ -7,19 +7,17 @@ import BillingBanner from './BillingBanner';
 import type {BillingBannerProps} from './BillingBanner';
 
 type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 'subtitleStyle' | 'style' | 'brickRoadIndicator' | 'icon'> & {
+    /** Indicates whether there is an active trial */
     isTrialActive?: boolean;
+
+    /** Indicates whether there is an error */
     isError?: boolean;
+
+    /** An optional icon prop */
     icon?: IconAsset;
 };
 
-function SubscriptionBillingBanner({
-    title,
-    subtitle,
-    rightIcon,
-    icon,
-    isTrialActive,
-    isError,
-}: SubscriptionBillingBannerProps) {
+function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isTrialActive, isError}: SubscriptionBillingBannerProps) {
     const styles = useThemeStyles();
 
     const backgroundStyle = isTrialActive ? styles.trialBannerBackgroundColor : styles.hoveredComponentBG;

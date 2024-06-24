@@ -33,7 +33,7 @@ type BillingBannerProps = {
     /** Styles to apply to the subtitle. */
     subtitleStyle?: StyleProp<TextStyle>;
 
-    /** An icon to be rendered instead of RBR/GBR */
+    /** An icon to be rendered instead of the RBR / GBR indicator. */
     rightIcon?: IconAsset;
 };
 
