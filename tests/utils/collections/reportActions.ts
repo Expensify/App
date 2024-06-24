@@ -26,18 +26,11 @@ const getRandomDate = (): string => {
     return formattedDate;
 };
 
-const deprecatedReportActions: ReportActionName[] = [
-    CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
-    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
-    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
-    CONST.REPORT.ACTIONS.TYPE.DONATION,
-];
-
 export default function createRandomReportAction(index: number): ReportAction {
     return {
         // we need to add any here because of the way we are generating random values
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType))) as any,
+        actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE)) as any,
         reportActionID: index.toString(),
         previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         actorAccountID: index,
