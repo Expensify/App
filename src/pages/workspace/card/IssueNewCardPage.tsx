@@ -1,13 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import AsigneeStep from '@pages/workspace/card/Steps/AsigneeStep';
 
 function IssueNewCardPage() {
-    return (
-        <View>
-            <Text>Issue New Card Page</Text>
-        </View>
-    );
+    return <AsigneeStep />;
 }
 
 IssueNewCardPage.displayName = 'IssueNewCardPage';

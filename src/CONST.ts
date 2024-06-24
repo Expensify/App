@@ -1925,6 +1925,7 @@ const CONST = {
             MONTHLY: 'monthly',
             FIXED: 'fixed',
         },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
