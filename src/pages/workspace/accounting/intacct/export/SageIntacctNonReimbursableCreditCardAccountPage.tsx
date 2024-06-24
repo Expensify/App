@@ -46,7 +46,6 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         [policyID, nonReimbursableAccount],
     );
 
-    // TODO: test on empty data
     const listEmptyContent = useMemo(
         () => (
             <BlockingView

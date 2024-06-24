@@ -72,7 +72,6 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
         [defaultVendor, policyID, isReimbursable, policy?.connections?.intacct?.config.export],
     );
 
-    // TODO: test on empty list
     const listEmptyContent = useMemo(
         () => (
             <BlockingView

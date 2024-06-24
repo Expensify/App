@@ -2231,6 +2231,7 @@ export default {
                 },
             },
             creditCardAccount: 'Credit card account',
+            // TODO: verify if we need description
             creditCardAccountDescription: 'We should have some description here, right?',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean): string =>
