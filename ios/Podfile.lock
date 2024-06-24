@@ -282,27 +282,10 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (29.7.1)
+  - Onfido (29.6.0)
   - onfido-react-native-sdk (10.6.0):
-    - glog
-    - hermes-engine
-    - Onfido (~> 29.7.0)
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
+    - Onfido (~> 29.6.0)
+    - React
   - Plaid (5.2.1)
   - PromisesObjC (2.4.0)
   - RCT-Folly (2022.05.16.00):
@@ -1319,24 +1302,7 @@ PODS:
   - react-native-launch-arguments (4.0.2):
     - React
   - react-native-netinfo (11.2.1):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-pager-view (6.2.3):
     - glog
     - hermes-engine
@@ -1395,25 +1361,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-plaid-link-sdk (11.5.0):
-    - glog
-    - hermes-engine
     - Plaid (~> 5.2.0)
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-quick-sqlite (8.0.6):
     - glog
     - hermes-engine
@@ -1785,24 +1734,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNDeviceInfo (10.3.1):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNDevMenu (4.1.1):
     - React-Core
     - React-Core/DevSupport
@@ -1823,24 +1755,7 @@ PODS:
     - React-Core
     - RNFBApp
   - RNFlashList (1.6.3):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.14.1):
@@ -1865,7 +1780,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.88):
+  - RNLiveMarkdown (0.1.91):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1883,9 +1798,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.88)
+    - RNLiveMarkdown/common (= 0.1.91)
     - Yoga
-  - RNLiveMarkdown/common (0.1.88):
+  - RNLiveMarkdown/common (0.1.91):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2523,8 +2438,8 @@ SPEC CHECKSUMS:
   MapboxMaps: 87ef0003e6db46e45e7a16939f29ae87e38e7ce2
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
-  onfido-react-native-sdk: 3e3b0dd70afa97410fb318d54c6a415137968ef2
+  Onfido: c52e797b10cc9e6d29ba91996cb62e501000bfdd
+  onfido-react-native-sdk: 4e7f0a7a986ed93cb906d2e0b67a6aab9202de0b
   Plaid: 7829e84db6d766a751c91a402702946d2977ddcb
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
@@ -2559,11 +2474,11 @@ SPEC CHECKSUMS:
   react-native-key-command: 28ccfa09520e7d7e30739480dea4df003493bfe8
   react-native-keyboard-controller: 47c01b0741ae5fc84e53cf282e61cfa5c2edb19b
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
-  react-native-netinfo: 02d31de0e08ab043d48f2a1a8baade109d7b6ca5
+  react-native-netinfo: 8a7fd3f7130ef4ad2fb4276d5c9f8d3f28d2df3d
   react-native-pager-view: ccd4bbf9fc7effaf8f91f8dae43389844d9ef9fa
   react-native-pdf: 762369633665ec02ac227aefe2f4558b92475c23
   react-native-performance: fb21ff0c9bd7a10789c69d948f25b0067d29f7a9
-  react-native-plaid-link-sdk: 2a91ef7e257ae16d180a1ca14ba3041ae0836fbf
+  react-native-plaid-link-sdk: 6c4d3d4f14288c546151d404aea812fa55edeea9
   react-native-quick-sqlite: e3ab3e0a29d8c705f47a60aaa6ceaa42eb6a9ec1
   react-native-release-profiler: 14ccdc0eeb03bedf625cf68d53d80275a81b19dd
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
@@ -2596,17 +2511,17 @@ SPEC CHECKSUMS:
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: 081418ae3b391b1012c3f41d045e5e39f1beed71
   RNCPicker: 106d11a1c159ce937009b2bd52db2bdb1577454f
-  RNDeviceInfo: 449272e9faf2afe94a3fe2896d169e92277fffa8
+  RNDeviceInfo: 468a7cd19ad2b6697bab25c8baebf22c0603cb7c
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNFlashList: 76c2fab003330924ab1a140d13aadf3834dc32e0
+  RNFlashList: 4b4b6b093afc0df60ae08f9cbf6ccd4c836c667a
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: e33d2c97863d5480f8f4b45f8b25f801cc43c7f5
+  RNLiveMarkdown: 24fbb7370eefee2f325fb64cfe904b111ffcd81b
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
@@ -2623,7 +2538,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
+  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: d5e281e5370cb0211a104efd90eb5fa7af936e14
 
