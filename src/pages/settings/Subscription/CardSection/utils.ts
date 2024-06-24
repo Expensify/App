@@ -1,4 +1,4 @@
-import {fromUnixTime} from 'date-fns';
+import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
 import DateUtils from '@libs/DateUtils';
 import type {Phrase, PhraseParameters} from '@libs/Localize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
@@ -32,7 +32,6 @@ function getBillingStatus(
 
     const endDateFormatted = DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 
-    console.log(status);
     switch (status.status) {
         case SubscriptionUtils.PAYMENT_STATUSES.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
@@ -148,7 +147,26 @@ function getCardForSubscriptionBilling(): Fund | undefined {
     return SubscriptionUtils.getCardForSubscriptionBilling();
 }
 
+/**
+ * Get the next billing date.
+ *
+ * @returns - The next billing date in 'yyyy-MM-dd' format.
+ */
+function getNextBillingDate(): string {
+    const today = new Date();
+
+    const nextBillingDate = startOfMonth(addMonths(today, 1));
+
+    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+}
+
+function shouldShowPreTrialBillingBanner(): boolean {
+    return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
+}
+
 export default {
     getBillingStatus,
     getCardForSubscriptionBilling,
+    shouldShowPreTrialBillingBanner,
+    getNextBillingDate,
 };

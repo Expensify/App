@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import * as Subscription from '@userActions/Subscription';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import BillingBanner from './BillingBanner';
 import CardSectionActions from './CardSectionActions';
@@ -22,11 +24,15 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const defaultCard = CardSectionUtils.getCardForSubscriptionBilling();
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+
+    const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
     const {title, subtitle, isError, shouldShowRedDotIndicator, shouldShowGreenDotIndicator, isRetryAvailable} = CardSectionUtils.getBillingStatus(
         translate,
         preferredLocale,
@@ -38,7 +44,7 @@ function CardSection() {
     return (
         <Section
             title={translate('subscription.cardSection.title')}
-            subtitle={translate('subscription.cardSection.subtitle')}
+            subtitle={sectionSubtitle}
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
