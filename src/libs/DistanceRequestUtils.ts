@@ -11,7 +11,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
-import getAllReports from './ReportConnection';
+import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 
 type MileageRate = {
@@ -246,7 +246,7 @@ function convertToDistanceInMeters(distance: number, unit: Unit): number {
  * Returns custom unit rate ID for the distance transaction
  */
 function getCustomUnitRateID(reportID: string) {
-    const allReports = getAllReports();
+    const allReports = ReportConnection.getAllReports();
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '-1');

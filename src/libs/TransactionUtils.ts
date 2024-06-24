@@ -14,7 +14,7 @@ import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
-import getAllReports from './ReportConnection';
+import * as ReportConnection from './ReportConnection';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
@@ -188,7 +188,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 }
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
-    const allReports = getAllReports();
+    const allReports = ReportConnection.getAllReports();
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
     const isFromExpenseReport = parentReport?.type === CONST.REPORT.TYPE.EXPENSE;
     const isSplitPolicyExpenseChat = !!transaction?.comment?.splits?.some((participant) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat);

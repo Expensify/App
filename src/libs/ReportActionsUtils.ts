@@ -22,7 +22,7 @@ import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
-import getAllReports from './ReportConnection';
+import * as ReportConnection from './ReportConnection';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import * as TransactionUtils from './TransactionUtils';
@@ -373,7 +373,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
     // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const report = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
@@ -880,7 +880,7 @@ function getMostRecentReportActionLastModified(): string {
 
     // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
     // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
-    Object.values(getAllReports() ?? {}).forEach((report) => {
+    Object.values(ReportConnection.getAllReports() ?? {}).forEach((report) => {
         const reportLastVisibleActionLastModified = report?.lastVisibleActionLastModified ?? report?.lastVisibleActionCreated;
         if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
             return;
@@ -951,7 +951,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  */
 function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | undefined {
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    const report = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const report = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
     }
@@ -1123,14 +1123,13 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
     return getReportActionMessage(reportAction)?.html ?? '';
 }
 
+const parser = new ExpensiMark();
 function getReportActionText(reportAction: PartialReportAction): string {
     const html = getReportActionHtml(reportAction);
-    const parser = new ExpensiMark();
     return html ? parser.htmlToText(html) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    const parser = new ExpensiMark();
     return html ? parser.htmlToText(html) : '';
 }
 

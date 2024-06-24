@@ -10,7 +10,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
-import getAllReports from './ReportConnection';
+import * as ReportConnection from './ReportConnection';
 import * as ReportUtils from './ReportUtils';
 
 type CheckingMethod = () => boolean;
@@ -93,7 +93,7 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
 }
 
 function getChatTabBrickRoad(policyID?: string): BrickRoad | undefined {
-    const allReports = getAllReports();
+    const allReports = ReportConnection.getAllReports();
     if (!allReports) {
         return undefined;
     }
