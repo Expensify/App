@@ -89,12 +89,12 @@ function IOURequestStepScan({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || !!transaction?.isFromGlobalCreate) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, transaction?.isFromGlobalCreate]);
+    }, [report, skipConfirmation, policy]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
@@ -275,6 +275,8 @@ function IOURequestStepScan({
 
             // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
             // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
+             // In case the transaction is globally created, we just set the participants from the report, but we won't set `participantAutoAssigned=true` for the transaction
+            // and we won't skip the confirmation step, allowing participants to be re-selected
             const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreate);
             const participants = selectedParticipants.map((participant) => {
@@ -282,7 +284,7 @@ function IOURequestStepScan({
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
 
-            if (shouldSkipConfirmation) {
+            if (shouldSkipConfirmation && !isFromGlobalCreate) {
                 const receipt: Receipt = file;
                 receipt.source = source;
                 receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;

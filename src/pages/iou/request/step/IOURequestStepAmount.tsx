@@ -91,12 +91,12 @@ function IOURequestStepAmount({
     // the user will have to add a merchant
     // or this transaction is globally created (except case of editing split bill), as the user is allowed to re-select participants
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || (!!currentTransaction?.isFromGlobalCreate && !isEditingSplitBill)) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, isEditingSplitBill, currentTransaction?.isFromGlobalCreate]);
+    }, [report, skipConfirmation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -185,7 +185,7 @@ function IOURequestStepAmount({
         // to the confirm step.
 
         // In case the transaction is globally created, we just set the participants from the report, but we won't set `participantAutoAssigned=true` for the transaction
-        // and we won't skip the confirmation step, allowing participant to be re-selected
+        // and we won't skip the confirmation step, allowing participants to be re-selected
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const isFromGlobalCreated = !!currentTransaction?.isFromGlobalCreate && !isEditingSplitBill;
             // if the transaction is not globally created, the participants of the transaction is still set from the report, the participant is not auto-assigned
@@ -196,7 +196,7 @@ function IOURequestStepAmount({
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-            if (shouldSkipConfirmation) {
+            if (shouldSkipConfirmation && !isFromGlobalCreated) {
                 // Only skip confirmation when the split is not configurable, for now Smartscanned splits cannot be configured
                 if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
                     IOU.splitBill({

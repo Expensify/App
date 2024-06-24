@@ -105,12 +105,12 @@ function IOURequestStepDistance({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || !!transaction?.isFromGlobalCreate) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, transaction?.isFromGlobalCreate]);
+    }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -223,6 +223,8 @@ function IOURequestStepDistance({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
+        // In case the transaction is globally created, we just set the participants from the report, but we won't set `participantAutoAssigned=true` for the transaction
+        // and we won't skip the confirmation step, allowing participants to be re-selected
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report, !isFromGlobalCreate);
@@ -230,7 +232,7 @@ function IOURequestStepDistance({
                 const participantAccountID = participant?.accountID ?? -1;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
-            if (shouldSkipConfirmation) {
+            if (shouldSkipConfirmation && !isFromGlobalCreate) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBill({
                         participants,

@@ -114,7 +114,7 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            if(!!transaction?.isFromGlobalCreate) {
+            if (transaction?.isFromGlobalCreate) {
                 IOU.initMoneyRequest(transaction.reportID, policy, transaction.isFromGlobalCreate, newIOUType);
                 return;
             }
