@@ -102,7 +102,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
             !!parentReportAction &&
-            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
+            ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
         );
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
