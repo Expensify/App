@@ -5,11 +5,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import * as Localize from '@libs/Localize';
-import Navigation from '@libs/Navigation/Navigation';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {CentralPaneNavigatorParamList, RootStackParamList, State} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActions from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -66,8 +70,20 @@ const PromotedActions = {
         icon: Expensicons.Stopwatch,
         text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
         onSelected: () => {
-            Navigation.dismissModal();
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+            if (!isTextHold) {
+                Navigation.goBack();
+            }
+            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
+            const isReportInRHP = topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
+
+            if (!isReportInRHP && isTextHold) {
+                Navigation.dismissModal();
+                ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+                return;
+            }
+
+            const currentQuery = topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
+            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute(currentQuery?.query ?? CONST.SEARCH.TAB.ALL, reportAction?.childReportID ?? ''));
         },
     }),
 } satisfies PromotedActionsType;

@@ -2786,7 +2786,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -2806,7 +2806,8 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
         IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', activeRoute));
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
     }
 };
 
