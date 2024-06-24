@@ -852,7 +852,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
     const change: Record<string, any[]> = {};
 
     const fieldsToCompare: FieldsToCompare = {
-        merchant: ['modifiedMerchant', 'merchant'],
+        merchant: ['modifiedMerchant'],
         category: ['category'],
         tag: ['tag'],
         description: ['comment'],
@@ -903,9 +903,9 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
 function getTransactionID(threadReportID: string): string {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`] ?? null;
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
+    const IOUTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
-    return transactionID;
+    return IOUTransactionID;
 }
 
 export {

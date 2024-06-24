@@ -26,6 +26,7 @@ type ReviewFieldsProps = {
 function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
     let falsyCount = 0;
     const filteredOptions = options?.filter((name) => {
         if (name.text !== translate('violations.none')) {
@@ -34,6 +35,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
         falsyCount++;
         return falsyCount <= 1;
     });
+
     const sections = useMemo(
         () =>
             filteredOptions?.map((option) => ({
