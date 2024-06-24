@@ -29,11 +29,23 @@ type SearchTypeToItemMap = {
         listItem: ListItemType<K>;
 
         /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data'], context: SearchDataContext) => SectionsType<K>;
+        getSections: (data: SearchResults['data'], metadata: SearchResults['search'], context: SearchDataContext) => SectionsType<K>;
 
         /** Returns sorted search results sections based on search results data */
         getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
     };
+};
+
+/** Model of columns to show for search results */
+type ColumnsToShow = {
+    /** Whether the category column should be shown */
+    shouldShowCategoryColumn: boolean;
+
+    /** Whether the tag column should be shown */
+    shouldShowTagColumn: boolean;
+
+    /** Whether the tax column should be shown */
+    shouldShowTaxColumn: boolean;
 };
 
 /** Model of search result state */
@@ -49,6 +61,9 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
+
+    /** The optional columns that should be shown according to policy settings */
+    columnsToShow: ColumnsToShow;
 };
 
 /** Model of personal details search result */
