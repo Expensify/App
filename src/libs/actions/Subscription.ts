@@ -233,28 +233,25 @@ function clearUpdateSubscriptionSizeError() {
 
 function clearOutstandingBalance() {
     const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
+                value: 'pending',
+            },
+        ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-                value: true,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
-                value: false,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
+                value: 'success',
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-                value: false,
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-                value: true,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
+                value: 'failed',
             },
         ],
     };
@@ -263,7 +260,7 @@ function clearOutstandingBalance() {
 }
 
 function resetRetryBillingStatus() {
-    Onyx.merge(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, false);
+    Onyx.merge(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS, 'failed');
 }
 
 export {
