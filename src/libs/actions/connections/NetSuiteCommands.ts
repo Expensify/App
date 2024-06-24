@@ -189,6 +189,20 @@ function updateNetSuiteReceivableAccount(policyID: string, bankAccountID: string
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_RECEIVABLE_ACCOUNT, parameters, onyxData);
 }
 
+function updateNetSuiteInvoiceItemPreference(
+    policyID: string,
+    value: ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>,
+    oldValue?: ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>,
+) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, value, oldValue);
+
+    const parameters = {
+        policyID,
+        value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_INVOICE_ITEM_PREFERENCE, parameters, onyxData);
+}
+
 function updateNetSuiteInvoiceItem(policyID: string, itemID: string, oldItemID?: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM, itemID, oldItemID);
 
@@ -249,6 +263,7 @@ export {
     updateNetSuitePayableAcct,
     updateNetSuiteJournalPostingPreference,
     updateNetSuiteReceivableAccount,
+    updateNetSuiteInvoiceItemPreference,
     updateNetSuiteInvoiceItem,
     updateNetSuiteTaxPostingAccount,
     updateNetSuiteProvincialTaxPostingAccount,

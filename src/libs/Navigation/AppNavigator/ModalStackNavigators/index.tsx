@@ -335,8 +335,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesJournalPostingPreferenceSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT]: () =>
         require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteReceivableAccountSelectPage').default as React.ComponentType,
-    // [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT]: () =>
-    //     require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteInvoiceItemPreferenceSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteInvoiceItemPreferenceSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_SELECT]: () =>
         require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteInvoiceItemSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TAX_POSTING_ACCOUNT_SELECT]: () =>

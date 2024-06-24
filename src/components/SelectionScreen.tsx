@@ -19,6 +19,9 @@ type SelectorType = ListItem & {
 };
 
 type SelectionScreenProps = {
+    /** React nodes that will be shown */
+    children?: React.ReactNode;
+
     /** Used to set the testID for tests */
     displayName: string;
 
@@ -63,6 +66,7 @@ type SelectionScreenProps = {
 };
 
 function SelectionScreen({
+    children,
     displayName,
     title,
     headerContent,
@@ -108,6 +112,7 @@ function SelectionScreen({
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     listEmptyContent={listEmptyContent}
                 />
+                {children}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
