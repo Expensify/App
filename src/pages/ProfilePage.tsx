@@ -81,10 +81,10 @@ function ProfilePage({route}: ProfilePageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const reportKey = useMemo(() => {
-        const accountID = Number(route.params?.accountID ?? 0);
-        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '';
+        const accountID = Number(route.params?.accountID ?? -1);
+        const reportID = ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
 
-        if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+        if ((!!session && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -93,7 +93,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const accountID = Number(route.params?.accountID ?? 0);
+    const accountID = Number(route.params?.accountID ?? -1);
     const isCurrentUser = session?.accountID === accountID;
 
     const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
@@ -139,8 +139,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasAvatar = Boolean(details.avatar);
-    const isLoading = Boolean(personalDetailsMetadata?.[accountID]?.isLoading) || isEmptyObject(details);
+    const hasAvatar = !!details.avatar;
+    const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
     const statusEmojiCode = details?.status?.emojiCode ?? '';
@@ -198,12 +198,13 @@ function ProfilePage({route}: ProfilePageProps) {
                                         imageStyles={[styles.avatarXLarge]}
                                         source={details.avatar}
                                         avatarID={accountID}
+                                        type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.XLARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
                             </PressableWithoutFocus>
-                            {Boolean(displayName) && (
+                            {!!displayName && (
                                 <Text
                                     style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}

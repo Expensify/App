@@ -1,18 +1,21 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -33,17 +36,42 @@ type SearchProps = {
 };
 
 const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
+const transactionItemMobileHeight = 100;
+const reportItemTransactionHeight = 52;
+const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
+const searchHeaderHeight = 54;
 
-function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
-    const reportListItem = item as ReportListItemType;
-    return reportListItem.transactions !== undefined;
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
+
+    const getItemHeight = useCallback(
+        (item: TransactionListItemType | ReportListItemType) => {
+            if (isTransactionListItemType(item)) {
+                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
+            }
+
+            if (item.transactions.length === 0) {
+                return 0;
+            }
+
+            if (item.transactions.length === 1) {
+                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
+            }
+
+            const baseReportItemHeight = isLargeScreenWidth ? 72 : 108;
+            return baseReportItemHeight + item.transactions.length * reportItemTransactionHeight + listItemPadding;
+        },
+        [isLargeScreenWidth],
+    );
 
     const hash = SearchUtils.getQueryHash(query, policyIDs, sortBy, sortOrder);
     const [currentSearchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
@@ -65,7 +93,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     }, [hash, isOffline]);
 
     const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
-    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading;
+    const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingItems) {
@@ -76,9 +104,17 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         return <EmptySearchView />;
     }
 
-    const openReport = (reportID?: string) => {
+    const openReport = (item: TransactionListItemType | ReportListItemType) => {
+        let reportID = isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
+
         if (!reportID) {
             return;
+        }
+
+        // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+        if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+            reportID = ReportUtils.generateReportID();
+            SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
 
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
@@ -101,7 +137,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const ListItem = SearchUtils.getListItem(type);
 
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
@@ -113,17 +149,22 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isSortingAllowed = sortableSearchTabs.includes(query);
 
+    const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
+
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
             customListHeader={
                 <SearchTableHeader
                     data={searchResults?.data}
+                    metadata={searchResults?.search}
                     onSortPress={onSortPress}
                     sortOrder={sortOrder}
                     isSortingAllowed={isSortingAllowed}
                     sortBy={sortBy}
+                    shouldShowYear={shouldShowYear}
                 />
             }
+            customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
             // The windowSize determines the number of items rendered before and after the currently visible items.
@@ -137,10 +178,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
             sections={[{data: sortedData, isDisabled: false}]}
-            onSelectRow={(item) => {
-                const reportID = isReportListItemType(item) ? item.reportID : item.transactionThreadReportID;
-                openReport(reportID);
-            }}
+            onSelectRow={(item) => openReport(item)}
+            getItemHeight={getItemHeight}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}

@@ -43,14 +43,14 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             const {tags} = PolicyUtils.getTagList(policyTags, route.params.orderWeight);
             if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-                errors.tagName = 'workspace.tags.tagRequiredError';
+                errors.tagName = translate('workspace.tags.tagRequiredError');
             } else if (tags?.[tagName] && currentTagName !== tagName) {
-                errors.tagName = 'workspace.tags.existingTagError';
+                errors.tagName = translate('workspace.tags.existingTagError');
             }
 
             return errors;
         },
-        [route.params.orderWeight, currentTagName, policyTags],
+        [policyTags, route.params.orderWeight, currentTagName, translate],
     );
 
     const editTag = useCallback(
@@ -58,12 +58,12 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
             const tagName = values.tagName.trim();
             // Do not call the API if the edited tag name is the same as the current tag name
             if (currentTagName !== tagName) {
-                Tag.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()});
+                Tag.renamePolicyTag(route.params.policyID, {oldName: route.params.tagName, newName: values.tagName.trim()}, route.params.orderWeight);
             }
             Keyboard.dismiss();
             Navigation.goBack();
         },
-        [route.params.policyID, route.params.tagName, currentTagName],
+        [currentTagName, route.params.policyID, route.params.tagName, route.params.orderWeight],
     );
 
     return (

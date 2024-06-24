@@ -10,7 +10,7 @@ function OnboardingWelcomeVideo() {
         <FeatureTrainingModal
             title={translate('onboarding.welcomeVideo.title')}
             description={translate('onboarding.welcomeVideo.description')}
-            confirmText={translate('footer.getStarted')}
+            confirmText={translate('onboarding.getStarted')}
             videoURL={CONST.WELCOME_VIDEO_URL}
         />
     );
