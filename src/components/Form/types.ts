@@ -50,7 +50,7 @@ type ValidInputs =
     | typeof EmojiPickerButtonDropdown
     | typeof ListValuesSelector;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
