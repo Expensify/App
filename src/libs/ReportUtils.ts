@@ -977,7 +977,7 @@ function isChatRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is not searchable via participant
  */
 function isUnsearchableViaParticipants(report: OnyxEntry<Report>): boolean {
-    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report) || isInvoiceRoom(report) || isInvoiceRoom(report) || isTripRoom(report);
+    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report) || isInvoiceRoom(report) || isTripRoom(report);
 }
 
 /**

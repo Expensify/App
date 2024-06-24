@@ -1953,8 +1953,6 @@ function getOptions(
         return option;
     });
 
-    console.log('>>>> allReportOptions', allReportOptions);
-
     const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
