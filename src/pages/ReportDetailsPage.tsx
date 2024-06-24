@@ -101,6 +101,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '-1'}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '-1', policies), [report?.policyID, policies]);
@@ -222,10 +223,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
-    const unapproveExpenseReportOrShowModal = () => {
+    const unapproveExpenseReportOrShowModal = useCallback(() => {
         // TODO: show modal if report is exported to accounting
+        // setIsUnapproveModalVisible(true);
+
         IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
-    };
+    }, [moneyRequestReport]);
 
     const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
 
@@ -393,6 +396,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         session,
         leaveChat,
         canUnapproveRequest,
+        unapproveExpenseReportOrShowModal,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -662,6 +666,18 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     cancelText={translate('common.cancel')}
                     danger
                     shouldEnableNewFocusManagement
+                />
+                <ConfirmModal
+                    title={translate('iou.unapproveReport')}
+                    prompt={translate('iou.unapproveWithIntegrationWarning', 'Xero')}
+                    onConfirm={() => {
+                        setIsUnapproveModalVisible(false);
+                        IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
+                    }}
+                    isVisible={isUnapproveModalVisible}
+                    danger
+                    cancelText={translate('common.cancel')}
+                    onCancel={() => setIsUnapproveModalVisible(false)}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
