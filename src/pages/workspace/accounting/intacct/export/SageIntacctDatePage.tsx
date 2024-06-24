@@ -58,7 +58,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
             headerContent={headerContent}
             sections={[{data}]}
             listItem={RadioListItem}
-            onSelectRow={selectExportDate}
+            onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

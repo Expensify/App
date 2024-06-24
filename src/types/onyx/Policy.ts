@@ -1025,7 +1025,7 @@ type NetSuiteConnection = {
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
-    lastSync?: ConnectionLxastSync;
+    lastSync?: ConnectionLastSync;
 
     /** Data imported from integration */
     data?: ConnectionData;

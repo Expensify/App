@@ -69,7 +69,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
-        [policyID, defaultVendor],
+        [defaultVendor, policyID, isReimbursable, policy?.connections?.intacct?.config.export],
     );
 
     // TODO: test on empty list
