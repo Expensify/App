@@ -785,6 +785,9 @@ export default {
         transactionPending: 'Transacción pendiente.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
         unapprove: 'Desaprobar',
+        unapproveReport: 'Unapprove report',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `Heads up! This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
