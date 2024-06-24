@@ -196,8 +196,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
         (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
 
-    console.log('[canUnapproveRequest]: ', canUnapproveRequest);
-
     useEffect(() => {
         if (canDeleteRequest) {
             return;
@@ -355,6 +353,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 },
             });
         }
+
+        if (canUnapproveRequest) {
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
+                icon: Expensicons.Exit,
+                translationKey: 'iou.unapprove',
+                isAnonymousAction: false,
+                action: () => {},
+            });
+        }
         return items;
     }, [
         isSelfDM,
@@ -379,6 +387,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isPolicyAdmin,
         session,
         leaveChat,
+        canUnapproveRequest,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
