@@ -39,6 +39,7 @@ const tests: Tests = {
     [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
     [E2EConfig.TEST_NAMES.Linking]: require('./tests/linkingTest.e2e').default,
+    [E2EConfig.TEST_NAMES.PreloadedLinking]: require('./tests/preloadedLinkingTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
