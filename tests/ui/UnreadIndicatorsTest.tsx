@@ -16,6 +16,7 @@ import LocalNotification from '@libs/Notification/LocalNotification';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
+import {getReportActionText} from '@libs/ReportActionsUtils';
 import FontUtils from '@styles/utils/FontUtils';
 import * as AppActions from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -462,6 +463,52 @@ describe('Unread Indicators', () => {
                 expect((displayNameTexts[1]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
+    it('Delete a chat message and verify the unread indicator is moved', async () => {
+        const getUnreadIndicator = () => {
+            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+            return screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        };
+
+        return signInAndGetAppWithUnreadChat()
+            .then(() => navigateToSidebarOption(0))
+            .then(async () => act(() => transitionEndCB?.()))
+            .then(async () => {
+                const reportActionsViewWrapper = await screen.findByTestId('report-actions-view-wrapper');
+                if (reportActionsViewWrapper) {
+                    fireEvent(reportActionsViewWrapper, 'onLayout', {nativeEvent: {layout: {x: 0, y: 0, width: 100, height: 100}}});
+                }
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                // Verify the new line indicator is present, and it's before the action with ID 4
+                const unreadIndicator = getUnreadIndicator();
+                expect(unreadIndicator).toHaveLength(1);
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                expect(reportActionID).toBe('4');
+
+                // simulate delete comment event from Pusher
+                PusherHelper.emitOnyxUpdate([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                        value: {
+                            '4': {
+                                message: [],
+                            },
+                        },
+                    },
+                ]);
+                return waitForBatchedUpdates();
+            })
+            .then(() =>
+                // Verify the new line indicator is now before the action with ID 5
+                waitFor(() => {
+                    const unreadIndicator = getUnreadIndicator();
+                    const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                    expect(reportActionID).toBe('5');
+                }),
+            );
+    });
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
@@ -605,7 +652,7 @@ describe('Unread Indicators', () => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                        lastMessageText: lastReportAction?.message?.[0]?.text,
+                        lastMessageText: getReportActionText(lastReportAction),
                         lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,
                     });
