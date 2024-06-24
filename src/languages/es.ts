@@ -414,7 +414,7 @@ export default {
         findMember: 'Encuentra un miembro',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Iniciar una llamada',
+        tooltip: 'Programar una llamada',
     },
     hello: 'Hola',
     phoneCountryCode: '34',

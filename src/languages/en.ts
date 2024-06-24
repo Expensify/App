@@ -422,7 +422,7 @@ export default {
         findMember: 'Find a member',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Start a call',
+        tooltip: 'Book a call',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
