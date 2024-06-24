@@ -115,6 +115,7 @@ const ONYXKEYS = {
     /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
+    /** This NVP contains data associated with HybridApp */
     NVP_TRYNEWDOT: 'nvp_tryNewDot',
 
     /** Contains the user preference for the LHN priority mode */
