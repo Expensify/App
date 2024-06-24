@@ -92,7 +92,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles}: Feedbac
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
                     onSubmit={handleSubmit}
-                    message="common.error.pleaseCompleteForm"
+                    message={translate('common.error.pleaseCompleteForm')}
                     buttonText={translate('common.submit')}
                     enabledWhenOffline
                 />
