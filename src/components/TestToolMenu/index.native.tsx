@@ -5,20 +5,26 @@ import useLocalize from '@hooks/useLocalize';
 import testCrash from '@libs/testCrash';
 import BaseTestToolMenu from './BaseTestToolMenu';
 
+const config = require('../../../firebase.json');
+
 function TestToolMenu() {
     const {translate} = useLocalize();
 
+    const isCrashlyticsDebugEnabled = config['react-native'].crashlytics_debug_enabled;
+
     return (
         <BaseTestToolMenu>
-            <TestToolRow title={translate('initialSettingsPage.troubleshoot.nativeCrash')}>
-                <Button
-                    small
-                    text={translate('initialSettingsPage.troubleshoot.nativeCrash')}
-                    onPress={() => {
-                        testCrash();
-                    }}
-                />
-            </TestToolRow>
+            {isCrashlyticsDebugEnabled ? (
+                <TestToolRow title={translate('initialSettingsPage.troubleshoot.nativeCrash')}>
+                    <Button
+                        small
+                        text={translate('initialSettingsPage.troubleshoot.nativeCrash')}
+                        onPress={() => {
+                            testCrash();
+                        }}
+                    />
+                </TestToolRow>
+            ) : null}
         </BaseTestToolMenu>
     );
 }
