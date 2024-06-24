@@ -25,27 +25,26 @@ function TransactionDuplicateReview() {
     const route = useRoute<RouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const currentPersonalDetails = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`);
-    const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
-    const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '0' : '0';
+    const reportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction, report?.reportID ?? '-1') ?? '-1';
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const duplicateTransactionIDs = useMemo(
         () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
         [transactionViolations],
     );
+    const transactionIDs = [transactionID, ...duplicateTransactionIDs];
 
-    const transactions = [transactionID, ...duplicateTransactionIDs]
-        .map((item) => TransactionUtils.getTransaction(item))
-        .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
+    const transactions = transactionIDs.map((item) => TransactionUtils.getTransaction(item)).sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime());
 
     const keepAll = () => {
-        Transaction.dismissDuplicateTransactionViolation([transactionID, ...duplicateTransactionIDs], currentPersonalDetails, route.params.threadReportID);
+        Transaction.dismissDuplicateTransactionViolation(transactionIDs, currentPersonalDetails);
         Navigation.goBack();
     };
 
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
             <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <View style={[styles.justifyContentCenter, styles.pt3, styles.pl2, styles.pb4, styles.pr2, styles.borderBottom]}>
+            <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
                 <Button
                     text={translate('iou.keepAll')}
                     onPress={keepAll}

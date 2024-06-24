@@ -7,9 +7,12 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,8 +23,11 @@ function SubscriptionPlan() {
     const styles = useThemeStyles();
     const theme = useTheme();
 
-    const subscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+
+    const subscriptionPlan = useSubscriptionPlan();
+    const subscriptionPrice = useSubscriptionPrice();
+    const preferredCurrency = usePreferredCurrency();
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -59,7 +65,10 @@ function SubscriptionPlan() {
                 />
                 <Text style={[styles.headerText, styles.mt2]}>{translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.title`)}</Text>
                 <Text style={[styles.textLabelSupporting, styles.mb2]}>
-                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`)}
+                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
+                        lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+                        upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+                    })}
                 </Text>
                 {benefitsList.map((benefit) => (
                     <View

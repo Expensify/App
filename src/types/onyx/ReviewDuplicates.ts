@@ -1,3 +1,6 @@
+/**
+ * Model of review duplicates request
+ */
 type ReviewDuplicates = {
     /** Transactions ids which are duplicates of selected transcation */
     duplicates: string[];
