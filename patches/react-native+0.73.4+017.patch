@@ -1,0 +1,137 @@
+diff --git a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+index 2c0c099..472877a 100644
+--- a/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
++++ b/node_modules/react-native/Libraries/Components/TextInput/TextInput.d.ts
+@@ -451,6 +451,9 @@ export interface TextInputKeyPressEventData {
+ export interface TextInputChangeEventData extends TargetedEvent {
+   eventCount: number;
+   text: string;
++  before: number;
++  start: number;
++  count: number;
+ }
+ 
+ /**
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+index 7ce04da..b7c3b6f 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
+@@ -55,6 +55,10 @@ @implementation RCTTextInputComponentView {
+    */
+   BOOL _comingFromJS;
+   BOOL _didMoveToWindow;
++
++  NSInteger changeStart;
++  NSInteger changeBefore;
++  NSInteger changeCount;
+ }
+ 
+ #pragma mark - UIView overrides
+@@ -344,6 +348,10 @@ - (NSString *)textInputShouldChangeText:(NSString *)text inRange:(NSRange)range
+ {
+   const auto &props = static_cast<const TextInputProps &>(*_props);
+ 
++  changeStart = range.location;
++  changeBefore = range.length;
++  changeCount = text.length;
++
+   if (!_backedTextInputView.textWasPasted) {
+     if (_eventEmitter) {
+       KeyPressMetrics keyPressMetrics;
+@@ -540,6 +548,9 @@ - (TextInputMetrics)_textInputMetrics
+   metrics.text = RCTStringFromNSString(_backedTextInputView.attributedText.string);
+   metrics.selectionRange = [self _selectionRange];
+   metrics.eventCount = _mostRecentEventCount;
++  metrics.count = static_cast<int>(changeCount);
++  metrics.before = static_cast<int>(changeBefore);
++  metrics.start = static_cast<int>(changeStart);
+ 
+   CGPoint contentOffset = _backedTextInputView.contentOffset;
+   metrics.contentOffset = {contentOffset.x, contentOffset.y};
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextChangedEvent.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextChangedEvent.java
+index 4540b90..c44a11f 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextChangedEvent.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextChangedEvent.java
+@@ -23,16 +23,23 @@ public class ReactTextChangedEvent extends Event<ReactTextChangedEvent> {
+ 
+   private String mText;
+   private int mEventCount;
++  // See https://developer.android.com/reference/android/text/TextWatcher#onTextChanged(java.lang.CharSequence,%20int,%20int,%20int)
++  private int mStart;
++  private int mCount;
++  private int mBefore;
+ 
+   @Deprecated
+-  public ReactTextChangedEvent(int viewId, String text, int eventCount) {
+-    this(ViewUtil.NO_SURFACE_ID, viewId, text, eventCount);
++  public ReactTextChangedEvent(int viewId, String text, int eventCount, int start, int count, int before) {
++    this(ViewUtil.NO_SURFACE_ID, viewId, text, eventCount, start, count, before);
+   }
+ 
+-  public ReactTextChangedEvent(int surfaceId, int viewId, String text, int eventCount) {
++  public ReactTextChangedEvent(int surfaceId, int viewId, String text, int eventCount, int start, int count, int before) {
+     super(surfaceId, viewId);
+     mText = text;
+     mEventCount = eventCount;
++    mStart = start;
++    mCount = count;
++    mBefore = before;
+   }
+ 
+   @Override
+@@ -47,6 +54,9 @@ public class ReactTextChangedEvent extends Event<ReactTextChangedEvent> {
+     eventData.putString("text", mText);
+     eventData.putInt("eventCount", mEventCount);
+     eventData.putInt("target", getViewTag());
++    eventData.putInt("start", mStart);
++    eventData.putInt("count", mCount);
++    eventData.putInt("before", mBefore);
+     return eventData;
+   }
+ }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+index 8496a7d..fd5076b 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactTextInputManager.java
+@@ -1068,7 +1068,12 @@ public class ReactTextInputManager extends BaseViewManager<ReactEditText, Layout
+               mSurfaceId,
+               mEditText.getId(),
+               s.toString(),
+-              mEditText.incrementAndGetEventCounter()));
++              mEditText.incrementAndGetEventCounter(),
++              start,
++              count,
++              before
++          )
++      );
+ 
+       mEventDispatcher.dispatchEvent(
+           new ReactTextInputEvent(
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
+index 497569a..f1c189c 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.cpp
+@@ -20,6 +20,9 @@ static jsi::Value textInputMetricsPayload(
+       jsi::String::createFromUtf8(runtime, textInputMetrics.text));
+ 
+   payload.setProperty(runtime, "eventCount", textInputMetrics.eventCount);
++  payload.setProperty(runtime, "start", textInputMetrics.start);
++  payload.setProperty(runtime, "count", textInputMetrics.count);
++  payload.setProperty(runtime, "before", textInputMetrics.before);
+ 
+   {
+     auto selection = jsi::Object(runtime);
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h
+index 0ab2b18..42a4fd6 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/iostextinput/react/renderer/components/iostextinput/TextInputEventEmitter.h
+@@ -16,6 +16,9 @@ class TextInputMetrics {
+  public:
+   std::string text;
+   AttributedString::Range selectionRange;
++  int count;
++  int start;
++  int before;
+   // ScrollView-like metrics
+   Size contentSize;
+   Point contentOffset;
