@@ -2222,7 +2222,8 @@ export default {
             creditCardAccount: 'Credit card account',
             creditCardAccountDescription: 'We should have some description here, right?',
             defaultVendor: 'Default vendor',
-            defaultVendorDescription: "Set a default vendor that will apply to nonreimbursable expenses that don't have a matching vendor in Sage Intacct.",
+            defaultVendorDescription: (isReimbursable: boolean): string =>
+                `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
             exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
