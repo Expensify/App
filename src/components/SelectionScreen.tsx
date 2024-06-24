@@ -111,8 +111,9 @@ function SelectionScreen({
                     shouldShowTooltips={false}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     listEmptyContent={listEmptyContent}
-                />
-                {children}
+                >
+                    {children}
+                </SelectionList>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -230,7 +230,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                     }
                     return (
                         <OfflineWithFeedback
-                            key={item.title}
+                            key={item.description}
                             pendingAction={item.pendingAction}
                             errors={item.errors}
                             errorRowStyles={[styles.ph5]}

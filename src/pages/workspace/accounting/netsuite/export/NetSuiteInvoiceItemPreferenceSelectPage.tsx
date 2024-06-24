@@ -29,6 +29,13 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.netsuite.options.config;
 
+    const {items} = policy?.connections?.netsuite.options.data ?? {};
+
+    const selectedItem = useMemo(() => {
+        const selectedRec = (items ?? []).find((item) => item.id === config?.invoiceItem);
+        return selectedRec;
+    }, [items, config?.invoiceItem]);
+
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
         value: postingPreference,
         text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
@@ -81,7 +88,8 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
                     onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
                 >
                     <MenuItemWithTopDescription
-                        title={translate('workspace.netsuite.invoiceItem.label')}
+                        description={translate('workspace.netsuite.invoiceItem.label')}
+                        title={selectedItem ? selectedItem.name : undefined}
                         interactive
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}

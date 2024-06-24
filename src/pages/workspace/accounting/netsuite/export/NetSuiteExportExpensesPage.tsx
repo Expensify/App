@@ -144,7 +144,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                     .filter((item) => !item.shouldHide)
                     .map((item) => (
                         <OfflineWithFeedback
-                            key={item.title}
+                            key={item.description}
                             pendingAction={item.pendingAction}
                             errors={item.errors}
                             onClose={item.onCloseError}
