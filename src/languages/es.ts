@@ -2258,7 +2258,8 @@ export default {
             creditCardAccount: 'Cuenta de tarjeta de crédito',
             creditCardAccountDescription: '!!!!!!!!',
             defaultVendor: 'Proveedor por defecto',
-            defaultVendorDescription: 'Establezca un proveedor predeterminado que se aplicará a los gastos no reembolsables que no tienen un proveedor coincidente en Sage Intacct.',
+            defaultVendorDescription: (isReimbursable: boolean): string =>
+                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Inacct.',
             exportPreferredExporterNote:
                 'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
