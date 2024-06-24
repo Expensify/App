@@ -191,6 +191,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
+    const canUnapproveRequest =
+        ReportUtils.isMoneyRequestReport(moneyRequestReport) &&
+        (ReportUtils.isReportManager(moneyRequestReport) || isPolicyAdmin) &&
+        (ReportUtils.isReportApproved(moneyRequestReport) || ReportUtils.isReportManuallyReimbursed(moneyRequestReport));
+
+    console.log('[canUnapproveRequest]: ', canUnapproveRequest);
+
     useEffect(() => {
         if (canDeleteRequest) {
             return;
