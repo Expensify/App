@@ -8,7 +8,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -211,7 +210,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-            useNativeDriver={useNativeDriver}
+            useNativeDriver
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
