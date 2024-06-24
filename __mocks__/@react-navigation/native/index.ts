@@ -29,12 +29,37 @@ type NativeNavigationMock = typeof ReactNavigation & {
     triggerTransitionEnd: () => void;
 };
 
-module.exports = {
-    ...realReactNavigation,
+export * from '@react-navigation/core';
+const Link = realReactNavigation.Link;
+const LinkingContext = realReactNavigation.LinkingContext;
+const NavigationContainer = realReactNavigation.NavigationContainer;
+const ServerContainer = realReactNavigation.ServerContainer;
+const DarkTheme = realReactNavigation.DarkTheme;
+const DefaultTheme = realReactNavigation.DefaultTheme;
+const ThemeProvider = realReactNavigation.ThemeProvider;
+const useLinkBuilder = realReactNavigation.useLinkBuilder;
+const useLinkProps = realReactNavigation.useLinkProps;
+const useLinkTo = realReactNavigation.useLinkTo;
+const useScrollToTop = realReactNavigation.useScrollToTop;
+export {
+    // Overriden modules
     useIsFocused,
     useTheme,
     useNavigation,
     triggerTransitionEnd,
+
+    // Theme modules are left alone
+    Link,
+    LinkingContext,
+    NavigationContainer,
+    ServerContainer,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
+    useLinkBuilder,
+    useLinkProps,
+    useLinkTo,
+    useScrollToTop,
 };
 
 export type {NativeNavigationMock};
