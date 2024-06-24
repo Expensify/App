@@ -55,7 +55,7 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
-import type {ReportActionBase, ReportActions} from './ReportAction';
+import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
@@ -68,6 +68,7 @@ import type {ReportViolation} from './ReportViolation';
 import type ReportViolations from './ReportViolation';
 import type Request from './Request';
 import type Response from './Response';
+import type ReviewDuplicates from './ReviewDuplicates';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -182,7 +183,6 @@ export type {
     RecentlyUsedReportFields,
     DecisionName,
     OriginalMessageIOU,
-    ReportActionBase,
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
@@ -191,6 +191,7 @@ export type {
     PolicyJoinMember,
     CapturedLogs,
     SearchResults,
+    ReviewDuplicates,
     PrivateSubscription,
     BillingGraceEndPeriod,
 };
