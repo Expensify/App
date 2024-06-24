@@ -189,7 +189,7 @@ function IOURequestStepConfirmation({
         // If there is not a report attached to the IOU with a reportID, then the participants were manually selected and the user needs taken
         // back to the participants step
         // enforce the fallback, so the user can re-select the participant
-        const reportIDToNavigateBack = transaction?.reportID || reportID;
+        const reportIDToNavigateBack = transaction?.reportID ?? reportID;
         if (!transaction?.participantsAutoAssigned) {
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportIDToNavigateBack, undefined, action), true);
             return;
