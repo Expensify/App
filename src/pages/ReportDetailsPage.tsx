@@ -20,6 +20,7 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -416,6 +417,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
+    const unapproveWarningText = (
+        <Text>
+            {/* TODO: Replace with the connected accounting integration name */}
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', 'Xero')}</Text>
+        </Text>
+    );
+
     const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
             return (
@@ -669,16 +677,17 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 />
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
-                    // TODO: Replace with the connected accounting integration name
-                    prompt={translate('iou.unapproveWithIntegrationWarning', 'Xero')}
-                    onConfirm={() => {
-                        setIsUnapproveModalVisible(false);
-                        IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
-                    }}
                     isVisible={isUnapproveModalVisible}
                     danger
+                    confirmText={translate('iou.unapproveReport')}
+                    onConfirm={() => {
+                        setIsUnapproveModalVisible(false);
+                        Navigation.dismissModal();
+                        IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
+                    }}
                     cancelText={translate('common.cancel')}
                     onCancel={() => setIsUnapproveModalVisible(false)}
+                    prompt={unapproveWarningText}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
