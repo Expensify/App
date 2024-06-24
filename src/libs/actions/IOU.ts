@@ -1708,18 +1708,21 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
-    if (actionableWhisperReportActionID && actionableWhisperReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [actionableWhisperReportActionID]: {
-                    originalMessage: {
-                        resolution: actionableWhisperReportAction?.originalMessage?.resolution,
+    if (actionableWhisperReportActionID) {
+        const actionableWhisperOriginalMessage = ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction);
+        if (actionableWhisperOriginalMessage && 'resolution' in actionableWhisperOriginalMessage) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableWhisperReportActionID]: {
+                        originalMessage: {
+                            resolution: actionableWhisperOriginalMessage?.resolution,
+                        },
                     },
                 },
-            },
-        });
+            });
+        }
     }
     failureData.push(
         {
