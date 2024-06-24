@@ -273,7 +273,6 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
-        weMightHaveProblem: 'We might have a problem. Check out ',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
         areYouSure: 'Are you sure?',
@@ -340,6 +339,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        disable: 'Disable',
     },
     location: {
         useCurrent: 'Use current location',
@@ -627,6 +627,10 @@ export default {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
@@ -757,6 +761,7 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        unhold: 'Unhold',
         holdExpense: 'Hold expense',
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
@@ -767,6 +772,7 @@ export default {
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
         expenseDuplicate: 'This expense has the same details as another one. Review the duplicates to remove the hold.',
         reviewDuplicates: 'Review duplicates',
+        keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
         confirmPay: 'Confirm payment amount',
@@ -1022,7 +1028,6 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
-        disable: 'Disable',
     },
     recoveryCodeForm: {
         error: {
@@ -1305,6 +1310,9 @@ export default {
             },
         },
     },
+    reportDetailsPage: {
+        inWorkspace: ({policyName}) => `in ${policyName}`,
+    },
     reportDescriptionPage: {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
@@ -1400,6 +1408,7 @@ export default {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
+        getStarted: 'Get started',
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
         purpose: {
@@ -2003,7 +2012,7 @@ export default {
             exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             preferredExporter: 'Preferred exporter',
-            date: 'Date',
+            date: 'Export date',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportInvoices: 'Export invoices to',
             exportCompany: 'Export company cards as',
@@ -2085,7 +2094,7 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
 
@@ -2259,6 +2268,8 @@ export default {
         reportFields: {
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            disableReportFields: 'Disable report fields',
+            disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
         tags: {
             tagName: 'Tag name',
@@ -2519,6 +2530,36 @@ export default {
                             return 'Syncing Xero data';
                         case 'xeroSyncStep':
                             return 'Loading data';
+                        case 'netSuiteSyncConnection':
+                            return 'Initializing connection to NetSuite';
+                        case 'netSuiteSyncCustomers':
+                            return 'Importing customers';
+                        case 'netSuiteSyncInitData':
+                            return 'Retrieving data from NetSuite';
+                        case 'netSuiteSyncImportTaxes':
+                            return 'Importing taxes';
+                        case 'netSuiteSyncImportItems':
+                            return 'Importing items';
+                        case 'netSuiteSyncData':
+                            return 'Importing data into Expensify';
+                        case 'netSuiteSyncAccounts':
+                            return 'Syncing accounts';
+                        case 'netSuiteSyncCurrencies':
+                            return 'Syncing currencies';
+                        case 'netSuiteSyncCategories':
+                            return 'Syncing categories';
+                        case 'netSuiteSyncImportEmployees':
+                            return 'Importing employees';
+                        case 'netSuiteSyncReportFields':
+                            return 'Importing data as Expensify report fields';
+                        case 'netSuiteSyncTags':
+                            return 'Importing data as Expensify tags';
+                        case 'netSuiteSyncUpdateConnectionData':
+                            return 'Updating connection info';
+                        case 'netSuiteSyncNetSuiteReimbursedReports':
+                            return 'Marking Expensify reports as reimbursed';
+                        case 'netSuiteSyncExpensifyReimbursedReports':
+                            return 'Marking NetSuite bills and invoices as paid';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -3164,11 +3205,15 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        keepThisOne: 'Keep this one',
         hold: 'Hold',
     },
     violationDismissal: {
         rter: {
             manual: 'marked this receipt as cash.',
+        },
+        duplicatedTransaction: {
+            manual: 'resolved the duplicate',
         },
     },
     videoPlayer: {
@@ -3213,11 +3258,18 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        billingBanner: {
+            preTrial: {
+                title: 'Start a free trial',
+                subtitle: 'To get started, ',
+                subtitleLink: 'complete your setup checklist here',
+            },
+        },
         cardSection: {
             title: 'Payment',
             subtitle: 'Add a payment card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
-            cardNextPayment: 'Your next payment date is',
+            cardNextPayment: ({nextPaymentDate}) => `Your next payment date is ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,
             cardInfo: ({name, expiration, currency}) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
             changeCard: 'Change payment card',
