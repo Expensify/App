@@ -239,8 +239,11 @@ export default {
     eReceiptBackgroundImageMinWidth: 217,
 
     searchTypeColumnWidth: 52,
-    w20: 20,
+
+    h20: 20,
+    h28: 28,
     h36: 36,
+    w20: 20,
     w28: 28,
     w36: 36,
     w40: 40,
