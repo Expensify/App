@@ -410,7 +410,10 @@ function ComposerWithSuggestions(
     const updateComment = useCallback(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
             raiseIsScrollLikelyLayoutTriggered();
+            // TODO: refactor update comment, to not use findNewlyAddedChars, but to get these info from onChange
+            // TODO: Check if findNewlyAddedChars can be removed entirely, or if there are edge use cases (updateComment is called from many different places) that need to be supported
             const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+
             const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
             const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
             const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
@@ -429,6 +432,7 @@ function ComposerWithSuggestions(
             const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
             const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
 
+            // TODO: why would we handle this as a separate state, instead of just using the value of the comment?
             /** Only update isCommentEmpty state if it's different from previous one */
             if (isNewCommentEmpty !== isPrevCommentEmpty) {
                 setIsCommentEmpty(isNewCommentEmpty);
@@ -794,6 +798,9 @@ function ComposerWithSuggestions(
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
+                    onChange={({nativeEvent}) => {
+                        console.log('onChange', nativeEvent);
+                    }}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
