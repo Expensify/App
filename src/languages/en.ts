@@ -2727,6 +2727,13 @@ export default {
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
         },
+        exportAgainModal: {
+            title: 'Careful!',
+            description: ({reportName, integrationName}: {reportName: string; integrationName: string}) =>
+                `The following reports have already been exported to ${integrationName}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
+            confirmText: 'Yes, export again',
+            cancelText: 'Cancel',
+        },
     },
     getAssistancePage: {
         title: 'Get assistance',
@@ -3359,12 +3366,5 @@ export default {
         businessClosing: 'Company closing, downsizing, or acquired',
         additionalInfoTitle: 'What software are you moving to and why?',
         additionalInfoInputLabel: 'Your response',
-    },
-    exportAgainModal: {
-        title: 'Careful!',
-        description: ({reportName, integrationName}: {reportName: string; integrationName: string}) =>
-            `The following reports have already been exported to ${integrationName}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
-        confirmText: 'Yes, export again',
-        cancelText: 'Cancel',
     },
 } satisfies TranslationBase;

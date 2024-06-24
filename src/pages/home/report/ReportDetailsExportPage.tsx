@@ -86,12 +86,12 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             />
             {shouldShowModal && (
                 <ConfirmModal
-                    title={translate('exportAgainModal.title')}
+                    title={translate('workspace.exportAgainModal.title')}
                     onConfirm={() => setShouldShowModal(false)}
                     onCancel={() => setShouldShowModal(false)}
-                    prompt={translate('exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
-                    confirmText={translate('exportAgainModal.confirmText')}
-                    cancelText={translate('exportAgainModal.cancelText')}
+                    prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
+                    confirmText={translate('workspace.exportAgainModal.confirmText')}
+                    cancelText={translate('workspace.exportAgainModal.cancelText')}
                     isVisible
                 />
             )}
