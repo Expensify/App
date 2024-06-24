@@ -1243,13 +1243,7 @@ PODS:
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
-    - RCT-Folly
-    - RCTRequired
-    - RCTTypeSafety
-    - React
-    - React-Codegen
-    - React-RCTFabric
-    - ReactCommon/turbomodule/core
+    - React-Core
   - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
@@ -1871,7 +1865,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.85):
+  - RNLiveMarkdown (0.1.88):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1889,9 +1883,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.85)
+    - RNLiveMarkdown/common (= 0.1.88)
     - Yoga
-  - RNLiveMarkdown/common (0.1.85):
+  - RNLiveMarkdown/common (0.1.88):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2558,7 +2552,7 @@ SPEC CHECKSUMS:
   react-native-airship: 38e2596999242b68c933959d6145512e77937ac0
   react-native-blob-util: 1ddace5234c62e3e6e4e154d305ad07ef686599b
   react-native-cameraroll: f373bebbe9f6b7c3fd2a6f97c5171cda574cf957
-  react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
+  react-native-config: 5330c8258265c1e5fdb8c009d2cabd6badd96727
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
@@ -2612,7 +2606,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 74b7b3d06d667ba0bbf41da7718f2607ae0dfe8f
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: fff70dc755ed8199a449f61e76cbadec7cd20440
+  RNLiveMarkdown: e33d2c97863d5480f8f4b45f8b25f801cc43c7f5
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: df8fe93dbd251f25022f4023d31bc04160d4d65c
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
@@ -2629,8 +2623,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: d5e281e5370cb0211a104efd90eb5fa7af936e14
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.15.2
