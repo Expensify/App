@@ -24,9 +24,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
+import type {SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import SearchHeader from './SearchHeader';
 
 type SearchProps = {
     query: SearchQuery;
@@ -47,7 +48,7 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 }
 
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
-    const [selectedItems, setSelectedItems] = useState<Record<string, {isSelected: boolean; canDelete: boolean; action: string}>>({});
+    const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -217,52 +218,58 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     );
 
     return (
-        <SelectionList<ReportListItemType | TransactionListItemType>
-            customListHeader={
-                <SearchTableHeader
-                    data={searchResults?.data}
-                    onSortPress={onSortPress}
-                    sortOrder={sortOrder}
-                    isSortingAllowed={isSortingAllowed}
-                    sortBy={sortBy}
-                    shouldShowYear={shouldShowYear}
-                />
-            }
-            canSelectMultiple={isLargeScreenWidth}
-            onSelectAll={toggleAllTransactions}
-            onCheckboxPress={toggleTransaction}
-            customListHeaderHeight={searchHeaderHeight}
-            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-            // we have configured a larger windowSize and a longer delay between batch renders.
-            // The windowSize determines the number of items rendered before and after the currently visible items.
-            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-            // For more information, refer to the React Native documentation:
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-            windowSize={111}
-            updateCellsBatchingPeriod={200}
-            ListItem={ListItem}
-            sections={[{data: sortedSelectedData, isDisabled: false}]}
-            onSelectRow={(item) => openReport(item)}
-            getItemHeight={getItemHeight}
-            shouldDebounceRowSelect
-            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-            containerStyle={[styles.pv0]}
-            showScrollIndicator={false}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            listFooterContent={
-                isLoadingMoreItems ? (
-                    <TableListItemSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
+        <>
+            <SearchHeader
+                selectedItems={selectedItems}
+                query={query}
+            />
+            <SelectionList<ReportListItemType | TransactionListItemType>
+                customListHeader={
+                    <SearchTableHeader
+                        data={searchResults?.data}
+                        onSortPress={onSortPress}
+                        sortOrder={sortOrder}
+                        isSortingAllowed={isSortingAllowed}
+                        sortBy={sortBy}
+                        shouldShowYear={shouldShowYear}
                     />
-                ) : undefined
-            }
-        />
+                }
+                canSelectMultiple={isLargeScreenWidth}
+                onSelectAll={toggleAllTransactions}
+                onCheckboxPress={toggleTransaction}
+                customListHeaderHeight={searchHeaderHeight}
+                // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
+                // we have configured a larger windowSize and a longer delay between batch renders.
+                // The windowSize determines the number of items rendered before and after the currently visible items.
+                // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
+                // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
+                // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
+                // For more information, refer to the React Native documentation:
+                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
+                // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
+                windowSize={111}
+                updateCellsBatchingPeriod={200}
+                ListItem={ListItem}
+                sections={[{data: sortedSelectedData, isDisabled: false}]}
+                onSelectRow={(item) => openReport(item)}
+                getItemHeight={getItemHeight}
+                shouldDebounceRowSelect
+                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                containerStyle={[styles.pv0]}
+                showScrollIndicator={false}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                listFooterContent={
+                    isLoadingMoreItems ? (
+                        <TableListItemSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+            />
+        </>
     );
 }
 

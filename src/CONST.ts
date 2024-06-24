@@ -4832,6 +4832,15 @@ const CONST = {
         REPORT: 'report',
     },
 
+    SEARCH_BULK_ACTION_TYPES: {
+        DELETE: 'delete',
+        HOLD: 'hold',
+        UNHOLD: 'unhold',
+        SUBMIT: 'submit',
+        APPROVE: 'approve',
+        PAY: 'pay',
+    },
+
     REFERRER: {
         NOTIFICATION: 'notification',
     },

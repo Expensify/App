@@ -216,6 +216,16 @@ type SearchResults = {
     data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
 };
 
+/** Model of the selected transaction */
+type SelectedTransactionInfo = {
+    isSelected: boolean;
+    canDelete: boolean;
+    action: string;
+};
+
+/** Model of selected results */
+type SelectedTransactions = Record<string, SelectedTransactionInfo>;
+
 export default SearchResults;
 
 export type {
@@ -229,4 +239,5 @@ export type {
     SearchTypeToItemMap,
     SearchReport,
     SectionsType,
+    SelectedTransactions,
 };
