@@ -2551,7 +2551,7 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const lastAccessedReportID = ReportUtils.findLastAccessedReport(allReports, false, null, false, false, reportMetadata, undefined, [], currentReport?.reportID)?.reportID;
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(allReports, false, undefined, false, false, reportMetadata, undefined, [], currentReport?.reportID)?.reportID;
 
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
