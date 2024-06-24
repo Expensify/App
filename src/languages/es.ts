@@ -234,7 +234,7 @@ export default {
             enterAmount: 'Introduce un importe.',
             enterDate: 'Introduce una fecha.',
             invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
-            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar..',
+            pleaseCompleteForm: 'Por favor complete el formulario de arriba para continuar.',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -763,6 +763,7 @@ export default {
         expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
         reviewDuplicates: 'Revisar duplicados',
+        keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
         confirmPay: 'Confirmar importe de pago',
@@ -770,6 +771,7 @@ export default {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
+        unhold: 'Desbloqueada',
         holdEducationalTitle: 'Este gasto está',
         whatIsHoldTitle: '¿Qué es Bloquear?',
         whatIsHoldExplain: 'Bloquear es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
@@ -1304,6 +1306,9 @@ export default {
                 description: 'Mostrar sólo los no leídos ordenados alfabéticamente',
             },
         },
+    },
+    reportDetailsPage: {
+        inWorkspace: ({policyName}) => `en ${policyName}`,
     },
     reportDescriptionPage: {
         roomDescription: 'Descripción de la sala de chat',
@@ -2526,6 +2531,36 @@ export default {
                             return 'Sincronizando los datos de Xero';
                         case 'xeroSyncStep':
                             return 'Cargando datos';
+                        case 'netSuiteSyncConnection':
+                            return 'Iniciando conexión a NetSuite';
+                        case 'netSuiteSyncCustomers':
+                            return 'Importando clientes';
+                        case 'netSuiteSyncInitData':
+                            return 'Recuperando datos de NetSuite';
+                        case 'netSuiteSyncImportTaxes':
+                            return 'Importando impuestos';
+                        case 'netSuiteSyncImportItems':
+                            return 'Importando artículos';
+                        case 'netSuiteSyncData':
+                            return 'Importando datos a Expensify';
+                        case 'netSuiteSyncAccounts':
+                            return 'Sincronizando cuentas';
+                        case 'netSuiteSyncCurrencies':
+                            return 'Sincronizando divisas';
+                        case 'netSuiteSyncCategories':
+                            return 'Sincronizando categorías';
+                        case 'netSuiteSyncImportEmployees':
+                            return 'Importando empleados';
+                        case 'netSuiteSyncReportFields':
+                            return 'Importando datos como campos de informe de Expensify';
+                        case 'netSuiteSyncTags':
+                            return 'Importando datos como etiquetas de Expensify';
+                        case 'netSuiteSyncUpdateConnectionData':
+                            return 'Actualizando información de conexión';
+                        case 'netSuiteSyncNetSuiteReimbursedReports':
+                            return 'Marcando informes de Expensify como reembolsados';
+                        case 'netSuiteSyncExpensifyReimbursedReports':
+                            return 'Marcando facturas y recibos de NetSuite como pagados';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -3671,11 +3706,15 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        keepThisOne: 'Mantener éste',
         hold: 'Bloqueada',
     },
     violationDismissal: {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',
+        },
+        duplicatedTransaction: {
+            manual: 'resuelto el duplicado',
         },
     },
     videoPlayer: {
@@ -3731,7 +3770,7 @@ export default {
             title: 'Pago',
             subtitle: 'Añade una tarjeta de pago para abonar tu suscripción a Expensify',
             addCardButton: 'Añade tarjeta de pago',
-            cardNextPayment: 'Your next payment date is',
+            cardNextPayment: ({nextPaymentDate}) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Tarjeta terminada en ${cardNumber}`,
             cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
