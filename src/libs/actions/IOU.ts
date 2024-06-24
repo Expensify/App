@@ -2716,7 +2716,7 @@ function getUpdateMoneyRequestParams(
         });
     }
 
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
+    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction && ('tag' in transactionChanges || 'category' in transactionChanges)) {
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         optimisticData.push(
             ViolationsUtils.getViolationsOnyxData(
