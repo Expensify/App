@@ -8,6 +8,7 @@ import * as ReportHelperActions from './actions/Report';
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
 
+const reportIDToNameMap: Record<string, string> = {};
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -27,6 +28,7 @@ Onyx.connect({
             if (!report) {
                 return;
             }
+            reportIDToNameMap[report.reportID] = report.reportName ?? report.displayName ?? report.reportID;
             ReportHelperActions.handleReportChanged(report);
         });
     },
@@ -36,4 +38,8 @@ function getAllReports() {
     return allReports;
 }
 
-export default getAllReports;
+function getAllReportsNameMap() {
+    return reportIDToNameMap;
+}
+
+export {getAllReports, getAllReportsNameMap};
