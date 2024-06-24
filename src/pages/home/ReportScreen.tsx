@@ -720,7 +720,6 @@ function ReportScreen({
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
-                                testID="report-actions-view-wrapper"
                             >
                                 {!shouldShowSkeleton && (
                                     <ReportActionsView
