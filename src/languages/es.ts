@@ -103,6 +103,19 @@ import type {
     ZipCodeExampleFormatParams,
 } from './types';
 
+function integrationName(integration: ConnectionName): string {
+    switch (integration) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return 'Quickbooks Online';
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return 'Xero';
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return 'Sage Intacct';
+        default:
+            return 'Integration';
+    }
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2012,6 +2025,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Añade la cuenta en ${integrationName(integration)} y sincroniza de nuevo la conexión.`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2132,8 +2147,6 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
             },
-            noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión.',
         },
         xero: {
             organization: 'Organización Xero',
@@ -2214,8 +2227,6 @@ export default {
             exportPreferredExporterNote:
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
-            noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión.',
         },
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
@@ -2456,18 +2467,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             intacct: 'Sage Intacct',
-            integrationName: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                        return 'Sage Intacct';
-                    default:
-                        return 'Integration';
-                }
-            },
+            integrationName,
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',

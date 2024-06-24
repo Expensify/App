@@ -112,6 +112,19 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
+function integrationName(integration: ConnectionName): string {
+    switch (integration) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return 'Quickbooks Online';
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return 'Xero';
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return 'Sage Intacct';
+        default:
+            return 'Integration';
+    }
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -1987,6 +2000,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Add the account in ${integrationName(integration)} and sync the connection again.`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2099,8 +2114,6 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
         },
         xero: {
             organization: 'Xero organization',
@@ -2178,8 +2191,6 @@ export default {
             exportPreferredExporterNote:
                 'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
@@ -2452,18 +2463,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             intacct: 'Sage Intacct',
-            integrationName: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                        return 'Sage Intacct';
-                    default:
-                        return 'Integration';
-                }
-            },
+            integrationName,
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',

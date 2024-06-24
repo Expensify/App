@@ -53,8 +53,8 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noAccountsFound')}
-                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+                title={translate('workspace.common.noAccountsFound')}
+                subtitle={translate('workspace.common.noAccountsFoundDescription', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}
                 containerStyle={styles.pb10}
             />
         ),
