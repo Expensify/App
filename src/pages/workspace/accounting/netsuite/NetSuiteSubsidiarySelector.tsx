@@ -21,9 +21,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
-type NetSuiteSubsidiarySelectorProps = WithPolicyConnectionsProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
-
-function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
+function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
