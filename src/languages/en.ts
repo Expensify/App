@@ -2429,7 +2429,8 @@ export default {
                 return `Disconnect ${integrationName}`;
             },
             connectTitle: (integrationToConnect?: ConnectionName): string => {
-                const integrationName = integrationToConnect &&  CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ?  CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect]: 'accounting integration';
+                const integrationName =
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'accounting integration';
                 return `Connect ${integrationName}`;
             },
 
@@ -2460,11 +2461,13 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName = currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'this integration';
+                const integrationName =
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
-                const integrationName = integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
+                const integrationName =
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
                 return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },
             enterCredentials: 'Enter your credentials',

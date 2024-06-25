@@ -2,9 +2,9 @@ import React, {useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import {WebView} from 'react-native-webview';
+import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
@@ -52,19 +52,14 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                 isDisabled={isOffline}
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', integrationToDisconnect)}
+                <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
                         setWebViewOpen(true);
                     }}
-                    isVisible
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             )}
             <Modal

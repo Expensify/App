@@ -19,9 +19,9 @@ function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, 
             onConfirm={onConfirm}
             onCancel={onCancel}
             prompt={translate('workspace.accounting.connectPrompt', integrationToConnect)}
-            confirmText={translate('workspace.accounting.disconnect')}
+            confirmText={translate('workspace.accounting.setup')}
             cancelText={translate('common.cancel')}
-            danger
+            success
         />
     );
 }

@@ -2433,7 +2433,8 @@ export default {
                 return `Desconectar ${integrationName}`;
             },
             connectTitle: (integrationToConnect?: ConnectionName): string => {
-                const integrationName = integrationToConnect &&  CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ?  CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect]: 'accounting integration';
+                const integrationName =
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'accounting integration';
                 return `Configurar ${integrationName}`;
             },
             syncError: (integration?: ConnectionName): string => {
@@ -2463,11 +2464,12 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName = currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'integración';
+                const integrationName = currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración';
                 return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
             },
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
-                const integrationName = integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
+                const integrationName =
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
                 return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },
             enterCredentials: 'Ingresa tus credenciales',
