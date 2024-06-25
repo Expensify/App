@@ -79,8 +79,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? ''}`);
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? ''}`, {
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? '-1'}`);
+    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? '-1'}`, {
         canEvict: false,
         selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
@@ -209,6 +209,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        Navigation.dismissModal();
         if (isChatRoom) {
             const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
             Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
@@ -217,7 +218,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
-    const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
+    const shouldShowLeaveButton =
+        !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
 
@@ -441,13 +443,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
         : '';
 
-    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-
-    const shouldShowHoldAction = caseID !== CASES.MONEY_REPORT && !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+    const shouldShowHoldAction =
+        caseID !== CASES.MONEY_REPORT && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !ReportUtils.isArchivedRoom(parentReport);
 
-    const canJoin = !isExpenseReport && ReportUtils.canJoinChat(report, parentReportAction, policy);
+    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -618,7 +618,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isLastMemberLeavingGroupModalVisible}
                     onConfirm={() => {
                         setIsLastMemberLeavingGroupModalVisible(false);
-                        Report.leaveGroupChat(report.reportID);
+                        leaveChat();
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
                     prompt={translate('groupChat.lastMemberWarning')}
