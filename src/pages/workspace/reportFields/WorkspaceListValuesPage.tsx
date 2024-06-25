@@ -8,6 +8,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -61,8 +62,9 @@ function WorkspaceListValuesPage({
                     keyForList: value.name,
                     isSelected: selectedValues[value.name],
                     enabled: !value.disabled,
+                    rightElement: <ListItemRightCaretWithLabel labelText={value.disabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />,
                 })),
-        [formDraft?.listValues, selectedValues],
+        [formDraft?.listValues, selectedValues, translate],
     );
 
     const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
