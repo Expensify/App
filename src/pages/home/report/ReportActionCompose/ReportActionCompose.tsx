@@ -43,7 +43,6 @@ import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import ConnectedSendButton from './ConnectedSendButton';
-import SendButton from './SendButton';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
