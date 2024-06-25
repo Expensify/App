@@ -11,6 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {createReportFieldsListValue} from '@libs/actions/WorkspaceReportFields';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -29,24 +30,31 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
-        // const tagName = values.tagName.trim();
-        // const {tags} = PolicyUtils.getTagList(policyTags, 0);
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
+            const valueName = values[INPUT_IDS.VALUE_NAME].trim();
 
-        // if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-        //     errors.tagName = translate('workspace.tags.tagRequiredError');
-        // } else if (tags?.[tagName]) {
-        //     errors.tagName = translate('workspace.tags.existingTagError');
-        // } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
-        //     // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-        //     ErrorUtils.addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}));
-        // }
+            if (!ValidationUtils.isRequiredFulfilled(valueName)) {
+                errors.valueName = 'Required';
+            } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.[valueName]) {
+                errors.valueName = 'Exists';
+            } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'valueName',
+                    translate('common.error.characterLimitExceedCounter', {length: [...valueName].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
+                );
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [formDraft, translate],
+    );
 
-    const createTag = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+    const createValue = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+        createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
         Keyboard.dismiss();
         Navigation.goBack();
     }, []);
@@ -69,7 +77,7 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    onSubmit={createTag}
+                    onSubmit={createValue}
                     submitButtonText={translate('common.save')}
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}

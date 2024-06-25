@@ -11,5 +11,18 @@ function setInitialCreateReportFieldsForm() {
     });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {setInitialCreateReportFieldsForm};
+/**
+ * Creates a new list value in the workspace report fields form.
+ */
+function createReportFieldsListValue(valueName: string) {
+    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
+        [INPUT_IDS.LIST_VALUES]: {
+            [valueName]: {
+                name: valueName,
+                disabled: false,
+            },
+        },
+    });
+}
+
+export {setInitialCreateReportFieldsForm, createReportFieldsListValue};
