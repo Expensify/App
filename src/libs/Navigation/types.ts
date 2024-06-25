@@ -272,6 +272,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;
         accountID: string;

@@ -7,6 +7,7 @@ const INPUT_IDS = {
     TYPE: 'type',
     INITIAL_VALUE: 'initialValue',
     LIST_VALUES: 'listValues',
+    VALUE_NAME: 'valueName',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
@@ -20,6 +21,7 @@ type WorkspaceReportFieldsForm = Form<
         [INPUT_IDS.TYPE]: PolicyReportFieldType;
         [INPUT_IDS.INITIAL_VALUE]: string;
         [INPUT_IDS.LIST_VALUES]: ReportFieldListValues;
+        [INPUT_IDS.VALUE_NAME]: string;
     }
 >;
 

@@ -468,6 +468,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.route,
                         },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.route,
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,

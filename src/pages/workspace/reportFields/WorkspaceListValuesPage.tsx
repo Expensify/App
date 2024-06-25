@@ -25,6 +25,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportFieldListValue} from '@src/types/form/WorkspaceReportFieldsForm';
 
@@ -108,7 +109,7 @@ function WorkspaceListValuesPage({
                             success
                             icon={Expensicons.Plus}
                             text={translate('common.addValue')}
-                            onPress={() => {}}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
                         />
                     </View>
                 </HeaderWithBackButton>

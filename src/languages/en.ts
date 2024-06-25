@@ -344,6 +344,7 @@ export default {
         listValues: 'List values',
         addValue: 'Add value',
         currentDate: 'Current date',
+        value: 'Value',
     },
     location: {
         useCurrent: 'Use current location',

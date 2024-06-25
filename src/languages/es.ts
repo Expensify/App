@@ -335,6 +335,7 @@ export default {
         listValues: 'List values',
         addValue: 'Add value',
         currentDate: 'Current date',
+        value: 'Value',
     },
     connectionComplete: {
         title: 'Conexión Completa',
