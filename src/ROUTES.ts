@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
-import type {CentralPaneNavigatorParamList} from './libs/Navigation/types';
+import type {AuthScreensParamList} from './libs/Navigation/types';
 import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -37,7 +37,7 @@ const ROUTES = {
 
     SEARCH: {
         route: '/search/:query',
-        getRoute: (searchQuery: SearchQuery, queryParams?: CentralPaneNavigatorParamList['Search_Central_Pane']) => {
+        getRoute: (searchQuery: SearchQuery, queryParams?: AuthScreensParamList['Search_Central_Pane']) => {
             const {sortBy, sortOrder} = queryParams ?? {};
 
             if (!sortBy && !sortOrder) {
@@ -776,6 +776,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
+    WORKSPACE_REPORT_FIELDS: {
+        route: 'settings/workspaces/:policyID/reportFields',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
+    },
     // TODO: uncomment after development is done
     // WORKSPACE_EXPENSIFY_CARD: {
     //     route: 'settings/workspaces/:policyID/expensify-card',
@@ -923,6 +927,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
+    },
+    RESTRICTED_ACTION: {
+        route: 'restricted-action/workspace/:policyID',
+        getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
 } as const;
 
