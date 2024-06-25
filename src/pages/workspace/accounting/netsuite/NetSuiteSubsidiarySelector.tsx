@@ -30,7 +30,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const currentSubsidiaryName = netsuiteConfig?.subsidiary ?? '';
     const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? '';
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const subsidiaryListSections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
