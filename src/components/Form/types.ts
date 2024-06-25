@@ -19,11 +19,9 @@ import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
-import type ListValuesSelector from '@pages/workspace/reportFields/ListValuesSelector';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
-import type {ReportFieldListValues} from '@src/types/form/WorkspaceReportFieldsForm';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
@@ -47,16 +45,16 @@ type ValidInputs =
     | typeof AmountPicker
     | typeof TextPicker
     | typeof AddPlaidBankAccount
-    | typeof EmojiPickerButtonDropdown
-    | typeof ListValuesSelector;
+    | typeof EmojiPickerButtonDropdown;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
     country: Country | '';
-    reportFields: ReportFieldListValues;
+    reportFields: string[];
+    disabledListValues: boolean[];
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

@@ -793,12 +793,12 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new/addValue` as const,
     },
     WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportFields/new/:valueName',
-        getRoute: (policyID: string, valueName: string) => `settings/workspaces/${policyID}/reportFields/new/${encodeURIComponent(valueName)}` as const,
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}` as const,
     },
     WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
-        route: 'settings/workspaces/:policyID/reportFields/new/:valueName/edit',
-        getRoute: (policyID: string, valueName: string) => `settings/workspaces/${policyID}/reportFields/new/${encodeURIComponent(valueName)}/edit` as const,
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',

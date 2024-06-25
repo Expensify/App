@@ -37,7 +37,7 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
 
             if (!ValidationUtils.isRequiredFulfilled(valueName)) {
                 errors.valueName = 'Required';
-            } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.[valueName]) {
+            } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.some((currentValueName) => currentValueName === valueName)) {
                 errors.valueName = 'Exists';
             } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.

@@ -18,20 +18,17 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportFieldListValue} from '@src/types/form/WorkspaceReportFieldsForm';
 
 type ValueListItem = ListItem & {
-    value: ReportFieldListValue;
+    value: string;
     enabled: boolean;
     orderWeight?: number;
 };
@@ -39,7 +36,6 @@ type ValueListItem = ListItem & {
 type WorkspaceListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
 function WorkspaceListValuesPage({
-    // policy,
     route: {
         params: {policyID},
     },
@@ -54,33 +50,34 @@ function WorkspaceListValuesPage({
 
     const valueList = useMemo(
         () =>
-            Object.values(formDraft?.listValues ?? {})
-                .sort((valueA, valueB) => localeCompare(valueA.name, valueB.name))
-                .map((value) => ({
-                    value,
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: selectedValues[value.name],
-                    enabled: !value.disabled,
-                    rightElement: <ListItemRightCaretWithLabel labelText={value.disabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />,
-                })),
-        [formDraft?.listValues, selectedValues, translate],
+            Object.values(formDraft?.listValues ?? {}).map((value, index) => ({
+                value,
+                index,
+                text: value,
+                keyForList: value,
+                isSelected: selectedValues[value],
+                enabled: formDraft?.disabledListValues?.[index] ?? true,
+                rightElement: (
+                    <ListItemRightCaretWithLabel labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />
+                ),
+            })),
+        [formDraft?.disabledListValues, formDraft?.listValues, selectedValues, translate],
     );
 
     const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
 
-    const toggleValue = (value: ValueListItem) => {
+    const toggleValue = (valueItem: ValueListItem) => {
         setSelectedValues((prev) => ({
             ...prev,
-            [value.value.name]: !prev[value.value.name],
+            [valueItem.value]: !prev[valueItem.value],
         }));
     };
 
     const toggleAllValues = () => {
-        const listValues = formDraft?.listValues ?? {};
-        const isAllSelected = Object.keys(listValues).length === Object.keys(selectedValues).length;
+        const listValues = formDraft?.listValues ?? [];
+        const isAllSelected = listValues.length === Object.keys(selectedValues).length;
 
-        setSelectedValues(isAllSelected ? {} : Object.fromEntries(Object.values(listValues).map((value) => [value.name, true])));
+        setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
     const getCustomListHeader = () => (
@@ -132,7 +129,7 @@ function WorkspaceListValuesPage({
                         canSelectMultiple
                         sections={[{data: valueList, isDisabled: false}]}
                         onCheckboxPress={toggleValue}
-                        onSelectRow={(item) => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.value.name))}
+                        onSelectRow={(item) => item.index !== undefined && Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.index))}
                         shouldDebounceRowSelect={false}
                         onSelectAll={toggleAllValues}
                         ListItem={TableListItem}
@@ -149,4 +146,4 @@ function WorkspaceListValuesPage({
 
 WorkspaceListValuesPage.displayName = 'WorkspaceListValuesPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceListValuesPage);
+export default WorkspaceListValuesPage;

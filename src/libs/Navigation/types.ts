@@ -277,11 +277,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
         policyID: string;
-        valueName: string;
+        valueIndex: number;
     };
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
         policyID: string;
-        valueName: string;
+        valueIndex: number;
     };
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
         policyID: string;

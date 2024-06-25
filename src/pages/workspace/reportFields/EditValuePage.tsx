@@ -19,20 +19,22 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
 type EditValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
 
-function EditValuePage({route, navigation}: EditValuePageProps) {
+function EditValuePage({
+    route: {
+        params: {policyID, valueIndex},
+    },
+}: EditValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const currentValue = formDraft?.listValues?.[route.params.valueName];
-    const currentValueName = currentValue?.name ?? '';
+    const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
@@ -41,7 +43,7 @@ function EditValuePage({route, navigation}: EditValuePageProps) {
 
             if (!ValidationUtils.isRequiredFulfilled(valueName)) {
                 errors.valueName = 'Required';
-            } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.[valueName]) {
+            } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.some((listValueName) => listValueName === valueName)) {
                 errors.valueName = 'Exists';
             } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
@@ -60,22 +62,20 @@ function EditValuePage({route, navigation}: EditValuePageProps) {
     const editValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
-            const isNewName = currentValueName !== valueName;
             // Do not call the API if the edited tag name is the same as the current tag name
-            if (isNewName) {
-                renameReportFieldsListValue(currentValueName, valueName);
-                navigation.setParams({valueName});
+            if (currentValueName !== valueName) {
+                renameReportFieldsListValue(valueIndex, valueName);
             }
             Keyboard.dismiss();
-            Navigation.goBack(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(route.params.policyID, valueName), isNewName);
+            Navigation.goBack();
         },
-        [currentValueName, navigation, route.params.policyID],
+        [currentValueName, valueIndex],
     );
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper

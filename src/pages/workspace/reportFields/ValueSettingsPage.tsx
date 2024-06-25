@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -24,44 +24,42 @@ import type SCREENS from '@src/SCREENS';
 
 type ValueSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
 
-function ValueSettingsPage({route, navigation}: ValueSettingsPageProps) {
+function ValueSettingsPage({
+    route: {
+        params: {policyID, valueIndex},
+    },
+}: ValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
-    const currentValue = formDraft?.listValues?.[route.params.valueName];
+    const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
+    const currentValueDisabled = formDraft?.disabledListValues?.[valueIndex] ?? false;
 
-    useEffect(() => {
-        if (currentValue?.name === route.params.valueName || !currentValue) {
-            return;
-        }
-        navigation.setParams({valueName: currentValue?.name});
-    }, [route.params.valueName, currentValue, navigation]);
-
-    if (!currentValue) {
+    if (!currentValueName) {
         return <NotFoundPage />;
     }
 
     const deleteListValueAndHideModal = () => {
-        deleteReportFieldsListValue(currentValue.name);
+        deleteReportFieldsListValue(valueIndex);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateListValueEnabled = (value: boolean) => {
-        setReportFieldsListValueEnabled(currentValue.name, value);
+        setReportFieldsListValueEnabled(valueIndex, value);
     };
 
     const navigateToEditValue = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.getRoute(route.params.policyID, currentValue.name));
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.getRoute(policyID, valueIndex));
     };
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
@@ -70,7 +68,7 @@ function ValueSettingsPage({route, navigation}: ValueSettingsPageProps) {
                 testID={ValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={currentValue.name}
+                    title={currentValueName}
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
@@ -89,14 +87,14 @@ function ValueSettingsPage({route, navigation}: ValueSettingsPageProps) {
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text>{translate('workspace.tags.enableTag')}</Text>
                             <Switch
-                                isOn={!currentValue.disabled}
+                                isOn={!currentValueDisabled}
                                 accessibilityLabel="Enable value"
                                 onToggle={updateListValueEnabled}
                             />
                         </View>
                     </View>
                     <MenuItemWithTopDescription
-                        title={currentValue.name}
+                        title={currentValueName}
                         description={translate('common.value')}
                         onPress={navigateToEditValue}
                         shouldShowRightIcon
