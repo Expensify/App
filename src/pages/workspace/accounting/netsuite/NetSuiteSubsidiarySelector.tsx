@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -12,13 +11,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSubsidiary} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import type SCREENS from '@src/SCREENS';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
 function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
