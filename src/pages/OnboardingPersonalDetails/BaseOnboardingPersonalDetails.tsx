@@ -70,12 +70,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
-            if (isSmallScreenWidth) {
-                Navigation.navigate(ROUTES.HOME);
-            } else if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
-                Report.navigateToSystemChat();
-            } else {
-                Report.navigateToConciergeChat();
+            if (!isSmallScreenWidth) {
+                if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
+                    Report.navigateToSystemChat();
+                } else {
+                    Report.navigateToConciergeChat();
+                }
             }
 
             // Small delay purely due to design considerations,

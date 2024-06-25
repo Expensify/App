@@ -20,6 +20,7 @@ import type {
     PersonalDetailsList,
     Policy,
     PolicyCategories,
+    PolicyCategory,
     PolicyTag,
     PolicyTagList,
     PolicyTags,
@@ -984,7 +985,7 @@ function getSearchValueForPhoneOrEmail(searchTerm: string) {
  * Verifies that there is at least one enabled option
  */
 function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
-    return Object.values(options).some((option) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    return Object.values(options).some((option: PolicyTag | PolicyCategory) => option.enabled && option.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 }
 
 /**
@@ -2543,7 +2544,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     let userToInvite = null;
     if (canInviteUser) {
-        if (recentReports.length === 0) {
+        if (recentReports.length === 0 && personalDetails.length === 0) {
             userToInvite = getUserToInviteOption({
                 searchValue,
                 betas,
