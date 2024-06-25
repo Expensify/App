@@ -364,6 +364,20 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
     });
 }
 
+/**
+ *
+ * @param transactionID
+ * @param reportID
+ */
+function resetMoneyRequest(transactionID: string, reportID: string, isFromGlobalCreate: boolean) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        reportID,
+        participants: [],
+        participantsAutoAssigned: false,
+        isFromGlobalCreate,
+    });
+}
+
 function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     if (!transaction) {
         return;
@@ -6998,6 +7012,7 @@ export {
     detachReceipt,
     editMoneyRequest,
     initMoneyRequest,
+    resetMoneyRequest,
     navigateToStartStepIfScanFileCannotBeRead,
     payMoneyRequest,
     payInvoice,

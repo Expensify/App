@@ -96,6 +96,11 @@ function IOURequestStartPage({
         if (transaction?.reportID === reportID) {
             return;
         }
+        // if transaction is from global create, reset the reportID & participant
+        if (transaction?.isFromGlobalCreate && transaction.transactionID) {
+            IOU.resetMoneyRequest(transaction.transactionID, reportID, isFromGlobalCreate);
+            return;
+        }
         IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, transactionRequestType.current);
     }, [transaction, policy, reportID, iouType, isFromGlobalCreate]);
 
@@ -109,9 +114,12 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
+            if (transaction?.iouRequestType === newIOUType) {
+                return;
+            }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
-        [policy, reportID, isFromGlobalCreate],
+        [policy, reportID, isFromGlobalCreate, transaction?.iouRequestType],
     );
 
     if (!transaction?.transactionID) {
