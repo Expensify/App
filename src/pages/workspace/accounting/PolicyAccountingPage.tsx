@@ -423,7 +423,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
