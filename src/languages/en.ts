@@ -1429,6 +1429,7 @@ export default {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge.',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon.',
+            requiredFirstName: 'First name cannot be empty.',
         },
     },
     privatePersonalDetails: {
