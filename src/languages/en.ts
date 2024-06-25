@@ -836,7 +836,7 @@ export default {
         },
         privateSection: {
             title: 'Private',
-            subtitle: 'These details are used for travel and payments. They are never shown on your public profile.',
+            subtitle: 'These details are used for travel and payments. They're never shown on your public profile.',
         },
     },
     securityPage: {
@@ -918,7 +918,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
+            description: 'New Expensify is built by a community of open-source developers from around the world. Help us build the future, today.',
             appDownloadLinks: 'App download links',
             viewKeyboardShortcuts: 'View keyboard shortcuts',
             viewTheCode: 'View the code',
@@ -942,16 +942,16 @@ export default {
             viewConsole: 'View debug console',
             debugConsole: 'Debug console',
             description: 'Use the tools below to help troubleshoot the Expensify experience. If you encounter any issues, please',
-            submitBug: 'submit a bug',
+            submitBug: 'submit a bug report',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
-            clientSideLogging: 'Client side logging',
+            clientSideLogging: 'Client-side logging',
             noLogsToShare: 'No logs to share',
             useProfiling: 'Use profiling',
             profileTrace: 'Profile trace',
             releaseOptions: 'Release options',
             testingPreferences: 'Testing preferences',
-            useStagingServer: 'Use Staging Server',
+            useStagingServer: 'Use staging server',
             forceOffline: 'Force offline',
             simulatFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
@@ -1434,7 +1434,7 @@ export default {
     },
     privatePersonalDetails: {
         personalDetails: 'Personal details',
-        privateDataMessage: 'These details are used for travel and payments. They are never shown on your public profile.',
+        privateDataMessage: 'These details are used for travel and payments. They're never shown on your public profile.',
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
@@ -3077,7 +3077,7 @@ export default {
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
-        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
+        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world. The current "Teachers Unite" campaign supports educators everywhere by splitting the costs of essential school supplies.',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
