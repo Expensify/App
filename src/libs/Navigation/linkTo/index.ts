@@ -4,6 +4,7 @@ import {findFocusedRoute} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
+import isCentralPaneName from '@libs/NavigationUtils';
 import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getActionsFromPartialDiff from '@navigation/AppNavigator/getActionsFromPartialDiff';
@@ -45,7 +46,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
-
     // Creating path with /w/ included if necessary.
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
     const policyIDs = !!topmostCentralPaneRoute?.params && 'policyIDs' in topmostCentralPaneRoute.params ? (topmostCentralPaneRoute?.params?.policyIDs as string) : '';
@@ -76,7 +76,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const topRouteName = lastRoute?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== actionParams?.screen);
+        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== (actionParams?.screen ?? action.payload.name));
         const areParamsDifferent =
             actionParams?.screen === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
@@ -86,7 +86,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                   );
 
         // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack by default
-        if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+        if (isCentralPaneName(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
@@ -161,11 +161,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                     root.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                         payload: {
-                            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                            params: {
-                                screen: matchingCentralPaneRoute.name,
-                                params: matchingCentralPaneRoute.params,
-                            },
+                            name: matchingCentralPaneRoute.name,
+                            params: matchingCentralPaneRoute.params,
                         },
                     });
                 }
