@@ -14,7 +14,7 @@ import appSetup from '@src/setup';
 import type {Response as OnyxResponse, PersonalDetails, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 
-type MockFetch = ReturnType<typeof jest.fn> & {
+type MockFetch = jest.MockedFn<typeof fetch> & {
     pause: () => void;
     fail: () => void;
     succeed: () => void;
@@ -272,7 +272,7 @@ function expectAPICommandToHaveBeenCalled(commandName: ApiCommand, expectedCalls
 function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(commandName: TCommand, callIndex: number, expectedParams: ApiRequestCommandParameters[TCommand]) {
     const call = getFetchMockCalls(commandName).at(callIndex);
     expect(call).toBeTruthy();
-    const body = call?.at(1)?.body;
+    const body = (call?.at(1) as RequestInit)?.body;
     const params = body instanceof FormData ? Object.fromEntries(body) : {};
     expect(params).toEqual(expect.objectContaining(expectedParams));
 }
