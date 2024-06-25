@@ -66,8 +66,8 @@ function deleteReportFieldsListValue(valueIndex: number) {
     const listValuesCopy = [...listValues];
     const disabledListValuesCopy = [...disabledListValues];
 
-    delete listValuesCopy[valueIndex];
-    delete disabledListValuesCopy[valueIndex];
+    listValuesCopy.splice(valueIndex, 1);
+    disabledListValuesCopy.splice(valueIndex, 1);
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: listValuesCopy,
