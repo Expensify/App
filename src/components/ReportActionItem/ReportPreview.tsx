@@ -323,35 +323,12 @@ function ReportPreview({
     }, [formattedMerchant, formattedDescription, moneyRequestComment, translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
 
     /*
-     * Manual export part
+     * Manual export
      */
-
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
     const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
-    const iconToDisplay = ReportUtils.getIntegrationIcon(connectedIntegration);
-    // TODO: Implement the logic to disable the dropdown options
-    const shouldIntegrationDropdownOptionsBeDisabled = false;
-    // TODO: Check if we can merge it with ReportDetailsExportPage options
-    const integrationsDropdownOptions = useMemo(
-        () => [
-            {
-                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('common.export'),
-                icon: iconToDisplay,
-                disabled: shouldIntegrationDropdownOptionsBeDisabled,
-            },
-            {
-                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsExported'),
-                icon: iconToDisplay,
-                disabled: shouldIntegrationDropdownOptionsBeDisabled,
-            },
-        ],
-        [translate, iconToDisplay, shouldIntegrationDropdownOptionsBeDisabled],
-    );
 
     const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
-    console.log({shouldShowExportIntegrationButton, hasIntegrationAutoSync, shouldShowPayButton, shouldShowSubmitButton, connectedIntegration});
 
     return (
         <OfflineWithFeedback
@@ -463,7 +440,8 @@ function ReportPreview({
                                 )}
                                 {shouldShowExportIntegrationButton && (
                                     <ExportWithDropdownMenu
-                                        dropdownOptions={integrationsDropdownOptions}
+                                        policy={policy}
+                                        report={iouReport}
                                         integrationName={connectedIntegration}
                                     />
                                 )}

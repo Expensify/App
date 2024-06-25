@@ -7015,7 +7015,7 @@ function getIntegrationIcon(integrationName?: ValueOf<typeof CONST.POLICY.CONNEC
     if (integrationName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
         return QBOSquare;
     }
-    return null;
+    return undefined;
 }
 
 function getIntegrationDisplayName(integrationName?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
