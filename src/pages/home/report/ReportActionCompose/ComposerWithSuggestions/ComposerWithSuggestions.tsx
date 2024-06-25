@@ -738,6 +738,7 @@ function ComposerWithSuggestions(
     );
 
     const onClear = useCallback(() => {
+        mobileInputScrollPosition.current = 0;
         setTextInputShouldClear(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

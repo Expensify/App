@@ -1,5 +1,8 @@
 import React from 'react';
-import {Rect} from 'react-native-svg';
+import {Circle, Rect} from 'react-native-svg';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 type TableListItemSkeletonProps = {
@@ -12,6 +15,87 @@ const shortBarWidth = '40';
 const longBarWidth = '120';
 
 function TableListItemSkeleton({shouldAnimate = true, fixedNumItems}: TableListItemSkeletonProps) {
+    const styles = useThemeStyles();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    if (isSmallScreenWidth) {
+        return (
+            <ItemListSkeletonView
+                itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
+                itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
+                shouldAnimate={shouldAnimate}
+                fixedNumItems={fixedNumItems}
+                renderSkeletonItem={() => (
+                    <>
+                        <Circle
+                            cx={24}
+                            cy={26}
+                            r={8}
+                        />
+
+                        <Rect
+                            x={40}
+                            y={24}
+                            width={40}
+                            height={4}
+                        />
+                        <Circle
+                            cx={96}
+                            cy={26}
+                            r={8}
+                        />
+
+                        <Rect
+                            x={112}
+                            y={24}
+                            width={40}
+                            height={4}
+                        />
+                        <Rect
+                            x={windowWidth - 120}
+                            y={12}
+                            width={80}
+                            height={28}
+                            rx={14}
+                            ry={14}
+                        />
+
+                        <Rect
+                            x={16}
+                            y={56}
+                            width={36}
+                            height={40}
+                            rx={4}
+                            ry={4}
+                        />
+                        <Rect
+                            x={64}
+                            y={65}
+                            width={124}
+                            height={8}
+                        />
+                        <Rect
+                            x={64}
+                            y={79}
+                            width={60}
+                            height={8}
+                        />
+                        <Rect
+                            x={windowWidth - 120}
+                            y={65}
+                            width={80}
+                            height={8}
+                        />
+                        <Rect
+                            x={windowWidth - 100}
+                            y={79}
+                            width={60}
+                            height={8}
+                        />
+                    </>
+                )}
+            />
+        );
+    }
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}

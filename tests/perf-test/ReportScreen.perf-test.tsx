@@ -2,6 +2,7 @@ import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stac
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
+import type ReactNative from 'react-native';
 import {Dimensions, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -50,7 +51,7 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 }));
 
 jest.mock('react-native', () => {
-    const actualReactNative = jest.requireActual('react-native');
+    const actualReactNative = jest.requireActual<typeof ReactNative>('react-native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualReactNative,
@@ -208,7 +209,7 @@ function ReportScreenWrapper(props: ReportScreenWrapperProps) {
 }
 
 const report = {...createRandomReport(1), policyID: '1'};
-const reportActions = ReportTestUtils.getMockedReportActionsMap(10);
+const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', async () => {
@@ -304,6 +305,10 @@ test('[ReportScreen] should render report list', async () => {
         [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
         [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
         [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+        [ONYXKEYS.IS_LOADING_APP]: false,
+        [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
+            isLoadingInitialReportActions: false,
+        },
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
