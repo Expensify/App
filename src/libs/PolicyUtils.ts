@@ -153,6 +153,12 @@ function isExpensifyTeam(email: string | undefined): boolean {
 const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
 
+/**
+ * Checks if the current user is an user of the policy.
+ */
+const isPolicyUser = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUserLogin?: string): boolean =>
+    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.USER;
+
 const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
@@ -527,6 +533,7 @@ export {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyUser,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     isPolicyOwner,

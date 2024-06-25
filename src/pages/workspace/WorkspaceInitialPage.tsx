@@ -1,4 +1,4 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -16,7 +16,6 @@ import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,7 +61,8 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.TAXES
         | typeof SCREENS.WORKSPACE.MORE_FEATURES
         | typeof SCREENS.WORKSPACE.PROFILE
-        | typeof SCREENS.WORKSPACE.MEMBERS;
+        | typeof SCREENS.WORKSPACE.MEMBERS
+        | typeof SCREENS.WORKSPACE.REPORT_FIELDS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -83,7 +83,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -92,7 +92,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
-    const {canUseAccountingIntegrations} = usePermissions();
     const {isOffline} = useNetwork();
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
@@ -104,6 +103,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         }),
         [policy],
     ) as PolicyFeatureStates;
@@ -129,6 +129,18 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
         }
         setIsCurrencyModalOpen(false);
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
+
+    const fetchPolicyData = useCallback(() => {
+        Policy.openPolicyInitialPage(route.params.policyID);
+    }, [route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -212,7 +224,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canUseAccountingIntegrations) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
@@ -220,6 +232,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyCategories
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
             routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.reportFields',
+            icon: Expensicons.Pencil,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
         });
     }
 
