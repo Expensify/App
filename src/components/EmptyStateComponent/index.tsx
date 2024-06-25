@@ -62,7 +62,6 @@ function EmptyStateComponent({
                     source={headerMedia}
                     autoPlay
                     loop
-                    style={styles.confirmationAnimation}
                 />
             );
             break;
