@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -22,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import InitialListValueSelector from './InitialListValueSelector';
 import TypeSelector from './TypeSelector';
 
 type WorkspaceCreateReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
@@ -37,10 +39,13 @@ function WorkspaceCreateReportFieldPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const submitForm = useCallback(({name, type, initialValue}: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+    const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
+
+    const submitForm = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
         // eslint-disable-next-line no-console
-        console.log('submitForm', name, type, initialValue);
+        console.log('submitForm', values);
 
         Navigation.goBack();
     }, []);
@@ -129,6 +134,16 @@ function WorkspaceCreateReportFieldPage({
                                     description={translate('common.date')}
                                     rightLabel={translate('common.required')}
                                     interactive={false}
+                                />
+                            )}
+
+                            {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && (
+                                <InputWrapper
+                                    InputComponent={InitialListValueSelector}
+                                    inputID={INPUT_IDS.INITIAL_VALUE}
+                                    label={translate('common.initialValue')}
+                                    subtitle="Choose what list value of report field to use by default."
+                                    rightLabel={translate('common.required')}
                                 />
                             )}
 
