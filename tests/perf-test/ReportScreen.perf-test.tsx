@@ -209,7 +209,7 @@ function ReportScreenWrapper(props: ReportScreenWrapperProps) {
 }
 
 const report = {...createRandomReport(1), policyID: '1'};
-const reportActions = ReportTestUtils.getMockedReportActionsMap(10);
+const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', async () => {
@@ -305,6 +305,10 @@ test('[ReportScreen] should render report list', async () => {
         [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
         [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
         [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+        [ONYXKEYS.IS_LOADING_APP]: false,
+        [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
+            isLoadingInitialReportActions: false,
+        },
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
