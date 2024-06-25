@@ -2428,18 +2428,13 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: (currentIntegration?: ConnectionName): string => {
-                switch (currentIntegration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Desconectar QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Desconectar Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Desconectar Netsuite';
-                    default: {
-                        return 'Desconectar integración';
-                    }
-                }
+            disconnectTitle: (integration?: ConnectionName): string => {
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_MAP[integration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integration] : 'integración';
+                return `Desconectar ${integrationName}`;
+            },
+            connectTitle: (integrationToConnect?: ConnectionName): string => {
+                const integrationName = integrationToConnect &&  CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ?  CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect]: 'accounting integration';
+                return `Configurar ${integrationName}`;
             },
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
