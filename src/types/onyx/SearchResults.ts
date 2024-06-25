@@ -94,10 +94,7 @@ type SearchPolicyDetails = {
 };
 
 /** The action that can be performed for the transaction */
-type SearchTransactionAction = 'view' | 'review' | 'done' | 'paid' | 'hold' | 'unhold';
-
-/** The action that can be performed for the report */
-type SearchReportAction = 'view' | 'review' | 'done' | 'paid';
+type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
 /** Model of report search result */
 type SearchReport = {
@@ -117,7 +114,7 @@ type SearchReport = {
     type?: string;
 
     /** The action that can be performed for the report */
-    action?: SearchReportAction;
+    action?: SearchTransactionAction;
 };
 
 /** Model of transaction search result */

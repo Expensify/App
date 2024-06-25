@@ -4839,6 +4839,9 @@ const CONST = {
             DONE: 'done',
             PAID: 'paid',
             VIEW: 'view',
+            REVIEW: 'review',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',

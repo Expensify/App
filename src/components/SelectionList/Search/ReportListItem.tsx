@@ -134,7 +134,7 @@ function ReportListItem<TItem extends ListItem>({
                         participantFromDisplayName={participantFromDisplayName}
                         participantTo={participantTo}
                         participantToDisplayName={participantToDisplayName}
-                        action={reportItem.action ?? 'view'}
+                        action={reportItem.action}
                         searchHash={searchHash}
                         onButtonPress={handleOnButtonPress}
                     />
@@ -161,7 +161,7 @@ function ReportListItem<TItem extends ListItem>({
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)} />
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
-                                    action={reportItem.action ?? 'view'}
+                                    action={reportItem.action}
                                     searchHash={searchHash}
                                     goToItem={handleOnButtonPress}
                                 />

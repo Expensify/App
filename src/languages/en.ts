@@ -156,6 +156,7 @@ export default {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
+        review: 'Review',
         not: 'Not',
         signIn: 'Sign in',
         signInWithGoogle: 'Sign in with Google',
