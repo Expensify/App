@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import CONST from '@src/CONST';
 import type {ConnectToNetSuiteButtonProps} from './types';
 
 function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToNetSuiteButtonProps) {
@@ -42,8 +43,6 @@ function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeCon
                     }}
                     integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    isModalVisible={isDisconnectModalOpen}
-                    integrationToDisconnect={integrationToDisconnect}
                 />
             )}
         </>

@@ -7,16 +7,15 @@ type AccountingConnectionConfirmationModalProps = {
     integrationToConnect: ConnectionName;
     onConfirm: () => void;
     onCancel: () => void;
-    isModalVisible: boolean;
 };
 
-function AccountingConnectionConfirmationModal({integrationToConnect, isModalVisible, onCancel, onConfirm}: AccountingConnectionConfirmationModalProps) {
+function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, onConfirm}: AccountingConnectionConfirmationModalProps) {
     const {translate} = useLocalize();
 
     return (
         <ConfirmModal
             title={translate('workspace.accounting.connectOtherIntegrationTitle', integrationToConnect)}
-            isVisible={isModalVisible}
+            isVisible
             onConfirm={onConfirm}
             onCancel={onCancel}
             prompt={translate('workspace.accounting.connectOtherIntegrationPrompt', integrationToConnect)}

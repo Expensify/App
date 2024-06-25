@@ -43,8 +43,6 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                     }}
                     integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    isModalVisible={isDisconnectModalOpen}
-                    integrationToDisconnect={integrationToDisconnect}
                 />
             )}
         </>
