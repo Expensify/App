@@ -20,6 +20,7 @@ import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languag
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -3526,6 +3527,18 @@ function goBackToDetailsPage(report: OnyxEntry<Report>) {
     }
 
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+}
+
+function navigateBackAfterDeleteTransaction(backRoute: Route | undefined) {
+    if (!backRoute) {
+        return;
+    }
+    const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
+    if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.goBack(backRoute);
 }
 
 /**
@@ -7252,6 +7265,7 @@ export {
     canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
+    navigateBackAfterDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,
     reportFieldsEnabled,
