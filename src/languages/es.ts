@@ -3961,4 +3961,7 @@ export default {
         additionalInfoTitle: '¿A qué software está migrando y por qué?',
         additionalInfoInputLabel: 'Tu respuesta',
     },
+    roomChangeLog: {
+        updateRoomDescription: 'establece la descripción de la sala a:',
+    },
 } satisfies EnglishTranslation;
