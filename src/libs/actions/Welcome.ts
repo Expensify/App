@@ -24,7 +24,7 @@ type HasCompletedOnboardingFlowProps = {
 
 type HasOpenedForTheFirstTimeFromHybridAppProps = {
     onFirstTimeInHybridApp?: () => void;
-    onSubsequentRunsOrNotInHybridApp?: () => void;
+    onSubsequentRuns?: () => void;
 };
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
@@ -64,14 +64,14 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  * Determines whether the application is being launched for the first time by a hybrid app user,
  * and executes corresponding callback functions.
  */
-function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRunsOrNotInHybridApp}: HasOpenedForTheFirstTimeFromHybridAppProps) {
+function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRuns}: HasOpenedForTheFirstTimeFromHybridAppProps) {
     tryNewDotStatusPromise.then(() => {
         if (NativeModules.HybridAppModule && !tryNewDotData?.classicRedirect?.completedHybridAppOnboarding) {
             onFirstTimeInHybridApp?.();
             return;
         }
 
-        onSubsequentRunsOrNotInHybridApp?.();
+        onSubsequentRuns?.();
     });
 }
 
@@ -87,7 +87,7 @@ function handleHybridAppOnboarding() {
         // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
         onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
         // In other scenarios we need to check if onboarding was completed.
-        onSubsequentRunsOrNotInHybridApp: () =>
+        onSubsequentRuns: () =>
             isOnboardingFlowCompleted({
                 onNotCompleted: () =>
                     setTimeout(() => {
@@ -241,7 +241,6 @@ export {
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
-    isFirstTimeHybridAppUser,
     completeHybridAppOnboarding,
     handleHybridAppOnboarding,
 };
