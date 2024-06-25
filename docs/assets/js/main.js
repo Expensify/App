@@ -70,6 +70,14 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
+// Added event listener for the browser back button
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.isLHNBack) {
+        navigateBack();
+    }
+});
+
+
 function injectFooterCopywrite() {
     const footer = document.getElementById('footer-copywrite-date');
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;

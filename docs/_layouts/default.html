@@ -48,6 +48,17 @@
         {% include sidebar-search.html id="sidebar-layer" %}
 
         <!-- LHN content (Main navigation tree or Article TOC) -->
+        <!-- <div id="lhn-content">
+            {% if page.url == "/" or page.url contains "/hubs/" %}
+                {% include lhn-template.html %}
+            {% else %}
+                <a href="/" id="back-button" class="icon-with-link">
+                    <img src="/assets/images/back-left.svg" class="base-icon">
+                    <div class="link">Back</div>
+                </a>
+                <div class="article-toc"></div>
+            {% endif %}
+        </div>         -->
         <div id="lhn-content">
             {% if page.url == "/" or page.url contains "/hubs/" %}
                 {% include lhn-template.html %}
@@ -58,7 +69,7 @@
                 </div>
                 <div class="article-toc"></div>
             {% endif %}
-        </div>
+        </div>         
     </div>
 
     <div id="content-area">
