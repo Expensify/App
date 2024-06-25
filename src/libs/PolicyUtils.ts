@@ -495,8 +495,8 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
-function getConnectedIntegration(policy: Policy | undefined) {
-    return Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
+function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: Array<ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>>) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
 
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {

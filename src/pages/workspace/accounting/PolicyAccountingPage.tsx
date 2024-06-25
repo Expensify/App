@@ -111,7 +111,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteIntegration} = usePermissions();
+    const {canUseXeroIntegration, canUseNetSuiteIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -125,10 +125,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    // TODO: Fix after merge
-    // const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration));
-    const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
+        (name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration) && !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration),
+    );
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
     const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
