@@ -179,8 +179,9 @@ label.search-label {
     display: none;
 }
 
-.gs-title {
+.gs-title * {
     font-weight: bold;
+    color: var(--color-link) !important;
 }
 
 /* Change the Google Search Button icon into Expensify icon button */

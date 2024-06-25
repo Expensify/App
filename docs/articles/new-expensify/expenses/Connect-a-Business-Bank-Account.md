@@ -11,12 +11,16 @@ To connect a bank account in New Expensify, you must first enable the Make or Tr
 3. Click on **Workflows** 
 4. Enable **Make or track payments**
 
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_1_Light.png){:width="100%"}
+
+![Insert alt text for accessibility here]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
+
 # Step 2: Connect bank account
 1. Click Connect bank account
 2. Select either Connect online with Plaid (preferred) or Connect manually
 3. Enter bank details
 
-# Step 4: Upload ID 
+# Step 3: Upload ID 
 After entering your personal details, you’ll be prompted to click a link or scan a QR code so that you can do the following:
 1. Upload a photo of the front and back of your ID (this cannot be a photo of an existing image)
 2. Use your device to take a selfie and record a short video of yourself
@@ -25,14 +29,14 @@ After entering your personal details, you’ll be prompted to click a link or sc
 - Issued in the US
 - Current (ie: the expiration date must be in the future)
 
-# Step 5: Enter company information
+# Step 4: Enter company information
 This is where you’ll add the legal business name as well as several other company details.
 - **Company address:** The company address must be located in the US and a physical location (If you input a maildrop address, PO box, or UPS Store, the address will be flagged for review, and adding the bank account to Expensify will be delayed)
 - **Tax Identification Number:** This is the identification number that was assigned to the business by the IRS
 - **Company website:** A company website is required to use most of Expensify’s payment features.
 - **Industry Classification Code:** You can locate a list of Industry Classification Codes [here](https://www.census.gov/naics/?input=software&year=2022).
 
-# Step 6: Additional Information
+# Step 5: Additional Information
 Check the appropriate box under Additional Information, accept the agreement terms, and verify that all of the information is true and accurate:
 - A Beneficial Owner refers to an individual who owns 25% or more of the business.
 - If you or another individual owns 25% or more of the business, please check the appropriate box

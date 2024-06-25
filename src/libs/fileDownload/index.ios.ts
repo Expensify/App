@@ -94,7 +94,7 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage) =>
 
                 FileUtils.showSuccessAlert(successMessage);
             })
-            .catch((err) => {
+            .catch((err: Error) => {
                 // iOS shows permission popup only once. Subsequent request will only throw an error.
                 // We catch the error and show a redirection link to the settings screen
                 if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
