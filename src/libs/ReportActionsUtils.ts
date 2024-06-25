@@ -1129,6 +1129,7 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
 
 function getReportActionText(reportAction: PartialReportAction): string {
     const message = getReportActionMessage(reportAction);
+    // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = (message?.html || message?.text) ?? '';
     return text ? parseHtmlToText(text) : '';
@@ -1201,7 +1202,9 @@ function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): 
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
-    return reportAction?.message?.map((element) => getTextFromHtml(element?.html ?? element?.text)).join('') ?? '';
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return reportAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -1327,6 +1330,8 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html ?? curr?.text)}`, '') ?? '';
 }
 
