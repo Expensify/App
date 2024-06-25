@@ -1,4 +1,4 @@
-import {ExpensiMark, fastMerge} from 'expensify-common';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -21,6 +21,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import {parseHtmlToText} from './OnyxAwareParser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -1128,13 +1129,11 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
 
 function getReportActionText(reportAction: PartialReportAction): string {
     const html = getReportActionHtml(reportAction);
-    const parser = new ExpensiMark();
-    return html ? parser.htmlToText(html) : '';
+    return html ? parseHtmlToText(html) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    const parser = new ExpensiMark();
-    return html ? parser.htmlToText(html) : '';
+    return html ? parseHtmlToText(html) : '';
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
