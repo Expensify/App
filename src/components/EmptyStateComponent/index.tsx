@@ -20,7 +20,7 @@ type VideoLoadedEventType = {
     };
 };
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, titleText, subtitleText, headerStyles}: EmptyStateComponentProps) {
+function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const isSmallScreenWidth = getIsSmallScreenWidth();
 
@@ -85,8 +85,8 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                 <View style={[styles.emptyStateContent(isSmallScreenWidth)]}>
                     <View style={[styles.emptyStateHeader, headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
-                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{titleText}</Text>
-                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.mb5]}>{subtitleText}</Text>
+                        <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
+                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.mb5]}>{subtitle}</Text>
                         {buttonText && buttonAction && (
                             <Button
                                 success

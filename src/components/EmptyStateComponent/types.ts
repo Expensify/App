@@ -9,8 +9,8 @@ type MediaTypes = 'video' | 'illustration' | 'animation';
 
 type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
-    titleText: string;
-    subtitleText: string;
+    title: string;
+    subtitle: string;
     buttonText?: string;
     buttonAction?: () => void;
     headerStyles?: StyleProp<ViewStyle>;

@@ -3,7 +3,6 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -15,6 +14,7 @@ import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import EmptySearchView from '@pages/Search/EmptySearchView';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,8 +23,6 @@ import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import EmptyStateComponent from './EmptyStateComponent';
-import LottieAnimations from './LottieAnimations';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
@@ -51,7 +49,6 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const {isLargeScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
@@ -104,16 +101,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     }
 
     if (shouldShowEmptyState) {
-        return (
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
-                headerMediaType="animation"
-                headerMedia={LottieAnimations.Coin}
-                headerStyles={styles.activeComponentBG}
-                titleText={translate('search.searchResults.emptyState.title')}
-                subtitleText={translate('search.searchResults.emptyState.subtitle')}
-            />
-        );
+        return <EmptySearchView />;
     }
 
     const openReport = (item: TransactionListItemType | ReportListItemType) => {

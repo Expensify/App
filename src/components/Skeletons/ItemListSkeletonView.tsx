@@ -58,7 +58,7 @@ function ItemListSkeletonView({
     const skeletonViewItems = useMemo(() => {
         const items = [];
         for (let i = 0; i < numItems; i++) {
-            const opacity = gradientOpacity ? 1 - i / numItems : 1;
+            const opacity = gradientOpacity ? 1 - i / (numItems - 1) : 1;
             items.push(
                 <View
                     key={`skeletonContainer${i}`}
