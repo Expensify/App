@@ -17,6 +17,7 @@ function AssigneeStep() {
     const styles = useThemeStyles();
 
     const submit = () => {
+        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
     };
 
@@ -48,6 +49,7 @@ function AssigneeStep() {
                 onSubmit={submit}
                 style={[styles.mh5, styles.flexGrow1]}
             >
+                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
                 <View />
             </FormProvider>
         </ScreenWrapper>

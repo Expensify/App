@@ -19,6 +19,7 @@ function ConfirmationStep() {
     const {isOffline} = useNetwork();
 
     const submit = () => {
+        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
         Navigation.navigate(ROUTES.SETTINGS);
     };
 
@@ -45,6 +46,7 @@ function ConfirmationStep() {
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
             <View style={[styles.ph5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
                 <Button
                     isDisabled={isOffline}
                     success
