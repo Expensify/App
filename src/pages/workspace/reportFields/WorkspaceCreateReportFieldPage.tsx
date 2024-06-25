@@ -24,16 +24,16 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 import TypeSelector from './TypeSelector';
 
-type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
+type WorkspaceCreateReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
 
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
-function CreatePolicyReportFieldPage({
+function WorkspaceCreateReportFieldPage({
     // policy,
     route: {
         params: {policyID},
     },
-}: CreatePolicyReportFieldPageProps) {
+}: WorkspaceCreateReportFieldPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const formRef = useRef<FormRef>(null);
@@ -68,7 +68,7 @@ function CreatePolicyReportFieldPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={CreatePolicyReportFieldPage.displayName}
+                testID={WorkspaceCreateReportFieldPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -147,6 +147,6 @@ function CreatePolicyReportFieldPage({
     );
 }
 
-CreatePolicyReportFieldPage.displayName = 'CreatePolicyReportFieldPage';
+WorkspaceCreateReportFieldPage.displayName = 'WorkspaceCreateReportFieldPage';
 
-export default withPolicyAndFullscreenLoading(CreatePolicyReportFieldPage);
+export default withPolicyAndFullscreenLoading(WorkspaceCreateReportFieldPage);
