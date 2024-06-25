@@ -1,3 +1,4 @@
+import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
@@ -6,7 +7,6 @@ import type {FlatList, ViewStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
-import type {LayoutChangeEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import Banner from '@components/Banner';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -107,7 +107,7 @@ function isEmpty(report: OnyxTypes.Report): boolean {
 
 function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportActions>, parentReportActionID: string | undefined): OnyxEntry<OnyxTypes.ReportAction> {
     if (!parentReportActions || !parentReportActionID) {
-        return null;
+        return;
     }
     return parentReportActions[parentReportActionID ?? '0'];
 }
@@ -154,6 +154,9 @@ function ReportScreen({
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const wasLoadingApp = usePrevious(isLoadingApp);
+    const finishedLoadingApp = wasLoadingApp && !isLoadingApp;
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
@@ -269,7 +272,6 @@ function ReportScreen({
     }, [route, reportActionIDFromRoute]);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
-    const [listHeight, setListHeight] = useState(0);
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
 
     const wasReportAccessibleRef = useRef(false);
@@ -297,12 +299,12 @@ function ReportScreen({
     const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(
         () =>
             reportActions.length
-                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action)) ?? null
-                : null,
+                ? [...reportActions, parentReportAction].find((action) => ReportUtils.canEditReportAction(action) && !ReportActionsUtils.isMoneyRequestAction(action))
+                : undefined,
         [reportActions, parentReportAction],
     );
     const isSingleTransactionView = ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
-    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? null;
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
     const isTopMostReportId = currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
 
@@ -333,7 +335,7 @@ function ReportScreen({
     );
 
     const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], false, isOffline),
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
         [report.reportID, reportActions, isOffline],
     );
 
@@ -378,7 +380,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty());
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||
@@ -388,14 +390,30 @@ function ReportScreen({
             (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
     const currentReportIDFormRoute = route.params?.reportID;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = useMemo(
-        (): boolean =>
-            (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
-            shouldHideReport ||
-            (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
-        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute],
-    );
+    const shouldShowNotFoundPage = useMemo((): boolean => {
+        // Wait until we're sure the app is done loading (needs to be a strict equality check since it's undefined initially)
+        if (isLoadingApp !== false) {
+            return false;
+        }
+
+        // If we just finished loading the app, we still need to try fetching the report. Wait until that's done before
+        // showing the Not Found page
+        if (finishedLoadingApp) {
+            return false;
+        }
+
+        if (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) {
+            return true;
+        }
+
+        if (shouldHideReport) {
+            return true;
+        }
+
+        return !!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute);
+    }, [isLoadingApp, finishedLoadingApp, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute]);
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -425,12 +443,24 @@ function ReportScreen({
             return;
         }
 
+        /**
+         * Since OpenReport is a write, the response from OpenReport will get dropped while the app is
+         * still loading. This usually happens when signing in and deeplinking to a report. Instead,
+         * we'll fetch the report after the app finishes loading.
+         *
+         * This needs to be a strict equality check since isLoadingApp is initially undefined until the
+         * value is loaded from Onyx
+         */
+        if (isLoadingApp !== false) {
+            return;
+        }
+
         if (!shouldFetchReport(report)) {
             return;
         }
 
         fetchReport();
-    }, [report, fetchReport, reportIDFromRoute]);
+    }, [report, fetchReport, reportIDFromRoute, isLoadingApp]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
@@ -530,8 +560,7 @@ function ReportScreen({
             }
             if (prevReport.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
-                const parentReport = ReportUtils.getReport(prevReport.parentReportID);
-                if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
+                if (ReportUtils.isMoneyRequestReportPendingDeletion(prevReport.parentReportID)) {
                     return;
                 }
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(prevReport.parentReportID));
@@ -596,8 +625,7 @@ function ReportScreen({
         };
     }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
 
-    const onListLayout = useCallback((event: LayoutChangeEvent) => {
-        setListHeight((prev) => event.nativeEvent?.layout?.height ?? prev);
+    const onListLayout = useCallback(() => {
         if (!markReadyForHydration) {
             return;
         }
@@ -614,6 +642,18 @@ function ReportScreen({
             setIsLinkingToMessage(false);
         });
     }, [reportMetadata?.isLoadingInitialReportActions]);
+
+    // If we deeplinked to the report after signing in, we need to fetch the report after the app is done loading
+    useEffect(() => {
+        if (!finishedLoadingApp) {
+            return;
+        }
+
+        fetchReportIfNeeded();
+
+        // This should only run once when the app is done loading
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [finishedLoadingApp]);
 
     const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
@@ -735,12 +775,12 @@ function ReportScreen({
                                         policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
-                                        listHeight={listHeight}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                     />
                                 ) : null}
                             </View>
+                            <PortalHost name="suggestions" />
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>

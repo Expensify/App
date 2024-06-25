@@ -1,4 +1,4 @@
-import {ExpensiMark, Str} from 'expensify-common';
+import {Str} from 'expensify-common';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';
@@ -18,6 +18,7 @@ import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
+import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -27,26 +28,25 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
-    const message = reportAction?.message?.at(-1) ?? null;
+function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
+    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
     return message?.html ?? '';
 }
 
 /** Sets the HTML string to Clipboard */
 function setClipboardMessage(content: string) {
-    const parser = new ExpensiMark();
     if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(parser.htmlToMarkdown(content));
+        Clipboard.setString(parseHtmlToMarkdown(content));
     } else {
         const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
         const isAnchorTag = anchorRegex.test(content);
-        const plainText = isAnchorTag ? parser.htmlToMarkdown(content) : parser.htmlToText(content);
+        const plainText = isAnchorTag ? parseHtmlToMarkdown(content) : parseHtmlToText(content);
         Clipboard.setHtml(content, plainText);
     }
 }
@@ -183,11 +183,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                         // is false, so we need to pass true here to override this condition.
                         ReportActionComposeFocusManager.focus(true);
                     });
-                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
+                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID);
                 });
                 return;
             }
-            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
+            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '-1', reportAction, originalReportID);
         },
         getDescription: () => {},
     },
@@ -199,7 +199,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
-            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction) ?? '';
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction) ?? '-1';
             Report.markCommentAsUnread(originalReportID, reportAction?.created);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -231,15 +231,14 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                 hideContextMenu(false);
-                const childReportID = reportAction?.childReportID ?? '0';
+                const childReportID = reportAction?.childReportID ?? '-1';
                 Report.openReport(childReportID);
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 return;
             }
             const editAction = () => {
                 if (!draftMessage) {
-                    const parser = new ExpensiMark();
-                    Report.saveReportActionDraft(reportID, reportAction, parser.htmlToMarkdown(getActionHtml(reportAction)));
+                    Report.saveReportActionDraft(reportID, reportAction, parseHtmlToMarkdown(getActionHtml(reportAction)));
                 } else {
                     Report.deleteReportActionDraft(reportID, reportAction);
                 }
@@ -308,13 +307,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '0', reportAction, reportID, childReportNotificationPreference);
+                    Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, reportID, childReportNotificationPreference);
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '0', reportAction, reportID, childReportNotificationPreference);
+            Report.toggleSubscribeToChildReport(reportAction?.childReportID ?? '-1', reportAction, reportID, childReportNotificationPreference);
         },
         getDescription: () => {},
     },
@@ -351,7 +350,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !ReportActionsUtils.isReportActionAttachment(reportAction) && !ReportActionsUtils.isMessageDeleted(reportAction),
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            !ReportActionsUtils.isReportActionAttachment(reportAction) &&
+            !ReportActionsUtils.isMessageDeleted(reportAction) &&
+            !ReportActionsUtils.isTripPreview(reportAction),
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fall back to
@@ -365,8 +367,8 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
-                    const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
-                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    const iouReportID = ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction);
+                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReportID, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isTaskAction(reportAction)) {
                     const displayMessage = TaskUtils.getTaskReportActionMessage(reportAction).text;
@@ -375,9 +377,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction(reportID, reportAction);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
-                    const {expenseReportID} = reportAction.originalMessage;
-                    const expenseReport = ReportUtils.getReport(expenseReportID);
-                    const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
+                    const {expenseReportID} = ReportActionsUtils.getOriginalMessage(reportAction) ?? {};
+                    const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
                     const displayMessage = ReportUtils.getIOUReportActionDisplayMessage(reportAction, transaction);
@@ -389,7 +390,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, ReportUtils.getReport(reportID), false));
+                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, reportID, false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);

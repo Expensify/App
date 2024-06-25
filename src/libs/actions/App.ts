@@ -44,24 +44,24 @@ type PolicyParamsForOpenOrReconnect = {
 
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-let currentUserAccountID: number | null;
+let currentUserAccountID: number | undefined;
 let currentUserEmail: string;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID ?? null;
+        currentUserAccountID = val?.accountID;
         currentUserEmail = val?.email ?? '';
     },
 });
 
-let isSidebarLoaded: boolean | null;
+let isSidebarLoaded: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
 });
 
-let preferredLocale: string | null = null;
+let preferredLocale: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
@@ -74,7 +74,7 @@ Onyx.connect({
     },
 });
 
-let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | null;
+let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIORITY_MODE,
     callback: (nextPriorityMode) => {
@@ -409,7 +409,7 @@ function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, p
  */
 function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
     const currentUrl = getCurrentUrl();
-    if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
+    if (!session || !currentUrl?.includes('exitTo')) {
         return;
     }
 

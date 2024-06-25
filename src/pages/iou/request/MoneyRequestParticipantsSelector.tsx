@@ -19,8 +19,6 @@ import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import type {MaybePhraseKey} from '@libs/Localize';
-import type {Options} from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Policy from '@userActions/Policy/Policy';
@@ -66,7 +64,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
@@ -77,21 +75,25 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    /**
-     * Returns the sections needed for the SelectionList
-     *
-     * @returns {Array}
-     */
-    const [sections, newChatOptions] = useMemo(() => {
-        const newSections: OptionsListUtils.CategorySection[] = [];
+    const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return [newSections, {}];
+            return {
+                userToInvite: null,
+                recentReports: [],
+                personalDetails: [],
+                currentUserOption: null,
+                headerMessage: '',
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+            };
         }
-        const chatOptions = OptionsListUtils.getFilteredOptions(
+
+        const optionList = OptionsListUtils.getFilteredOptions(
             options.reports,
             options.personalDetails,
             betas,
-            debouncedSearchTerm,
+            '',
             participants,
             CONST.EXPENSIFY_EMAILS,
 
@@ -110,19 +112,67 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
+            false,
+            0,
             undefined,
             undefined,
             undefined,
             undefined,
             undefined,
-            undefined,
-            isCategorizeOrShareAction ? 0 : undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
         );
 
+        return optionList;
+    }, [
+        action,
+        areOptionsInitialized,
+        betas,
+        canUseP2PDistanceRequests,
+        didScreenTransitionEnd,
+        iouRequestType,
+        iouType,
+        isCategorizeOrShareAction,
+        options.personalDetails,
+        options.reports,
+        participants,
+    ]);
+
+    const chatOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return {
+                userToInvite: null,
+                recentReports: [],
+                personalDetails: [],
+                currentUserOption: null,
+                headerMessage: '',
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+            };
+        }
+
+        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+            betas,
+            selectedOptions: participants,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
+        return newOptions;
+    }, [areOptionsInitialized, betas, defaultOptions, debouncedSearchTerm, participants]);
+
+    /**
+     * Returns the sections needed for the OptionsSelector
+     * @returns {Array}
+     */
+    const [sections, header] = useMemo(() => {
+        const newSections: OptionsListUtils.CategorySection[] = [];
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
+            return [newSections, ''];
+        }
+
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})),
+            participants.map((participant) => ({...participant, reportID: participant.reportID ?? '-1'})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             personalDetails,
@@ -157,23 +207,15 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             });
         }
 
-        return [newSections, chatOptions];
-    }, [
-        areOptionsInitialized,
-        options.reports,
-        options.personalDetails,
-        betas,
-        debouncedSearchTerm,
-        participants,
-        iouType,
-        action,
-        canUseP2PDistanceRequests,
-        iouRequestType,
-        personalDetails,
-        translate,
-        didScreenTransitionEnd,
-        isCategorizeOrShareAction,
-    ]);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
+            !!chatOptions?.userToInvite,
+            debouncedSearchTerm.trim(),
+            participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+        );
+
+        return [newSections, headerMessage];
+    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, personalDetails, translate]);
 
     /**
      * Adds a single participant to the expense
@@ -250,18 +292,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         [participants, onParticipantsAdded],
     );
 
-    const headerMessage = useMemo(
-        () =>
-            OptionsListUtils.getHeaderMessage(
-                ((newChatOptions as Options)?.personalDetails ?? []).length + ((newChatOptions as Options)?.recentReports ?? []).length !== 0,
-                !!(newChatOptions as Options)?.userToInvite,
-                debouncedSearchTerm.trim(),
-                participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
-            ),
-        [newChatOptions, participants, debouncedSearchTerm],
-    );
-
-    // Right now you can't split an expense with a workspace and other additional participants
+    // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = participants.some((participant) => participant.isPolicyExpenseChat);
@@ -309,7 +340,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message="iou.error.splitExpenseMultipleParticipantsErrorMessage"
+                        message={translate('iou.error.splitExpenseMultipleParticipantsErrorMessage')}
                     />
                 )}
 
@@ -360,7 +391,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
             shouldDebounceRowSelect
             footerContent={footerContent}
-            headerMessage={headerMessage}
+            headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
             isLoadingNewOptions={!!isSearchingForReports}

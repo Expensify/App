@@ -9,7 +9,6 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
@@ -25,7 +24,7 @@ import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, InputComponent
 // More details: https://github.com/Expensify/App/pull/16444#issuecomment-1482983426
 const VALIDATE_DELAY = 200;
 
-type GenericFormInputErrors = Partial<Record<string, TranslationPaths>>;
+type GenericFormInputErrors = Partial<Record<string, string>>;
 type InitialDefaultValue = false | Date | '';
 
 function getInitialValueByType(valueType?: ValueTypeKey): InitialDefaultValue {
@@ -93,7 +92,7 @@ function FormProvider(
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
     const [inputValues, setInputValues] = useState<Form>(() => ({...draftValues}));
@@ -143,7 +142,7 @@ function FormProvider(
                 }
 
                 // Add a validation error here because it is a string value that contains HTML characters
-                validateErrors[inputID] = 'common.error.invalidCharacter';
+                validateErrors[inputID] = translate('common.error.invalidCharacter');
             });
 
             if (typeof validateErrors !== 'object') {
@@ -158,7 +157,7 @@ function FormProvider(
 
             return touchedInputErrors;
         },
-        [errors, formID, validate, shouldTrimValues],
+        [shouldTrimValues, formID, validate, errors, translate],
     );
 
     // When locales change from another session of the same account,
@@ -253,10 +252,10 @@ function FormProvider(
 
             const errorFields = formState?.errorFields?.[inputID] ?? {};
             const fieldErrorMessage =
-                (Object.keys(errorFields)
+                Object.keys(errorFields)
                     .sort()
                     .map((key) => errorFields[key])
-                    .at(-1) as string) ?? '';
+                    .at(-1) ?? '';
 
             const inputRef = inputProps.ref;
 
@@ -351,7 +350,7 @@ function FormProvider(
                     });
 
                     if (inputProps.shouldSaveDraft && !formID.includes('Draft')) {
-                        FormActions.setDraftValues(formID as OnyxFormKey, {[inputKey]: value});
+                        FormActions.setDraftValues(formID, {[inputKey]: value});
                     }
                     inputProps.onValueChange?.(value, inputKey);
                 },

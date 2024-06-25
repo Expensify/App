@@ -164,7 +164,7 @@ function ReportActionsView({
     const parentReportActionForTransactionThread = useMemo(
         () =>
             isEmptyObject(transactionThreadReportActions)
-                ? null
+                ? undefined
                 : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
@@ -216,11 +216,11 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
-                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
+                Report.getNewerActions(newestActionCurrentReport?.reportID ?? '-1', newestActionCurrentReport?.reportActionID ?? '-1');
 
                 // Get newer actions based on the newest reportAction for the transaction thread report
                 const newestActionTransactionThreadReport = reportActionIDMap.find((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '0', newestActionTransactionThreadReport?.reportActionID ?? '0');
+                Report.getNewerActions(newestActionTransactionThreadReport?.reportID ?? '-1', newestActionTransactionThreadReport?.reportActionID ?? '-1');
             } else {
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }
@@ -319,11 +319,11 @@ function ReportActionsView({
             if (!isEmptyObject(transactionThreadReport)) {
                 // Get older actions based on the oldest reportAction for the current report
                 const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-                Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+                Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '-1', oldestActionCurrentReport?.reportActionID ?? '-1');
 
                 // Get older actions based on the oldest reportAction for the transaction thread report
                 const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+                Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '-1', oldestActionTransactionThreadReport?.reportActionID ?? '-1');
             } else {
                 // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
                 Report.getOlderActions(reportID, oldestReportAction.reportActionID);
@@ -479,15 +479,17 @@ function ReportActionsView({
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '', report.reportID);
-        const moneyRequestActions = reportActions.filter(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-                action.originalMessage &&
-                (action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                    !!(action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && action.originalMessage.IOUDetails) ||
-                    action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK),
-        );
+        const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(report.chatReportID ?? '-1', report.reportID);
+        const moneyRequestActions = reportActions.filter((action) => {
+            const originalMessage = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action) : undefined;
+            return (
+                ReportActionsUtils.isMoneyRequestAction(action) &&
+                originalMessage &&
+                (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
+                    !!(originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails) ||
+                    originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
+            );
+        });
 
         if (report.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
             const optimisticIOUAction = ReportUtils.buildOptimisticIOUReportAction(
@@ -557,6 +559,10 @@ ReportActionsView.displayName = 'ReportActionsView';
 ReportActionsView.initMeasured = false;
 
 function arePropsEqual(oldProps: ReportActionsViewProps, newProps: ReportActionsViewProps): boolean {
+    if (!lodashIsEqual(oldProps.transactionThreadReport, newProps.transactionThreadReport)) {
+        return false;
+    }
+
     if (!lodashIsEqual(oldProps.isReadyForCommentLinking, newProps.isReadyForCommentLinking)) {
         return false;
     }
