@@ -1,6 +1,6 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -51,12 +51,12 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             return;
         }
 
-        Welcome.isFirstTimeHybridAppUser({
-            // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
-            onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
-            // In other scenarios we need to check if onboarding was completed.
-            onSubsequentRunsOrNotInHybridApp: () => Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)}),
-        });
+        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
+        if (NativeModules.HybridAppModule) {
+            return;
+        }
+
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 

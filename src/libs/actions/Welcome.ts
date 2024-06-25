@@ -3,8 +3,11 @@ import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
@@ -69,6 +72,34 @@ function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRunsOrNot
         }
 
         onSubsequentRunsOrNotInHybridApp?.();
+    });
+}
+
+/**
+ * Handles HybridApp onboarding flow if it's possible and necessary.
+ */
+function handleHybridAppOnboarding() {
+    if (!NativeModules.HybridAppModule) {
+        return;
+    }
+
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+    }, variables.explanationModalDelay);
+
+    Navigation.isNavigationReady().then(() => {
+        isFirstTimeHybridAppUser({
+            // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
+            onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
+            // In other scenarios we need to check if onboarding was completed.
+            onSubsequentRunsOrNotInHybridApp: () =>
+                isOnboardingFlowCompleted({
+                    onNotCompleted: () =>
+                        setTimeout(() => {
+                            Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                        }, variables.explanationModalDelay),
+                }),
+        });
     });
 }
 
@@ -218,4 +249,5 @@ export {
     setOnboardingPolicyID,
     isFirstTimeHybridAppUser,
     completeHybridAppOnboarding,
+    handleHybridAppOnboarding,
 };

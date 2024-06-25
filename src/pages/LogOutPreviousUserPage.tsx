@@ -9,6 +9,7 @@ import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as SessionActions from '@userActions/Session';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -81,6 +82,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
                 const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                 Navigation.goBack();
                 Navigation.navigate(exitUrl);
+                Welcome.handleHybridAppOnboarding();
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
