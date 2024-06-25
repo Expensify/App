@@ -1198,16 +1198,9 @@ function isOldDotReportAction(action: ReportAction): boolean {
  */
 function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
     if (!Array.isArray(reportAction?.message)) {
-        return (getReportActionText(reportAction) || reportAction?.message?.text) ?? '';
+        return getReportActionText(reportAction);
     }
-
-    const isHtml = reportAction?.message?.every((e) => e?.html);
-
-    if (isHtml) {
-        return reportAction?.message?.map((element) => getTextFromHtml(element?.html)).join('') ?? '';
-    }
-
-    return reportAction?.message?.map((element) => element?.text).join('') ?? '';
+    return reportAction?.message?.map((element) => getTextFromHtml(element?.html)).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
