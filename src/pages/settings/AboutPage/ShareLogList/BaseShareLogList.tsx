@@ -40,25 +40,31 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 headerMessage: '',
             };
         }
-        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
+        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, '', betas ?? []);
 
         const header = OptionsListUtils.getHeaderMessage(
             (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
             !!shareLogOptions.userToInvite,
-            debouncedSearchValue,
+            '',
         );
 
         return {
             ...shareLogOptions,
             headerMessage: header,
         };
-    }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
+    }, [areOptionsInitialized, options, betas]);
 
     const searchOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue);
+
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue, {
+            includeChatRooms: true,
+            preferChatroomsOverThreads: true,
+            sortByReportTypeInSearch: true,
+        });
+
         const headerMessage = OptionsListUtils.getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
             !!filteredOptions.userToInvite,
