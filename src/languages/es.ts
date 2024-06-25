@@ -2220,6 +2220,9 @@ export default {
         },
         expensifyCard: {
             issueCard: 'Emitir tarjeta',
+            name: 'Nombre',
+            lastFour: '4 últimos',
+            limit: 'Limite',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',

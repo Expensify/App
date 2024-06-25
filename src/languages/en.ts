@@ -2184,6 +2184,9 @@ export default {
         },
         expensifyCard: {
             issueCard: 'Issue card',
+            name: 'Name',
+            lastFour: 'Last 4',
+            limit: 'Limit',
         },
         categories: {
             deleteCategories: 'Delete categories',

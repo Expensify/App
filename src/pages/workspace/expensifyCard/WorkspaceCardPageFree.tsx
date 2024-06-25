@@ -4,48 +4,53 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
+import WorkspaceCardListHeader from '@pages/workspace/expensifyCard/WorkspaceCardListHeader';
+import WorkspaceCardListRow from '@pages/workspace/expensifyCard/WorkspaceCardListRow';
+import CONST from '@src/CONST';
 
 type WorkspaceCardPageFreeProps = {};
 
+const stickyHeaderIndices = [0];
+
 function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isMediumScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
+    const cards = [
+        {cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''}, description: 'Test 1', limit: 1000, lastFour: '1234'},
+        {cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''}, description: 'Test 2', limit: 2000, lastFour: '5678'},
+        {cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''}, description: 'Test 3', limit: 3000, lastFour: '9108'},
+    ];
 
-    const cards = [];
-
-    const cardsData = [
+    const cardsInfo = [
         {title: 'Current balance', value: 0, description: 'WIP'},
         {title: 'Current balance', value: 0, description: 'WIP'},
         {title: 'Current balance', value: 0, description: 'WIP'},
     ];
 
-    const renderCardsData = () => {
+    const renderCardsInfo = () => {
         return (
-            <View style={[styles.p2, styles.mb6]}>
-                <View style={[styles.flexRow, styles.mb4]}>
-                    {cardsData.map((item) => (
-                        <View style={[styles.flex3]}>
-                            <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={styles.mutedNormalTextLabel}>{item.title}</Text>
-                            </View>
-                            <View style={styles.flexRow}>
-                                <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(item.value, 'USD')}</Text>
-                            </View>
+            <View style={[styles.flexRow, styles.mv5, styles.mh5]}>
+                {cardsInfo.map((item) => (
+                    <View style={[styles.flex3]}>
+                        <View style={[styles.flexRow, styles.mb1]}>
+                            <Text style={styles.mutedNormalTextLabel}>{item.title}</Text>
                         </View>
-                    ))}
-                </View>
+                        <View style={styles.flexRow}>
+                            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(item.value, 'USD')}</Text>
+                        </View>
+                    </View>
+                ))}
             </View>
         );
     };
@@ -56,19 +61,48 @@ function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
                 <Button
                     medium
                     success
-                    onPress={() => {}} // TODO: add card flow
+                    onPress={() => {}} // TODO: add action when card issue is implemented
                     icon={Expensicons.Plus}
                     text={translate('workspace.expensifyCard.issueCard')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={shouldUseNarrowLayout && styles.flex1}
                 />
                 <Button
                     medium
-                    onPress={() => {}} // TODO: add settings open
+                    onPress={() => {}} // TODO: add navigation action when settings screen is implemented
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={shouldUseNarrowLayout && styles.flex1}
                 />
             </View>
+        );
+    };
+
+    const renderItem = ({item, index}) => {
+        return (
+            <OfflineWithFeedback
+                key={`${item.title}_${index}`}
+                pendingAction={item.pendingAction}
+                errorRowStyles={styles.ph5}
+                onClose={item.dismissError}
+                errors={item.errors}
+            >
+                <PressableWithoutFeedback
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel="row"
+                    disabled={item.disabled}
+                    onPress={item.action}
+                >
+                    {({hovered}) => (
+                        <WorkspaceCardListRow
+                            style={hovered && styles.hoveredComponentBG}
+                            lastFour={item.lastFour}
+                            cardholder={item.cardholder}
+                            limit={item.limit}
+                            description={item.description}
+                        />
+                    )}
+                </PressableWithoutFeedback>
+            </OfflineWithFeedback>
         );
     };
 
@@ -80,7 +114,7 @@ function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
             testID={WorkspaceCardPageFree.displayName}
         >
             <HeaderWithBackButton
-                icon={Illustrations.FolderOpen}
+                icon={Illustrations.HandCard}
                 title={translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -90,13 +124,13 @@ function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
 
             {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
 
-            {renderCardsData()}
+            {renderCardsInfo()}
 
             <FlatList
                 data={cards}
-                renderItem={() => null}
-                // ListHeaderComponent={listHeaderComponent}
-                // stickyHeaderIndices={stickyHeaderIndices}
+                renderItem={renderItem}
+                ListHeaderComponent={WorkspaceCardListHeader}
+                stickyHeaderIndices={stickyHeaderIndices}
             />
         </ScreenWrapper>
     );
