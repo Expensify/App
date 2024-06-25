@@ -5066,6 +5066,11 @@ const styles = (theme: ThemeColors) =>
         emptyFolderBG: {
             backgroundColor: theme.emptyFolderBG,
         },
+
+        emptyStateVideo: {
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

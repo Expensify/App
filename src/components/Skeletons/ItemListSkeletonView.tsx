@@ -62,32 +62,28 @@ function ItemListSkeletonView({
             items.push(
                 <View
                     key={`skeletonContainer${i}`}
-                    // style={[themeStyles.mr5, itemViewStyle]}
-                    style={{opacity}}
+                    style={[themeStyles.mr5, itemViewStyle, {opacity}]}
                 >
-                    <View style={itemViewStyle}>
-                        <SkeletonViewContentLoader
-                            key={`skeletonViewItems${i}`}
-                            animate={shouldAnimate}
-                            height={itemViewHeight}
-                            backgroundColor={theme.skeletonLHNIn}
-                            foregroundColor={theme.skeletonLHNOut}
-                        >
-                            {renderSkeletonItem({itemIndex: i})}
-                        </SkeletonViewContentLoader>
-                    </View>
+                    <SkeletonViewContentLoader
+                        animate={shouldAnimate}
+                        height={itemViewHeight}
+                        backgroundColor={theme.skeletonLHNIn}
+                        foregroundColor={theme.skeletonLHNOut}
+                    >
+                        {renderSkeletonItem({itemIndex: i})}
+                    </SkeletonViewContentLoader>
                 </View>,
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, renderSkeletonItem, gradientOpacity, itemViewHeight, itemViewStyle]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacity, itemViewHeight, itemViewStyle]);
 
     return (
         <View
             style={[themeStyles.flex1, themeStyles.overflowHidden]}
             onLayout={handleLayout}
         >
-            <View>{skeletonViewItems}</View>
+            {skeletonViewItems}
         </View>
     );
 }

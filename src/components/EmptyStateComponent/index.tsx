@@ -7,25 +7,15 @@ import Lottie from '@components/Lottie';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 400 / 225;
 
-function EmptyStateComponent({
-    SkeletonComponent,
-    headerMediaType,
-    headerMedia,
-    buttonText,
-    buttonAction,
-    title,
-    subtitle,
-    headerStyles,
-    customIllustartionWidth = '100%',
-}: EmptyStateComponentProps) {
+function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles, headerContentStyles}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
-    const isSmallScreenWidth = getIsSmallScreenWidth();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
 
@@ -47,7 +37,8 @@ function EmptyStateComponent({
             HeaderComponent = (
                 <VideoPlayer
                     url={headerMedia}
-                    videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio: videoAspectRatio}]}
+                    videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
+                    videoStyle={styles.emptyStateVideo}
                     onVideoLoaded={setAspectRatio}
                     controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                     shouldUseControlsBottomMargin={false}
@@ -62,13 +53,14 @@ function EmptyStateComponent({
                     source={headerMedia}
                     autoPlay
                     loop
+                    style={headerContentStyles}
                 />
             );
             break;
         case 'illustration':
             HeaderComponent = (
                 <ImageSVG
-                    width={customIllustartionWidth}
+                    style={headerContentStyles}
                     src={headerMedia}
                 />
             );

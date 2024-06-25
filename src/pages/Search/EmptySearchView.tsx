@@ -15,7 +15,7 @@ function EmptySearchView() {
             headerMediaType="illustration"
             headerMedia={Illustrations.EmptyState}
             headerStyles={styles.emptyFolderBG}
-            customIllustartionWidth={184}
+            headerContentStyles={{width: 184}}
             title={translate('search.searchResults.emptyResults.title')}
             subtitle={translate('search.searchResults.emptyResults.subtitle')}
         />

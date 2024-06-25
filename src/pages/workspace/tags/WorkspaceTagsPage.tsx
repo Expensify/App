@@ -338,7 +338,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         headerMediaType="illustration"
                         headerMedia={Illustrations.EmptyState}
                         headerStyles={styles.emptyFolderBG}
-                        customIllustartionWidth={184}
+                        headerContentStyles={{width: 184}}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />

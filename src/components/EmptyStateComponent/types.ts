@@ -1,3 +1,4 @@
+import type {ImageStyle} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
@@ -15,7 +16,7 @@ type SharedProps<T> = {
     buttonAction?: () => void;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
-    customIllustartionWidth?: number | `${number}%` | 'auto';
+    headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
