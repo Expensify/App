@@ -5565,7 +5565,6 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     CachedPDFPaths.clearByKey(transactionID);
 
-    console.log('delete transaction thread?', {isSingleTransactionView, shouldDeleteIOUReport, shouldDeleteTransactionThread, iouReport})
     // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
