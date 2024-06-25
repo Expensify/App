@@ -24,11 +24,13 @@ function SendButton({isDisabled, handleSendMessage}: SendButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const Tap = Gesture.Tap()
-        .onEnd(() => {
-            handleSendMessage();
-        })
-        .enabled(!isDisabled);
+    const Tap = Gesture.Tap().onEnd(() => {
+        if (isDisabled) {
+            // Note: the .enabled() method has bugs on android mWeb, where changing it from false to true doesn't work.
+            return;
+        }
+        handleSendMessage();
+    });
 
     return (
         <View
