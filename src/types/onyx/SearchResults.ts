@@ -6,19 +6,19 @@ import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
 /** Types of search data */
-type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
+type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? typeof TransactionListItem
-    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
+    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
     ? typeof ReportListItem
     : never;
 
 /** Model of search result section */
-type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? TransactionListItemType[]
-    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
+    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
     ? ReportListItemType[]
     : never;
 
@@ -29,11 +29,23 @@ type SearchTypeToItemMap = {
         listItem: ListItemType<K>;
 
         /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data']) => SectionsType<K>;
+        getSections: (data: SearchResults['data'], metadata: SearchResults['search']) => SectionsType<K>;
 
         /** Returns sorted search results sections based on search results data */
         getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
     };
+};
+
+/** Model of columns to show for search results */
+type ColumnsToShow = {
+    /** Whether the category column should be shown */
+    shouldShowCategoryColumn: boolean;
+
+    /** Whether the tag column should be shown */
+    shouldShowTagColumn: boolean;
+
+    /** Whether the tax column should be shown */
+    shouldShowTaxColumn: boolean;
 };
 
 /** Model of search result state */
@@ -49,6 +61,9 @@ type SearchResultsInfo = {
 
     /** Whether the search results are currently loading */
     isLoading: boolean;
+
+    /** The optional columns that should be shown according to policy settings */
+    columnsToShow: ColumnsToShow;
 };
 
 /** Model of personal details search result */
@@ -147,7 +162,7 @@ type SearchTransaction = {
     category: string;
 
     /** The type of request */
-    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+    type: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The type of report the transaction is associated with */
     reportType: string;
@@ -199,10 +214,10 @@ type SearchTransaction = {
 type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
 
 /** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
 /** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
+type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
 
 /** Model of search results */
 type SearchResults = {
