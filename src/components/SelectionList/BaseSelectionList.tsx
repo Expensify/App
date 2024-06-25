@@ -91,7 +91,6 @@ function BaseSelectionList<TItem extends ListItem>(
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
         shouldDelayFocus = true,
-        isNestedInsideScrollView = false,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -278,7 +277,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [onChangeText]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
+    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -718,7 +717,7 @@ function BaseSelectionList<TItem extends ListItem>(
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
                                 ListEmptyComponent={listEmptyContent}
                                 contentContainerStyle={isEmptyList && listEmptyContent ? styles.flexGrow1 : undefined}
-                                scrollEnabled={!isNestedInsideScrollView && (!isEmptyList || !listEmptyContent)}
+                                scrollEnabled={!isEmptyList || !listEmptyContent}
                                 onEndReached={onEndReached}
                                 onEndReachedThreshold={onEndReachedThreshold}
                             />

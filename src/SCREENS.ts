@@ -142,6 +142,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        RESTRICTED_ACTION: 'RestrictedAction',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -289,6 +290,7 @@ const SCREENS = {
         TAGS_EDIT: 'Tags_Edit',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
+        REPORT_FIELDS: 'Workspace_ReportFields',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
@@ -384,6 +386,7 @@ const SCREENS = {
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
+    RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;
