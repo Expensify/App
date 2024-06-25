@@ -361,6 +361,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
             medium
             text={translate('workspace.new.newWorkspace')}
             onPress={() => interceptAnonymousUser(() => App.createWorkspaceWithPolicyDraftAndNavigateToIt())}
+            icon={Expensicons.Plus}
             style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
     );
