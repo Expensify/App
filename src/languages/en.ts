@@ -422,7 +422,7 @@ export default {
         findMember: 'Find a member',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Start a call',
+        tooltip: 'Book a call',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -1182,8 +1182,8 @@ export default {
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        makeOrTrackPaymentsTitle: 'Make or track payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        makeOrTrackPaymentsTitle: 'Payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -2730,6 +2730,19 @@ export default {
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
         },
+        restrictedAction: {
+            restricted: 'Restricted',
+            actionsAreCurrentlyRestricted: ({workspaceName}) => `Actions on the ${workspaceName} workspace are currently restricted`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+                `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
+            youWillNeedToAddOrUpdatePaymentCard: "You'll need to add or update the payment card on file to unlock new workspace activity.",
+            addPaymentCardToUnlock: 'Add a payment card to unlock!',
+            addPaymentCardToContinueUsingWorkspace: 'Add a payment card to continue using this workspace',
+            pleaseReachOutToYourWorkspaceAdmin: 'Please reach out to your workspace admin for any questions.',
+            chatWithYourAdmin: 'Chat with your admin',
+            chatInAdmins: 'Chat in #admins',
+            addPaymentCard: 'Add payment card',
+        },
     },
     getAssistancePage: {
         title: 'Get assistance',
@@ -3369,5 +3382,8 @@ export default {
         businessClosing: 'Company closing, downsizing, or acquired',
         additionalInfoTitle: 'What software are you moving to and why?',
         additionalInfoInputLabel: 'Your response',
+    },
+    roomChangeLog: {
+        updateRoomDescription: 'set the room description to:',
     },
 } satisfies TranslationBase;

@@ -79,8 +79,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? ''}`);
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? ''}`, {
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? '-1'}`);
+    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? '-1'}`, {
         canEvict: false,
         selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
@@ -209,6 +209,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        Navigation.dismissModal();
         if (isChatRoom) {
             const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
             Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
@@ -617,7 +618,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isLastMemberLeavingGroupModalVisible}
                     onConfirm={() => {
                         setIsLastMemberLeavingGroupModalVisible(false);
-                        Report.leaveGroupChat(report.reportID);
+                        leaveChat();
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
                     prompt={translate('groupChat.lastMemberWarning')}

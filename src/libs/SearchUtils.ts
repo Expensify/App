@@ -9,7 +9,7 @@ import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, Searc
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
-import type {CentralPaneNavigatorParamList, RootStackParamList, State} from './Navigation/types';
+import type {AuthScreensParamList, RootStackParamList, State} from './Navigation/types';
 import * as TransactionUtils from './TransactionUtils';
 import * as UserUtils from './UserUtils';
 
@@ -275,7 +275,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-    return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
+    return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
 export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
