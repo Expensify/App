@@ -3,6 +3,7 @@ import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -66,7 +67,13 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  */
 function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRuns}: HasOpenedForTheFirstTimeFromHybridAppProps) {
     tryNewDotStatusPromise.then(() => {
-        if (NativeModules.HybridAppModule && !tryNewDotData?.classicRedirect?.completedHybridAppOnboarding) {
+        let completedHybridAppOnboarding = !tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
+        // Backend might return strings instead of booleans
+        if (typeof completedHybridAppOnboarding === 'string') {
+            completedHybridAppOnboarding = completedHybridAppOnboarding === 'true';
+        }
+
+        if (NativeModules.HybridAppModule && !completedHybridAppOnboarding) {
             onFirstTimeInHybridApp?.();
             return;
         }
