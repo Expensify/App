@@ -422,7 +422,7 @@ export default {
         findMember: 'Find a member',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Start a call',
+        tooltip: 'Book a call',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -1182,8 +1182,8 @@ export default {
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        makeOrTrackPaymentsTitle: 'Make or track payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        makeOrTrackPaymentsTitle: 'Payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -2263,8 +2263,14 @@ export default {
             },
         },
         reportFields: {
+            addField: 'Add field',
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            emptyReportFields: {
+                title: "You haven't created any report fields",
+                subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
+            },
+            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
@@ -2723,6 +2729,19 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        restrictedAction: {
+            restricted: 'Restricted',
+            actionsAreCurrentlyRestricted: ({workspaceName}) => `Actions on the ${workspaceName} workspace are currently restricted`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+                `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
+            youWillNeedToAddOrUpdatePaymentCard: "You'll need to add or update the payment card on file to unlock new workspace activity.",
+            addPaymentCardToUnlock: 'Add a payment card to unlock!',
+            addPaymentCardToContinueUsingWorkspace: 'Add a payment card to continue using this workspace',
+            pleaseReachOutToYourWorkspaceAdmin: 'Please reach out to your workspace admin for any questions.',
+            chatWithYourAdmin: 'Chat with your admin',
+            chatInAdmins: 'Chat in #admins',
+            addPaymentCard: 'Add payment card',
         },
     },
     getAssistancePage: {
