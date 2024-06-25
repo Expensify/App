@@ -10,10 +10,9 @@ import type {Fund} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BillingStatusResult = {
-    title?: string;
-    subtitle?: string;
-    isError?: boolean;
-    isTrialActive?: boolean;
+    title: string;
+    subtitle: string;
+    isError: boolean;
     isRetryAvailable?: boolean;
     isAddButtonDark?: boolean;
     isAuthenticatingRequired?: boolean;
@@ -24,7 +23,7 @@ type BillingStatusResult = {
 function getBillingStatus(
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     cardEnding: string,
-): BillingStatusResult {
+): BillingStatusResult | undefined {
     const amountOwed = SubscriptionUtils.getAmountOwed();
 
     const status = SubscriptionUtils.getSubscriptionStatus();
@@ -33,7 +32,7 @@ function getBillingStatus(
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
-    switch (status.status) {
+    switch (status?.status) {
         case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.outdatedInfo'),
@@ -121,7 +120,7 @@ function getBillingStatus(
             };
 
         default:
-            return {};
+            return undefined;
     }
 }
 
@@ -152,3 +151,4 @@ export default {
     shouldShowPreTrialBillingBanner,
     getNextBillingDate,
 };
+export type {BillingStatusResult};

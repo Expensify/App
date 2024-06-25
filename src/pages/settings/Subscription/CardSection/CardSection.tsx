@@ -27,7 +27,7 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const {title, subtitle, isError, icon, rightIcon} = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
+    const billingStatus = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
@@ -36,15 +36,14 @@ function CardSection() {
     let BillingBanner: React.ReactNode | undefined;
     if (!CardSectionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
-    } else if (title && subtitle) {
+    } else if (billingStatus) {
         BillingBanner = (
             <SubscriptionBillingBanner
-                title={title}
-                subtitle={subtitle}
-                isTrialActive={false}
-                isError={isError}
-                icon={icon}
-                rightIcon={rightIcon}
+                title={billingStatus.title}
+                subtitle={billingStatus.subtitle}
+                isError={billingStatus.isError}
+                icon={billingStatus.icon}
+                rightIcon={billingStatus.rightIcon}
             />
         );
     }

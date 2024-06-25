@@ -3259,7 +3259,7 @@ export default {
             outdatedInfo: 'Your payment info is outdated',
             updatePaymentInformation: 'Please update your payment information.',
             updateCardDataByDate: ({date}) => `Update your payment card by ${date} to continue using all of your favorite features.`,
-            paymentPastDuePayByDate: ({date}) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption`,
+            paymentPastDuePayByDate: ({date}) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption.`,
             paymentPastDue: 'Your payment is past due. Please pay your invoice.',
             cardCouldNotBeCharged: 'Your card couldn’t be charged',
             retryMessage: 'Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card.',

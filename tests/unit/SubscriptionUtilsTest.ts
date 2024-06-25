@@ -1,6 +1,7 @@
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod} from '@src/types/onyx';
@@ -11,6 +12,9 @@ const billingGraceEndPeriod: BillingGraceEndPeriod = {
     permissions: 'read',
     value: 0,
 };
+
+const GRACE_PERIOD_DATE = 1750819200100;
+const AMOUNT_OWED = 100;
 
 Onyx.init({keys: ONYXKEYS});
 
@@ -243,6 +247,52 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeTruthy();
+        });
+    });
+
+    describe('getSubscriptionStatus', () => {
+        beforeAll(() => {
+            Onyx.init({
+                keys: {
+                    NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                    NVP_PRIVATE_AMOUNT_OWED: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+                },
+                initialKeyStates: {
+                    [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: undefined,
+                    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: undefined,
+                },
+            });
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+        });
+
+        it('should return undefined by default', () => {
+            expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
+        });
+
+        it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: 1,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
+                isError: true,
+            });
+        });
+
+        it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
+            });
         });
     });
 });

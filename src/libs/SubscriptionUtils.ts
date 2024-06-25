@@ -192,13 +192,17 @@ function getCardForSubscriptionBilling(): Fund | undefined {
  * @returns Whether the card is due to expire soon.
  */
 function hasCardExpiringSoon(): boolean {
+    if (billingStatus) {
+        return false;
+    }
+
     const card = getCardForSubscriptionBilling();
 
     if (!card) {
         return false;
     }
 
-    return !billingStatus && card?.accountData?.cardMonth === new Date().getMonth() + 1;
+    return card?.accountData?.cardYear === new Date().getFullYear() && card?.accountData?.cardMonth === new Date().getMonth() + 1;
 }
 
 /**
@@ -216,14 +220,14 @@ function isRetryBillingSuccessful(): boolean {
 }
 
 type SubscriptionStatus = {
-    status?: string;
+    status: string;
     isError?: boolean;
 };
 
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(): SubscriptionStatus {
+function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (amountOwed) {
             // 1. Policy owner with amount owed, within grace period
@@ -308,7 +312,7 @@ function getSubscriptionStatus(): SubscriptionStatus {
         };
     }
 
-    return {};
+    return undefined;
 }
 
 /**
