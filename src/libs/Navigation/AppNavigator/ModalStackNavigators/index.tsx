@@ -323,6 +323,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/intacct/import/SageIntacctToggleMappingsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: () =>
         require('../../../../pages/workspace/accounting/intacct/import/SageIntacctMappingsTypePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_USER_DIMENSIONS]: () =>
+        require('../../../../pages/workspace/accounting/intacct/import/SageIntacctUserDimensionsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADD_USER_DIMENSION]: () =>
+        require('../../../../pages/workspace/accounting/intacct/import/SageIntacctAddUserDimensionPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION]: () =>
+        require('../../../../pages/workspace/accounting/intacct/import/SageIntacctEditUserDimensionsPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAX_EDIT]: () => require('../../../../pages/workspace/taxes/WorkspaceEditTaxPage').default as React.ComponentType,

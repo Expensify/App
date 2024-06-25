@@ -128,7 +128,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 <MenuItemWithTopDescription
                     description={translate('workspace.intacct.userDefinedDimensions')}
                     shouldShowRightIcon
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
                     // brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
