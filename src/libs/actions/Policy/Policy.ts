@@ -17,7 +17,9 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
+    OpenPolicyProfilePageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -1330,8 +1332,8 @@ function generateCustomUnitID(): string {
     return NumberUtils.generateHexadecimalValue(13);
 }
 
-function buildOptimisticCustomUnits(): OptimisticCustomUnits {
-    const currency = allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
+function buildOptimisticCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
+    const currency = reportCurrency ?? allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
 
@@ -1975,7 +1977,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
     const employeeEmail = iouReport.ownerEmail ?? '';
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits(iouReport.currency);
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
 
@@ -2764,6 +2766,18 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
+function openPolicyProfilePage(policyID: string) {
+    const params: OpenPolicyProfilePageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
+}
+
+function openPolicyInitialPage(policyID: string) {
+    const params: OpenPolicyInitialPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE, params);
+}
+
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = getPolicy(policyID);
     const originalCustomTaxName = policy?.taxRates?.name;
@@ -2967,6 +2981,8 @@ export {
     enablePolicyWorkflows,
     enableDistanceRequestTax,
     openPolicyMoreFeaturesPage,
+    openPolicyProfilePage,
+    openPolicyInitialPage,
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
