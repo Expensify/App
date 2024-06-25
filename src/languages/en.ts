@@ -836,7 +836,7 @@ export default {
         },
         privateSection: {
             title: 'Private',
-            subtitle: 'These details are used for travel and payments. They're never shown on your public profile.',
+            subtitle: "These details are used for travel and payments. They're never shown on your public profile.",
         },
     },
     securityPage: {
