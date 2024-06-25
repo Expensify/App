@@ -200,79 +200,77 @@ let reportAction9CreatedDate: string;
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
  */
-function signInAndGetAppWithUnreadChat(): Promise<void> {
+async function signInAndGetAppWithUnreadChat() {
     // Render the App and sign in as a test user.
     render(<App />);
-    return waitForBatchedUpdatesWithAct()
-        .then(async () => {
-            await waitForBatchedUpdatesWithAct();
-            const hintText = Localize.translateLocal('loginForm.loginForm');
-            const loginForm = screen.queryAllByLabelText(hintText);
-            expect(loginForm).toHaveLength(1);
+    await waitForBatchedUpdatesWithAct();
+    await waitForBatchedUpdatesWithAct();
 
-            await act(async () => {
-                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-            });
-            return waitForBatchedUpdatesWithAct();
-        })
-        .then(() => {
-            User.subscribeToUserEvents();
-            return waitForBatchedUpdates();
-        })
-        .then(async () => {
-            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
-            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
+    const hintText = Localize.translateLocal('loginForm.loginForm');
+    const loginForm = screen.queryAllByLabelText(hintText);
+    expect(loginForm).toHaveLength(1);
 
-            // Simulate setting an unread report and personal details
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-                lastReadTime: reportAction3CreatedDate,
-                lastVisibleActionCreated: reportAction9CreatedDate,
-                lastMessageText: 'Test',
-                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
-                lastActorAccountID: USER_B_ACCOUNT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-            });
-            const createdReportActionID = NumberUtils.rand64().toString();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [createdReportActionID]: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    automatic: false,
-                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
-                    reportActionID: createdReportActionID,
-                    message: [
-                        {
-                            style: 'strong',
-                            text: '__FAKE__',
-                            type: 'TEXT',
-                        },
-                        {
-                            style: 'normal',
-                            text: 'created this report',
-                            type: 'TEXT',
-                        },
-                    ],
+    await act(async () => {
+        await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+    });
+    await waitForBatchedUpdatesWithAct();
+
+    User.subscribeToUserEvents();
+    await waitForBatchedUpdates();
+
+    const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+    reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+    reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
+
+    // Simulate setting an unread report and personal details
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+        reportID: REPORT_ID,
+        reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+        lastReadTime: reportAction3CreatedDate,
+        lastVisibleActionCreated: reportAction9CreatedDate,
+        lastMessageText: 'Test',
+        participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+        lastActorAccountID: USER_B_ACCOUNT_ID,
+        type: CONST.REPORT.TYPE.CHAT,
+    });
+    const createdReportActionID = NumberUtils.rand64().toString();
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+        [createdReportActionID]: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            automatic: false,
+            created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
+            reportActionID: createdReportActionID,
+            message: [
+                {
+                    style: 'strong',
+                    text: '__FAKE__',
+                    type: 'TEXT',
                 },
-                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1', createdReportActionID),
-                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2', '1'),
-                3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3', '2'),
-                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4', '3'),
-                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5', '4'),
-                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6', '5'),
-                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7', '6'),
-                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8', '7'),
-                9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9', '8'),
-            });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-            });
+                {
+                    style: 'normal',
+                    text: 'created this report',
+                    type: 'TEXT',
+                },
+            ],
+        },
+        1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1', createdReportActionID),
+        2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2', '1'),
+        3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3', '2'),
+        4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4', '3'),
+        5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5', '4'),
+        6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6', '5'),
+        7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7', '6'),
+        8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8', '7'),
+        9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9', '8'),
+    });
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+    });
 
-            // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-            AppActions.setSidebarLoaded();
-            return waitForBatchedUpdatesWithAct();
-        });
+    // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
+    AppActions.setSidebarLoaded();
+
+    await waitForBatchedUpdatesWithAct();
 }
 
 describe('Unread Indicators', () => {
@@ -520,30 +518,38 @@ describe('Unread Indicators', () => {
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             }));
 
-    it('Keep showing the new line indicator when a new message is created by the current user', () =>
-        signInAndGetAppWithUnreadChat()
-            .then(() => {
-                // Verify we are on the LHN and that the chat shows as unread in the LHN
-                expect(areYouOnChatListScreen()).toBe(true);
+    it('Keep showing the new line indicator when a new message is created by the current user', async () => {
+        await signInAndGetAppWithUnreadChat();
 
-                // Navigate to the report and verify the indicator is present
-                return navigateToSidebarOption(0);
-            })
-            .then(async () => {
-                await act(() => transitionEndCB?.());
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
-                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-                expect(unreadIndicator).toHaveLength(1);
+        // Verify we are on the LHN and that the chat shows as unread in the LHN
+        expect(areYouOnChatListScreen()).toBe(true);
 
-                // Leave a comment as the current user and verify the indicator is removed
-                Report.addComment(REPORT_ID, 'Current User Comment 1');
-                return waitForBatchedUpdates();
-            })
-            .then(() => {
-                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
-                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-                expect(unreadIndicator).toHaveLength(1);
-            }));
+        // Navigate to the report and verify the indicator is present
+        await navigateToSidebarOption(0);
+        await act(() => transitionEndCB?.());
+        let newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(1);
+
+        // Leave a comment as the current user and verify the indicator is not removed
+        const reportActionsBefore = (await TestHelper.onyxGet(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)) as Record<string, ReportAction>;
+        Report.addComment(REPORT_ID, 'Current User Comment 1');
+        const reportActionsAfter = (await TestHelper.onyxGet(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)) as Record<string, ReportAction>;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const newReportActionID = Object.keys(reportActionsAfter).find((reportActionID) => !reportActionsBefore[reportActionID])!;
+        await act(() =>
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [newReportActionID]: {
+                    previousReportActionID: '9',
+                },
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+        unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+        expect(unreadIndicator).toHaveLength(1);
+    });
 
     xit('Keeps the new line indicator when the user moves the App to the background', () =>
         signInAndGetAppWithUnreadChat()

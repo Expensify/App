@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -247,5 +248,33 @@ const createAddListenerMock = () => {
     return {triggerTransitionEnd, addListener};
 };
 
+/**
+ * Get an Onyx value. Only for use in tests for now.
+ */
+async function onyxGet(key: OnyxKey): Promise<Parameters<Required<ConnectOptions<typeof key>>['callback']>[0]> {
+    return new Promise((resolve) => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+        // @ts-expect-error This does not need more
+        const connectionID = Onyx.connect({
+            key,
+            callback: (value) => {
+                Onyx.disconnect(connectionID);
+                resolve(value);
+            },
+            waitForCollectionCallback: true,
+        });
+    });
+}
+
 export type {MockFetch, FormData};
-export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};
+export {
+    assertFormDataMatchesObject,
+    buildPersonalDetails,
+    buildTestReportComment,
+    createAddListenerMock,
+    getGlobalFetchMock,
+    setPersonalDetails,
+    signInWithTestUser,
+    signOutTestUser,
+    onyxGet,
+};
