@@ -4,17 +4,20 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,15 +32,20 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
 
     const policyID = route.params.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const isReimbursable = route.params.reimbursable === 'reimbursable';
 
     let defaultVendor;
+    let errorFieldName;
     if (!isReimbursable) {
+        const {nonReimbursable} = policy?.connections?.intacct?.config.export ?? {};
         defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+        errorFieldName = nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? 'nonReimbursableCreditCardChargeDefaultVendor' : 'nonReimbursableVendor';
     } else {
         const {reimbursableExpenseReportDefaultVendor} = policy?.connections?.intacct?.config.export ?? {};
         defaultVendor = reimbursableExpenseReportDefaultVendor;
+        errorFieldName = 'reimbursableExpenseReportDefaultVendor';
     }
 
     const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy ?? undefined, defaultVendor), [defaultVendor, policy]);
@@ -84,26 +92,33 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     );
 
     return (
-        <SelectionScreen
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctDefaultVendorPage.displayName}
-            sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
-            listItem={RadioListItem}
-            onSelectRow={updateDefaultVendor}
-            initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
-            headerContent={listHeaderComponent}
-            onBackButtonPress={() =>
-                Navigation.goBack(
-                    isReimbursable
-                        ? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)
-                        : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID),
-                )
-            }
-            title="workspace.sageIntacct.defaultVendor"
-            listEmptyContent={listEmptyContent}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-        />
+        // TODO: add scroll here
+        <OfflineWithFeedback
+            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, errorFieldName)}
+            errorRowStyles={[styles.ph5, styles.mt2]}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, errorFieldName)}
+        >
+            <SelectionScreen
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+                displayName={SageIntacctDefaultVendorPage.displayName}
+                sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
+                listItem={RadioListItem}
+                onSelectRow={updateDefaultVendor}
+                initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+                headerContent={listHeaderComponent}
+                onBackButtonPress={() =>
+                    Navigation.goBack(
+                        isReimbursable
+                            ? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)
+                            : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID),
+                    )
+                }
+                title="workspace.sageIntacct.defaultVendor"
+                listEmptyContent={listEmptyContent}
+                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            />
+        </OfflineWithFeedback>
     );
 }
 

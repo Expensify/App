@@ -10,11 +10,13 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {updateSageIntacctDefaultVendor, updateSageIntacctExportReimbursableExpense} from '@userActions/connections/SageIntacct';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
@@ -90,7 +92,11 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <View>
+        <OfflineWithFeedback
+            errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, 'reimbursable')}
+            errorRowStyles={[styles.ph5, styles.mt2]}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, 'reimbursable')}
+        >
             <SelectionScreen
                 displayName={SageIntacctReimbursableExpensesPage.displayName}
                 title="workspace.sageIntacct.reimbursableExpenses.label"
@@ -122,7 +128,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                     {isSwitchOn && defaultVendor}
                 </View>
             )}
-        </View>
+        </OfflineWithFeedback>
     );
 }
 
