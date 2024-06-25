@@ -324,7 +324,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         headerMediaType="illustration"
                         headerMedia={Illustrations.EmptyState}
                         headerStyles={styles.emptyFolderBG}
-                        headerContentStyles={{width: 184, height: 112}}
+                        headerContentStyles={styles.emptyStateFolderIconSize}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     />

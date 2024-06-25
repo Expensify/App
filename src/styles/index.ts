@@ -1668,7 +1668,6 @@ const styles = (theme: ThemeColors) =>
 
         welcomeVideoNarrowLayout: {
             width: variables.onboardingModalWidth,
-            height: 500,
         },
 
         onlyEmojisText: {
@@ -5060,7 +5059,8 @@ const styles = (theme: ThemeColors) =>
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             minHeight: 200,
-            alignItems: isIllustration ? 'center' : 'stretch',
+            alignItems: isIllustration ? 'center' : undefined,
+            justifyContent: isIllustration ? 'center' : undefined,
         }),
 
         emptyFolderBG: {
@@ -5070,6 +5070,11 @@ const styles = (theme: ThemeColors) =>
         emptyStateVideo: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        emptyStateFolderIconSize: {
+            width: 184,
+            height: 112,
         },
     } satisfies Styles);
 

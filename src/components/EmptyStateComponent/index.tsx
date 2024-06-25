@@ -1,5 +1,5 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
@@ -31,44 +31,41 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
         }
     };
 
-    let HeaderComponent;
-    switch (headerMediaType) {
-        case 'video':
-            HeaderComponent = (
-                <VideoPlayer
-                    url={headerMedia}
-                    videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
-                    videoStyle={styles.emptyStateVideo}
-                    onVideoLoaded={setAspectRatio}
-                    controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
-                    shouldUseControlsBottomMargin={false}
-                    shouldPlay
-                    isLooping
-                />
-            );
-            break;
-        case 'animation':
-            HeaderComponent = (
-                <Lottie
-                    source={headerMedia}
-                    autoPlay
-                    loop
-                    style={headerContentStyles}
-                />
-            );
-            break;
-        case 'illustration':
-            HeaderComponent = (
-                <ImageSVG
-                    style={headerContentStyles}
-                    src={headerMedia}
-                />
-            );
-            break;
-        default:
-            HeaderComponent = null;
-            break;
-    }
+    const HeaderComponent = useMemo(() => {
+        switch (headerMediaType) {
+            case 'video':
+                return (
+                    <VideoPlayer
+                        url={headerMedia}
+                        videoPlayerStyle={[headerContentStyles, {aspectRatio: videoAspectRatio}]}
+                        videoStyle={styles.emptyStateVideo}
+                        onVideoLoaded={setAspectRatio}
+                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
+                        shouldUseControlsBottomMargin={false}
+                        shouldPlay
+                        isLooping
+                    />
+                );
+            case 'animation':
+                return (
+                    <Lottie
+                        source={headerMedia}
+                        autoPlay
+                        loop
+                        style={headerContentStyles}
+                    />
+                );
+            case 'illustration':
+                return (
+                    <ImageSVG
+                        style={headerContentStyles}
+                        src={headerMedia}
+                    />
+                );
+            default:
+                return null;
+        }
+    }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
         <View style={styles.flex1}>
