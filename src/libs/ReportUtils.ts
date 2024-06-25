@@ -4622,7 +4622,13 @@ function buildOptimisticChatReport(
     return optimisticChatReport;
 }
 
-function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string, optimisticReportID?: string) {
+function buildOptimisticGroupChatReport(
+    participantAccountIDs: number[],
+    reportName: string,
+    avatarUri: string,
+    optimisticReportID?: string,
+    notificationPreference?: NotificationPreference,
+) {
     return buildOptimisticChatReport(
         participantAccountIDs,
         reportName,
@@ -4633,7 +4639,7 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
         undefined,
         undefined,
         undefined,
-        undefined,
+        notificationPreference,
         undefined,
         undefined,
         undefined,
@@ -5387,8 +5393,6 @@ function shouldReportBeInOptionList({
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -5401,6 +5405,10 @@ function shouldReportBeInOptionList({
             !isGroupChat(report) &&
             !isInvoiceRoom(report))
     ) {
+        return false;
+    }
+
+    if (participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
         return false;
     }
 
@@ -6153,7 +6161,8 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
         isMoneyRequestReport(report) ||
         isPolicyExpenseChat(report) ||
         isInvoiceRoom(report) ||
-        isInvoiceReport(report)
+        isInvoiceReport(report) ||
+        isSystemChat(report)
     ) {
         return true;
     }
@@ -6842,8 +6851,9 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
         return false;
     }
 
+    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReport(report);
     // Anyone viewing these chat types is already a participant and therefore cannot join
-    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report)) {
+    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report) || isExpenseChat) {
         return false;
     }
 
@@ -7006,6 +7016,10 @@ function isChatUsedForOnboarding(report: OnyxEntry<Report>): boolean {
  */
 function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
+}
+
+function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
 export {
@@ -7282,6 +7296,7 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    findPolicyExpenseChatByPolicyID,
 };
 
 export type {
