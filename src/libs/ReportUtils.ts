@@ -2185,10 +2185,11 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 /**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
-function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, reportOrID: OnyxEntry<Report> | string, shouldUseShortDisplayName = true): string {
-    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        return '';
-    }
+function getReimbursementQueuedActionMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>,
+    reportOrID: OnyxEntry<Report> | string,
+    shouldUseShortDisplayName = true,
+): string {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
@@ -2210,9 +2211,6 @@ function getReimbursementDeQueuedActionMessage(
     reportOrID: OnyxEntry<Report> | EmptyObject | string,
     isLHNPreview = false,
 ): string {
-    if (!ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
-        return '';
-    }
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const amount = originalMessage?.amount;
@@ -4637,7 +4635,13 @@ function buildOptimisticChatReport(
     return optimisticChatReport;
 }
 
-function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportName: string, avatarUri: string, optimisticReportID?: string) {
+function buildOptimisticGroupChatReport(
+    participantAccountIDs: number[],
+    reportName: string,
+    avatarUri: string,
+    optimisticReportID?: string,
+    notificationPreference?: NotificationPreference,
+) {
     return buildOptimisticChatReport(
         participantAccountIDs,
         reportName,
@@ -4648,7 +4652,7 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
         undefined,
         undefined,
         undefined,
-        undefined,
+        notificationPreference,
         undefined,
         undefined,
         undefined,
@@ -5402,8 +5406,6 @@ function shouldReportBeInOptionList({
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (participantAccountIDs.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -5416,6 +5418,10 @@ function shouldReportBeInOptionList({
             !isGroupChat(report) &&
             !isInvoiceRoom(report))
     ) {
+        return false;
+    }
+
+    if (participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) && (!currentUserAccountID || !AccountUtils.isAccountIDOddNumber(currentUserAccountID))) {
         return false;
     }
 
@@ -6168,7 +6174,8 @@ function shouldDisableRename(report: OnyxEntry<Report>): boolean {
         isMoneyRequestReport(report) ||
         isPolicyExpenseChat(report) ||
         isInvoiceRoom(report) ||
-        isInvoiceReport(report)
+        isInvoiceReport(report) ||
+        isSystemChat(report)
     ) {
         return true;
     }
@@ -6857,8 +6864,9 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
         return false;
     }
 
+    const isExpenseChat = isMoneyRequestReport(report) || isMoneyRequest(report) || isInvoiceReport(report) || isTrackExpenseReport(report);
     // Anyone viewing these chat types is already a participant and therefore cannot join
-    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report)) {
+    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report) || isSystemChat(report) || isExpenseChat) {
         return false;
     }
 
@@ -7050,6 +7058,10 @@ function getReportViolations(reportID: string) {
     }
 
     return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
+}
+
+function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
 export {
@@ -7329,6 +7341,7 @@ export {
     getFieldViolationTranslation,
     getFieldViolation,
     getReportViolations,
+    findPolicyExpenseChatByPolicyID,
 };
 
 export type {
