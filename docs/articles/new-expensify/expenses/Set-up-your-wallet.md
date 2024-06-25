@@ -5,6 +5,8 @@ description: Send and receive payments by adding your payment account
 <div id="new-expensify" markdown="1">
 To send and receive money using Expensify, you’ll first need to set up your Expensify Wallet by adding your payment account. 
 
+![The Wallet Tab where you can add a personal bank account]({{site.url}}/assets/images/ExpensifyHelp_R5_Wallet_1.png){:width="100%"}
+
 {% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop" %}
