@@ -535,9 +535,12 @@ function IOURequestStepConfirmation({
         [transaction?.amount, transaction?.comment, transaction?.currency, participants, currentUserPersonalDetails.accountID, report],
     );
 
-    const setBillable = (billable: boolean) => {
-        IOU.setMoneyRequestBillable(transactionID, billable);
-    };
+    const setBillable = useCallback(
+        (billable: boolean) => {
+            IOU.setMoneyRequestBillable(transactionID, billable);
+        },
+        [transactionID],
+    );
 
     return (
         <ScreenWrapper
