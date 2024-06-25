@@ -80,7 +80,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                     <View style={[styles.emptyStateHeader(headerMediaType === 'illustration'), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
-                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.mb5]}>{subtitle}</Text>
+                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                         {buttonText && buttonAction && (
                             <Button
                                 success
