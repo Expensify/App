@@ -1715,7 +1715,7 @@ function getDeleteTrackExpenseInformation(
                 value: {
                     [actionableWhisperReportActionID]: {
                         originalMessage: {
-                            resolution: ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction)?.resolution,
+                            resolution: ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction)?.resolution ?? null,
                         },
                     },
                 },
