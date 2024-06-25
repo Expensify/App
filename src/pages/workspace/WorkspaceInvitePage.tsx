@@ -105,10 +105,6 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
 
     const inviteOptions = useMemo(() => {
-        if (debouncedSearchTerm.trim() === '') {
-            return defaultOptions;
-        }
-
         return OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
     }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
 
