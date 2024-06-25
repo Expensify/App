@@ -42,7 +42,7 @@ function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
         if (itemsToDelete.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
-                text: 'Delete',
+                text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
                     SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
@@ -55,7 +55,7 @@ function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
         if (itemsToHold.length > 0) {
             options.push({
                 icon: Expensicons.Stopwatch,
-                text: 'Hold',
+                text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
                 onSelected: () => {
                     SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
@@ -68,7 +68,7 @@ function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
         if (itemsToUnhold.length > 0) {
             options.push({
                 icon: Expensicons.Stopwatch,
-                text: 'Unhold',
+                text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
                 onSelected: () => {
                     SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);

@@ -2806,6 +2806,11 @@ export default {
             },
         },
         groupedExpenses: 'grouped expenses',
+        bulkActions: {
+            delete: 'Delete',
+            hold: 'Hold',
+            unhold: 'Unhold',
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',

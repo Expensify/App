@@ -2845,6 +2845,10 @@ export default {
             },
         },
         groupedExpenses: 'gastos agrupados',
+        bulkActions: {
+            delete: 'Eliminar',
+            hold: 'Bloqueada',
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
