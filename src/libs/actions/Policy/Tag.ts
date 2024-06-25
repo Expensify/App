@@ -363,7 +363,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: n
     });
 }
 
-function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
+function clearPolicyTagListErrorField(policyID: string, tagListIndex: number, errorField: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
     if (!policyTag.name) {
@@ -375,6 +375,20 @@ function clearPolicyTagListError(policyID: string, tagListIndex: number, errorFi
             errorFields: {
                 [errorField]: null,
             },
+        },
+    });
+}
+
+function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [policyTag.name]: {
+            errors: null,
         },
     });
 }
@@ -724,7 +738,8 @@ export {
     setPolicyTagsRequired,
     createPolicyTag,
     clearPolicyTagErrors,
-    clearPolicyTagListError,
+    clearPolicyTagListErrors,
+    clearPolicyTagListErrorField,
     deletePolicyTags,
     enablePolicyTags,
     openPolicyTagsPage,
