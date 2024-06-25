@@ -83,10 +83,6 @@ function handleHybridAppOnboarding() {
         return;
     }
 
-    setTimeout(() => {
-        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
-    }, variables.explanationModalDelay);
-
     Navigation.isNavigationReady().then(() => {
         isFirstTimeHybridAppUser({
             // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
