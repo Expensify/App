@@ -205,7 +205,6 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
                 uri={url}
                 isAuthTokenRequired={isAuthTokenRequired}
                 onError={onError}
-                zoomScale={zoomScale}
             />
         );
     }

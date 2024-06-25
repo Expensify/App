@@ -35,15 +35,12 @@ type LightboxProps = {
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
-
-    /** The zoom scale of the attachment */
-    zoomScale?: number;
 };
 
 /**
  * On the native layer, we use a image library to handle zoom functionality
  */
-function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE, zoomScale}: LightboxProps) {
+function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChangedProp, onError, style, zoomRange = DEFAULT_ZOOM_RANGE}: LightboxProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
 
@@ -254,7 +251,7 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
                     )}
 
                     {/* Show activity indicator while the lightbox is still loading the image. */}
-                    {((isLoading && (!isOffline || isLocalFile)) || (!isLoading && zoomScale === 0)) && (
+                    {isLoading && (!isOffline || isLocalFile) && (
                         <ActivityIndicator
                             size="large"
                             style={StyleSheet.absoluteFill}
