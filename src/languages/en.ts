@@ -767,6 +767,7 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
+        expensesOnHold: 'All expenses were put on hold. Review the comments for next steps.',
         expenseDuplicate: 'This expense has the same details as another one. Review the duplicates to remove the hold.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
@@ -3375,5 +3376,8 @@ export default {
         businessClosing: 'Company closing, downsizing, or acquired',
         additionalInfoTitle: 'What software are you moving to and why?',
         additionalInfoInputLabel: 'Your response',
+    },
+    roomChangeLog: {
+        updateRoomDescription: 'set the room description to:',
     },
 } satisfies TranslationBase;
