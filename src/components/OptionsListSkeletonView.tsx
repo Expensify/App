@@ -34,7 +34,7 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
                 return (
                     <>
                         <Circle
-                            cx="40"
+                            cx={shouldStyleAsTable ? '36' : '40'}
                             cy="32"
                             r="20"
                         />
