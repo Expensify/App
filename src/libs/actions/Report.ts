@@ -657,9 +657,6 @@ function updateGroupChatName(reportID: string, reportName: string) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 reportName: currentReportData?.[reportID]?.reportName ?? null,
-                errors: {
-                    reportName: Localize.translateLocal('common.genericErrorMessage'),
-                },
                 pendingFields: {
                     reportName: null,
                 },
@@ -2250,9 +2247,6 @@ function clearPolicyRoomNameErrors(reportID: string) {
             reportName: null,
         },
         pendingFields: {
-            reportName: null,
-        },
-        errors: {
             reportName: null,
         },
     });
