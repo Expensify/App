@@ -2201,6 +2201,10 @@ export default {
             displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
             toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
             toggleImportTitleSecondPart: ' in Expensify.',
+            expenseTypes: 'Expense types',
+            expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
+            importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
+            userDefinedDimensions: 'User-defined dimensions',
         },
         type: {
             free: 'Free',
