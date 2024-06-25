@@ -19,6 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import CardSectionUtils from './utils';
 
 function CardSection() {
     const [isRequestRefundModalVisible, setIsRequestRefundModalVisible] = useState(false);
@@ -28,6 +29,7 @@ function CardSection() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const plan = useSubscriptionPlan();
     const isEligibleForRefund = useIsEligibleForRefund();
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
 
@@ -38,19 +40,22 @@ function CardSection() {
         setIsRequestRefundModalVisible(false);
     }, []);
 
+    const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
+
+    const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
     const BillingBanner = <PreTrialBillingBanner />;
 
     return (
         <>
             <Section
                 title={translate('subscription.cardSection.title')}
-                subtitle={translate('subscription.cardSection.subtitle')}
+                subtitle={sectionSubtitle}
                 isCentralPane
                 titleStyles={styles.textStrong}
                 subtitleMuted
                 banner={BillingBanner}
             >
-                <View style={[styles.mt8, styles.flexRow]}>
+                <View style={[styles.mt8, styles.mb3, styles.flexRow]}>
                     {!isEmptyObject(defaultCard?.accountData) && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                             <Icon
