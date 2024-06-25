@@ -361,10 +361,9 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
-        XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
+        WORKSPACE_FEEDS: 'workspaceFeeds',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1252,6 +1251,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
@@ -1718,7 +1718,7 @@ const CONST = {
             ARE_TAGS_ENABLED: 'areTagsEnabled',
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
-            ARE_REPORTFIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_TAXES_ENABLED: 'tax',
         },

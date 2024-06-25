@@ -800,15 +800,7 @@ function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): Imag
 /**
  * Gets the style for the container of the empty state background image that overlap the created report action
  */
-function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
-    if (isSmallScreenWidth) {
-        return {
-            position: 'absolute',
-            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
-            width: '100%',
-        };
-    }
-
+function getReportWelcomeBackgroundContainerStyle(): ViewStyle {
     return {
         position: 'absolute',
         top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
@@ -1559,7 +1551,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.DATE:
-                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w84 : variables.w52);
+                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w92 : variables.w52);
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
