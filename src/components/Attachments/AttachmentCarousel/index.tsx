@@ -68,7 +68,11 @@ function AttachmentCarousel({
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows, onChangeArrowsState} = useCarouselArrows();
 
     useEffect(() => {
-        if (!canUseTouchScreen || zoomScale !== 1) {
+        if (!canUseTouchScreen) {
+            return;
+        }
+        if (zoomScale !== 1) {
+            setShouldShowArrows(false);
             return;
         }
         setShouldShowArrows(true);
