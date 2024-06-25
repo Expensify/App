@@ -25,6 +25,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import type {AddressSearchProps, PredefinedPlace} from './types';
+import isRowScrollable from './isRowScrollable';
 
 /**
  * Check if the place matches the search by the place name or description.
@@ -451,7 +452,7 @@ function AddressSearch(
                             container: [styles.mh100],
                         }}
                         numberOfLines={2}
-                        isRowScrollable={false}
+                        isRowScrollable={isRowScrollable}
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event: LayoutChangeEvent) => {
@@ -473,7 +474,7 @@ function AddressSearch(
                         }
                         placeholder=""
                         listViewDisplayed
-                        disableScroll
+                        disableScroll={!isRowScrollable}
                     >
                         <LocationErrorMessage
                             onClose={() => setLocationErrorCode(null)}
