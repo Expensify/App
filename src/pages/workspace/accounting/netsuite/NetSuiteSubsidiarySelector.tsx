@@ -1,14 +1,10 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import {View} from 'react-native-reanimated/lib/typescript/Animated';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import ConnectionLayout from '@components/ConnectionLayout';
 import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import SelectionScreen from '@components/SelectionScreen';
+import SelectionScreen, {type SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,13 +17,10 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
 type NetSuiteSubsidiarySelectorProps = WithPolicyConnectionsProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR>;
-
-type SubsidiaryListItemWithId = ListItem & {subsidiaryID: string};
 
 function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const {translate} = useLocalize();
@@ -41,22 +34,21 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const sections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
             text: subsidiary.name,
-            keyForList: subsidiary.name,
+            keyForList: subsidiary.internalID,
             isSelected: subsidiary.name === currentSubsidiaryName,
-            subsidiaryID: subsidiary.internalID,
             value: subsidiary.name,
         })) ?? [];
 
-    const saveSelection = ({keyForList, subsidiaryID}: SubsidiaryListItemWithId) => {
-        if (!keyForList || keyForList === currentSubsidiaryName) {
+    const saveSelection = ({keyForList, value}: SelectorType) => {
+        if (!keyForList || keyForList === currentSubsidiaryID) {
             return;
         }
 
         updateNetSuiteSubsidiary(
             policyID,
             {
-                subsidiary: keyForList,
-                subsidiaryID,
+                subsidiary: value,
+                subsidiaryID: keyForList,
             },
             {
                 subsidiary: currentSubsidiaryName,
@@ -90,7 +82,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
             </OfflineWithFeedback>
         ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+        [netsuiteConfig, styles.ph5, styles.mt2, styles.pb5, translate, policyID],
     );
 
     return (
@@ -102,8 +94,8 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             sections={[{data: sections}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onSelectRow={() => {}}
-            initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
+            onSelectRow={saveSelection}
+            initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? sections?.[0]?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
             title="workspace.netsuite.subsidiary"
