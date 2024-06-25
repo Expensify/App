@@ -484,7 +484,7 @@ function ReportActionsList({
             return !ReportUtils.isCanceledTaskReport(report, parentReportAction);
         }
 
-        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
+        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
     const calculateUnreadMarker = useCallback(() => {
@@ -529,14 +529,11 @@ function ReportActionsList({
         lastMessageTime.current = null;
         if (
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
-            !(
-                sortedVisibleReportActions &&
-                sortedVisibleReportActions.some(
-                    (reportAction) =>
-                        newMessageTimeReference &&
-                        newMessageTimeReference < reportAction.created &&
-                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
-                )
+            !sortedVisibleReportActions.some(
+                (reportAction) =>
+                    newMessageTimeReference &&
+                    newMessageTimeReference < reportAction.created &&
+                    (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
             )
         ) {
             return;

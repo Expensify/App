@@ -154,6 +154,12 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUs
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
 
 /**
+ * Checks if the current user is an user of the policy.
+ */
+const isPolicyUser = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUserLogin?: string): boolean =>
+    (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.USER;
+
+/**
  * Checks if the policy is a free group policy.
  */
 const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
@@ -546,6 +552,7 @@ export {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyUser,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     isPolicyOwner,
