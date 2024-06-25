@@ -12,7 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setReportFieldsListValueEnabled} from '@libs/actions/WorkspaceReportFields';
+import {deleteReportFieldsListValue, setReportFieldsListValueEnabled} from '@libs/actions/WorkspaceReportFields';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -45,6 +45,7 @@ function ValueSettingsPage({route, navigation}: ValueSettingsPageProps) {
     }
 
     const deleteListValueAndHideModal = () => {
+        deleteReportFieldsListValue(currentValue.name);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };

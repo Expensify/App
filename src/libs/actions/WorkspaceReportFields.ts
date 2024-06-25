@@ -53,6 +53,9 @@ function renameReportFieldsListValue(oldValueName: string, newValueName: string)
     });
 }
 
+/**
+ * Sets the enabled state of a list value in the workspace report fields form.
+ */
 function setReportFieldsListValueEnabled(valueName: string, enabled: boolean) {
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: {
@@ -63,4 +66,15 @@ function setReportFieldsListValueEnabled(valueName: string, enabled: boolean) {
     });
 }
 
-export {setInitialCreateReportFieldsForm, createReportFieldsListValue, renameReportFieldsListValue, setReportFieldsListValueEnabled};
+/**
+ * Deletes a list value from the workspace report fields form.
+ */
+function deleteReportFieldsListValue(valueName: string) {
+    Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
+        [INPUT_IDS.LIST_VALUES]: {
+            [valueName]: null,
+        },
+    });
+}
+
+export {setInitialCreateReportFieldsForm, createReportFieldsListValue, renameReportFieldsListValue, setReportFieldsListValueEnabled, deleteReportFieldsListValue};
