@@ -154,7 +154,7 @@ beforeEach(() => {
     mockListener.remove.mockClear();
 
     // Mock the implementation of addEventListener to return the mockListener
-    (Dimensions.addEventListener as jest.Mock).mockImplementation((event, callback) => {
+    (Dimensions.addEventListener as jest.Mock).mockImplementation((event: string, callback: () => void) => {
         if (event === 'change') {
             mockListener.callback = callback;
             return mockListener;
