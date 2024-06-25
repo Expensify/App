@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,6 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchActions from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import type {SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -14,9 +16,10 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SearchHeaderProps = {
     query: SearchQuery;
     selectedItems: SelectedTransactions;
+    hash: number;
 };
 
-function SearchHeader({query, selectedItems}: SearchHeaderProps) {
+function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
@@ -34,48 +37,63 @@ function SearchHeader({query, selectedItems}: SearchHeaderProps) {
             return null;
         }
 
-        const itemsToDelete = selectedItemsKeys.filter((id) => !selectedItems[id].canDelete);
+        const itemsToDelete = selectedItemsKeys.filter((id) => selectedItems[id].canDelete);
 
         if (itemsToDelete.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: 'Delete',
                 value: CONST.SEARCH_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => {},
+                onSelected: () => {
+                    SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
+                },
             });
         }
 
-        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === 'hold');
+        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
 
         if (itemsToHold.length > 0) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: 'Hold',
                 value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
-                onSelected: () => {},
+                onSelected: () => {
+                    SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
+                },
             });
         }
 
-        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === 'unhold');
+        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD);
 
         if (itemsToUnhold.length > 0) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: 'Unhold',
                 value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
-                onSelected: () => {},
+                onSelected: () => {
+                    SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+                },
             });
         }
 
+        if (options.length > 0) {
+            return (
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
+                    options={options}
+                    isSplitButton={false}
+                />
+            );
+        }
+
         return (
-            <ButtonWithDropdownMenu
-                onPress={() => null}
-                shouldAlwaysShowDropdownMenu
-                pressOnEnter
-                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
-                options={options}
-                isSplitButton={false}
+            <Button
+                medium
+                text={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
                 isDisabled
             />
         );

@@ -222,6 +222,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             <SearchHeader
                 selectedItems={selectedItems}
                 query={query}
+                hash={hash}
             />
             <SelectionList<ReportListItemType | TransactionListItemType>
                 customListHeader={
