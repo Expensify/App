@@ -89,7 +89,7 @@ function convertToBackendAmount(amountAsFloat: number): number {
  */
 function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string): number {
     const decimals = getCurrencyDecimals(currency);
-    return toFixedNumber((Math.trunc(amountAsInt) / 100.0), decimals);
+    return Number((Math.round(amountAsInt) / 100.0).toFixed(decimals));
 }
 
 /**
@@ -101,7 +101,8 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(2);
+    const decimals = getCurrencyDecimals(currency);
+    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
 }
 
 /**

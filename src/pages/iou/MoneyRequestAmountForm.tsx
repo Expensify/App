@@ -70,8 +70,8 @@ type MoneyRequestAmountFormProps = {
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
-const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount));
+const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean, currency: string) =>
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount), currency);
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -149,7 +149,7 @@ function MoneyRequestAmountForm(
     }, [isFocused, wasFocused]);
 
     const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount, currency) : '';
         moneyRequestAmountInput.current?.changeAmount(frontendAmount);
         moneyRequestAmountInput.current?.changeSelection({
             start: frontendAmount.length,
@@ -218,7 +218,7 @@ function MoneyRequestAmountForm(
                 return;
             }
 
-            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
+            if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm, currency)) {
                 setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
                 return;
             }
