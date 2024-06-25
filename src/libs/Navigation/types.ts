@@ -249,6 +249,10 @@ type SettingsNavigatorParamList = {
         orderWeight: number;
         tagName: string;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
+    [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
+        canChangeSize: 0 | 1;
+    };
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.WORKSPACE.TAXES_SETTINGS]: {
         policyID: string;
@@ -732,6 +736,12 @@ type PrivateNotesNavigatorParamList = {
     };
 };
 
+type TransactionDuplicateNavigatorParamList = {
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
+        threadReportID: string;
+    };
+};
+
 type LeftModalNavigatorParamList = {
     [SCREENS.LEFT_MODAL.CHAT_FINDER]: undefined;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
@@ -764,8 +774,10 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
+    [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -823,6 +835,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.TAXES]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
@@ -854,7 +869,13 @@ type WelcomeVideoModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: {policyID?: string};
-    [SCREENS.SEARCH.BOTTOM_TAB]: {policyID?: string};
+    [SCREENS.SEARCH.BOTTOM_TAB]: {
+        query: string;
+        policyID?: string;
+        offset?: number;
+        sortBy?: SearchColumnType;
+        sortOrder?: SortOrder;
+    };
     [SCREENS.SETTINGS.ROOT]: {policyID?: string};
 };
 
@@ -933,6 +954,12 @@ type SearchReportParamList = {
     };
 };
 
+type RestrictedActionParamList = {
+    [SCREENS.RESTRICTED_ACTION_ROOT]: {
+        policyID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -996,5 +1023,7 @@ export type {
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
     WelcomeVideoModalNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    RestrictedActionParamList,
 };

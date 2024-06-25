@@ -1,13 +1,15 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -17,6 +19,7 @@ import * as TransactionActions from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -62,6 +65,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
@@ -69,9 +73,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
         }
-        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+        return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
     }, [reportActions, transactionThreadReport?.parentReportActionID]);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
+    const isDeletedParentAction = !!requestParentReportAction && ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
@@ -87,6 +91,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((transaction) => TransactionUtils.isReceiptBeingScanned(transaction));
     const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
     const allHavePendingRTERViolation = TransactionUtils.allHavePendingRTERViolation(transactionIDs);
@@ -146,12 +151,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const deleteTransaction = useCallback(() => {
         if (requestParentReportAction) {
-            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+                ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1'
+                : '-1';
             if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
-                return;
+                navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '-1', iouTransactionID, requestParentReportAction, true);
+            } else {
+                navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
             }
-            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
         }
 
         setIsDeleteRequestModalVisible(false);
@@ -161,8 +168,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!requestParentReportAction) {
             return;
         }
-        const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
-        const reportID = transactionThreadReport?.reportID ?? '';
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1'
+            : '-1';
+        const reportID = transactionThreadReport?.reportID ?? '-1';
 
         TransactionActions.markAsCash(iouTransactionID, reportID);
     }, [requestParentReportAction, transactionThreadReport?.reportID]);
@@ -231,7 +240,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
                             formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={isOffline && !canAllowSettlement}
+                            isLoading={!isOffline && !canAllowSettlement}
                         />
                     </View>
                 )}
@@ -302,7 +312,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             shouldShowApproveButton={shouldShowApproveButton}
                             formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
                             shouldDisableApproveButton={shouldDisableApproveButton}
-                            isDisabled={!canAllowSettlement}
+                            isDisabled={isOffline && !canAllowSettlement}
+                            isLoading={!isOffline && !canAllowSettlement}
                         />
                     </View>
                 )}
@@ -367,6 +378,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
+                onModalHide={() => {
+                    if (!navigateBackToAfterDelete.current) {
+                        return;
+                    }
+                    Navigation.goBack(navigateBackToAfterDelete.current);
+                }}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}

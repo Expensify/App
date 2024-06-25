@@ -1,5 +1,5 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
+import React, {memo, useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -100,7 +100,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL)));
+                        interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
@@ -131,4 +131,4 @@ export default withOnyx<PurposeForUsingExpensifyModalProps, PurposeForUsingExpen
     isLoadingApp: {
         key: ONYXKEYS.IS_LOADING_APP,
     },
-})(BottomTabBar);
+})(memo(BottomTabBar));

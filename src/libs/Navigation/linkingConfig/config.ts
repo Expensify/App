@@ -166,16 +166,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
                         },
-                        // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
-                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR,
-                            exact: true,
-                        },
-                        // TODO: Added temporarily for testing purposes, remove after refactor - https://github.com/Expensify/App/issues/36648
-                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_TEMPORARY_TERMS]: {
-                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_TEMPORARY_TERMS,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -202,10 +192,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: {
                             path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: {
-                            path: ROUTES.SETTINGS_ADD_BANK_ACCOUNT_REFACTOR,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.PRONOUNS]: {
@@ -282,7 +268,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
                         },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
-                            path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE,
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
+                            parse: {
+                                canChangeSize: Number,
+                            },
                         },
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
@@ -689,6 +678,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
+                    screens: {
+                        [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
+                            exact: true,
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
                         [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
@@ -751,6 +748,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
+                    screens: {
+                        [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
+                    },
+                },
             },
         },
 
@@ -795,6 +797,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.TAXES]: {
                     path: ROUTES.WORKSPACE_TAXES.route,
+                },
+                [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+                    path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,

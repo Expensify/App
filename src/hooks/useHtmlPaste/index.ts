@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import {ExpensiMark} from 'expensify-common';
 import {useCallback, useEffect} from 'react';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -21,8 +21,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         const offset = text.endsWith('\n') ? node.length - 1 : node.length;
         range.setStart(node, offset);
         range.setEnd(node, offset);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
 
         // Dispatch paste event to simulate real browser behavior
         target.dispatchEvent(new Event('paste', {bubbles: true}));
@@ -49,9 +48,19 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
                 insertByCommand(text);
             }
 
+            if (!textInputRef.current?.isFocused()) {
+                textInputRef.current?.focus();
+                return;
+            }
+
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            textInputRef.current?.blur();
-            textInputRef.current?.focus();
+            // To avoid the keyboard toggle issue in mWeb if using blur() and focus() functions, we just need to dispatch the event to trigger the onFocus handler
+            // We need to trigger the bubbled "focusin" event to make sure the onFocus handler is triggered
+            textInputHTMLElement.dispatchEvent(
+                new FocusEvent('focusin', {
+                    bubbles: true,
+                }),
+            );
             // eslint-disable-next-line no-empty
         } catch (e) {}
         // We only need to set the callback once.
@@ -65,8 +74,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            const parser = new ExpensiMark();
-            paste(parser.htmlToMarkdown(html));
+            paste(parseHtmlToMarkdown(html));
         },
         [paste],
     );
@@ -104,11 +112,10 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
 
             event.preventDefault();
 
-            const types = event.clipboardData?.types;
             const TEXT_HTML = 'text/html';
 
             // If paste contains HTML
-            if (types && types.includes(TEXT_HTML)) {
+            if (event.clipboardData?.types?.includes(TEXT_HTML)) {
                 const pastedHTML = event.clipboardData.getData(TEXT_HTML);
 
                 const domparser = new DOMParser();
