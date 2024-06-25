@@ -29,7 +29,7 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View | RNText | null>(null);
-    const policyID = route.params.policyID;
+    const policyID: string = route.params.policyID;
 
     const menuItems = useMemo(
         () => [

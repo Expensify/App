@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {CustomUnit, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -20,6 +20,11 @@ type MemberEmailsToAccountIDs = Record<string, number>;
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
+};
+
+type ConnectionWithLastSyncData = {
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
 };
 
 let allPolicies: OnyxCollection<Policy>;
@@ -465,6 +470,17 @@ function getPoliciesConnectedToSageIntacct(policies: OnyxCollection<Policy>): Po
     return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
 }
 
+// eslint-disable-next-line rulesdir/prefer-early-return
+function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
+    if (!connection) {
+        return undefined;
+    }
+    if ((connection as NetSuiteConnection)?.lastSyncDate) {
+        return (connection as NetSuiteConnection)?.lastSyncDate;
+    }
+    return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+}
+
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.
  * @param workspace1 Details of the first workspace to be compared.
@@ -556,6 +572,7 @@ export {
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
+    getIntegrationLastSuccessfulDate,
 };
 
 export type {MemberEmailsToAccountIDs};

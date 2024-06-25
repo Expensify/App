@@ -7,6 +7,7 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import connectToSageIntacct from '@libs/actions/connections/SageIntacct';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPoliciesConnectedToSageIntacct} from '@libs/PolicyUtils';
@@ -23,10 +24,9 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const styles = useThemeStyles();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct(policies);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const policyID = route.params.policyID; // we'll need this when connecting to policy
+    const policyID: string = route.params.policyID;
 
-    const menuItemsBetter = policiesConnectedToSageIntacct.map((policy) => {
+    const menuItems = policiesConnectedToSageIntacct.map((policy) => {
         const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;
         const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
         return {
@@ -35,6 +35,10 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
+            onPress: () => {
+                // waiting for backend for reusing existing connections
+                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+            },
         };
     });
 
@@ -47,11 +51,11 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             <HeaderWithBackButton
                 title={translate('workspace.intacct.existingConnections')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
             />
             <View style={[styles.flex1]}>
                 <MenuItemList
-                    menuItems={menuItemsBetter}
+                    menuItems={menuItems}
                     shouldUseSingleExecution
                 />
             </View>
@@ -59,6 +63,6 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     );
 }
 
-ExistingConnectionsPage.displayName = 'IntacctPrerequisitesPage';
+ExistingConnectionsPage.displayName = 'ExistingConnectionsPage';
 
 export default ExistingConnectionsPage;

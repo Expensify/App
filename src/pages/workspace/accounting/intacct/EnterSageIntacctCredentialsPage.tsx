@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import connectToSageIntacct from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -25,15 +26,16 @@ type IntacctPrerequisitesPageProps = StackScreenProps<SettingsNavigatorParamList
 function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const policyID = route.params.policyID; // this will be used for connecting to Sage Intacct
+    const policyID: string = route.params.policyID;
 
     const [sageIntacctCredentialsDraft] = useOnyx(ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const confirmCredentials = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
-        // here we call ConnectToSageIntacct API command
-        Navigation.goBack();
-    }, []);
+    const confirmCredentials = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
+            connectToSageIntacct(policyID, values[INPUT_IDS.COMPANY_ID], values[INPUT_IDS.USER_ID], values[INPUT_IDS.PASSWORD]);
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+        },
+        [policyID],
+    );
 
     const formItems = Object.values(INPUT_IDS);
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
