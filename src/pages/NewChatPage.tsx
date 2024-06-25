@@ -69,19 +69,19 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             true,
             undefined,
             undefined,
-            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            0,
             undefined,
             true,
         );
-
         return filteredOptions;
     }, [betas, isGroupChat, listOptions.personalDetails, listOptions.reports, selectedOptions]);
 
     const options = useMemo(() => {
-        if (debouncedSearchTerm.trim() === '') {
-            return defaultOptions;
-        }
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {selectedOptions, excludeLogins: isGroupChat ? excludedGroupEmails : []});
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
+            selectedOptions,
+            excludeLogins: isGroupChat ? excludedGroupEmails : [],
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
 
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, isGroupChat, selectedOptions]);
