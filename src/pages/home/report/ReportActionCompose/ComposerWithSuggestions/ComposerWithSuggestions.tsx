@@ -458,7 +458,17 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
+        [
+            debouncedUpdateFrequentlyUsedEmojis,
+            findNewlyAddedChars,
+            preferredLocale,
+            preferredSkinTone,
+            reportID,
+            suggestionsRef,
+            raiseIsScrollLikelyLayoutTriggered,
+            debouncedSaveReportComment,
+            selection.end,
+        ],
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {

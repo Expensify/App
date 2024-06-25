@@ -42,8 +42,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import SendButton from './SendButton';
 import ConnectedSendButton from './ConnectedSendButton';
+import SendButton from './SendButton';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
