@@ -2568,6 +2568,7 @@ export default {
             },
         },
         export: {
+            // TODO: Add correct translations
             notReadyHeading: 'Not ready to export',
             notReadyDescription: 'Draft or outstanding expense reports... TODO',
         },

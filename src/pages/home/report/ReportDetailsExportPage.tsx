@@ -3,7 +3,9 @@ import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
+import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -36,7 +38,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             text: integrationText,
             icons: [
                 {
-                    source: iconToDisplay,
+                    source: iconToDisplay ?? '',
                     type: 'avatar',
                 },
             ],
@@ -54,7 +56,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             text: translate('workspace.common.markAsExported'),
             icons: [
                 {
-                    source: iconToDisplay,
+                    source: iconToDisplay ?? '',
                     type: 'avatar',
                 },
             ],
@@ -71,14 +73,17 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     if (!canBeExported) {
         return (
-            <ConfirmationPage
-                animation={LottieAnimations.Fireworks}
-                heading={translate('workspace.export.notReadyHeading')}
-                description={translate('workspace.export.notReadyDescription')}
-                shouldShowButton
-                buttonText={translate('common.buttonConfirm')}
-                onButtonPress={() => {}}
-            />
+            <ScreenWrapper testID={ReportDetailsExportPage.displayName}>
+                <HeaderWithBackButton title={translate('common.export')} />
+                <ConfirmationPage
+                    animation={LottieAnimations.Fireworks}
+                    heading={translate('workspace.export.notReadyHeading')}
+                    description={translate('workspace.export.notReadyDescription')}
+                    shouldShowButton
+                    buttonText={translate('common.buttonConfirm')}
+                    onButtonPress={Navigation.goBack}
+                />
+            </ScreenWrapper>
         );
     }
 
