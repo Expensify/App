@@ -49,7 +49,11 @@ type NavigationPartialRoute<TRouteName extends string = string> = PartialRoute<R
 type StateOrRoute = NavigationState | NavigationStateRoute | NavigationPartialRoute;
 type State<TParamList extends ParamListBase = ParamListBase> = NavigationState<TParamList> | PartialState<NavigationState<TParamList>>;
 
-type CentralPaneNavigatorParamList = {
+type BackToParams = {
+    backTo?: Routes;
+};
+
+type CentralPaneScreensParamList = {
     [SCREENS.REPORT]: {
         reportActionID: string;
         reportID: string;
@@ -72,10 +76,6 @@ type CentralPaneNavigatorParamList = {
     };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: undefined;
-};
-
-type BackToParams = {
-    backTo?: Routes;
 };
 
 type SettingsNavigatorParamList = {
@@ -777,6 +777,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
+    [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -913,43 +914,43 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
-type AuthScreensParamList = SharedScreensParamList & {
-    [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
-    [SCREENS.CONCIERGE]: undefined;
-    [SCREENS.ATTACHMENTS]: {
-        reportID: string;
-        source: string;
-        type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
-        accountID: string;
+type AuthScreensParamList = CentralPaneScreensParamList &
+    SharedScreensParamList & {
+        [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.ATTACHMENTS]: {
+            reportID: string;
+            source: string;
+            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+            accountID: string;
+        };
+        [SCREENS.PROFILE_AVATAR]: {
+            accountID: string;
+        };
+        [SCREENS.WORKSPACE_AVATAR]: {
+            policyID: string;
+        };
+        [SCREENS.WORKSPACE_JOIN_USER]: {
+            policyID: string;
+            email: string;
+        };
+        [SCREENS.REPORT_AVATAR]: {
+            reportID: string;
+        };
+        [SCREENS.NOT_FOUND]: undefined;
+        [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
+        [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
+        [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
+        [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
+        [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
+        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
+        [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
+        [SCREENS.TRANSACTION_RECEIPT]: {
+            reportID: string;
+            transactionID: string;
+        };
+        [SCREENS.CONNECTION_COMPLETE]: undefined;
     };
-    [SCREENS.PROFILE_AVATAR]: {
-        accountID: string;
-    };
-    [SCREENS.WORKSPACE_AVATAR]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE_JOIN_USER]: {
-        policyID: string;
-        email: string;
-    };
-    [SCREENS.REPORT_AVATAR]: {
-        reportID: string;
-    };
-    [SCREENS.NOT_FOUND]: undefined;
-    [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
-    [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
-    [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
-    [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
-    [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
-    [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
-    [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
-    [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
-    [SCREENS.TRANSACTION_RECEIPT]: {
-        reportID: string;
-        transactionID: string;
-    };
-    [SCREENS.CONNECTION_COMPLETE]: undefined;
-};
 
 type SearchReportParamList = {
     [SCREENS.SEARCH.REPORT_RHP]: {
@@ -958,13 +959,19 @@ type SearchReportParamList = {
     };
 };
 
+type RestrictedActionParamList = {
+    [SCREENS.RESTRICTED_ACTION_ROOT]: {
+        policyID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
-type CentralPaneName = keyof CentralPaneNavigatorParamList;
-
 type FullScreenName = keyof FullScreenNavigatorParamList;
+
+type CentralPaneName = keyof CentralPaneScreensParamList;
 
 type SwitchPolicyIDParams = {
     policyID?: string;
@@ -975,11 +982,11 @@ type SwitchPolicyIDParams = {
 export type {
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
+    CentralPaneScreensParamList,
+    CentralPaneName,
     BackToParams,
     BottomTabName,
     BottomTabNavigatorParamList,
-    CentralPaneName,
-    CentralPaneNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
@@ -1024,4 +1031,5 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    RestrictedActionParamList,
 };

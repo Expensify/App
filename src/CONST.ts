@@ -363,6 +363,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
+        WORKSPACE_FEEDS: 'workspaceFeeds',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1250,6 +1251,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',

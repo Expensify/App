@@ -2,6 +2,7 @@ import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,7 +15,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -41,11 +42,12 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
-import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
@@ -65,15 +67,30 @@ type AuthScreensProps = {
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
-const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
-const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
-const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
-const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
-const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
-const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
-const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
-const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
-const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
+const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
+const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
+const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
+const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
+const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
+const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
+const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
+const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
+
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
+    const url = getCurrentUrl();
+    const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
+
+    if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
+        return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
+    }
+
+    if (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') {
+        return {openOnAdminRoom: true};
+    }
+
+    return undefined;
+}
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -298,19 +315,25 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const CentralPaneScreenOptions = {
+        headerShown: false,
+        title: 'New Expensify',
+
+        // Prevent unnecessary scrolling
+        cardStyle: styles.cardStyleNavigator,
+    };
+
     return (
         <OptionsListContextProvider>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-                <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+                <RootStack.Navigator
+                    screenOptions={screenOptions.centralPaneNavigator}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                >
                     <RootStack.Screen
                         name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                         options={screenOptions.bottomTab}
                         component={BottomTabNavigator}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
-                        options={screenOptions.centralPaneNavigator}
-                        component={CentralPaneNavigator}
                     />
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
@@ -438,6 +461,18 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
+                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
+                        const centralPaneName = screenName as CentralPaneName;
+                        return (
+                            <RootStack.Screen
+                                key={centralPaneName}
+                                name={centralPaneName}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
+                                getComponent={componentGetter}
+                                options={CentralPaneScreenOptions}
+                            />
+                        );
+                    })}
                 </RootStack.Navigator>
             </View>
         </OptionsListContextProvider>
