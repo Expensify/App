@@ -52,7 +52,6 @@ describe('actions/Report', () => {
     afterEach(PusherHelper.teardown);
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
@@ -168,7 +167,6 @@ describe('actions/Report', () => {
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID))
             .then(() => {
-                // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
                 global.fetch = TestHelper.getGlobalFetchMock();
 
                 // WHEN we add enough logs to send a packet
@@ -188,14 +186,13 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
 
     it('should be updated correctly when new comments are added, deleted or marked as unread', () => {
         jest.useFakeTimers();
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
         const REPORT_ID = '1';
         let report: OnyxEntry<OnyxTypes.Report>;
@@ -432,7 +429,6 @@ describe('actions/Report', () => {
          * already in the comment and the user deleted it on purpose.
          */
 
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         // User edits comment to add link
@@ -545,7 +541,6 @@ describe('actions/Report', () => {
     });
 
     it('should properly toggle reactions on a message', () => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
@@ -666,7 +661,6 @@ describe('actions/Report', () => {
     });
 
     it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;

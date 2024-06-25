@@ -74,6 +74,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Additional style to add to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether the button should use split style or not */
+    isSplitButton?: boolean;
 };
 
 export type {PaymentType, WorkspaceMemberBulkActionType, WorkspaceDistanceRatesBulkActionType, DropdownOption, ButtonWithDropdownMenuProps, WorkspaceTaxRatesBulkActionType};

@@ -16,7 +16,7 @@ const replacer = (str: string): string =>
  * Solution partly taken from SO user Gabriel Rodríguez Flores 🙇
  * https://stackoverflow.com/questions/52789718/how-to-remove-special-characters-before-json-parse-while-file-reading
  */
-const sanitizeStringForJSONParse = (inputString: string): string => {
+const sanitizeStringForJSONParse = (inputString: string | number | boolean | null | undefined): string => {
     if (typeof inputString !== 'string') {
         throw new TypeError('Input must me of type String');
     }

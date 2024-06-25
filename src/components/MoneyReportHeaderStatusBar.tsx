@@ -5,8 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as NextStepUtils from '@libs/NextStepUtils';
 import CONST from '@src/CONST';
 import type ReportNextStep from '@src/types/onyx/ReportNextStep';
+import Badge from './Badge';
 import RenderHTML from './RenderHTML';
-import Text from './Text';
 
 type MoneyReportHeaderStatusBarProps = {
     /** The next step for the report */
@@ -23,9 +23,12 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     }, [nextStep.message]);
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
-            <View style={styles.moneyRequestHeaderStatusBarBadge}>
-                <Text style={[styles.textLabel, styles.textMicroBold]}>{translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}</Text>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
+            <View style={[styles.mr3]}>
+                <Badge
+                    text={translate(nextStep.title === CONST.NEXT_STEP.FINISHED ? 'iou.finished' : 'iou.nextStep')}
+                    badgeStyles={styles.ml0}
+                />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
                 <RenderHTML html={messageContent} />

@@ -3,6 +3,7 @@ import type AccountData from './AccountData';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
+import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
 import type {CardList} from './Card';
@@ -28,6 +29,7 @@ import type MapboxAccessToken from './MapboxAccessToken';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
 import type PersonalBankAccount from './PersonalBankAccount';
@@ -45,6 +47,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
+import type PrivateSubscription from './PrivateSubscription';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -52,17 +55,20 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
-import type {ReportActionBase, ReportActions} from './ReportAction';
+import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
 import type ReportActionsDrafts from './ReportActionsDrafts';
 import type ReportMetadata from './ReportMetadata';
+import type ReportNameValuePairs from './ReportNameValuePairs';
 import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
+import type ReviewDuplicates from './ReviewDuplicates';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -72,6 +78,7 @@ import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
+import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
@@ -107,6 +114,7 @@ export type {
     MapboxAccessToken,
     Modal,
     Network,
+    OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     PersonalBankAccount,
@@ -133,6 +141,7 @@ export type {
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
+    ReportNameValuePairs,
     ReportAction,
     ReportActionReactions,
     ReportActions,
@@ -155,6 +164,7 @@ export type {
     TransactionViolations,
     User,
     UserLocation,
+    UserMetadata,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
@@ -169,7 +179,6 @@ export type {
     RecentlyUsedReportFields,
     DecisionName,
     OriginalMessageIOU,
-    ReportActionBase,
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
@@ -177,4 +186,8 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
+    SearchResults,
+    ReviewDuplicates,
+    PrivateSubscription,
+    BillingGraceEndPeriod,
 };

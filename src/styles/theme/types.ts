@@ -1,9 +1,10 @@
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
 
-type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
+type ThemePreference = ValueOf<typeof CONST.THEME>;
 type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
 
 type ThemeColors = {
@@ -20,6 +21,7 @@ type ThemeColors = {
     iconHovered: Color;
     iconMenuHovered: Color;
     iconSuccessFill: Color;
+    iconDangerFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;
@@ -82,8 +84,11 @@ type ThemeColors = {
     mentionBG: Color;
     ourMentionText: Color;
     ourMentionBG: Color;
+    tooltipHighlightBG: Color;
+    tooltipHighlightText: Color;
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
+    trialBannerBackgroundColor: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;

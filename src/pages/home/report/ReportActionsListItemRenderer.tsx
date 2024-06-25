@@ -46,6 +46,12 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportAction: boolean;
+
+    /** If the thread divider line will be used */
+    shouldUseThreadDividerLine?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -61,6 +67,8 @@ function ReportActionsListItemRenderer({
     shouldDisplayNewMarker,
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
+    isFirstVisibleReportAction = false,
+    shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
@@ -78,12 +86,11 @@ function ReportActionsListItemRenderer({
                 pendingAction: reportAction.pendingAction,
                 actionName: reportAction.actionName,
                 errors: reportAction.errors,
-                originalMessage: reportAction.originalMessage,
+                originalMessage: reportAction?.originalMessage,
                 childCommenterCount: reportAction.childCommenterCount,
                 linkMetadata: reportAction.linkMetadata,
                 childReportID: reportAction.childReportID,
                 childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
-                whisperedToAccountIDs: reportAction.whisperedToAccountIDs,
                 error: reportAction.error,
                 created: reportAction.created,
                 actorAccountID: reportAction.actorAccountID,
@@ -108,12 +115,11 @@ function ReportActionsListItemRenderer({
             reportAction.pendingAction,
             reportAction.actionName,
             reportAction.errors,
-            reportAction.originalMessage,
+            reportAction?.originalMessage,
             reportAction.childCommenterCount,
             reportAction.linkMetadata,
             reportAction.childReportID,
             reportAction.childLastVisibleActionCreated,
-            reportAction.whisperedToAccountIDs,
             reportAction.error,
             reportAction.created,
             reportAction.actorAccountID,
@@ -144,6 +150,8 @@ function ReportActionsListItemRenderer({
             reportActions={reportActions}
             transactionThreadReport={transactionThreadReport}
             index={index}
+            isFirstVisibleReportAction={isFirstVisibleReportAction}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     ) : (
         <ReportActionItem
@@ -165,6 +173,8 @@ function ReportActionsListItemRenderer({
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
+            isFirstVisibleReportAction={isFirstVisibleReportAction}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     );
 }

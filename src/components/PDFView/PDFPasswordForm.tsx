@@ -6,8 +6,8 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import shouldDelayFocus from '@libs/shouldDelayFocus';
 import CONST from '@src/CONST';
@@ -35,7 +35,7 @@ type PDFPasswordFormProps = {
 
 function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadingIndicator = false, onSubmit, onPasswordUpdated, onPasswordFieldFocused}: PDFPasswordFormProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const [password, setPassword] = useState('');
@@ -47,13 +47,13 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
-            return 'attachmentView.passwordIncorrect';
+            return translate('attachmentView.passwordIncorrect');
         }
         if (validationErrorText) {
             return validationErrorText;
         }
         return '';
-    }, [isPasswordInvalid, validationErrorText]);
+    }, [isPasswordInvalid, validationErrorText, translate]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -90,7 +90,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             return true;
         }
         if (!password) {
-            setValidationErrorText('attachmentView.passwordRequired');
+            setValidationErrorText(translate('attachmentView.passwordRequired'));
         }
         return false;
     };
@@ -105,7 +105,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
     return shouldShowForm ? (
         <ScrollView
             keyboardShouldPersistTaps="handled"
-            style={styles.getPDFPasswordFormStyle(isSmallScreenWidth)}
+            style={styles.getPDFPasswordFormStyle(shouldUseNarrowLayout)}
             contentContainerStyle={styles.p5}
         >
             <View style={styles.mb4}>
