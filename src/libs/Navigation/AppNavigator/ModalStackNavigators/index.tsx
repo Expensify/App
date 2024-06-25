@@ -328,6 +328,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: () => require('../../../../pages/workspace/reportFields/WorkspaceCreateReportFieldPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: () => require('../../../../pages/workspace/reportFields/WorkspaceListValuesPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: () => require('../../../../pages/workspace/reportFields/WorkspaceAddValuePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: () => require('../../../../pages/workspace/reportFields/ValueSettingsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require('../../../../pages/workspace/reportFields/EditValuePage').default as React.ComponentType,
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () => require('../../../../pages/settings/Subscription/PaymentCard/AddPaymentCard').default as React.ComponentType,
 });

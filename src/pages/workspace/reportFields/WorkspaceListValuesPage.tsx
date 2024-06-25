@@ -114,12 +114,11 @@ function WorkspaceListValuesPage({
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText])}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
-
                 <SelectionList
                     canSelectMultiple
                     sections={[{data: valueList, isDisabled: false}]}
                     onCheckboxPress={toggleValue}
-                    onSelectRow={() => {}}
+                    onSelectRow={(item) => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.value.name))}
                     shouldDebounceRowSelect={false}
                     onSelectAll={toggleAllValues}
                     ListItem={TableListItem}

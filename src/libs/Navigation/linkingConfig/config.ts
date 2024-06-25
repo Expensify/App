@@ -471,6 +471,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.route,
                         },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.route,
+                            parse: {
+                                valueName: (valueName: string) => decodeURIComponent(valueName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.route,
+                            parse: {
+                                valueName: (valueName: string) => decodeURIComponent(valueName),
+                            },
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
