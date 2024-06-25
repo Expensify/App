@@ -127,7 +127,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {
+                title: translate('violations.hold'),
+                description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'),
+                danger: true,
+                shouldShowBorderBottom: true,
+            };
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
