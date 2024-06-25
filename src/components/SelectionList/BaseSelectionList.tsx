@@ -681,7 +681,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView isUserList={shouldUseUserSkeletonView} />
+                        <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />
                     ) : (
                         <>
                             {!listHeaderContent && header()}
