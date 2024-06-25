@@ -148,6 +148,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
+                            // TODO: should we set default vendor to first on the list? (it works this way in old dot)
                             updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, null);
                             setIsSwitchOn(!isSwitchOn);
                         }}
