@@ -5,11 +5,13 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -63,6 +65,8 @@ function WorkspaceListValuesPage({
         [formDraft?.listValues, selectedValues],
     );
 
+    const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
+
     const toggleValue = (value: ValueListItem) => {
         setSelectedValues((prev) => ({
             ...prev,
@@ -114,19 +118,28 @@ function WorkspaceListValuesPage({
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText])}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
-                <SelectionList
-                    canSelectMultiple
-                    sections={[{data: valueList, isDisabled: false}]}
-                    onCheckboxPress={toggleValue}
-                    onSelectRow={(item) => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.value.name))}
-                    shouldDebounceRowSelect={false}
-                    onSelectAll={toggleAllValues}
-                    ListItem={TableListItem}
-                    customListHeader={getCustomListHeader()}
-                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                    showScrollIndicator={false}
-                />
+                {shouldShowEmptyState && (
+                    <WorkspaceEmptyStateSection
+                        title="You haven't created any list values"
+                        icon={Illustrations.EmptyStateExpenses}
+                        subtitle="Add a custom values that appears on reports."
+                    />
+                )}
+                {!shouldShowEmptyState && (
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data: valueList, isDisabled: false}]}
+                        onCheckboxPress={toggleValue}
+                        onSelectRow={(item) => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.value.name))}
+                        shouldDebounceRowSelect={false}
+                        onSelectAll={toggleAllValues}
+                        ListItem={TableListItem}
+                        customListHeader={getCustomListHeader()}
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        showScrollIndicator={false}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
