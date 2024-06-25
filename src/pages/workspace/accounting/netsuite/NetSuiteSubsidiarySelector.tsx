@@ -1,10 +1,14 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
+import {View} from 'react-native-reanimated/lib/typescript/Animated';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import ConnectionLayout from '@components/ConnectionLayout';
+import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +44,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             keyForList: subsidiary.name,
             isSelected: subsidiary.name === currentSubsidiaryName,
             subsidiaryID: subsidiary.internalID,
+            value: subsidiary.name,
         })) ?? [];
 
     const saveSelection = ({keyForList, subsidiaryID}: SubsidiaryListItemWithId) => {
@@ -60,16 +66,22 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
         Navigation.goBack();
     };
 
-    return (
-        <ConnectionLayout
-            displayName={NetSuiteSubsidiarySelector.displayName}
-            headerTitle="workspace.netsuite.subsidiary"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldIncludeSafeAreaPaddingBottom
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-        >
+    const listEmptyContent = useMemo(
+        () => (
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyListIconWidth}
+                iconHeight={variables.emptyListIconHeight}
+                title={translate('workspace.netsuite.noSubsidiariesFound')}
+                subtitle={translate('workspace.netsuite.noSubsidiariesFoundDescription')}
+                containerStyle={styles.pb10}
+            />
+        ),
+        [translate, styles.pb10],
+    );
+
+    const listHeaderComponent = useMemo(
+        () => (
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
                 errorRowStyles={[styles.ph5, styles.mt2]}
@@ -77,16 +89,26 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             >
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
             </OfflineWithFeedback>
-            <SelectionList
-                containerStyle={styles.pb0}
-                ListItem={RadioListItem}
-                onSelectRow={saveSelection}
-                shouldDebounceRowSelect
-                sections={[{data: sections}]}
-                initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
-                isNestedInsideScrollView
-            />
-        </ConnectionLayout>
+        ),
+        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    );
+
+    return (
+        <SelectionScreen
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={NetSuiteSubsidiarySelector.displayName}
+            sections={[{data: sections}]}
+            listItem={RadioListItem}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            onSelectRow={() => {}}
+            initiallyFocusedOptionKey={netsuiteConfig?.subsidiary ?? sections?.[0].keyForList}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={() => Navigation.goBack()}
+            title="workspace.netsuite.subsidiary"
+            listEmptyContent={listEmptyContent}
+        />
     );
 }
 

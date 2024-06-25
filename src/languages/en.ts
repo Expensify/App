@@ -2184,6 +2184,8 @@ export default {
         netsuite: {
             subsidiary: 'Subsidiary',
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
         },
         type: {
             free: 'Free',
