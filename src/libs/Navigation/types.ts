@@ -78,6 +78,11 @@ type BackToParams = {
     backTo?: Routes;
 };
 
+type BackToAndForwardToParms = {
+    backTo?: Routes;
+    forwardTo?: Routes;
+};
+
 type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.SHARE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.ROOT]: undefined;
@@ -388,7 +393,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
-    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
+    [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: {
+        backTo?: Routes;
+        forwardTo?: string;
+    };
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
         /** cardID of selected card */
         cardID: string;
@@ -978,6 +986,7 @@ export type {
     AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
     BackToParams,
+    BackToAndForwardToParms,
     BottomTabName,
     BottomTabNavigatorParamList,
     CentralPaneName,
