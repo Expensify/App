@@ -430,6 +430,14 @@ function BaseSelectionList<TItem extends ListItem>(
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
+        const handleOnCheckboxPress = () => {
+            if (`transactions` in item) {
+                return onCheckboxPress;
+            }
+
+            return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        };
+
         return (
             <>
                 <ListItem
@@ -439,7 +447,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onSelectRow={() => selectRow(item)}
-                    onCheckboxPress={onCheckboxPress}
+                    onCheckboxPress={handleOnCheckboxPress()}
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
