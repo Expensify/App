@@ -1333,6 +1333,12 @@ const CONST = {
         },
     },
 
+    SAGE_INTACCT_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        IMPORT_EMPLOYEES: 'importEmployees',
+        APPROVAL_MODE: 'approvalMode',
+    },
+
     SAGE_INTACCT: {
         APPROVAL_MODE: {
             APPROVAL_MANUAL: 'APPROVAL_MANUAL',

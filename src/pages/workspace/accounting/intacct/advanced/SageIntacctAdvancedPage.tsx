@@ -9,6 +9,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {updateSageIntacctApprovalMode, updateSageIntacctAutoSync, updateSageIntacctImportEmployees} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
@@ -34,7 +35,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 label: translate('workspace.sageIntacct.autoSync'),
                 value: !!autoSync,
                 onToggle: (enabled: boolean) => {
-                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'autoSync', {enabled});
+                    updateSageIntacctAutoSync(policyID, enabled);
                     Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'isAutoSyncEnabled', enabled);
                 },
                 pendingAction: pendingFields?.autoSync,
@@ -46,13 +47,8 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 label: translate('workspace.sageIntacct.inviteEmployees'),
                 value: !!pendingFields?.importEmployees,
                 onToggle: (enabled: boolean) => {
-                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'importEmployees', enabled);
-                    Connections.updatePolicyConnectionConfig(
-                        policyID,
-                        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-                        'approvalMode',
-                        enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : null,
-                    );
+                    updateSageIntacctImportEmployees(policyID, enabled);
+                    updateSageIntacctApprovalMode(policyID, enabled);
                 },
                 pendingAction: pendingFields?.importEmployees,
                 error: errorFields?.importEmployees,
