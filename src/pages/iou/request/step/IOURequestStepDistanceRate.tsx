@@ -23,7 +23,6 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
-import currency from "@src/types/onyx/Currency";
 
 type IOURequestStepDistanceRateOnyxProps = {
     /** Policy details */
