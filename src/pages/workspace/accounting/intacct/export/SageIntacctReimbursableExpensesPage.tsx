@@ -93,9 +93,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     return (
         <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, 'reimbursable')}
+            errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
             errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, 'reimbursable')}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
         >
             <SelectionScreen
                 displayName={SageIntacctReimbursableExpensesPage.displayName}
@@ -120,7 +120,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            updateSageIntacctDefaultVendor(policyID, 'reimbursableExpenseReportDefaultVendor', null);
+                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, null);
                             setIsSwitchOn(!isSwitchOn);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}

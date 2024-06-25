@@ -119,9 +119,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     return (
         <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, 'nonReimbursable')}
+            errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
             errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, 'nonReimbursable')}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
         >
             <SelectionScreen
                 displayName={SageIntacctNonReimbursableExpensesPage.displayName}
@@ -148,7 +148,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            updateSageIntacctDefaultVendor(policyID, 'nonReimbursableCreditCardChargeDefaultVendor', null);
+                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, null);
                             setIsSwitchOn(!isSwitchOn);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}

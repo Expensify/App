@@ -37,15 +37,18 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const isReimbursable = route.params.reimbursable === 'reimbursable';
 
     let defaultVendor;
-    let errorFieldName;
+    let settingName: keyof Connections['intacct']['config']['export'];
     if (!isReimbursable) {
         const {nonReimbursable} = policy?.connections?.intacct?.config.export ?? {};
         defaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
-        errorFieldName = nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? 'nonReimbursableCreditCardChargeDefaultVendor' : 'nonReimbursableVendor';
+        settingName =
+            nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
+                ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR
+                : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR;
     } else {
         const {reimbursableExpenseReportDefaultVendor} = policy?.connections?.intacct?.config.export ?? {};
         defaultVendor = reimbursableExpenseReportDefaultVendor;
-        errorFieldName = 'reimbursableExpenseReportDefaultVendor';
+        settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
     const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy ?? undefined, defaultVendor), [defaultVendor, policy]);
@@ -62,19 +65,11 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (value !== defaultVendor) {
-                let settingName: keyof Connections['intacct']['config']['export'];
-                if (isReimbursable) {
-                    settingName = 'reimbursableExpenseReportDefaultVendor';
-                } else {
-                    const {nonReimbursable} = policy?.connections?.intacct?.config.export ?? {};
-                    settingName =
-                        nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? 'nonReimbursableCreditCardChargeDefaultVendor' : 'nonReimbursableVendor';
-                }
                 updateSageIntacctDefaultVendor(policyID, settingName, value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
-        [defaultVendor, policyID, isReimbursable, policy?.connections?.intacct?.config.export],
+        [defaultVendor, policyID, settingName],
     );
 
     const listEmptyContent = useMemo(
@@ -94,9 +89,9 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     return (
         // TODO: add scroll here
         <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, errorFieldName)}
+            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, settingName)}
             errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, errorFieldName)}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, settingName)}
         >
             <SelectionScreen
                 policyID={policyID}

@@ -56,9 +56,9 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
 
     return (
         <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, 'exportDate')}
+            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, 'exportDate')}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
         >
             <SelectionScreen
                 displayName={SageIntacctDatePage.displayName}

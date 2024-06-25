@@ -86,9 +86,9 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
 
     return (
         <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(exportConfiguration ?? {}, 'exporter')}
+            errors={ErrorUtils.getLatestErrorField(exportConfiguration ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, 'exporter')}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
         >
             <SelectionScreen
                 policyID={policyID}

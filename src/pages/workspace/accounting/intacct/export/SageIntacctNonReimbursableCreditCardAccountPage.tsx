@@ -65,9 +65,9 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
 
     return (
         <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, 'nonReimbursableAccount')}
+            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, 'nonReimbursableAccount')}
+            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
         >
             <SelectionScreen
                 policyID={policyID}

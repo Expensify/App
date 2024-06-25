@@ -102,15 +102,15 @@ function updateSageIntacctExport(policyID: string, settingName: keyof Connection
 }
 
 function updateSageIntacctExporter(policyID: string, exporter: string) {
-    updateSageIntacctExport(policyID, 'exporter', exporter);
+    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
 }
 
 function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
-    updateSageIntacctExport(policyID, 'exportDate', date);
+    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date);
 }
 
 function updateSageIntacctExportReimbursableExpense(policyID: string, reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>) {
-    updateSageIntacctExport(policyID, 'reimbursable', reimbursable);
+    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, reimbursable);
 }
 
 function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
@@ -118,11 +118,11 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Con
 }
 
 function updateSageIntacctExportNonReimbursableExpense(policyID: string, nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>) {
-    updateSageIntacctExport(policyID, 'nonReimbursable', nonReimbursable);
+    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE, nonReimbursable);
 }
 
 function updateSageIntacctExportNonReimbursableAccount(policyID: string, nonReimbursableAccount: string) {
-    updateSageIntacctExport(policyID, 'nonReimbursableAccount', nonReimbursableAccount);
+    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
 }
 
 export {
