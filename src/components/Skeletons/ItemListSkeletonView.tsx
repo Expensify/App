@@ -19,8 +19,14 @@ const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
     if (!style) {
         return 0;
     }
+
     const flattenStyle = style instanceof Array ? Object.assign({}, ...style) : style;
-    return Number((flattenStyle.marginVertical || 0) + (flattenStyle.marginTop || 0) + (flattenStyle.marginBottom || 0));
+
+    const marginVertical = Number(flattenStyle?.marginVertical ?? 0);
+    const marginTop = Number(flattenStyle?.marginTop ?? 0);
+    const marginBottom = Number(flattenStyle?.marginBottom ?? 0);
+
+    return marginVertical + marginTop + marginBottom;
 };
 
 function ItemListSkeletonView({
