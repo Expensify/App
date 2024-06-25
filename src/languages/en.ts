@@ -918,7 +918,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'New Expensify is built by a community of open-source developers from around the world. Help us build the future, today.',
+            description: 'New Expensify is built by a community of open-source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
             viewKeyboardShortcuts: 'View keyboard shortcuts',
             viewTheCode: 'View the code',
