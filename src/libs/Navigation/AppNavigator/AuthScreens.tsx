@@ -7,15 +7,19 @@ import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {READ_COMMANDS} from '@libs/API/types';
+import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
@@ -26,6 +30,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -41,6 +46,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
@@ -122,7 +128,7 @@ Onyx.connect({
 
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value: OnyxEntry<number>) => {
+    callback: (value) => {
         lastUpdateIDAppliedToClient = value;
     },
 });
@@ -154,13 +160,26 @@ const modalScreenListeners = {
     },
 };
 
+// Extended modal screen listeners with additional cancellation of pending requests
+const modalScreenListenersWithCancelSearch = {
+    ...modalScreenListeners,
+    beforeRemove: () => {
+        modalScreenListeners.beforeRemove();
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+    },
+};
+
 function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDAppliedToClient}: AuthScreensProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
-    const onboardingScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
+    const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
+    const onboardingScreenOptions = useMemo(
+        () => getOnboardingModalScreenOptions(isSmallScreenWidth, styles, StyleUtils, shouldUseNarrowLayout),
+        [StyleUtils, isSmallScreenWidth, shouldUseNarrowLayout, styles],
+    );
     const isInitialRender = useRef(true);
 
     if (isInitialRender.current) {
@@ -172,6 +191,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        const debugShortcutConfig = CONST.KEYBOARD_SHORTCUTS.DEBUG;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
@@ -238,7 +258,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const unsubscribeSearchShortcut = KeyboardShortcut.subscribe(
             searchShortcutConfig.shortcutKey,
             () => {
-                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.SEARCH)));
+                Modal.close(Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER)));
             },
             shortcutsOverviewShortcutConfig.descriptionKey,
             shortcutsOverviewShortcutConfig.modifiers,
@@ -255,10 +275,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             true,
         );
 
+        const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
+            debugShortcutConfig.shortcutKey,
+            () => {
+                toggleTestToolsModal();
+            },
+            debugShortcutConfig.descriptionKey,
+            debugShortcutConfig.modifiers,
+            true,
+        );
+
         return () => {
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
+            unsubscribeDebugShortcut();
             Session.cleanupSession();
         };
 
@@ -300,7 +331,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         getComponent={loadConciergePage}
                     />
                     <RootStack.Screen
-                        name={SCREENS.REPORT_ATTACHMENTS}
+                        name={SCREENS.ATTACHMENTS}
                         options={{
                             headerShown: false,
                             presentation: 'transparentModal',
@@ -344,7 +375,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         options={screenOptions.rightModalNavigator}
                         component={RightModalNavigator}
-                        listeners={modalScreenListeners}
+                        listeners={modalScreenListenersWithCancelSearch}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
@@ -363,8 +394,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={DesktopSignInRedirectPage}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
+                        options={onboardingModalScreenOptions}
+                        component={FeatureTrainingModalNavigator}
+                        listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR}
-                        options={onboardingScreenOptions}
+                        options={onboardingModalScreenOptions}
                         component={WelcomeVideoModalNavigator}
                     />
                     <RootStack.Screen
@@ -389,6 +426,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         }}
                         getComponent={loadReceiptView}
                         listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONNECTION_COMPLETE}
+                        options={defaultScreenOptions}
+                        component={ConnectionCompletePage}
                     />
                 </RootStack.Navigator>
             </View>

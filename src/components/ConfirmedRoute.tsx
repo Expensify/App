@@ -3,6 +3,7 @@ import type {ReactNode} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -24,17 +25,31 @@ type ConfirmedRoutePropsOnyxProps = {
 };
 
 type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
-    /** Transaction that stores the distance request data */
+    /** Transaction that stores the distance expense data */
     transaction: OnyxEntry<Transaction>;
+
+    /** Whether the size of the route pending icon is smaller. */
+    isSmallerIcon?: boolean;
+
+    /** Whether it should have border radius */
+    shouldHaveBorderRadius?: boolean;
+
+    /** Whether it should display the Mapbox map only when the route/coordinates exist otherwise
+     * it will display pending map icon */
+    requireRouteToDisplayMap?: boolean;
+
+    /** Whether the map is interactable or not */
+    interactive?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
 
     const getMarkerComponent = useCallback(
         (icon: IconAsset): ReactNode => (
@@ -87,8 +102,11 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
         return MapboxToken.stop;
     }, []);
 
-    return !isOffline && Boolean(mapboxAccessToken?.token) ? (
+    const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
+
+    return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView
+            interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
             mapPadding={CONST.MAP_PADDING}
             pitchEnabled={false}
@@ -97,12 +115,16 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
                 location: waypointMarkers?.[0]?.coordinate ?? (CONST.MAPBOX.DEFAULT_COORDINATE as [number, number]),
             }}
             directionCoordinates={coordinates as Array<[number, number]>}
-            style={[styles.mapView, styles.br4]}
+            style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
+            requireRouteToDisplayMap={requireRouteToDisplayMap}
         />
     ) : (
-        <PendingMapView />
+        <PendingMapView
+            isSmallerIcon={isSmallerIcon}
+            style={!shouldHaveBorderRadius && StyleUtils.getBorderRadiusStyle(0)}
+        />
     );
 }
 

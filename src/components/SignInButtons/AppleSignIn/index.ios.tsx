@@ -1,9 +1,11 @@
 import appleAuth from '@invertase/react-native-apple-authentication';
+import type {AppleError} from '@invertase/react-native-apple-authentication';
 import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
 import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import type {AppleSignInProps} from '.';
 
 /**
  * Apple Sign In method for iOS that returns identityToken.
@@ -31,20 +33,23 @@ function appleSignInRequest(): Promise<string | null | undefined> {
 /**
  * Apple Sign In button for iOS.
  */
-function AppleSignIn() {
+function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
-            .catch((e) => {
-                if (e.code === appleAuth.Error.CANCELED) {
+            .catch((error: {code: AppleError}) => {
+                if (error.code === appleAuth.Error.CANCELED) {
                     return null;
                 }
-                Log.alert('[Apple Sign In] Apple authentication failed', e);
+                Log.alert('[Apple Sign In] Apple authentication failed', error);
             });
     };
     return (
         <IconButton
-            onPress={handleSignIn}
+            onPress={() => {
+                onPress();
+                handleSignIn();
+            }}
             provider={CONST.SIGN_IN_METHOD.APPLE}
         />
     );

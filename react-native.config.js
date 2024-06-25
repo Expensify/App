@@ -1,9 +1,7 @@
 module.exports = {
     project: {
-        ios: {sourceDir: 'ios', unstable_reactLegacyComponentNames: ['AutoLayoutView', 'CellContainer']},
-        android: {
-            unstable_reactLegacyComponentNames: ['AutoLayoutView', 'CellContainer'],
-        },
+        ios: {sourceDir: 'ios'},
+        android: {},
     },
     assets: ['./assets/fonts/native'],
 };

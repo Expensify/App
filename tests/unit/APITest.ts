@@ -1,5 +1,6 @@
 import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import * as API from '@src/libs/API';
@@ -40,7 +41,6 @@ type XhrCalls = Array<{
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
@@ -71,12 +71,9 @@ describe('APITests', () => {
         return Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
             .then(() => {
                 // When API Writes and Reads are called
-                // @ts-expect-error - mocking the parameter
-                API.write('mock command', {param1: 'value1'});
-                // @ts-expect-error - mocking the parameter
-                API.read('mock command', {param2: 'value2'});
-                // @ts-expect-error - mocking the parameter
-                API.write('mock command', {param3: 'value3'});
+                API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.read<ReadCommand>('mock command' as ReadCommand, {param2: 'value2'} as unknown as ApiRequestCommandParameters[ReadCommand]);
+                API.write<WriteCommand>('mock command' as WriteCommand, {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -110,10 +107,8 @@ describe('APITests', () => {
             })
                 .then(() => {
                     // When API Write commands are made
-                    // @ts-expect-error - mocking the parameter
-                    API.write('mock command', {param1: 'value1'});
-                    // @ts-expect-error - mocking the parameter
-                    API.write('mock command', {param2: 'value2'});
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -161,10 +156,8 @@ describe('APITests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When API Write commands are made
-                    // @ts-expect-error - mocking the parameter
-                    API.write('mock command', {param1: 'value1'});
-                    // @ts-expect-error - mocking the parameter
-                    API.write('mock command', {param2: 'value2'});
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForBatchedUpdates();
                 })
 
@@ -225,8 +218,7 @@ describe('APITests', () => {
             Onyx.set(ONYXKEYS.NETWORK, {isOffline: true})
                 .then(() => {
                     // When API Write commands are made
-                    // @ts-expect-error - mocking the parameter
-                    API.write('mock command', {param1: 'value1'});
+                    API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForNetworkPromises();
                 })
 
@@ -312,8 +304,7 @@ describe('APITests', () => {
             waitForBatchedUpdates()
                 .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: true}))
                 .then(() => {
-                    // @ts-expect-error - mocking the parameter
-                    API.write('Mock', {param1: 'value1'});
+                    API.write<WriteCommand>('Mock' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
                     return waitForBatchedUpdates();
                 })
 
@@ -346,20 +337,13 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands and one not persistable
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value1'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value2'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value3'});
-                // @ts-expect-error - mocking the parameter
-                API.read('MockCommand', {content: 'not-persisted'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value4'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value5'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value6'});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.read<ReadCommand>('MockCommand' as ReadCommand, {content: 'not-persisted'} as unknown as ApiRequestCommandParameters[ReadCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand]);
 
                 return waitForBatchedUpdates();
             })
@@ -390,18 +374,12 @@ describe('APITests', () => {
         })
             .then(() => {
                 // When we queue 6 persistable commands
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value1'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value2'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value3'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value4'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value5'});
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value6'});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value4'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value5'} as ApiRequestCommandParameters[WriteCommand]);
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value6'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
             .then(() => Onyx.set(ONYXKEYS.NETWORK, {isOffline: false}))
@@ -454,8 +432,7 @@ describe('APITests', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand');
+                API.write('MockCommand' as WriteCommand, {});
                 expect(PersistedRequests.getAll().length).toBe(1);
                 expect(NetworkStore.isOffline()).toBe(true);
                 expect(SequentialQueue.isRunning()).toBe(false);
@@ -524,8 +501,7 @@ describe('APITests', () => {
                 NetworkStore.resetHasReadRequiredDataFromStorage();
 
                 // And queue a Write request while offline
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommand', {content: 'value1'});
+                API.write<WriteCommand>('MockCommand' as WriteCommand, {content: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
 
                 // Then we should expect the request to get persisted
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -561,12 +537,9 @@ describe('APITests', () => {
                 expect(NetworkStore.isOffline()).toBe(false);
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommandOne');
-                // @ts-expect-error - mocking the parameter
-                API.read('MockCommandTwo');
-                // @ts-expect-error - mocking the parameter
-                API.write('MockCommandThree');
+                API.write('MockCommandOne' as WriteCommand, {});
+                API.read('MockCommandTwo' as ReadCommand, {});
+                API.write('MockCommandThree' as WriteCommand, {});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
                 expect(PersistedRequests.getAll().length).toBe(2);

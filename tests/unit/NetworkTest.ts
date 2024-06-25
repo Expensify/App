@@ -28,7 +28,6 @@ OnyxUpdateManager();
 const originalXHR = HttpUtils.xhr;
 
 beforeEach(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     HttpUtils.xhr = originalXHR;
     MainQueue.clear();
@@ -54,18 +53,18 @@ describe('NetworkTests', () => {
         const TEST_USER_LOGIN = 'test@testguy.com';
         const TEST_USER_ACCOUNT_ID = 1;
 
-        let isOffline: boolean | null = null;
+        let isOffline: boolean;
 
         Onyx.connect({
             key: ONYXKEYS.NETWORK,
             callback: (val) => {
-                isOffline = val && val.isOffline;
+                isOffline = !!val?.isOffline;
             },
         });
 
         // Given a test user login and account ID
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN).then(() => {
-            expect(isOffline).toBe(null);
+            expect(isOffline).toBe(false);
 
             // Mock fetch() so that it throws a TypeError to simulate a bad network connection
             global.fetch = jest.fn().mockRejectedValue(new TypeError(CONST.ERROR.FAILED_TO_FETCH));

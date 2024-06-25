@@ -37,7 +37,7 @@ Onyx.connect({
     },
 });
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
@@ -62,6 +62,23 @@ function updatePronouns(pronouns: string) {
                 },
             },
         ],
+    });
+}
+
+function setDisplayName(firstName: string, lastName: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [currentUserAccountID]: {
+            firstName,
+            lastName,
+            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                firstName,
+                lastName,
+            }),
+        },
     });
 }
 
@@ -411,6 +428,7 @@ export {
     updateAutomaticTimezone,
     updateAvatar,
     updateDateOfBirth,
+    setDisplayName,
     updateDisplayName,
     updateLegalName,
     updatePronouns,

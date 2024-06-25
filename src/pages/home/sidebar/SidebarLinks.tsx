@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import React, {memo, useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager, StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';

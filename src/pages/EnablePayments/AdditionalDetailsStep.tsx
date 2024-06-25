@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,32 +76,32 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
 
         if (values.dob) {
             if (!ValidationUtils.isValidPastDate(values.dob) || !ValidationUtils.meetsMaximumAgeRequirement(values.dob)) {
-                errors.dob = 'bankAccount.error.dob';
+                errors.dob = translate('bankAccount.error.dob');
             } else if (!ValidationUtils.meetsMinimumAgeRequirement(values.dob)) {
-                errors.dob = 'bankAccount.error.age';
+                errors.dob = translate('bankAccount.error.age');
             }
         }
 
         if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = 'bankAccount.error.addressStreet';
+            errors.addressStreet = translate('bankAccount.error.addressStreet');
         }
 
         if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = 'bankAccount.error.zipCode';
+            errors.addressZipCode = translate('bankAccount.error.zipCode');
         }
 
         if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
-            errors.phoneNumber = 'bankAccount.error.phoneNumber';
+            errors.phoneNumber = translate('bankAccount.error.phoneNumber');
         }
 
         // walletAdditionalDetails stores errors returned by the server. If the server returns an SSN error
         // then the user needs to provide the full 9 digit SSN.
         if (walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN) {
             if (values.ssn && !ValidationUtils.isValidSSNFullNine(values.ssn)) {
-                errors.ssn = 'additionalDetailsStep.ssnFull9Error';
+                errors.ssn = translate('additionalDetailsStep.ssnFull9Error');
             }
         } else if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
-            errors.ssn = 'bankAccount.error.ssnLast4';
+            errors.ssn = translate('bankAccount.error.ssnLast4');
         }
 
         return errors;
@@ -184,7 +184,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         defaultValue={PersonalDetailsUtils.extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
                         shouldSaveDraft
                     />
-                    <AddressForm
+                    <AddressFormFields
                         inputKeys={{
                             street: 'addressStreet',
                             city: 'addressCity',
@@ -206,8 +206,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
-                    <InputWrapper<unknown>
+                    <InputWrapper
                         InputComponent={DatePicker}
                         inputID="dob"
                         containerStyles={[styles.mt4]}

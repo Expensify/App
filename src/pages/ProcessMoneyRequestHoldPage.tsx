@@ -15,7 +15,7 @@ function ProcessMoneyRequestHoldPage() {
     const {translate} = useLocalize();
 
     const onConfirm = useCallback(() => {
-        IOU.setShownHoldUseExplanation();
+        IOU.dismissHoldUseExplanation();
         Navigation.goBack();
     }, []);
 
@@ -33,7 +33,7 @@ function ProcessMoneyRequestHoldPage() {
 
     return (
         <HeaderPageLayout
-            title={translate('common.back')}
+            title={translate('iou.hold')}
             footer={footerComponent}
             onBackButtonPress={() => Navigation.goBack()}
             testID={ProcessMoneyRequestHoldPage.displayName}

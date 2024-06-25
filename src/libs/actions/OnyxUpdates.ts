@@ -1,4 +1,4 @@
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
@@ -13,7 +13,7 @@ import * as QueuedOnyxUpdates from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
-let lastUpdateIDAppliedToClient: OnyxEntry<number> = 0;
+let lastUpdateIDAppliedToClient: number | undefined = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (val) => (lastUpdateIDAppliedToClient = val),
@@ -22,6 +22,8 @@ Onyx.connect({
 // This promise is used to ensure pusher events are always processed in the order they are received,
 // even when such events are received over multiple separate pusher updates.
 let pusherEventsPromise = Promise.resolve();
+
+let airshipEventsPromise = Promise.resolve();
 
 function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
@@ -71,6 +73,20 @@ function applyPusherOnyxUpdates(updates: OnyxUpdateEvent[]) {
     return pusherEventsPromise;
 }
 
+function applyAirshipOnyxUpdates(updates: OnyxUpdateEvent[]) {
+    airshipEventsPromise = airshipEventsPromise.then(() => {
+        console.debug('[OnyxUpdateManager] Applying Airship updates');
+    });
+
+    airshipEventsPromise = updates
+        .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
+        .then(() => {
+            console.debug('[OnyxUpdateManager] Done applying Airship updates');
+        });
+
+    return airshipEventsPromise;
+}
+
 /**
  * @param [updateParams.request] Exists if updateParams.type === 'https'
  * @param [updateParams.response] Exists if updateParams.type === 'https'
@@ -102,14 +118,17 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
 
         return Promise.resolve();
     }
-    if (lastUpdateID && (lastUpdateIDAppliedToClient === null || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
+    if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
         return applyHTTPSOnyxUpdates(request, response);
     }
-    if ((type === CONST.ONYX_UPDATE_TYPES.PUSHER || type === CONST.ONYX_UPDATE_TYPES.AIRSHIP) && updates) {
+    if (type === CONST.ONYX_UPDATE_TYPES.PUSHER && updates) {
         return applyPusherOnyxUpdates(updates);
+    }
+    if (type === CONST.ONYX_UPDATE_TYPES.AIRSHIP && updates) {
+        return applyAirshipOnyxUpdates(updates);
     }
 }
 
@@ -132,29 +151,23 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
  * and return if an update is needed
  * @param previousUpdateID The previousUpdateID contained in the response object
+ * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  */
-function doesClientNeedToBeUpdated(previousUpdateID = 0): boolean {
+function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    // If we don't have any value in lastUpdateIDAppliedToClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
-    if (!lastUpdateIDAppliedToClient) {
+    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
+
+    // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
+    if (!lastUpdateIDFromClient) {
         return true;
     }
 
-    return lastUpdateIDAppliedToClient < previousUpdateID;
-}
-
-function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
-    const previousUpdateID = Number(updates.previousUpdateID) || 0;
-    if (!doesClientNeedToBeUpdated(previousUpdateID)) {
-        apply(updates);
-        return;
-    }
-    saveUpdateInformation(updates);
+    return lastUpdateIDFromClient < previousUpdateID;
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, doesClientNeedToBeUpdated, apply, applyOnyxUpdatesReliably};
+export {apply, doesClientNeedToBeUpdated, saveUpdateInformation};

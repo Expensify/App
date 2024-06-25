@@ -24,15 +24,18 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
+    | typeof SCREENS.MONEY_REQUEST.STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
     | typeof SCREENS.MONEY_REQUEST.STEP_TAG
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY;
+    | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY
+    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM;
 
 type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
 
@@ -66,7 +69,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     return withOnyx<TProps & RefAttributes<TRef>, WithFullTransactionOrNotFoundOnyxProps>({
         transaction: {
             key: ({route}) => {
-                const transactionID = route.params.transactionID ?? 0;
+                const transactionID = route.params.transactionID ?? -1;
                 const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
                 if (userAction === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(userAction)) {

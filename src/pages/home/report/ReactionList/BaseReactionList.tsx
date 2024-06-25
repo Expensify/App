@@ -1,13 +1,12 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {FlatList} from 'react-native';
 import type {FlatListProps} from 'react-native';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -72,7 +71,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
                 icons: [
                     {
                         id: item.accountID,
-                        source: UserUtils.getAvatar(item.avatar, item.accountID),
+                        source: item.avatar ?? FallbackAvatar,
                         name: item.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                     },

@@ -5,7 +5,7 @@ import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 /**
  * Names of Fields where violations can occur.
  */
-type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax';
+type ViolationField = 'amount' | 'billable' | 'category' | 'comment' | 'date' | 'merchant' | 'receipt' | 'tag' | 'tax' | 'none';
 
 /**
  * Map from Violation Names to the field where that violation can occur.
@@ -44,6 +44,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
     taxOutOfPolicy: 'tax',
     taxRateChanged: 'tax',
     taxRequired: 'tax',
+    hold: 'none',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
@@ -61,12 +62,12 @@ function useViolations(violations: TransactionViolation[]) {
     }, [violations]);
 
     const getViolationsForField = useCallback(
-        (field: ViolationField, data?: TransactionViolation['data']) => {
+        (field: ViolationField, data?: TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
             const currentViolations = violationsByField.get(field) ?? [];
 
             // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
-            if (currentViolations[0]?.name === 'someTagLevelsRequired' && data?.tagListIndex !== undefined && Array.isArray(currentViolations[0]?.data?.errorIndexes)) {
+            if (currentViolations[0]?.name === CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && data?.tagListIndex !== undefined && Array.isArray(currentViolations[0]?.data?.errorIndexes)) {
                 return currentViolations
                     .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
                     .map((violation) => ({
@@ -78,8 +79,28 @@ function useViolations(violations: TransactionViolation[]) {
                     }));
             }
 
+            // missingTag has special logic for policies with dependent tags, because only one violation is returned for all tags
+            // when no tags are present, so the tag name isn't set in the violation data. That's why we add it here
+            if (policyHasDependentTags && currentViolations[0]?.name === CONST.VIOLATIONS.MISSING_TAG && data?.tagListName) {
+                return [
+                    {
+                        ...currentViolations[0],
+                        data: {
+                            ...currentViolations[0].data,
+                            tagName: data?.tagListName,
+                        },
+                    },
+                ];
+            }
+
             // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
-            if (currentViolations[0]?.name === 'tagOutOfPolicy' && data?.tagListName !== undefined && currentViolations[0]?.data?.tagName) {
+            if (currentViolations[0]?.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY && data?.tagListName !== undefined && currentViolations[0]?.data?.tagName) {
+                return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
+            }
+
+            // allTagLevelsRequired has special logic because it is returned when one but not all the tags are set,
+            // so we need to return the violation for the tag fields without a tag set
+            if (currentViolations[0]?.name === CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED && tagValue) {
                 return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }
 

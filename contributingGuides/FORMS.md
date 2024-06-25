@@ -5,7 +5,8 @@ This document lists specific guidelines for using our Form component and general
 ## General Form UI/UX
 
 ### Inputs
-Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/InputWrapper.js) and passed as `InputComponent` property additionally it's necessary po pass an unique `inputID`. All other props of the input can be passed as `InputWrapper` props.
+Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensify/App/blob/029d009731dcd3c44cd1321672b9672ef0d3d7d9/src/components/Form/InputWrapper.js) and passed as `InputComponent` property, additionally, it's necessary to pass an unique `inputID`. All other props of the input can be passed as `InputWrapper` props.
+
 ```jsx
 <InputWrapper
     // `InputWrapper` required props
@@ -36,7 +37,7 @@ Labels and hints are enabled by passing the appropriate props to each input:
 
 ### Character Limits
 
-If a field has a character limit we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
+If a field has a character limit, we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
 
 ```jsx
 <InputWrapper
@@ -64,7 +65,7 @@ We have a list of input modes [defined](https://github.com/Expensify/App/blob/94
 />
 ```
 
-We also have [keyboardType](https://github.com/Expensify/App/blob/9418b870515102631ea2156b5ea253ee05a98ff1/src/CONST.js#L760-L763) and should be used for specific use cases when there is no `inputMode` equivalent of the value exist. and should be used like so:
+We also have [keyboardType](https://github.com/Expensify/App/blob/9418b870515102631ea2156b5ea253ee05a98ff1/src/CONST.js#L760-L763) and should be used for specific use cases when there is no `inputMode` equivalent of the value exist, and should be used like so:
 
 ```jsx
 <InputWrapper
@@ -76,9 +77,9 @@ We also have [keyboardType](https://github.com/Expensify/App/blob/9418b870515102
 
 ### Autofill Behavior
 
-Forms should autofill information whenever possible i.e. they should work with browsers and password managers auto complete features.
+Forms should autofill information whenever possible i.e. they should work with browsers and password managers auto-complete features.
 
-As a best practice we should avoid asking for information we can get via other means e.g. asking for City, State, and Zip if we can use Google Places to gather information with the least amount of hassle to the user.
+As a best practice, we should avoid asking for information we can get via other means e.g. asking for City, State, and Zip if we can use Google Places to gather information with the least amount of hassle to the user.
 
 Browsers use the name prop to autofill information into the input. Here's a [reference](https://developers.google.com/web/fundamentals/design-and-ux/input/forms#recommended_input_name_and_autocomplete_attribute_values) for available values for the name prop.
 
@@ -91,7 +92,7 @@ Browsers use the name prop to autofill information into the input. Here's a [ref
 
 ### Focus and Tab Behavior
 
-All forms should define an order in which the inputs should be filled out, and using tab / shift + tab to navigate through the form should traverse the inputs in that order/reversed order, respectively. In most cases this can be achieved by composition, i.e. rendering the components in the correct order. If we come across a situation where composition is not enough, we can:
+All forms should define an order in which the inputs should be filled out, and using tab / shift + tab to navigate through the form should traverse the inputs in that order/reversed order, respectively. In most cases, this can be achieved by composition, i.e. rendering the components in the correct order. If we come across a situation where composition is not enough, we can:
 
 1. Create a local tab index state
 2. Assign a tab index to each form input
@@ -106,9 +107,9 @@ Note: This doesn't apply to the multiline fields. To keep the browser behavior c
 
 User input that may include optional characters (e.g. (, ), - in a phone number) should never be restricted on input, nor be modified or formatted on blur. This type of input jacking is disconcerting and makes things feel broken.
 
-Instead we will format and clean the user input internally before using the value (e.g. making an API request where the user will never see this transformation happen). Additionally, users should always be able to copy/paste whatever characters they want into fields.
+Instead, we will format and clean the user input internally before using the value (e.g. making an API request where the user will never see this transformation happen). Additionally, users should always be able to copy/paste whatever characters they want into fields.
 
-To give a slightly more detailed example of how this would work with phone numbers we should:
+To give a slightly more detailed example of how this would work with phone numbers, we should:
 
 1. Allow any character to be entered in the field.
 2. On blur, strip all non-number characters (with the exception of + if the API accepts it) and validate the result against the E.164 regex pattern we use for a valid phone. This change is internal and the user should not see any changes. This should be done in the validate callback passed as a prop to Form.
@@ -116,7 +117,7 @@ To give a slightly more detailed example of how this would work with phone numbe
 
 ### Form Drafts
 
-Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the shouldSaveDraft prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
+Form inputs will NOT store draft values by default. This is to avoid accidentally storing any sensitive information like passwords, SSN or bank account information. We need to explicitly tell each form input to save draft values by passing the `shouldSaveDraft` prop to the input. Saving draft values is highly desirable and we should always try to save draft values. This way when a user continues a given flow they can easily pick up right where they left off if they accidentally exited a flow. Inputs with saved draft values [will be cleared when a user logs out](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/libs/actions/SignInRedirect.js#L52) (like most data). Additionally, we should clear draft data once the form is successfully submitted by calling `Onyx.set(ONYXKEY.FORM_ID, null)` in the onSubmit callback passed to Form.
 
 ```jsx
 <InputWrapper
@@ -204,7 +205,7 @@ Note: There are edge cases where some server errors will inevitably relate to sp
 
 Submit buttons shall not be disabled or blocked from being pressed in most cases. We will allow the user to submit a form and point them in the right direction if anything needs their attention.
 
-The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
+The only time we won’t allow a user to press the submit button is when we have submitted the form and are waiting for a response (e.g. from the API). In this case, we will show a loading indicator and additional taps on the submit button will have no effect. This is handled by the Form component and will also ensure that a form cannot be submitted multiple times.
 
 ## Using Form
 
@@ -319,9 +320,9 @@ An example of this can be seen in the [ACHContractStep](https://github.com/Expen
 
 ### Safe Area Padding
 
-Any `FormProvider.js` that has a button will also add safe area padding by default. If the `<FormProvider>` is inside a `<ScreenWrapper>` we will want to disable the default safe area padding applied there e.g.
+Any `FormProvider.js` that has a button will also add safe area padding by default. If the `<FormProvider>` is inside a `<ScreenWrapper>`, we will want to disable the default safe area padding applied there e.g.
 
-```js
+```jsx
 <ScreenWrapper includeSafeAreaPaddingBottom={false}>
     <FormProvider>
         {...}

@@ -60,6 +60,9 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Determines if pending column should be shown or not */
     isJoinRequestPending?: boolean;
+
+    /** ID of the policy */
+    policyID?: string;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -104,6 +107,7 @@ function WorkspacesListRow({
     brickRoadIndicator,
     shouldDisableThreeDotsMenu,
     isJoinRequestPending,
+    policyID,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -137,30 +141,78 @@ function WorkspacesListRow({
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
-    return (
-        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.pv5, styles.pl5]}>
-            <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap3, isNarrow && styles.mb3, styles.alignItemsCenter]}>
-                    <Avatar
-                        imageStyles={[styles.alignSelfCenter]}
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        source={workspaceIcon}
-                        fallbackIcon={fallbackWorkspaceIcon}
-                        name={title}
-                        type={CONST.ICON_TYPE_WORKSPACE}
+    const ThreeDotMenuOrPendingIcon = (
+        <View style={[styles.flexRow]}>
+            {isJoinRequestPending && (
+                <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, isNarrow && styles.workspaceListBadge]}>
+                    <Badge
+                        text={translate('workspace.common.requested')}
+                        textStyles={styles.textStrong}
+                        badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                        icon={Expensicons.Hourglass}
                     />
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                    >
-                        {title}
-                    </Text>
                 </View>
-                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+            )}
+            {!isJoinRequestPending && (
+                <View style={[styles.flexRow, styles.ml2, styles.gap1, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
+                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
+                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                    </View>
+                    <View ref={threeDotsMenuContainerRef}>
+                        <ThreeDotsMenu
+                            onIconPress={() => {
+                                if (isSmallScreenWidth) {
+                                    return;
+                                }
+                                threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                                    setThreeDotsMenuPosition({
+                                        horizontal: x + width,
+                                        vertical: y + height,
+                                    });
+                                });
+                            }}
+                            menuItems={menuItems}
+                            anchorPosition={threeDotsMenuPosition}
+                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            shouldOverlay
+                            disabled={shouldDisableThreeDotsMenu}
+                        />
+                    </View>
+                </View>
+            )}
+        </View>
+    );
+
+    return (
+        <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.p5]}>
+            <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex1, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
+                        <Avatar
+                            imageStyles={[styles.alignSelfCenter]}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            source={workspaceIcon}
+                            fallbackIcon={fallbackWorkspaceIcon}
+                            avatarID={policyID}
+                            name={title}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                        />
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                        >
+                            {title}
+                        </Text>
+                    </View>
+                    {isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
+                </View>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     {!!ownerDetails && (
                         <>
                             <Avatar
                                 source={ownerDetails.avatar}
+                                avatarID={ownerDetails.accountID}
+                                type={CONST.ICON_TYPE_AVATAR}
                                 size={CONST.AVATAR_SIZE.SMALL}
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
@@ -181,7 +233,7 @@ function WorkspacesListRow({
                         </>
                     )}
                 </View>
-                <View style={[styles.flexRow, isWide && !isJoinRequestPending && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, styles.alignItemsCenter]}>
                     <Icon
                         src={workspaceTypeIcon(workspaceType)}
                         width={variables.workspaceTypeIconWidth}
@@ -204,45 +256,8 @@ function WorkspacesListRow({
                     </View>
                 </View>
             </View>
-            <View style={[isNarrow && styles.mr5]}>
-                {isJoinRequestPending && (
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln6, styles.pr4]}>
-                        <Badge
-                            text={translate('workspace.common.requested')}
-                            textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                            icon={Expensicons.Hourglass}
-                        />
-                    </View>
-                )}
-                {!isJoinRequestPending && (
-                    <>
-                        <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
-                            <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
-                        </View>
-                        <View ref={threeDotsMenuContainerRef}>
-                            <ThreeDotsMenu
-                                onIconPress={() => {
-                                    if (isSmallScreenWidth) {
-                                        return;
-                                    }
-                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                        setThreeDotsMenuPosition({
-                                            horizontal: x + width,
-                                            vertical: y + height,
-                                        });
-                                    });
-                                }}
-                                menuItems={menuItems}
-                                anchorPosition={threeDotsMenuPosition}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                shouldOverlay
-                                disabled={shouldDisableThreeDotsMenu}
-                            />
-                        </View>
-                    </>
-                )}
-            </View>
+
+            {!isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
         </View>
     );
 }

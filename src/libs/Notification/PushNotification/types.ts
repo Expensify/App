@@ -5,8 +5,8 @@ import type NotificationType from './NotificationType';
 type Init = () => void;
 type Register = (notificationID: string | number) => void;
 type Deregister = () => void;
-type OnReceived = <T extends ValueOf<typeof NotificationType>>(notificationType: T, callback: (data: NotificationDataMap[T]) => void) => void;
-type OnSelected = <T extends ValueOf<typeof NotificationType>>(notificationType: T, callback: (data: NotificationDataMap[T]) => void) => void;
+type OnReceived = <T extends ValueOf<typeof NotificationType>>(notificationType: T, callback: (data: NotificationDataMap[T]) => Promise<void>) => void;
+type OnSelected = <T extends ValueOf<typeof NotificationType>>(notificationType: T, callback: (data: NotificationDataMap[T]) => Promise<void>) => void;
 type ClearNotifications = () => void;
 
 type PushNotification = {
