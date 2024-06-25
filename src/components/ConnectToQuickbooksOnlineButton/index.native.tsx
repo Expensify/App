@@ -63,7 +63,7 @@ function ConnectToQuickbooksOnlineButton({
                         setIsDisconnectModalOpen(false);
                         setWebViewOpen(true);
                     }}
-                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.QBO}
                     onCancel={() => setIsDisconnectModalOpen(false)}
                 />
             )}

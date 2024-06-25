@@ -44,7 +44,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                         Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
                         setIsDisconnectModalOpen(false);
                     }}
-                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.QBO}
                     onCancel={() => setIsDisconnectModalOpen(false)}
                 />
             )}
