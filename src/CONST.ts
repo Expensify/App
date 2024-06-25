@@ -363,6 +363,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
+        WORKSPACE_FEEDS: 'workspaceFeeds',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -941,20 +942,6 @@ const CONST = {
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
     },
-    SEARCH_TABLE_COLUMNS: {
-        RECEIPT: 'receipt',
-        DATE: 'date',
-        MERCHANT: 'merchant',
-        DESCRIPTION: 'description',
-        FROM: 'from',
-        TO: 'to',
-        CATEGORY: 'category',
-        TAG: 'tag',
-        TOTAL_AMOUNT: 'amount',
-        TYPE: 'type',
-        ACTION: 'action',
-        TAX_AMOUNT: 'taxAmount',
-    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
@@ -1264,6 +1251,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
@@ -3540,12 +3528,7 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
-    TAB_SEARCH: {
-        ALL: 'all',
-        SHARED: 'shared',
-        DRAFTS: 'drafts',
-        FINISHED: 'finished',
-    },
+
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
@@ -4846,26 +4829,50 @@ const CONST = {
         ADHOC: ' AdHoc',
     },
 
-    SEARCH_TRANSACTION_TYPE: {
-        CASH: 'cash',
-        CARD: 'card',
-        DISTANCE: 'distance',
-    },
-
-    SEARCH_RESULTS_PAGE_SIZE: 50,
-
-    SEARCH_DATA_TYPES: {
-        TRANSACTION: 'transaction',
-        REPORT: 'report',
+    SEARCH: {
+        RESULTS_PAGE_SIZE: 50,
+        DATA_TYPES: {
+            TRANSACTION: 'transaction',
+            REPORT: 'report',
+        },
+        ACTION_TYPES: {
+            DONE: 'done',
+            PAID: 'paid',
+            VIEW: 'view',
+        },
+        TRANSACTION_TYPE: {
+            CASH: 'cash',
+            CARD: 'card',
+            DISTANCE: 'distance',
+        },
+        SORT_ORDER: {
+            ASC: 'asc',
+            DESC: 'desc',
+        },
+        TAB: {
+            ALL: 'all',
+            SHARED: 'shared',
+            DRAFTS: 'drafts',
+            FINISHED: 'finished',
+        },
+        TABLE_COLUMNS: {
+            RECEIPT: 'receipt',
+            DATE: 'date',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TOTAL_AMOUNT: 'amount',
+            TYPE: 'type',
+            ACTION: 'action',
+            TAX_AMOUNT: 'taxAmount',
+        },
     },
 
     REFERRER: {
         NOTIFICATION: 'notification',
-    },
-
-    SORT_ORDER: {
-        ASC: 'asc',
-        DESC: 'desc',
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
