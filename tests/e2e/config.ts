@@ -8,6 +8,7 @@ const TEST_NAMES = {
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',
     Linking: 'Linking',
+    PreloadedLinking: 'Preloaded linking',
 };
 
 /**
@@ -95,6 +96,15 @@ export default {
             reportID: '8268282951170052',
             linkedReportID: '5421294415618529',
             linkedReportActionID: '2845024374735019929',
+        },
+        [TEST_NAMES.PreloadedLinking]: {
+            name: TEST_NAMES.PreloadedLinking,
+            reportScreen: {
+                autoFocus: true,
+            },
+            // Crowded Policy (Do Not Delete) Report, has a input bar available:
+            reportID: '5421294415618529',
+            linkedReportActionID: '8984197495983183608', // Message 4897
         },
     },
 };
