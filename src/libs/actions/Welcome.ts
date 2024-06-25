@@ -38,7 +38,7 @@ let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
 });
 
 let resolveTryNewDotStatus: (value?: Promise<void>) => void | undefined;
-const hasSeenNewUserModalStatusPromise = new Promise<void>((resolve) => {
+const tryNewDotStatusPromise = new Promise<void>((resolve) => {
     resolveTryNewDotStatus = resolve;
 });
 
@@ -65,7 +65,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  * and executes corresponding callback functions.
  */
 function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRunsOrNotInHybridApp}: HasOpenedForTheFirstTimeFromHybridAppProps) {
-    hasSeenNewUserModalStatusPromise.then(() => {
+    tryNewDotStatusPromise.then(() => {
         if (NativeModules.HybridAppModule && !tryNewDotData?.classicRedirect?.completedHybridAppOnboarding) {
             onFirstTimeInHybridApp?.();
             return;
@@ -83,19 +83,17 @@ function handleHybridAppOnboarding() {
         return;
     }
 
-    Navigation.isNavigationReady().then(() => {
-        isFirstTimeHybridAppUser({
-            // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
-            onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
-            // In other scenarios we need to check if onboarding was completed.
-            onSubsequentRunsOrNotInHybridApp: () =>
-                isOnboardingFlowCompleted({
-                    onNotCompleted: () =>
-                        setTimeout(() => {
-                            Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
-                        }, variables.explanationModalDelay),
-                }),
-        });
+    isFirstTimeHybridAppUser({
+        // When user opens New Expensify for the first time from HybridApp we always want to show explanation modal first.
+        onFirstTimeInHybridApp: () => Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT),
+        // In other scenarios we need to check if onboarding was completed.
+        onSubsequentRunsOrNotInHybridApp: () =>
+            isOnboardingFlowCompleted({
+                onNotCompleted: () =>
+                    setTimeout(() => {
+                        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                    }, variables.explanationModalDelay),
+            }),
     });
 }
 
