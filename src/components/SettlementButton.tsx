@@ -186,7 +186,7 @@ function SettlementButton({
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && currency === CONST.CURRENCY.USD;
+        const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
