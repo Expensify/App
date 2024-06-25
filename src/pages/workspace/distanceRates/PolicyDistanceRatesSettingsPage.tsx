@@ -141,7 +141,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                         <TextLink
                                             onPress={() => {
                                                 Navigation.dismissModal();
-                                                Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                                                Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
                                             }}
                                         >
                                             {translate('workspace.common.moreFeatures')}
