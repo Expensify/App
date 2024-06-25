@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -12,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function ConfirmationStep() {

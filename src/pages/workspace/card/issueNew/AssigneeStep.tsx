@@ -1,17 +1,16 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 function AssigneeStep() {
     const {translate} = useLocalize();
@@ -42,6 +41,7 @@ function AssigneeStep() {
                     stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
                 />
             </View>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 submitButtonText={translate('common.next')}

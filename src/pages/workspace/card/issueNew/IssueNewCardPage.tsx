@@ -1,15 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Text from '@components/Text';
-import AssigneeStep from '@pages/workspace/card/issueNew/AssigneeStep';
-import CardNameStep from '@pages/workspace/card/issueNew/CardNameStep';
-import CardTypeStep from '@pages/workspace/card/issueNew/CartTypeStep';
-import ConfirmationStep from '@pages/workspace/card/issueNew/ConfirmationStep';
-import LimitStep from '@pages/workspace/card/issueNew/LimitStep';
-import LimitTypeStep from '@pages/workspace/card/issueNew/LimitTypeStep';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import AssigneeStep from './AssigneeStep';
+import CardNameStep from './CardNameStep';
+import CardTypeStep from './CardTypeStep';
+import ConfirmationStep from './ConfirmationStep';
+import LimitStep from './LimitStep';
+import LimitTypeStep from './LimitTypeStep';
 
 function IssueNewCardPage() {
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);

@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -8,11 +7,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 function CardNameStep() {
     const {translate} = useLocalize();
