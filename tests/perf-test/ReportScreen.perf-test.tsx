@@ -41,6 +41,7 @@ jest.mock('@src/libs/API', () => ({
     write: jest.fn(),
     makeRequestWithSideEffects: jest.fn(),
     read: jest.fn(),
+    paginate: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -216,7 +217,7 @@ const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', n
 test('[ReportScreen] should render ReportScreen', async () => {
     const {addListener} = createAddListenerMock();
     const scenario = async () => {
-        await screen.findByTestId('ReportScreen');
+        await screen.findByTestId(`report-screen-${report.reportID}`);
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
