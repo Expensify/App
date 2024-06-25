@@ -8,15 +8,14 @@ type Props = SendButtonProps & {
     reportID: string;
 };
 
-function ConnectedSendButton({reportID, isDisabled: isDisabledProp, ...forwardedProps}: Props) {
+function ConnectedSendButton({reportID, isDisabled: isDisabledProp, handleSendMessage}: Props) {
     const [commentValue] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const isCommentEmpty = useMemo(() => commentValue?.match(/^(\s)*$/) !== null, [commentValue]);
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <SendButton
             isDisabled={isDisabledProp || isCommentEmpty}
-            {...forwardedProps}
+            handleSendMessage={handleSendMessage}
         />
     );
 }
