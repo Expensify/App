@@ -4,7 +4,7 @@ import type {TextInput} from 'react-native';
 import SCREENS from '@src/SCREENS';
 import getTopmostRouteName from './Navigation/getTopmostRouteName';
 import isReportOpenInRHP from './Navigation/isReportOpenInRHP';
-import {navigationRef} from './Navigation/Navigation';
+import navigationRef from './Navigation/navigationRef';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
@@ -34,7 +34,7 @@ function onComposerFocus(callback: FocusCallback | null, isMainComposer = false)
  */
 function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report screen */
-    const navigationState = navigationRef.current?.getState();
+    const navigationState = navigationRef.getState();
     if (!navigationState || (!isReportOpenInRHP(navigationState) && getTopmostRouteName(navigationState) !== SCREENS.REPORT)) {
         return;
     }
