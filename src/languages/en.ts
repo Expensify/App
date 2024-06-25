@@ -2562,6 +2562,18 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'intacctCheckConnection':
+                            return 'Checking Sage Intacct connection';
+                        case 'intacctImportTitle':
+                            return 'Importing Sage Intacct data';
+                        case 'intacctImportData':
+                            return 'Importing Sage Intacct data';
+                        case 'intacctImportEmployees':
+                            return 'Importing employees';
+                        case 'intacctImportDimensions':
+                            return 'Importing dimensions';
+                        case 'intacctImportSyncBillPayments':
+                            return 'Syncing reimbursed reports and bill payments';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }

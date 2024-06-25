@@ -32,7 +32,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     const confirmCredentials = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             connectToSageIntacct(policyID, values[INPUT_IDS.COMPANY_ID], values[INPUT_IDS.USER_ID], values[INPUT_IDS.PASSWORD]);
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+            Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
         },
         [policyID],
     );
