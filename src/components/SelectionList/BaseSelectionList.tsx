@@ -278,7 +278,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [onChangeText]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
+    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.

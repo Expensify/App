@@ -1,5 +1,6 @@
 import type {TEST_NAMES} from 'tests/e2e/config';
 import type {ValueOf} from 'type-fest';
+import type E2EConfig from '../../../tests/e2e/config';
 
 type SigninParams = {
     email?: string;
@@ -26,6 +27,12 @@ type TestConfig = {
     [key: string]: string | {autoFocus: boolean};
 };
 
+type Test = (config: TestConfig) => void;
+
+type TestModule = {default: Test};
+
+type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, Test>;
+
 type TestResult = {
     /** Name of the test */
     name: string;
@@ -49,4 +56,4 @@ type TestResult = {
     renderCount?: number;
 };
 
-export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig, TestResult};
+export type {SigninParams, IsE2ETestSession, NetworkCacheMap, NetworkCacheEntry, TestConfig, TestResult, TestModule, Tests};
