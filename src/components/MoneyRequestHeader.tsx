@@ -80,7 +80,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
     const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
-
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
             const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
@@ -128,7 +127,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {
+                title: translate('violations.hold'),
+                description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'),
+                danger: true,
+                shouldShowBorderBottom: true,
+            };
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
@@ -245,6 +249,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     )}
                 </HeaderWithBackButton>
@@ -266,6 +273,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     </View>
                 )}
