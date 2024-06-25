@@ -2425,18 +2425,20 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Disconnect QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Disconnect Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'Disconnect NetSuite';
-                    default: {
-                        return 'Disconnect integration';
-                    }
+                if (!integration || !CONST.POLICY.CONNECTIONS.NAME_MAP[integration]) {
+                    return `Disconnect integration`;
                 }
+                const integrationName = CONST.POLICY.CONNECTIONS.NAME_MAP[integration];
+                return `Disconnect ${integrationName}`;
             },
+            connectOtherIntegrationTitle: (integrationToConnect?: ConnectionName): string => {
+                if (!integrationToConnect || !CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect]) {
+                    return `Connect accounting integration`;
+                }
+                const integrationName = CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect];
+                return `Connect ${integrationName}`;
+            },
+
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -2463,32 +2465,21 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
             },
-            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
-                switch (integrationToConnect) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return `Are you sure you want to disconnect ${
-                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'existing integration'
-                        } to set up QuickBooks Online?`;
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return `Are you sure you want to disconnect ${currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'existing integration'} to set up Xero?`;
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return `Are you sure you want to disconnect ${
-                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'existing integration'
-                        } to set up NetSuite?`;
-                    default: {
-                        switch (currentIntegration) {
-                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                                return 'Are you sure you want to disconnect QuickBooks Online?';
-                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                                return 'Are you sure you want to disconnect Xero?';
-                            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                                return 'Are you sure you want to disconnect NetSuite?';
-                            default: {
-                                return 'Are you sure you want to disconnect this integration?';
-                            }
-                        }
-                    }
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+
+                if (!currentIntegration || !CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]) {
+                    return `Are you sure you want to disconnect this integration?`;
                 }
+                const integrationName = CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration];
+                return `Are you sure you want to disconnect ${integrationName}?`;
+            },
+            connectOtherIntegrationPrompt: (integrationToConnect?: ConnectionName): string => {
+
+                if (!integrationToConnect || !CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect]) {
+                    return `Are you sure you want to connect this accounting integration? This will remove any existing acounting connections.`;
+                }
+                const integrationName = CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect];
+                return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },
             enterCredentials: 'Enter your credentials',
             connections: {
