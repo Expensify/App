@@ -155,7 +155,7 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
 /**
  * Checks if the current user is an user of the policy.
  */
-const isPolicyUser = (policy: OnyxInputOrEntry<Policy> | EmptyObject, currentUserLogin?: string): boolean =>
+const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.USER;
 
 /**
