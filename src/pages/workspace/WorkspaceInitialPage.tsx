@@ -148,48 +148,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
-    const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.card',
-            icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.CARD,
-        },
-        {
-            translationKey: 'workspace.common.reimburse',
-            icon: Expensicons.Receipt,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REIMBURSE.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REIMBURSE,
-        },
-        {
-            translationKey: 'workspace.common.bills',
-            icon: Expensicons.Bill,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_BILLS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.BILLS,
-        },
-        {
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.Invoice,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-        },
-        {
-            translationKey: 'workspace.common.travel',
-            icon: Expensicons.Luggage,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TRAVEL,
-        },
-        {
-            translationKey: 'workspace.common.bankAccount',
-            icon: Expensicons.Bank,
-            action: () =>
-                policy?.outputCurrency === CONST.CURRENCY.USD
-                    ? singleExecution(waitForNavigate(() => ReimbursementAccount.navigateToBankAccountRoute(policyID, Navigation.getActiveRouteWithoutParams())))()
-                    : setIsCurrencyModalOpen(true),
-            brickRoadIndicator: !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-    ];
-
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     // We only update feature states if they aren't pending.
