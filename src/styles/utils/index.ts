@@ -1555,29 +1555,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
         let columnWidth;
         switch (columnName) {
-            case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
+            case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.DATE:
                 columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w84 : variables.w52);
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-            case CONST.SEARCH_TABLE_COLUMNS.FROM:
-            case CONST.SEARCH_TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH.TABLE_COLUMNS.FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.TO:
                 columnWidth = styles.flex1;
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
-            case CONST.SEARCH_TABLE_COLUMNS.TAG:
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH.TABLE_COLUMNS.TAG:
                 columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT:
-            case CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
                 columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.TYPE:
+            case CONST.SEARCH.TABLE_COLUMNS.TYPE:
                 columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
                 break;
-            case CONST.SEARCH_TABLE_COLUMNS.ACTION:
+            case CONST.SEARCH.TABLE_COLUMNS.ACTION:
                 columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
                 break;
             default:

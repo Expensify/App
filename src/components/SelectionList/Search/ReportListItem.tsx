@@ -71,7 +71,7 @@ function ReportListItem<TItem extends ListItem>({
 
     const openReportInRHP = (transactionItem: TransactionListItemType) => {
         const searchParams = getSearchParams();
-        const currentQuery = searchParams?.query ?? CONST.TAB_SEARCH.ALL;
+        const currentQuery = searchParams?.query ?? CONST.SEARCH.TAB.ALL;
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(currentQuery, transactionItem.transactionThreadReportID));
     };
 
@@ -158,8 +158,8 @@ function ReportListItem<TItem extends ListItem>({
                     {isLargeScreenWidth && (
                         <>
                             {/** We add an empty view with type style to align the total with the table header */}
-                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)} />
-                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)}>
+                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)} />
+                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
                                     action={reportItem.action ?? 'view'}
                                     searchHash={searchHash}

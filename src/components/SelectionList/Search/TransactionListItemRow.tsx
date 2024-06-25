@@ -49,11 +49,11 @@ type TransactionListItemRowProps = {
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
-        case CONST.SEARCH_TRANSACTION_TYPE.CASH:
+        case CONST.SEARCH.TRANSACTION_TYPE.CASH:
             return Expensicons.Cash;
-        case CONST.SEARCH_TRANSACTION_TYPE.CARD:
+        case CONST.SEARCH.TRANSACTION_TYPE.CARD:
             return Expensicons.CreditCard;
-        case CONST.SEARCH_TRANSACTION_TYPE.DISTANCE:
+        case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE:
             return Expensicons.Car;
         default:
             return Expensicons.Cash;
@@ -269,41 +269,41 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.RECEIPT)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
                         isLargeScreenWidth={false}
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                     <MerchantCell
                         transactionItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         participant={item.from}
                         displayName={item.formattedFrom}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         participant={item.to}
                         displayName={item.formattedTo}
                     />
                 </View>
                 {item.shouldShowCategory && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                         <CategoryCell
                             isLargeScreenWidth={isLargeScreenWidth}
                             showTooltip={showTooltip}
@@ -312,7 +312,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     </View>
                 )}
                 {item.shouldShowTag && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                         <TagCell
                             isLargeScreenWidth={isLargeScreenWidth}
                             showTooltip={showTooltip}
@@ -321,7 +321,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     </View>
                 )}
                 {item.shouldShowTax && (
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT)]}>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
                         <TaxCell
                             transactionItem={item}
                             isLargeScreenWidth={isLargeScreenWidth}
@@ -330,7 +330,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     </View>
                 )}
 
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT)]}>
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
@@ -338,14 +338,14 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         isChildListItem={isChildListItem}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                     <TypeCell
                         transactionItem={item}
                         isLargeScreenWidth={isLargeScreenWidth}
                         showTooltip={false}
                     />
                 </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
                         transactionIDs={[item.transactionID]}
