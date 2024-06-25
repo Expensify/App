@@ -159,7 +159,7 @@ function ReportActionsView({
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(
         () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions, reportID, transactionThreadReportID),
-        [allReportActions, transactionThreadReportActions, transactionThreadReportID],
+        [allReportActions, transactionThreadReportActions, transactionThreadReportID, reportID],
     );
 
     const parentReportActionForTransactionThread = useMemo(
