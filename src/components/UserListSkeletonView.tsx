@@ -10,7 +10,7 @@ function UserListSkeletonView({shouldAnimate = true}: SkeletonViewProps) {
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
-            itemContainerStyle={{backgroundColor: theme.highlightBG, marginBottom: 12, marginHorizontal: 20, borderRadius: 8}}
+            itemViewStyle={{backgroundColor: theme.highlightBG, marginBottom: 12, marginHorizontal: 20, borderRadius: 8}}
             renderSkeletonItem={() => (
                 <>
                     <Circle

@@ -10,10 +10,11 @@ type ListItemSkeletonProps = {
     shouldAnimate?: boolean;
     renderSkeletonItem: (args: {itemIndex: number}) => React.ReactNode;
     fixedNumItems?: number;
-    itemContainerStyle?: StyleProp<ViewStyle>;
+    itemViewStyle?: StyleProp<ViewStyle>;
+    itemViewHeight?: number;
 };
 
-function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNumItems, itemContainerStyle}: ListItemSkeletonProps) {
+function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNumItems, itemViewStyle = {}, itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}: ListItemSkeletonProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
 
@@ -22,14 +23,15 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
         const items = [];
         for (let i = 0; i < numItems; i++) {
             items.push(
-                <View style={itemContainerStyle}>
+                <View
+                    key={`skeletonViewItems${i}`}
+                    style={[themeStyles.mr5, itemViewStyle]}
+                >
                     <SkeletonViewContentLoader
-                        key={`skeletonViewItems${i}`}
                         animate={shouldAnimate}
-                        height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
+                        height={itemViewHeight}
                         backgroundColor={theme.skeletonLHNIn}
                         foregroundColor={theme.skeletonLHNOut}
-                        style={themeStyles.mr5}
                     >
                         {renderSkeletonItem({itemIndex: i})}
                     </SkeletonViewContentLoader>
@@ -37,7 +39,7 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, itemContainerStyle]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, itemViewHeight, itemViewStyle]);
 
     return (
         <View
@@ -47,7 +49,7 @@ function ItemListSkeletonView({shouldAnimate = true, renderSkeletonItem, fixedNu
                     return;
                 }
 
-                const newNumItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
+                const newNumItems = Math.ceil(event.nativeEvent.layout.height / itemViewHeight);
                 if (newNumItems === numItems) {
                     return;
                 }
