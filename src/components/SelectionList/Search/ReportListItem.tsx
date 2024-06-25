@@ -118,7 +118,7 @@ function ReportListItem<TItem extends ListItem>({
                 showTooltip={showTooltip}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
-                onCheckboxPress={onCheckboxPress}
+                onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
                 onSelectRow={() => openReportInRHP(transactionItem)}
                 onDismissError={onDismissError}
                 onFocus={onFocus}
@@ -205,7 +205,7 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
-                        onCheckboxPress={onCheckboxPress}
+                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
                         containerStyle={styles.mt3}
                         isChildListItem

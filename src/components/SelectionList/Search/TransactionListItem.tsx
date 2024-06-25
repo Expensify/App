@@ -55,7 +55,7 @@ function TransactionListItem<TItem extends ListItem>({
                 onButtonPress={() => {
                     onSelectRow(item);
                 }}
-                onCheckboxPress={onCheckboxPress}
+                onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
             />

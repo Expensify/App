@@ -6,7 +6,7 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
-import type {TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -47,7 +47,7 @@ type TransactionListItemRowProps = {
     item: TransactionListItemType;
     showTooltip: boolean;
     onButtonPress: () => void;
-    onCheckboxPress: (item: TransactionListItemType) => void;
+    onCheckboxPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     isChildListItem?: boolean;
@@ -302,7 +302,7 @@ function TransactionListItemRow({
             {canSelectMultiple && (
                 <Checkbox
                     isChecked={item.isSelected}
-                    onPress={() => onCheckboxPress(item)}
+                    onPress={onCheckboxPress}
                     disabled={!!item.isDisabled || isDisabled}
                     accessibilityLabel={item.text ?? ''}
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
