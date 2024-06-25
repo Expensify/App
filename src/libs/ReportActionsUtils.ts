@@ -374,18 +374,20 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
 function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
-    const nonDeletedReportActions = reportActions?.filter((action) => !isDeletedAction(action));
-
-    if (isEmptyObject(transactionThreadReportActions) && nonDeletedReportActions.length > 2) {
-        return nonDeletedReportActions;
+    // There is a chance that transactionThreadReportActions is not loaded yet.
+    // We only check for emptiness when there are multiple IOUs,
+    // this will prevent the sub-report preview from being displayed when there is only one IOU.
+    const nonDeletedMoneyRequestReportActions = reportActions?.filter((action) => !isDeletedAction(action) && isMoneyRequestAction(action));
+    if (isEmptyObject(transactionThreadReportActions) && nonDeletedMoneyRequestReportActions.length > 1) {
+        return reportActions;
     }
-    
+
     // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) ?? [];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = [...nonDeletedReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         if (!isMoneyRequestAction(action)) {
             return true;
         }
