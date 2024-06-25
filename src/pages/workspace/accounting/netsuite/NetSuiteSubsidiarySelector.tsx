@@ -57,7 +57,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
                 subsidiaryID: currentSubsidiaryID,
             },
         );
-        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+        Navigation.goBack();
     };
 
     return (
