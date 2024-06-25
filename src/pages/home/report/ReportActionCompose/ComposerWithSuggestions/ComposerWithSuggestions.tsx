@@ -7,6 +7,7 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
+    TextInputChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
@@ -46,7 +47,7 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
-import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
@@ -126,9 +127,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
-        /** Function to set whether the comment is empty */
-        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
-
         /** Function to handle sending a message */
         handleSendMessage: () => void;
 
@@ -178,6 +176,14 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** policy ID of the report */
         policyID: string;
     };
+
+type ComposerRef = {
+    blur: () => void;
+    focus: (shouldDelay?: boolean) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    prepareCommentAndResetComposer: () => string;
+    isFocused: () => boolean;
+};
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
@@ -246,7 +252,6 @@ function ComposerWithSuggestions(
         disabled,
         isFullComposerAvailable,
         setIsFullComposerAvailable,
-        setIsCommentEmpty,
         handleSendMessage,
         shouldShowComposeInput,
         measureParentContainer = () => {},
@@ -429,14 +434,6 @@ function ComposerWithSuggestions(
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
-
-            // TODO: why would we handle this as a separate state, instead of just using the value of the comment?
-            /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
-                setIsCommentEmpty(isNewCommentEmpty);
-            }
             emojisPresentBefore.current = emojis;
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
@@ -471,7 +468,6 @@ function ComposerWithSuggestions(
             preferredLocale,
             preferredSkinTone,
             reportID,
-            setIsCommentEmpty,
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
@@ -572,6 +568,20 @@ function ComposerWithSuggestions(
         },
         [updateComment],
     );
+
+    const onChange = useCallback(({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+        const {count, start, before, text: fullNewText, eventCount} = nativeEvent;
+        setValue((previousText) => {
+            // This method is called to notify you that, within s, the count characters beginning at start have just
+            // replaced old text that had length before.
+            const newText = fullNewText.substring(start, start + count);
+            // Replace newText in the original text:
+            const updatedText = previousText.substring(0, start) + newText + previousText.substring(start + before);
+
+            console.log('setting text state to:', updatedText, eventCount);
+            return updatedText;
+        });
+    }, []);
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
@@ -746,6 +756,7 @@ function ComposerWithSuggestions(
     );
 
     const onClear = useCallback(() => {
+        mobileInputScrollPosition.current = 0;
         setTextInputShouldClear(false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -881,4 +892,4 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
 })(memo(ComposerWithSuggestionsWithRef));
 
-export type {ComposerWithSuggestionsProps};
+export type {ComposerWithSuggestionsProps, ComposerRef};
