@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {Keyboard, PixelRatio, View} from 'react-native';
 import type {GestureType} from 'react-native-gesture-handler';
@@ -35,7 +35,19 @@ const viewabilityConfig = {
 
 const MIN_FLING_VELOCITY = 500;
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID, pagerRef, zoomScale}: AttachmentCarouselProps) {
+function AttachmentCarousel({
+    report,
+    reportActions,
+    parentReportActions,
+    source,
+    onNavigate,
+    setDownloadButtonVisibility,
+    type,
+    accountID,
+    pagerRef,
+    zoomScale,
+    attachmentCarouselRef,
+}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -112,6 +124,10 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         // The hook is not supposed to run on page change, so we keep the page out of the dependencies
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cellWidth]);
+
+    useImperativeHandle(attachmentCarouselRef, () => ({
+        onChangeArrowsState,
+    }));
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(

@@ -46,6 +46,11 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
 
     /** The zoom scale of the attachment */
     zoomScale?: number;
+
+    /** The ref of changeArrows */
+    attachmentCarouselRef?: React.RefObject<{
+        onChangeArrowsState: (enabled: boolean) => void;
+    }>;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};

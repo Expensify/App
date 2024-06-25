@@ -445,6 +445,9 @@ function AttachmentModal({
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
+
+    const attachmentCarouselRef = useRef<{onChangeArrowsState: (enabled: boolean) => void}>(null);
+
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
@@ -452,11 +455,13 @@ function AttachmentModal({
             pagerRef,
             isPagerScrolling: nope,
             isScrollEnabled: nope,
-            onTap: () => {},
+            onTap: () => {
+                attachmentCarouselRef.current?.onChangeArrowsState(zoomScale === 1);
+            },
             onScaleChanged: setZoomScale,
             onSwipeDown: closeModal,
         }),
-        [closeModal, nope, sourceForAttachmentView],
+        [sourceForAttachmentView, nope, closeModal, zoomScale],
     );
 
     return (
@@ -513,6 +518,7 @@ function AttachmentModal({
                                         accountID={accountID}
                                         type={type}
                                         pagerRef={pagerRef}
+                                        attachmentCarouselRef={attachmentCarouselRef}
                                         report={report}
                                         onNavigate={onNavigate}
                                         onClose={closeModal}
