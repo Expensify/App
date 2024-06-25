@@ -757,6 +757,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
+                    screens: {
+                        [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
+                    },
+                },
             },
         },
 
@@ -801,6 +806,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.TAXES]: {
                     path: ROUTES.WORKSPACE_TAXES.route,
+                },
+                [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+                    path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,

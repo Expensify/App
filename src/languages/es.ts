@@ -427,7 +427,7 @@ export default {
         findMember: 'Encuentra un miembro',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Iniciar una llamada',
+        tooltip: 'Programar una llamada',
     },
     hello: 'Hola',
     phoneCountryCode: '34',
@@ -1192,8 +1192,8 @@ export default {
         approver: 'Aprobador',
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
-        makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
-        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        makeOrTrackPaymentsTitle: 'Pagos',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o realiza un seguimiento de los pagos realizados en otro lugar.',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
@@ -2358,8 +2358,14 @@ export default {
             },
         },
         reportFields: {
+            addField: 'Añadir campo',
             delete: 'Eliminar campos',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar esta campos?',
+            emptyReportFields: {
+                title: 'No has creado ningún campo de informe',
+                subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
+            },
+            subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando desees solicitar información adicional',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
         },
@@ -2822,6 +2828,19 @@ export default {
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
+        },
+        restrictedAction: {
+            restricted: 'Restringido',
+            actionsAreCurrentlyRestricted: ({workspaceName}) => `Las acciones en el espacio de trabajo ${workspaceName} están actualmente restringidas`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+                `El propietario del espacio de trabajo, ${workspaceOwnerName} tendrá que añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.`,
+            youWillNeedToAddOrUpdatePaymentCard: 'Debes añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.',
+            addPaymentCardToUnlock: 'Añade una tarjeta para desbloquearlo!',
+            addPaymentCardToContinueUsingWorkspace: 'Añade una tarjeta de pago para seguir utilizando este espacio de trabajo',
+            pleaseReachOutToYourWorkspaceAdmin: 'Si tienes alguna pregunta, ponte en contacto con el administrador de su espacio de trabajo.',
+            chatWithYourAdmin: 'Chatea con tu administrador',
+            chatInAdmins: 'Chatea en #admins',
+            addPaymentCard: 'Agregar tarjeta de pago',
         },
     },
     getAssistancePage: {
@@ -3921,5 +3940,8 @@ export default {
         businessClosing: 'Cierre, reducción, o adquisición de la empresa',
         additionalInfoTitle: '¿A qué software está migrando y por qué?',
         additionalInfoInputLabel: 'Tu respuesta',
+    },
+    roomChangeLog: {
+        updateRoomDescription: 'establece la descripción de la sala a:',
     },
 } satisfies EnglishTranslation;

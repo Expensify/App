@@ -7,6 +7,7 @@ import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import SearchPage from '@pages/Search/SearchPage';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
 
@@ -16,15 +17,15 @@ const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') :
 type Screens = Partial<Record<keyof CentralPaneNavigatorParamList, () => React.ComponentType>>;
 
 const settingsScreens = {
-    [SCREENS.SETTINGS.WORKSPACES]: () => require('../../../../../pages/workspace/WorkspacesListPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require('../../../../../pages/settings/Preferences/PreferencesPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SECURITY]: () => require('../../../../../pages/settings/Security/SecuritySettingsPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
-    [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.ABOUT]: () => require('../../../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
-    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: () => require('../../../../../pages/settings/Subscription/SubscriptionSettingsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WORKSPACES]: () => require<ReactComponentModule>('../../../../../pages/workspace/WorkspacesListPage').default,
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../../pages/settings/Preferences/PreferencesPage').default,
+    [SCREENS.SETTINGS.SECURITY]: () => require<ReactComponentModule>('../../../../../pages/settings/Security/SecuritySettingsPage').default,
+    [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../../pages/settings/Profile/ProfilePage').default,
+    [SCREENS.SETTINGS.WALLET.ROOT]: () => require<ReactComponentModule>('../../../../../pages/settings/Wallet/WalletPage').default,
+    [SCREENS.SETTINGS.ABOUT]: () => require<ReactComponentModule>('../../../../../pages/settings/AboutPage/AboutPage').default,
+    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require<ReactComponentModule>('../../../../../pages/settings/Troubleshoot/TroubleshootPage').default,
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require<ReactComponentModule>('../../../../../pages/TeachersUnite/SaveTheWorldPage').default,
+    [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: () => require<ReactComponentModule>('../../../../../pages/settings/Subscription/SubscriptionSettingsPage').default,
 } satisfies Screens;
 
 function BaseCentralPaneNavigator() {
@@ -47,7 +48,7 @@ function BaseCentralPaneNavigator() {
             />
             <Stack.Screen
                 name={SCREENS.SEARCH.CENTRAL_PANE}
-                initialParams={{sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: CONST.SORT_ORDER.DESC}}
+                initialParams={{sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC}}
                 component={SearchPage}
             />
 
