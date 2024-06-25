@@ -46,7 +46,7 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import getCursorPosition from '@pages/home/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollPosition';
-import type {ComposerRef, SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
+import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
 import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
@@ -126,9 +126,6 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
-        /** Function to set whether the comment is empty */
-        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
-
         /** Function to handle sending a message */
         handleSendMessage: () => void;
 
@@ -178,6 +175,14 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** policy ID of the report */
         policyID: string;
     };
+
+type ComposerRef = {
+    blur: () => void;
+    focus: (shouldDelay?: boolean) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
+    prepareCommentAndResetComposer: () => string;
+    isFocused: () => boolean;
+};
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
@@ -246,7 +251,6 @@ function ComposerWithSuggestions(
         disabled,
         isFullComposerAvailable,
         setIsFullComposerAvailable,
-        setIsCommentEmpty,
         handleSendMessage,
         shouldShowComposeInput,
         measureParentContainer = () => {},
@@ -426,13 +430,6 @@ function ComposerWithSuggestions(
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
-
-            /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
-                setIsCommentEmpty(isNewCommentEmpty);
-            }
             emojisPresentBefore.current = emojis;
             setValue(newCommentConverted);
             if (commentValue !== newComment) {
@@ -461,18 +458,7 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [
-            debouncedUpdateFrequentlyUsedEmojis,
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
-            raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-            selection.end,
-        ],
+        [debouncedUpdateFrequentlyUsedEmojis, findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {
@@ -874,4 +860,4 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
 })(memo(ComposerWithSuggestionsWithRef));
 
-export type {ComposerWithSuggestionsProps};
+export type {ComposerWithSuggestionsProps, ComposerRef};

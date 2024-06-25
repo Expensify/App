@@ -663,6 +663,10 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
         },
 
+        buttonNoBackground: {
+            backgroundColor: theme.transparent,
+        },
+
         buttonOpacityDisabled: {
             opacity: 0.5,
         },

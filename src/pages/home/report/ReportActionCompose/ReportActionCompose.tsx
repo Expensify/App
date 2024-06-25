@@ -24,7 +24,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -42,16 +41,9 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerRef, ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
-
-type ComposerRef = {
-    blur: () => void;
-    focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
-    prepareCommentAndResetComposer: () => string;
-    isFocused: () => boolean;
-};
+import ConnectedSendButton from './ConnectedSendButton';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -158,10 +150,6 @@ function ReportActionCompose({
      * Updates the should clear state of the composer
      */
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
-    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        const draftComment = getDraftComment(reportID);
-        return !draftComment || !!draftComment.match(/^(\s)*$/);
-    });
 
     /**
      * Updates the visibility state of the menu
@@ -353,21 +341,20 @@ function ReportActionCompose({
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
+    const isSendDisabled = isBlockedFromConcierge || !!disabled || hasExceededMaxCommentLength;
 
     const handleSendMessage = useCallback(() => {
         'worklet';
 
-        if (isSendDisabled || !isReportReadyForDisplay) {
+        if (!isReportReadyForDisplay) {
             return;
         }
 
         // We are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
-        runOnJS(setIsCommentEmpty)(true);
         runOnJS(resetFullComposerSize)();
         setNativeProps(animatedRef, {text: ''}); // clears native text input on the UI thread
         runOnJS(submitForm)();
-    }, [isSendDisabled, resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
+    }, [resetFullComposerSize, submitForm, animatedRef, isReportReadyForDisplay]);
 
     const emojiShiftVertical = useMemo(() => {
         const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
@@ -390,6 +377,7 @@ function ReportActionCompose({
                     <View
                         ref={containerRef}
                         style={[
+                            // TODO: could be done using reanimated
                             shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                             styles.flexRow,
                             styles.chatItemComposeBox,
@@ -452,7 +440,6 @@ function ReportActionCompose({
                                         disabled={!!disabled}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         setIsFullComposerAvailable={setIsFullComposerAvailable}
-                                        setIsCommentEmpty={setIsCommentEmpty}
                                         handleSendMessage={handleSendMessage}
                                         shouldShowComposeInput={shouldShowComposeInput}
                                         onFocus={onFocus}
@@ -486,7 +473,8 @@ function ReportActionCompose({
                                 shiftVertical={emojiShiftVertical}
                             />
                         )}
-                        <SendButton
+                        <ConnectedSendButton
+                            reportID={reportID}
                             isDisabled={isSendDisabled}
                             handleSendMessage={handleSendMessage}
                         />

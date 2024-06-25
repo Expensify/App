@@ -19,7 +19,7 @@ type SendButtonProps = {
     handleSendMessage: () => void;
 };
 
-function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
+function SendButton({isDisabled, handleSendMessage}: SendButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -42,18 +42,16 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
             >
                 <Tooltip text={translate('common.send')}>
                     <PressableWithFeedback
-                        style={({pressed, isDisabled}) => [
-                            styles.chatItemSubmitButton,
-                            isDisabledProp || pressed || isDisabled ? undefined : styles.buttonSuccess,
-                            isDisabledProp ? styles.cursorDisabled : undefined,
-                        ]}
+                        disabled={isDisabled}
+                        style={[styles.chatItemSubmitButton, styles.buttonSuccess]}
+                        disabledStyle={[styles.cursorDisabled, styles.buttonNoBackground]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.send')}
                     >
                         {({pressed}) => (
                             <Icon
                                 src={Expensicons.Send}
-                                fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
+                                fill={isDisabled || pressed ? theme.icon : theme.textLight}
                             />
                         )}
                     </PressableWithFeedback>
@@ -66,3 +64,5 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
 SendButton.displayName = 'SendButton';
 
 export default memo(SendButton);
+
+export type {SendButtonProps};
