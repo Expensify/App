@@ -456,10 +456,6 @@ function MenuItem(
 
     const processedHelperText = useMemo(() => {
         let textToWrap = '';
-        // TODO: Discuss this.
-        // if (shouldRenderAsHTML) {
-        //     textToWrap = helperText ? convertToLTR(helperText) : '';
-        // }
 
         if (shouldParseHelperText) {
             textToWrap = helperHtml;
