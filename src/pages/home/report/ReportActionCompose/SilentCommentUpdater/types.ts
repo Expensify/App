@@ -15,9 +15,6 @@ type SilentCommentUpdaterProps = SilentCommentUpdaterOnyxProps & {
     /** The value of the comment */
     value: string;
 
-    /** The ref of the comment */
-    commentRef: React.RefObject<string>;
-
     /** The ref to check whether the comment saving is in progress */
     isCommentPendingSaved: React.RefObject<boolean>;
 };

@@ -124,6 +124,9 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** Whether the full composer is available */
         isFullComposerAvailable: boolean;
 
+        /** Function to set whether the comment is empty */
+        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
+
         /** Function to set whether the full composer is available */
         setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
@@ -252,6 +255,7 @@ function ComposerWithSuggestions(
         disabled,
         isFullComposerAvailable,
         setIsFullComposerAvailable,
+        setIsCommentEmpty,
         handleSendMessage,
         shouldShowComposeInput,
         measureParentContainer = () => {},
@@ -287,8 +291,8 @@ function ComposerWithSuggestions(
         }
         return draftComment;
     });
-    const commentRef = useRef(value);
-    const lastTextRef = useRef(value);
+    const valueRef = useRef(value);
+    valueRef.current = value;
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -300,9 +304,6 @@ function ComposerWithSuggestions(
         isFocused &&
         (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) &&
         shouldShowComposeInput;
-
-    const valueRef = useRef(value);
-    valueRef.current = value;
 
     const [selection, setSelection] = useState<TextSelection>(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
 
@@ -357,11 +358,11 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
-            if (!commentRef.current) {
+            if (!valueRef.current) {
                 callback();
                 return;
             }
-            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+            Report.saveReportDraftComment(preexistingReportID, valueRef.current, callback);
         });
 
         return () => {
@@ -414,53 +415,53 @@ function ComposerWithSuggestions(
      */
     const updateComment = useCallback(
         (commentValue: string, shouldDebounceSaveComment?: boolean) => {
-            raiseIsScrollLikelyLayoutTriggered();
-            // TODO: refactor update comment, to not use findNewlyAddedChars, but to get these info from onChange
-            // TODO: Check if findNewlyAddedChars can be removed entirely, or if there are edge use cases (updateComment is called from many different places) that need to be supported
-            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
+            // raiseIsScrollLikelyLayoutTriggered();
+            // // TODO: refactor update comment, to not use findNewlyAddedChars, but to get these info from onChange
+            // // TODO: Check if findNewlyAddedChars can be removed entirely, or if there are edge use cases (updateComment is called from many different places) that need to be supported
+            // const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
 
-            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
-            if (emojis.length) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis.length) {
-                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
-                    if (suggestionsRef.current) {
-                        suggestionsRef.current.resetSuggestions();
-                    }
-                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-            }
-            const newCommentConverted = convertToLTRForComposer(newComment);
-            emojisPresentBefore.current = emojis;
-            setValue(newCommentConverted);
-            if (commentValue !== newComment) {
-                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
+            // const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
+            // const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
+            // const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+            // if (emojis.length) {
+            //     const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+            //     if (newEmojis.length) {
+            //         // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
+            //         if (suggestionsRef.current) {
+            //             suggestionsRef.current.resetSuggestions();
+            //         }
+            //         insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+            //         debouncedUpdateFrequentlyUsedEmojis();
+            //     }
+            // }
+            // const newCommentConverted = convertToLTRForComposer(newComment);
+            // emojisPresentBefore.current = emojis;
+            // setValue(newCommentConverted);
+            // if (commentValue !== newComment) {
+            //     const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
 
-                if (commentWithSpaceInserted !== newComment && isIOSNative) {
-                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
-                }
+            //     if (commentWithSpaceInserted !== newComment && isIOSNative) {
+            //         syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+            //     }
 
-                setSelection((prevSelection) => ({
-                    start: position,
-                    end: position,
-                    positionX: prevSelection.positionX,
-                    positionY: prevSelection.positionY,
-                }));
-            }
+            //     setSelection((prevSelection) => ({
+            //         start: position,
+            //         end: position,
+            //         positionX: prevSelection.positionX,
+            //         positionY: prevSelection.positionY,
+            //     }));
+            // }
 
-            commentRef.current = newCommentConverted;
-            if (shouldDebounceSaveComment) {
-                isCommentPendingSaved.current = true;
-                debouncedSaveReportComment(reportID, newCommentConverted);
-            } else {
-                Report.saveReportDraftComment(reportID, newCommentConverted);
-            }
-            if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID);
-            }
+            // commentRef.current = newCommentConverted;
+            // if (shouldDebounceSaveComment) {
+            //     isCommentPendingSaved.current = true;
+            //     debouncedSaveReportComment(reportID, newCommentConverted);
+            // } else {
+            //     Report.saveReportDraftComment(reportID, newCommentConverted);
+            // }
+            // if (newCommentConverted) {
+            //     debouncedBroadcastUserIsTyping(reportID);
+            // }
         },
         [
             debouncedUpdateFrequentlyUsedEmojis,
@@ -476,7 +477,7 @@ function ComposerWithSuggestions(
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {
-        const trimmedComment = commentRef.current.trim();
+        const trimmedComment = valueRef.current.trim();
         const commentLength = ReportUtils.getCommentLength(trimmedComment, {reportID});
 
         // Don't submit empty comments or comments that exceed the character limit
@@ -491,14 +492,14 @@ function ComposerWithSuggestions(
         isCommentPendingSaved.current = false;
 
         setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
-        updateComment('');
+        setValue('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
             Report.setIsComposerFullSize(reportID, false);
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
+    }, [setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
@@ -507,7 +508,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
+            updateComment(ComposerUtils.insertText(valueRef.current, selection, text), true);
         },
         [selection, updateComment],
     );
@@ -570,18 +571,29 @@ function ComposerWithSuggestions(
     );
 
     const onChange = useCallback(({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
-        const {count, start, before, text: fullNewText, eventCount} = nativeEvent;
-        setValue((previousText) => {
-            // This method is called to notify you that, within s, the count characters beginning at start have just
-            // replaced old text that had length before.
-            const newText = fullNewText.substring(start, start + count);
-            // Replace newText in the original text:
-            const updatedText = previousText.substring(0, start) + newText + previousText.substring(start + before);
+        const {count, start, before, text: fullNewText} = nativeEvent;
+        // This method is called to notify you that, within "fullNewText", the "count" characters
+        // beginning at "start" have just replaced old text that had length "before".
+        const newText = fullNewText.substring(start, start + count);
+        // Replace newText in the original text:
+        const currentText = valueRef.current;
+        const updatedText = currentText.substring(0, start) + newText + currentText.substring(start + before);
 
-            console.log('setting text state to:', updatedText, eventCount);
-            return updatedText;
-        });
-    }, []);
+        // Make LTR compatible if needed
+        const newCommentConverted = convertToLTRForComposer(updatedText);
+
+        // Update state
+        setValue(newCommentConverted);
+        // TODO: this could be done in a useEffect
+        const isCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
+        setIsCommentEmpty(isCommentEmpty);
+
+        // Update onyx related state:
+        Report.saveReportDraftComment(reportID, newCommentConverted);
+        if (newCommentConverted) {
+            debouncedBroadcastUserIsTyping(reportID);
+        }
+    }, [reportID, setIsCommentEmpty]);
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
@@ -735,11 +747,6 @@ function ComposerWithSuggestions(
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
-
-    useEffect(() => {
-        lastTextRef.current = value;
-    }, [value]);
-
     useEffect(() => {
         onValueChange(value);
     }, [onValueChange, value]);
@@ -808,10 +815,8 @@ function ComposerWithSuggestions(
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={onChangeText}
-                    onChange={({nativeEvent}) => {
-                        console.log('onChange', nativeEvent);
-                    }}
+                    // onChangeText={onChangeText}
+                    onChange={onChange}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
@@ -859,7 +864,7 @@ function ComposerWithSuggestions(
                     reportID={reportID}
                     value={value}
                     updateComment={updateComment}
-                    commentRef={commentRef}
+                    commentRef={valueRef}
                     isCommentPendingSaved={isCommentPendingSaved}
                 />
             )}
