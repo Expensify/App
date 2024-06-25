@@ -254,7 +254,7 @@ const createAddListenerMock = () => {
 async function onyxGet(key: OnyxKey): Promise<Parameters<Required<ConnectOptions<typeof key>>['callback']>[0]> {
     return new Promise((resolve) => {
         // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-        // @ts-expect-error This does not need more
+        // @ts-expect-error This does not need more strict type checking as it's only for tests
         const connectionID = Onyx.connect({
             key,
             callback: (value) => {
