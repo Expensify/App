@@ -32,7 +32,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
     const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? '';
     const policyID = policy?.id ?? '';
 
-    const sections =
+    const subsidiaryListSections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
             text: subsidiary.name,
             keyForList: subsidiary.internalID,
@@ -40,7 +40,7 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             value: subsidiary.name,
         })) ?? [];
 
-    const saveSelection = ({keyForList, value}: SelectorType) => {
+    const updateSubsidiary = ({keyForList, value}: SelectorType) => {
         if (!keyForList || keyForList === currentSubsidiaryID) {
             return;
         }
@@ -77,13 +77,13 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
         () => (
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
-                errorRowStyles={[styles.ph5, styles.mt2]}
+                errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
                 onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
             >
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.subsidiarySelectDescription')}</Text>
             </OfflineWithFeedback>
         ),
-        [netsuiteConfig, styles.ph5, styles.mt2, styles.pb5, translate, policyID],
+        [netsuiteConfig, styles.ph5, styles.mt2, styles.pb5, styles.mb4, translate, policyID],
     );
 
     return (
@@ -92,11 +92,11 @@ function NetSuiteSubsidiarySelector({policy}: NetSuiteSubsidiarySelectorProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteSubsidiarySelector.displayName}
-            sections={[{data: sections}]}
+            sections={subsidiaryListSections.length > 0 ? [{data: subsidiaryListSections}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onSelectRow={saveSelection}
-            initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? sections?.[0]?.keyForList}
+            onSelectRow={updateSubsidiary}
+            initiallyFocusedOptionKey={netsuiteConfig?.subsidiaryID ?? subsidiaryListSections?.[0]?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
             title="workspace.netsuite.subsidiary"
