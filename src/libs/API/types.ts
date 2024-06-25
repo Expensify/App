@@ -556,15 +556,16 @@ type ReadCommandParameters = {
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
+    ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
     AUTHENTICATE_PUSHER: 'AuthenticatePusher',
-    OPEN_REPORT: 'OpenReport',
-    OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
-    REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
+    GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
     JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
+    OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
+    OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
-    GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
-    ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+    REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
+    SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
