@@ -39,13 +39,13 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
                             r="20"
                         />
                         <Rect
-                            x="72"
+                            x={shouldStyleAsTable ? '68' : '72'}
                             y="18"
                             width="20%"
                             height="8"
                         />
                         <Rect
-                            x="72"
+                            x={shouldStyleAsTable ? '68' : '72'}
                             y="38"
                             width={shouldStyleAsTable ? '10%' : lineWidth}
                             height="8"
