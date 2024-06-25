@@ -40,12 +40,12 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
 }
 
-function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
-function canUseXeroIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.XERO_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
 }
 
 /**
@@ -65,6 +65,6 @@ export default {
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
     canUseSpotnanaTravel,
-    canUseAccountingIntegrations,
-    canUseXeroIntegration,
+    canUseNetSuiteIntegration,
+    canUseReportFieldsFeature,
 };
