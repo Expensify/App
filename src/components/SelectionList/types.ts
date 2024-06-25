@@ -442,7 +442,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * https://reactnative.dev/docs/optimizing-flatlist-configuration#windowsize
      */
     windowSize?: number;
-
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
