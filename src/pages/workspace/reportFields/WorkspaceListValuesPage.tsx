@@ -1,10 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import FormProvider from '@components/Form/FormProvider';
-import type {FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -49,13 +47,11 @@ function WorkspaceListValuesPage({
     const {isSmallScreenWidth} = useWindowDimensions();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
-    const formRef = useRef<FormRef>(null);
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
 
-    const listValues = useMemo(() => formDraft?.listValues ?? {}, [formDraft]);
     const valueList = useMemo(
         () =>
-            Object.values(listValues)
+            Object.values(formDraft?.listValues ?? {})
                 .sort((valueA, valueB) => localeCompare(valueA.name, valueB.name))
                 .map((value) => ({
                     value,
@@ -64,7 +60,7 @@ function WorkspaceListValuesPage({
                     isSelected: selectedValues[value.name],
                     enabled: !value.disabled,
                 })),
-        [listValues, selectedValues],
+        [formDraft?.listValues, selectedValues],
     );
 
     const toggleValue = (value: ValueListItem) => {
@@ -75,7 +71,9 @@ function WorkspaceListValuesPage({
     };
 
     const toggleAllValues = () => {
+        const listValues = formDraft?.listValues ?? {};
         const isAllSelected = Object.keys(listValues).length === Object.keys(selectedValues).length;
+
         setSelectedValues(isAllSelected ? {} : Object.fromEntries(Object.values(listValues).map((value) => [value.name, true])));
     };
 
@@ -116,31 +114,20 @@ function WorkspaceListValuesPage({
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText])}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
-                <FormProvider
-                    ref={formRef}
-                    style={styles.flex1}
-                    formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
-                    submitButtonText={translate('common.save')}
-                    enabledWhenOffline
-                    shouldValidateOnBlur={false}
-                    disablePressOnEnter={false}
-                    isSubmitButtonVisible={false}
-                    onSubmit={() => {}}
-                >
-                    <SelectionList
-                        canSelectMultiple
-                        sections={[{data: valueList, isDisabled: false}]}
-                        onCheckboxPress={toggleValue}
-                        onSelectRow={() => {}}
-                        shouldDebounceRowSelect={false}
-                        onSelectAll={toggleAllValues}
-                        ListItem={TableListItem}
-                        customListHeader={getCustomListHeader()}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        showScrollIndicator={false}
-                    />
-                </FormProvider>
+
+                <SelectionList
+                    canSelectMultiple
+                    sections={[{data: valueList, isDisabled: false}]}
+                    onCheckboxPress={toggleValue}
+                    onSelectRow={() => {}}
+                    shouldDebounceRowSelect={false}
+                    onSelectAll={toggleAllValues}
+                    ListItem={TableListItem}
+                    customListHeader={getCustomListHeader()}
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                    listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    showScrollIndicator={false}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
