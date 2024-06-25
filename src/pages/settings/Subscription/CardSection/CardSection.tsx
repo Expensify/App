@@ -19,6 +19,7 @@ import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
@@ -32,7 +33,7 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const [billingStatus, setBillingStatus] = useState(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? ''));
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | null>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? ''));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
@@ -40,16 +41,20 @@ function CardSection() {
 
     useEffect(() => {
         setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? ''));
-    }, [defaultCard?.accountData?.cardNumber, subscriptionRetryBillingStatus, translate]);
+    }, [subscriptionRetryBillingStatus, defaultCard?.accountData?.cardNumber, translate]);
 
     const handleRetryPayment = () => {
         Subscription.clearOutstandingBalance();
     };
 
+    const handleBillingBannerClose = () => {
+        setBillingStatus(null);
+    };
+
     let BillingBanner: React.ReactNode | undefined;
-    if (!CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
-    } else if (billingStatus.title && billingStatus.subtitle) {
+    } else if (billingStatus?.title && billingStatus?.subtitle) {
         BillingBanner = (
             <SubscriptionBillingBanner
                 title={billingStatus.title}
@@ -58,6 +63,8 @@ function CardSection() {
                 isError={billingStatus.isError}
                 icon={billingStatus.icon}
                 rightIcon={billingStatus.rightIcon}
+                onRightIconPress={handleBillingBannerClose}
+                rightIconAccessibilityLabel={translate('common.close')}
             />
         );
     }
@@ -95,10 +102,8 @@ function CardSection() {
                         <CardSectionActions />
                     </>
                 )}
-                {/* TODO remove negation */}
-                {!isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-                {/* TODO remove negation */}
-                {!billingStatus.isRetryAvailable && (
+                {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
+                {billingStatus?.isRetryAvailable && (
                     <Button
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline}

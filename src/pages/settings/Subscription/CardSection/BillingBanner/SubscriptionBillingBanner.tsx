@@ -17,7 +17,7 @@ type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 's
     icon?: IconAsset;
 };
 
-function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isTrialActive, isError}: SubscriptionBillingBannerProps) {
+function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isTrialActive, isError, onRightIconPress, rightIconAccessibilityLabel}: SubscriptionBillingBannerProps) {
     const styles = useThemeStyles();
 
     const backgroundStyle = isTrialActive ? styles.trialBannerBackgroundColor : styles.hoveredComponentBG;
@@ -35,6 +35,8 @@ function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isTrialAct
             subtitleStyle={subtitleStyle}
             style={backgroundStyle}
             rightIcon={rightIcon}
+            onRightIconPress={onRightIconPress}
+            rightIconAccessibilityLabel={rightIconAccessibilityLabel}
         />
     );
 }

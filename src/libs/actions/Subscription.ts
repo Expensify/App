@@ -259,10 +259,6 @@ function clearOutstandingBalance() {
     API.write(WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE, null, onyxData);
 }
 
-function resetRetryBillingStatus() {
-    Onyx.merge(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS, 'failed');
-}
-
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -271,5 +267,4 @@ export {
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
     clearOutstandingBalance,
-    resetRetryBillingStatus,
 };

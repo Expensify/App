@@ -146,6 +146,8 @@ function shouldShowPreTrialBillingBanner(): boolean {
     return !SubscriptionUtils.isUserOnFreeTrial() && !SubscriptionUtils.hasUserFreeTrialEnded();
 }
 
+export type {BillingStatusResult};
+
 export default {
     getBillingStatus,
     getCardForSubscriptionBilling,
