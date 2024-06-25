@@ -317,7 +317,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/XeroPreferredExporterSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: () =>
-        require('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default as React.ComponentType,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default,
 
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: () => require('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PREFERRED_EXPORTER_SELECT]: () =>
