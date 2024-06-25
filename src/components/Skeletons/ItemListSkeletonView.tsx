@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +20,7 @@ const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
         return 0;
     }
 
-    const flattenStyle = style instanceof Array ? Object.assign({}, ...style) : style;
+    const flattenStyle = StyleSheet.flatten(style);
 
     const marginVertical = Number(flattenStyle?.marginVertical ?? 0);
     const marginTop = Number(flattenStyle?.marginTop ?? 0);
