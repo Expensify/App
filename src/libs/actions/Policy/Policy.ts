@@ -2189,8 +2189,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     ];
     successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
-    successData.push(...employeeWorkspaceChat.onyxSuccessData);
-
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
