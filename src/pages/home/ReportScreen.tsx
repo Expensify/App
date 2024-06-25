@@ -582,6 +582,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         route,
         report,
