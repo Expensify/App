@@ -354,7 +354,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         amount: 0,
         comment,
         created,
-        currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+        currency: policy?.outputCurrency ?? currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         iouRequestType,
         reportID,
         transactionID: newTransactionID,
@@ -798,7 +798,6 @@ function buildOnyxDataForMoneyRequest(
                 // Disabling this line since transaction.filename can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest, errorKey),
-                pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
         },
@@ -1524,7 +1523,6 @@ function buildOnyxDataForTrackExpense(
                 // Disabling this line since transaction.filename can be an empty string
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
-                pendingAction: null,
                 pendingFields: clearedPendingFields,
             },
         },

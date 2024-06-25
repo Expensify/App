@@ -9,7 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
+import isCentralPaneName from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
@@ -21,7 +21,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if (isCentralPaneName(route.name)) {
             // Remove all central pane routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);

@@ -73,7 +73,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
-    const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${requestParentReportAction?.originalMessage?.IOUTransactionID ?? 0}`] ?? undefined;
+    const transaction =
+        transactions?.[
+            `${ONYXKEYS.COLLECTION.TRANSACTION}${
+                ReportActionsUtils.isMoneyRequestAction(requestParentReportAction) ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? -1 : -1
+            }`
+        ] ?? undefined;
 
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -81,7 +86,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {windowWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
@@ -197,13 +202,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (!transactionThreadReport) {
             return;
         }
-        const transactionID = requestParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(requestParentReportAction)
+            ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? '-1'
+            : '-1';
 
         if (isOnHold) {
-            IOU.unholdRequest(transactionID, transactionThreadReport.reportID);
+            IOU.unholdRequest(iouTransactionID, transactionThreadReport.reportID);
         } else {
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, transactionThreadReport.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, transactionThreadReport.reportID, activeRoute));
         }
     };
 
@@ -218,7 +225,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (hasOnlyHeldExpenses) {
-            return {title: translate('iou.hold'), description: translate('iou.expensesOnHold'), danger: true};
+            return {title: translate('violations.hold'), description: translate('iou.expensesOnHold'), danger: true};
         }
         if (allHavePendingRTERViolation) {
             return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
@@ -270,14 +277,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
 
-        if (shouldUseNarrowLayout) {
+        if (isSmallScreenWidth) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
+    }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.dismissHoldUseExplanation();
@@ -445,19 +452,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}
-                onModalHide={() => {
-                    if (!navigateBackToAfterDelete.current) {
-                        return;
-                    }
-                    Navigation.goBack(navigateBackToAfterDelete.current);
-                }}
+                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger
                 shouldEnableNewFocusManagement
             />
-            {shouldUseNarrowLayout && shouldShowHoldMenu && (
+            {isSmallScreenWidth && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
