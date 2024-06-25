@@ -26,6 +26,23 @@ type PaymentCardFormProps = {
 
 const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
 
+function HeaderCurrencyInfo({isSectionList}: {isSectionList?: boolean}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    return (
+        <View style={[isSectionList && styles.mh5]}>
+            <Text style={[styles.mt3, isSectionList && styles.mb5]}>
+                {`${translate('billingCurrency.note')}`}{' '}
+                <TextLink
+                    style={styles.link}
+                    href={CONST.PRICING}
+                >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
+                {`${translate('billingCurrency.notDetails')}`}
+            </Text>
+        </View>
+    );
+}
+
 function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeRequired, initialCurrency}: PaymentCardFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -76,25 +93,17 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         [changeBillingCurrency],
     );
 
-    return (
-        <FormProvider
-            formID={ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM}
-            validate={validate}
-            isSubmitButtonVisible={!!isSecurityCodeRequired}
-            onSubmit={(values) => changeBillingCurrency(currency, values)}
-            submitButtonText={translate('common.save')}
-            scrollContextEnabled
-            style={[styles.mh5, styles.flexGrow1]}
-        >
-            <Text style={styles.mt3}>
-                {`${translate('billingCurrency.note')}`}{' '}
-                <TextLink
-                    style={styles.link}
-                    href={CONST.PRICING}
-                >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
-                {`${translate('billingCurrency.notDetails')}`}
-            </Text>
-            {!!isSecurityCodeRequired && (
+    if (isSecurityCodeRequired) {
+        return (
+            <FormProvider
+                formID={ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM}
+                validate={validate}
+                onSubmit={(values) => changeBillingCurrency(currency, values)}
+                submitButtonText={translate('common.save')}
+                scrollContextEnabled
+                style={[styles.mh5, styles.flexGrow1]}
+            >
+                <HeaderCurrencyInfo />
                 <>
                     <View style={[styles.mt5, styles.mhn5]}>
                         <MenuItemWithTopDescription
@@ -116,30 +125,33 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                     />
                 </>
-            )}
-
-            <PaymentCardCurrencyModal
-                isVisible={isCurrencyModalVisible}
-                currencies={Object.keys(CONST.CURRENCY) as Array<ValueOf<typeof CONST.CURRENCY>>}
-                currentCurrency={currency}
-                onCurrencyChange={changeCurrency}
-                onClose={() => setIsCurrencyModalVisible(false)}
-            />
-            {!isSecurityCodeRequired && (
-                <SelectionList
-                    initiallyFocusedOptionKey={currency}
-                    containerStyle={[styles.mt5, styles.mhn5]}
-                    sections={sections}
-                    onSelectRow={(option) => {
-                        selectCurrency(option.value);
-                    }}
-                    showScrollIndicator
-                    shouldStopPropagation
-                    shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={RadioListItem}
+                <PaymentCardCurrencyModal
+                    isVisible={isCurrencyModalVisible}
+                    currencies={Object.keys(CONST.CURRENCY) as Array<ValueOf<typeof CONST.CURRENCY>>}
+                    currentCurrency={currency}
+                    onCurrencyChange={changeCurrency}
+                    onClose={() => setIsCurrencyModalVisible(false)}
                 />
-            )}
-        </FormProvider>
+            </FormProvider>
+        );
+    }
+
+    return (
+        <View style={[styles.mh5, styles.flexGrow1]}>
+            <SelectionList
+                headerContent={<HeaderCurrencyInfo isSectionList />}
+                initiallyFocusedOptionKey={currency}
+                containerStyle={[styles.mhn5]}
+                sections={sections}
+                onSelectRow={(option) => {
+                    selectCurrency(option.value);
+                }}
+                showScrollIndicator
+                shouldStopPropagation
+                shouldUseDynamicMaxToRenderPerBatch
+                ListItem={RadioListItem}
+            />
+        </View>
     );
 }
 
