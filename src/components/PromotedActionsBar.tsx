@@ -74,9 +74,8 @@ const PromotedActions = {
                 Navigation.goBack();
             }
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-            const isReportInRHP = topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
-            if (!isReportInRHP && isTextHold) {
+            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
                 Navigation.dismissModal();
                 ReportUtils.changeMoneyRequestHoldStatus(reportAction);
                 return;
