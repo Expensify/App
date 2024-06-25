@@ -1299,10 +1299,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
         return;
     }
 
-    const allReports = ReportConnection.getAllReports();
-    if (allReports && report?.reportID) {
-        allReports[report.reportID] = report;
-
+    if (report?.reportID) {
         if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
