@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElement} from '@src/types/onyx/Policy';
 
 function getReimbursedAccountName(bankAccounts: SageIntacctDataElement[], reimbursementAccountID?: string): string | undefined {
-    return bankAccounts.find((vendor) => vendor.id === reimbursementAccountID)?.name ?? reimbursementAccountID;
+    return bankAccounts.find((bankAccount) => bankAccount.id === reimbursementAccountID)?.name ?? reimbursementAccountID;
 }
 
 function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
@@ -110,18 +110,20 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 </OfflineWithFeedback>
             ))}
 
-            <OfflineWithFeedback
-                key={translate('workspace.sageIntacct.paymentAccount')}
-                pendingAction={pendingFields?.sync}
-            >
-                <MenuItem
-                    title={getReimbursedAccountName(data?.bankAccounts ?? [], reimbursementAccountID) ?? translate('workspace.sageIntacct.notConfigured')}
-                    description={translate('workspace.sageIntacct.paymentAccount')}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
-                    brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
+            {syncReimbursedReports && (
+                <OfflineWithFeedback
+                    key={translate('workspace.sageIntacct.paymentAccount')}
+                    pendingAction={pendingFields?.sync}
+                >
+                    <MenuItemWithTopDescription
+                        title={getReimbursedAccountName(data?.bankAccounts ?? [], reimbursementAccountID) ?? translate('workspace.sageIntacct.notConfigured')}
+                        description={translate('workspace.sageIntacct.paymentAccount')}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
+                        brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            )}
         </ConnectionLayout>
     );
 }

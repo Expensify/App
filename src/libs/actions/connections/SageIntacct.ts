@@ -1,6 +1,5 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -111,25 +110,6 @@ function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
 }
 
 function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
-    const approvalModeSettingValue = enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : null;
-    const {optimisticData, failureData, successData} = prepareOnyxData(
-        policyID,
-        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
-        approvalModeSettingValue,
-    );
-    const parameters = {
-        policyID,
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        settingName: CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
-        settingValue: JSON.stringify(approvalModeSettingValue),
-        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
-    };
-
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
-}
-
-function updateSageIntacctSyncReimbursedReports(policyID: string, enabled: boolean) {
     const approvalModeSettingValue = enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : null;
     const {optimisticData, failureData, successData} = prepareOnyxData(
         policyID,
