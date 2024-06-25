@@ -212,7 +212,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
-                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.trial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : '',
+                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : '',
             });
         }
 

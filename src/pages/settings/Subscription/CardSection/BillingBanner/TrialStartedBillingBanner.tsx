@@ -5,18 +5,18 @@ import useLocalize from '@hooks/useLocalize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import BillingBanner from './BillingBanner';
 
-function TrialBillingBanner() {
+function TrialStartedBillingBanner() {
     const {translate} = useLocalize();
 
     return (
         <BillingBanner
-            title={translate('subscription.billingBanner.trial.title', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-            subtitle={<Text>{translate('subscription.billingBanner.trial.subtitle')}</Text>}
+            title={translate('subscription.billingBanner.trialStarted.title', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+            subtitle={<Text>{translate('subscription.billingBanner.trialStarted.subtitle')}</Text>}
             icon={Illustrations.TreasureChest}
         />
     );
 }
 
-TrialBillingBanner.displayName = 'PreTrialBillingBanner';
+TrialStartedBillingBanner.displayName = 'TrialStartedBillingBanner';
 
-export default TrialBillingBanner;
+export default TrialStartedBillingBanner;

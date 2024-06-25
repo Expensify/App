@@ -232,7 +232,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                         {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
                                             <Badge
                                                 success
-                                                text={translate('subscription.badge.trial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                                text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
                                                 badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1]}
                                             />
                                         )}

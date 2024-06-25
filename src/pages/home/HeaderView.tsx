@@ -351,7 +351,7 @@ function HeaderView({
                                     {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
                                         <Badge
                                             success
-                                            text={translate('subscription.badge.trial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                            text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
                                         />
                                     )}
                                     {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
