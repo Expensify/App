@@ -219,7 +219,7 @@ type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: bo
 type FilterOptionsConfig = Pick<
     GetOptionsConfig,
     'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
-> & {preferChatroomsOverThreads?: boolean; includeChatRooms?: boolean};
+> & {preferChatroomsOverThreads?: boolean; includeChatRoomsByParticipants?: boolean};
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -2428,7 +2428,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         maxRecentReportsToShow = 0,
         excludeLogins = [],
         preferChatroomsOverThreads = false,
-        includeChatRooms = false,
+        includeChatRoomsByParticipants = false,
     } = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
@@ -2495,7 +2495,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                     values.push(item.subtitle);
                 }
 
-                if (includeChatRooms) {
+                if (includeChatRoomsByParticipants) {
                     values = values.concat(getParticipantsLoginsArray(item));
                 }
             } else {

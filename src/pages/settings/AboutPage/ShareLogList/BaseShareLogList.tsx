@@ -60,7 +60,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
 
         const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue, {
-            includeChatRooms: true,
+            includeChatRoomsByParticipants: true,
             preferChatroomsOverThreads: true,
             sortByReportTypeInSearch: true,
         });
