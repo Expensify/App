@@ -1,4 +1,3 @@
-import {PortalHost} from '@gorhom/portal';
 import type {SyntheticEvent} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInputFocusEventData, TextInputSelectionChangeEventData} from 'react-native';
@@ -27,6 +26,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
+import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
@@ -49,7 +49,7 @@ import SendButton from './SendButton';
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: (text: string, shouldAddTrailSpace: boolean) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
     prepareCommentAndResetComposer: () => string;
     isFocused: () => boolean;
 };
@@ -73,9 +73,9 @@ type ReportActionComposeOnyxProps = {
 
 type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
-    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'disabled' | 'listHeight' | 'lastReportAction'> & {
+    Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
-        onSubmit: (newComment: string | undefined) => void;
+        onSubmit: (newComment: string) => void;
 
         /** The report currently being looked at */
         report: OnyxEntry<OnyxTypes.Report>;
@@ -91,6 +91,9 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** A method to call when the input is blur */
         onComposerBlur?: () => void;
+
+        /** Should the input be disabled  */
+        disabled?: boolean;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -102,13 +105,12 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 function ReportActionCompose({
     blockedFromConcierge,
     currentUserPersonalDetails = {},
-    disabled,
+    disabled = false,
     isComposerFullSize = false,
     onSubmit,
     pendingAction,
     report,
     reportID,
-    listHeight = 0,
     shouldShowComposeInput = true,
     isReportReadyForDisplay = true,
     isEmptyChat,
@@ -159,6 +161,7 @@ function ReportActionCompose({
     const [textInputShouldClear, setTextInputShouldClear] = useState(false);
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         const draftComment = getDraftComment(reportID);
+        Log.info('[ReportActionCompose] Initializing state `isCommentEmpty` with value that depends on draftComment', true, {draftComment});
         return !draftComment || !!draftComment.match(/^(\s)*$/);
     });
 
@@ -176,10 +179,12 @@ function ReportActionCompose({
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef>(null);
-
     const reportParticipantIDs = useMemo(
-        () => report?.participantAccountIDs?.filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
-        [currentUserPersonalDetails.accountID, report],
+        () =>
+            Object.keys(report?.participants ?? {})
+                .map(Number)
+                .filter((accountID) => accountID !== currentUserPersonalDetails.accountID),
+        [currentUserPersonalDetails.accountID, report?.participants],
     );
 
     const shouldShowReportRecipientLocalTime = useMemo(
@@ -187,7 +192,7 @@ function ReportActionCompose({
         [personalDetails, report, currentUserPersonalDetails.accountID, isComposerFullSize],
     );
 
-    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participantAccountIDs: report?.participantAccountIDs}), [report?.participantAccountIDs]);
+    const includesConcierge = useMemo(() => ReportUtils.chatIncludesConcierge({participants: report?.participants}), [report?.participants]);
     const userBlockedFromConcierge = useMemo(() => User.isBlockedFromConcierge(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
 
@@ -264,8 +269,11 @@ function ReportActionCompose({
             playSound(SOUNDS.DONE);
             const newComment = composerRef?.current?.prepareCommentAndResetComposer();
             Report.addAttachment(reportID, file, newComment);
+            Log.info('[ReportActionCompose] `textInputShouldClear` changed to false', true, {oldTextInputShouldClear: textInputShouldClear});
             setTextInputShouldClear(false);
         },
+        // We don't want to have `textInputShouldClear` in dependencies since it is only used in Log.info
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportID],
     );
 
@@ -333,7 +341,7 @@ function ReportActionCompose({
     // We are returning a callback here as we want to incoke the method on unmount only
     useEffect(
         () => () => {
-            if (!EmojiPickerActions.isActive(report?.reportID ?? '')) {
+            if (!EmojiPickerActions.isActive(report?.reportID ?? '-1')) {
                 return;
             }
             EmojiPickerActions.hideEmojiPicker();
@@ -342,7 +350,8 @@ function ReportActionCompose({
         [],
     );
 
-    const isGroupPolicyReport = useMemo(() => ReportUtils.isGroupPolicy(report), [report]);
+    // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
+    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
@@ -378,7 +387,6 @@ function ReportActionCompose({
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <PortalHost name="suggestions" />
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -432,7 +440,7 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
-                                        policyID={report?.policyID ?? ''}
+                                        policyID={report?.policyID ?? '-1'}
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
@@ -455,12 +463,11 @@ function ReportActionCompose({
                                         onFocus={onFocus}
                                         onBlur={onBlur}
                                         measureParentContainer={measureContainer}
-                                        listHeight={listHeight}
                                         onValueChange={(value) => {
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);
                                             }
-                                            validateCommentMaxLength(value);
+                                            validateCommentMaxLength(value, {reportID});
                                         }}
                                     />
                                     <ReportDropUI
@@ -479,7 +486,6 @@ function ReportActionCompose({
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge || disabled}
                                 onModalHide={focus}
-                                //  @ts-expect-error TODO: Remove this once EmojiPickerButton (https://github.com/Expensify/App/issues/25155) is migrated to TypeScript.
                                 onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
                                 emojiPickerID={report?.reportID}
                                 shiftVertical={emojiShiftVertical}

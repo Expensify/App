@@ -1,15 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
+import type {View} from 'react-native';
 import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import FormHelpMessage from './FormHelpMessage';
 import type {MenuItemProps} from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
@@ -17,7 +16,7 @@ type State = keyof typeof COMMON_CONST.STATES;
 
 type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Current selected state  */
     value?: State | '';
@@ -79,26 +78,23 @@ function StateSelector(
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
-        <View>
-            <MenuItemWithTopDescription
-                descriptionTextStyle={descStyle}
-                ref={ref}
-                shouldShowRightIcon
-                title={title}
-                // Label can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                description={label || translate('common.state')}
-                onPress={() => {
-                    const activeRoute = Navigation.getActiveRoute();
-                    didOpenStateSelector.current = true;
-                    Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
-                }}
-                wrapperStyle={wrapperStyle}
-            />
-            <View style={styles.ml5}>
-                <FormHelpMessage message={errorText} />
-            </View>
-        </View>
+        <MenuItemWithTopDescription
+            descriptionTextStyle={descStyle}
+            ref={ref}
+            shouldShowRightIcon
+            title={title}
+            // Label can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            description={label || translate('common.state')}
+            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            errorText={errorText}
+            onPress={() => {
+                const activeRoute = Navigation.getActiveRoute();
+                didOpenStateSelector.current = true;
+                Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
+            }}
+            wrapperStyle={wrapperStyle}
+        />
     );
 }
 

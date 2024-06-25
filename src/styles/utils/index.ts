@@ -270,8 +270,8 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
-    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
+function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -401,11 +401,20 @@ function getZoomSizingStyle(
 }
 
 /**
- * Returns auto grow text input style
+ * Returns a style with width set to the specified number
  */
 function getWidthStyle(width: number): ViewStyle & ImageStyle {
     return {
         width,
+    };
+}
+
+/**
+ * Returns a style with border radius set to the specified number
+ */
+function getBorderRadiusStyle(borderRadius: number): ViewStyle & ImageStyle {
+    return {
+        borderRadius,
     };
 }
 
@@ -505,7 +514,7 @@ function getButtonStyleWithIcon(
     hasText?: boolean,
     shouldShowRightIcon?: boolean,
 ): ViewStyle | undefined {
-    const useDefaultButtonStyles = Boolean(hasIcon && shouldShowRightIcon) || Boolean(!hasIcon && !shouldShowRightIcon);
+    const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
     switch (true) {
         case small: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
@@ -689,7 +698,7 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 /**
  * Get minimum width as style
  */
-function getMinimumWidth(minWidth: number): ViewStyle {
+function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
     return {
         minWidth,
     };
@@ -770,37 +779,40 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize: AvatarSize, oneAv
 /**
  * Gets the correct size for the empty state background image based on screen dimensions
  */
-function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ImageStyle {
-    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-
+function getReportWelcomeBackgroundImageStyle(isSmallScreenWidth: boolean): ImageStyle {
     if (isSmallScreenWidth) {
         return {
-            height: emptyStateBackground.SMALL_SCREEN.IMAGE_HEIGHT,
-            width: '100%',
             position: 'absolute',
+            bottom: 0,
+            height: CONST.EMPTY_STATE_BACKGROUND.SMALL_SCREEN.IMAGE_HEIGHT,
+            width: '100%',
         };
     }
 
     return {
-        height: emptyStateBackground.WIDE_SCREEN.IMAGE_HEIGHT,
-        width: '100%',
         position: 'absolute',
+        bottom: 0,
+        height: CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT,
+        width: '100%',
     };
 }
 
 /**
- * Gets the correct top margin size for the chat welcome message based on screen dimensions
+ * Gets the style for the container of the empty state background image that overlap the created report action
  */
-function getReportWelcomeTopMarginStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
-    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
+function getReportWelcomeBackgroundContainerStyle(isSmallScreenWidth: boolean): ViewStyle {
     if (isSmallScreenWidth) {
         return {
-            marginTop: emptyStateBackground.SMALL_SCREEN.VIEW_HEIGHT,
+            position: 'absolute',
+            top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+            width: '100%',
         };
     }
 
     return {
-        marginTop: emptyStateBackground.WIDE_SCREEN.VIEW_HEIGHT,
+        position: 'absolute',
+        top: CONST.EMPTY_STATE_BACKGROUND.OVERLAP,
+        width: '100%',
     };
 }
 
@@ -822,23 +834,6 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
     };
 }
 
-/**
- * Gets the correct size for the empty state container based on screen dimensions
- */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
-    const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    const baseStyles: ViewStyle = {
-        display: 'flex',
-        justifyContent: 'space-between',
-    };
-
-    if (shouldShowAnimatedBackground) {
-        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
-    }
-
-    return baseStyles;
-}
-
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
     left: number;
     bottom: number;
@@ -850,7 +845,7 @@ type GetBaseAutoCompleteSuggestionContainerStyleParams = {
  */
 function getBaseAutoCompleteSuggestionContainerStyle({left, bottom, width}: GetBaseAutoCompleteSuggestionContainerStyleParams): ViewStyle {
     return {
-        ...positioning.pFixed,
+        position: 'absolute',
         bottom,
         left,
         width,
@@ -868,11 +863,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
 
-    // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
-    // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
-        overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -940,17 +931,11 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): TextStyle {
+function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
     let paddingValue = 5;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
-        if (numberOfLines === 1) {
-            paddingValue = 9;
-        }
-        // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-        else if (numberOfLines === 3) {
-            paddingValue = 8;
-        }
+        paddingValue = 8;
     }
     return {
         paddingTop: paddingValue,
@@ -995,7 +980,6 @@ function getColorStyle(color: string): TextColorStyle {
  */
 function getCheckboxPressableStyle(borderRadius = 6): ViewStyle {
     return {
-        padding: 2,
         justifyContent: 'center',
         alignItems: 'center',
         // eslint-disable-next-line object-shorthand
@@ -1095,6 +1079,44 @@ function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
     };
 }
 
+function percentage(percentageValue: number, totalValue: number) {
+    return (totalValue / 100) * percentageValue;
+}
+
+/**
+ * Calculates the width in px of characters from 0 to 9 and '.'
+ */
+function getCharacterWidth(character: string) {
+    const defaultWidth = 8;
+    if (character === '.') {
+        return percentage(25, defaultWidth);
+    }
+    const number = +character;
+
+    // The digit '1' is 62.5% smaller than the default width
+    if (number === 1) {
+        return percentage(62.5, defaultWidth);
+    }
+    if (number >= 2 && number <= 5) {
+        return defaultWidth;
+    }
+    if (number === 7) {
+        return percentage(87.5, defaultWidth);
+    }
+    if ((number >= 6 && number <= 9) || number === 0) {
+        return percentage(112.5, defaultWidth);
+    }
+    return defaultWidth;
+}
+
+function getAmountWidth(amount: string): number {
+    let width = 0;
+    for (let i = 0; i < amount.length; i++) {
+        width += getCharacterWidth(amount.charAt(i));
+    }
+    return width;
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1122,8 +1144,7 @@ const staticStyleUtils = {
     getHorizontalStackedAvatarStyle,
     getHorizontalStackedOverlayAvatarStyle,
     getReportWelcomeBackgroundImageStyle,
-    getReportWelcomeTopMarginStyle,
-    getReportWelcomeContainerStyle,
+    getReportWelcomeBackgroundContainerStyle,
     getBaseAutoCompleteSuggestionContainerStyle,
     getBorderColorStyle,
     getCheckboxPressableStyle,
@@ -1166,6 +1187,9 @@ const staticStyleUtils = {
     getSignInBgStyles,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getCharacterWidth,
+    getAmountWidth,
+    getBorderRadiusStyle,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1258,6 +1282,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+        }
+        return {};
+    },
+
+    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+        if (isSuccess) {
+            return theme.iconSuccessFill;
+        }
+        if (isError) {
+            return theme.iconDangerFill;
+        }
+        return theme.icon;
+    },
+
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
+        if (isSuccess) {
+            return styles.badgeEnvironmentSuccess;
+        }
+        if (isError) {
+            return styles.badgeEnvironmentDanger;
         }
         return {};
     },
@@ -1452,6 +1499,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...positioning.r4,
             ...styles.cursorDefault,
             ...styles.userSelectNone,
+            overflowAnchor: 'none',
             position: 'absolute',
             zIndex: 8,
         }),
@@ -1503,6 +1551,45 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
+
+    getSearchTableColumnStyles: (columnName: string, shouldExtendDateColumn = false): ViewStyle => {
+        let columnWidth;
+        switch (columnName) {
+            case CONST.SEARCH_TABLE_COLUMNS.RECEIPT:
+                columnWidth = {...getWidthStyle(variables.w36), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.DATE:
+                columnWidth = getWidthStyle(shouldExtendDateColumn ? variables.w84 : variables.w52);
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
+            case CONST.SEARCH_TABLE_COLUMNS.FROM:
+            case CONST.SEARCH_TABLE_COLUMNS.TO:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH_TABLE_COLUMNS.TAG:
+                columnWidth = {...getWidthStyle(variables.w36), ...styles.flex1};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT:
+            case CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT:
+                columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TYPE:
+                columnWidth = {...getWidthStyle(variables.w20), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.ACTION:
+                columnWidth = {...getWidthStyle(variables.w80), ...styles.alignItemsCenter};
+                break;
+            default:
+                columnWidth = styles.flex1;
+        }
+
+        return columnWidth;
+    },
+
+    getTextOverflowStyle: (overflow: string): TextStyle => ({
+        textOverflow: overflow,
+    }),
 
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
@@ -1567,10 +1654,40 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isDisabled && styles.buttonOpacityDisabled),
     }),
 
+    /**
+     * When adding a new prefix character, adjust this method to add expected character width.
+     * This is because character width isn't known before it's rendered to the screen, and once it's rendered,
+     * it's too late to calculate it's width because the change in padding would cause a visible jump.
+     * Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
+     * also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
+     * this method will produce reliable results.
+     */
+    getCharacterPadding: (prefix: string): number => {
+        let padding = 0;
+        prefix.split('').forEach((char) => {
+            if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
+                padding += 11;
+            } else {
+                padding += 8;
+            }
+        });
+
+        return padding;
+    },
+
     // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
         ...StyleSheet.flatten(descriptionTextStyle),
         opacity: styles.opacitySemiTransparent.opacity,
+    }),
+
+    getTripReservationIconContainer: (isSmallIcon: boolean): StyleProp<ViewStyle> => ({
+        width: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
+        height: isSmallIcon ? variables.avatarSizeSmallNormal : variables.avatarSizeNormal,
+        borderRadius: isSmallIcon ? variables.avatarSizeSmallNormal : variables.componentBorderRadiusXLarge,
+        backgroundColor: theme.border,
+        alignItems: 'center',
+        justifyContent: 'center',
     }),
 });
 

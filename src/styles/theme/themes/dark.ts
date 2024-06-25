@@ -1,4 +1,3 @@
-import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -7,7 +6,7 @@ import SCREENS from '@src/SCREENS';
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: getSplashBackgroundColor(),
+    splashBG: colors.green400,
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
@@ -17,6 +16,7 @@ const darkTheme = {
     iconHovered: colors.productDark900,
     iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
+    iconDangerFill: colors.red,
     iconReversed: colors.productDark100,
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.productDark800,
@@ -80,8 +80,11 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+    tooltipHighlightBG: colors.green100,
+    tooltipHighlightText: colors.green500,
     tooltipSupportingText: colors.productLight800,
     tooltipPrimaryText: colors.productLight900,
+    trialBannerBackgroundColor: colors.green700,
     skeletonLHNIn: colors.productDark400,
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
@@ -128,7 +131,7 @@ const darkTheme = {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+        [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
@@ -142,14 +145,6 @@ const darkTheme = {
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: {
-            backgroundColor: colors.green600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },

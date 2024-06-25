@@ -1,11 +1,11 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
+import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,8 +14,8 @@ import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -41,12 +41,11 @@ type Item = {
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
  */
-const imagePickerOptions: Partial<CameraOptions | ImageLibraryOptions> = {
+const imagePickerOptions = {
     includeBase64: false,
     saveToPhotos: false,
     selectionLimit: 1,
     includeExtra: false,
-    assetRepresentationMode: 'current',
 };
 
 /**
@@ -121,7 +120,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const popoverRef = useRef(null);
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -172,7 +171,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      */
     const showDocumentPicker = useCallback(
         (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error) => {
+            RNDocumentPicker.pick(getDocumentPickerOptions(type)).catch((error: Error) => {
                 if (RNDocumentPicker.isCancel(error)) {
                     return;
                 }
@@ -213,7 +212,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
      * An attachment error dialog when user selected malformed images
      */
     const showImageCorruptionAlert = useCallback(() => {
-        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
     }, [translate]);
 
     /**
@@ -238,8 +237,9 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
             // Check if the file dimensions indicate corruption
-            // The width/height for corrupt file is -1 on android native and 0 on ios native
-            if (!fileData.width || !fileData.height || (fileData.width <= 0 && fileData.height <= 0)) {
+            // The width/height for a corrupted file is -1 on android native and 0 on ios native
+            // We must check only numeric values because the width/height can be undefined for non-image files
+            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }
@@ -247,7 +247,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 .then((result) => {
                     completeAttachmentSelection.current(result);
                 })
-                .catch((error) => {
+                .catch((error: Error) => {
                     showGeneralAlert(error.message);
                     throw error;
                 });
@@ -355,7 +355,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 anchorRef={popoverRef}
                 onModalHide={onModalHide.current}
             >
-                <View style={!isSmallScreenWidth && styles.createMenuContainer}>
+                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}

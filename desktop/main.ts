@@ -13,7 +13,10 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
+import type {CreateDownloadQueue, DownloadItem} from './createDownloadQueue';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+
+const createDownloadQueue: CreateDownloadQueue = require('./createDownloadQueue').default;
 
 const port = process.env.PORT ?? 8082;
 const {DESKTOP_SHORTCUT_ACCELERATOR, LOCALES} = CONST;
@@ -111,6 +114,7 @@ process.argv.forEach((arg) => {
 // happens correctly.
 let hasUpdate = false;
 let downloadedVersion: string;
+let isSilentUpdating = false;
 
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
@@ -127,16 +131,20 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-/** Menu Item callback to triggers an update check */
-const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWindow) => {
-    // Disable item until the check (and download) is complete
-    // eslint: menu item flags like enabled or visible can be dynamically toggled by mutating the object
-    // eslint-disable-next-line no-param-reassign
-    menuItem.enabled = false;
+/** Menu Item callback to trigger an update check */
+const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
+    if (menuItem) {
+        // Disable item until the check (and download) is complete
+        // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
+        menuItem.enabled = false;
+    }
 
     autoUpdater
         .checkForUpdates()
-        .catch((error) => ({error}))
+        .catch((error) => {
+            isSilentUpdating = false;
+            return {error};
+        })
         .then((result) => {
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
@@ -148,7 +156,7 @@ const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWind
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
                     buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
@@ -172,6 +180,10 @@ const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWind
             return downloadPromise;
         })
         .finally(() => {
+            isSilentUpdating = false;
+            if (!menuItem) {
+                return;
+            }
             // eslint-disable-next-line no-param-reassign
             menuItem.enabled = true;
         });
@@ -201,7 +213,7 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (checkForUpdatesMenuItem) {
                 checkForUpdatesMenuItem.visible = false;
             }
-            if (browserWindow.isVisible()) {
+            if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
@@ -572,7 +584,7 @@ const mainWindow = (): Promise<void> => {
                     app.hide();
                 }
 
-                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
+                ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
                     Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
                     disposeContextMenu();
                     disposeContextMenu = createContextMenu(updatedLocale);
@@ -592,7 +604,7 @@ const mainWindow = (): Promise<void> => {
 
                 // Listen to badge updater event emitted by the render process
                 // and update the app badge count (MacOS only)
-                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount) => {
+                ipcMain.on(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, (event, totalCount?: number) => {
                     if (totalCount === -1) {
                         // The electron docs say you should be able to update this and pass no parameters to set the badge
                         // to a single red dot, but in practice it resulted in an error "TypeError: Insufficient number of
@@ -602,6 +614,24 @@ const mainWindow = (): Promise<void> => {
                     } else {
                         app.setBadgeCount(totalCount);
                     }
+                });
+
+                const downloadQueue = createDownloadQueue();
+                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
+                    const downloadItem: DownloadItem = {
+                        ...downloadData,
+                        win: browserWindow,
+                    };
+                    downloadQueue.enqueueDownloadItem(downloadItem);
+                });
+
+                // Automatically check for and install the latest version in the background
+                ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
+                    if (isSilentUpdating) {
+                        return;
+                    }
+                    isSilentUpdating = true;
+                    manuallyCheckForUpdates(undefined, browserWindow);
                 });
 
                 return browserWindow;

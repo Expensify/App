@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -8,10 +9,12 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import * as ReportActions from '@libs/actions/Report';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListProps} from './types';
@@ -21,6 +24,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList();
 
     const defaultOptions = useMemo(() => {
@@ -38,7 +42,16 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
         const shareLogOptions = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
 
-        return {...shareLogOptions, headerMessage: ''};
+        const header = OptionsListUtils.getHeaderMessage(
+            (shareLogOptions.recentReports.length || 0) + (shareLogOptions.personalDetails.length || 0) !== 0,
+            !!shareLogOptions.userToInvite,
+            debouncedSearchValue,
+        );
+
+        return {
+            ...shareLogOptions,
+            headerMessage: header,
+        };
     }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
 
     const searchOptions = useMemo(() => {
@@ -48,7 +61,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue);
         const headerMessage = OptionsListUtils.getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
-            Boolean(filteredOptions.userToInvite),
+            !!filteredOptions.userToInvite,
             debouncedSearchValue.trim(),
         );
 
@@ -89,6 +102,10 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         onAttachLogToReport(option.reportID, filename);
     };
 
+    useEffect(() => {
+        ReportActions.searchInServer(debouncedSearchValue);
+    }, [debouncedSearchValue]);
+
     return (
         <ScreenWrapper
             testID={BaseShareLogList.displayName}
@@ -98,18 +115,20 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute())}
                     />
                     <SelectionList
                         ListItem={UserListItem}
                         sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
                         onSelectRow={attachLogToReport}
+                        shouldDebounceRowSelect
                         onChangeText={setSearchValue}
                         textInputValue={searchValue}
                         headerMessage={searchOptions.headerMessage}
-                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
                         showLoadingPlaceholder={!didScreenTransitionEnd}
+                        isLoadingNewOptions={!!isSearchingForReports}
                     />
                 </>
             )}
