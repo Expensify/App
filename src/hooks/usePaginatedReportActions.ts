@@ -11,11 +11,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * @param [reportActionID]
  */
 function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
-    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID ?? '-1'}`, {
+    // Use `||` instead of `??` to handle empty string.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const reportIDWithDefault = reportID || '-1';
+    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDWithDefault}`, {
         canEvict: false,
         selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
-    const [pages = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID ?? '-1'}`);
+    const [pages = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
 
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
