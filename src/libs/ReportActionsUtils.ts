@@ -374,12 +374,16 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
-function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
+function getCombinedReportActions(
+    reportActions: ReportAction[],
+    transactionThreadReportActions: ReportAction[],
+    reportID?: string,
+    transactionThreadReportID?: string | null,
+): ReportAction[] {
     // There is a chance that transactionThreadReportActions is not loaded yet.
     // We only check for emptiness when there are multiple IOUs,
     // this will prevent the sub-report preview from being displayed when there is only one IOU.
-    const nonDeletedMoneyRequestReportActions = reportActions?.filter((action) => !isDeletedAction(action) && isMoneyRequestAction(action));
-    if (isEmptyObject(transactionThreadReportActions) && nonDeletedMoneyRequestReportActions.length > 1) {
+    if (isEmptyObject(transactionThreadReportActions) && _.isEmpty(transactionThreadReportID)) {
         return reportActions;
     }
 

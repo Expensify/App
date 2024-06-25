@@ -96,6 +96,7 @@ function ReportActionsView({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     isReadyForCommentLinking = false,
+    transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
@@ -157,8 +158,8 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(
-        () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions),
-        [allReportActions, transactionThreadReportActions],
+        () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions, reportID, transactionThreadReportID),
+        [allReportActions, transactionThreadReportActions, transactionThreadReportID],
     );
 
     const parentReportActionForTransactionThread = useMemo(
