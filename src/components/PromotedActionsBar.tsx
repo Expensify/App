@@ -76,8 +76,7 @@ const PromotedActions = {
             const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
 
             if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                Navigation.dismissModal();
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction);
+                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(reportAction?.childReportID ?? ''));
                 return;
             }
 
