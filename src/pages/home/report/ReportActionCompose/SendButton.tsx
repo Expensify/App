@@ -24,9 +24,11 @@ function SendButton({isDisabled, handleSendMessage}: SendButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const Tap = Gesture.Tap().onEnd(() => {
-        handleSendMessage();
-    });
+    const Tap = Gesture.Tap()
+        .onEnd(() => {
+            handleSendMessage();
+        })
+        .enabled(!isDisabled);
 
     return (
         <View
