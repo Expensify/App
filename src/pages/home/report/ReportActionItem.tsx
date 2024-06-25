@@ -180,12 +180,9 @@ function ReportActionItem({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     linkedTransactionRouteError,
-<<<<<<< HEAD
     hideThreadReplies = false,
-=======
     shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
->>>>>>> main
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
