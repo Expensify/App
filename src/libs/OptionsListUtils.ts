@@ -2518,7 +2518,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     let userToInvite = null;
     if (canInviteUser) {
-        if (recentReports.length === 0) {
+        if (recentReports.length === 0 && personalDetails.length === 0) {
             userToInvite = getUserToInviteOption({
                 searchValue,
                 betas,
