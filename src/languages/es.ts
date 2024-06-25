@@ -103,6 +103,19 @@ import type {
     ZipCodeExampleFormatParams,
 } from './types';
 
+function integrationName(integration: ConnectionName): string {
+    switch (integration) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return 'Quickbooks Online';
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return 'Xero';
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return 'Sage Intacct';
+        default:
+            return 'Integration';
+    }
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2012,6 +2025,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Añade la cuenta en ${integrationName(integration)} y sincroniza de nuevo la conexión.`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2217,6 +2232,19 @@ export default {
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
             noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión.',
         },
+        sageIntacct: {
+            autoSync: 'Sincronización automática',
+            autoSyncDescription: 'Sincronice Sage Intacct y Expensify automáticamente, todos los días.',
+            inviteEmployees: 'Invitar a los empleados',
+            inviteEmployeesDescription:
+                'Importe los registros de empleados de Sage Intacct e invite a los empleados a este espacio de trabajo. Su flujo de trabajo de aprobación será por defecto la aprobación del gerente y se puede configurar aún más en la página Miembros.',
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription:
+                'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
+            paymentAccount: 'Cuenta de pago Sage Intacct',
+            notConfigured: 'No configurado',
+            paymentAccountDescription: 'Descripción',
+        },
         type: {
             free: 'Gratis',
             control: 'Control',
@@ -2413,6 +2441,8 @@ export default {
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos, y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            intacct: 'Sage Intacct',
+            integrationName,
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
