@@ -11,7 +11,6 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import AccountUtils from './AccountUtils';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -40,14 +39,6 @@ Onyx.connect({
         );
 
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
-    },
-});
-
-let currentUserAccountID: number | undefined;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID;
     },
 });
 
@@ -102,7 +93,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
             !!parentReportAction &&
-            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
+            ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
         );
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
@@ -113,13 +104,6 @@ function getOrderedReportIDs(
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
-        }
-
-        const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
-        const isOnboardedByPersona = currentUserAccountID && AccountUtils.isAccountIDOddNumber(currentUserAccountID) && participantAccountIDs.includes(CONST.ACCOUNT_ID.NOTIFICATIONS);
-
-        if (isOnboardedByPersona && isSystemChat && !isInFocusMode) {
-            return true;
         }
 
         return ReportUtils.shouldReportBeInOptionList({

@@ -777,6 +777,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
+    [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
 };
 
 type TravelNavigatorParamList = {
@@ -832,6 +833,9 @@ type FullScreenNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.TAXES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.REPORT_FIELDS]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
@@ -950,6 +954,12 @@ type SearchReportParamList = {
     };
 };
 
+type RestrictedActionParamList = {
+    [SCREENS.RESTRICTED_ACTION_ROOT]: {
+        policyID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -1015,4 +1025,5 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     SearchReportParamList,
+    RestrictedActionParamList,
 };
