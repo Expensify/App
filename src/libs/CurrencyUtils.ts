@@ -125,7 +125,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : 0,
+        minimumFractionDigits: getCurrencyDecimals(currency),
         maximumFractionDigits: 2,
     });
 }
