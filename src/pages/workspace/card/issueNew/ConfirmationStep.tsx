@@ -1,11 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
@@ -16,6 +18,7 @@ import ROUTES from '@src/ROUTES';
 function ConfirmationStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
 
     const submit = () => {
         Navigation.navigate(ROUTES.SETTINGS);
@@ -43,6 +46,16 @@ function ConfirmationStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
+            <View style={[styles.ph5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+                <Button
+                    isDisabled={isOffline}
+                    success
+                    large
+                    style={[styles.w100]}
+                    onPress={submit}
+                    text={translate('workspace.card.issueCard')}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
