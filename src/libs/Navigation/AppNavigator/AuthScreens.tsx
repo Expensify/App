@@ -80,7 +80,7 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial
     const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
 
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
-        return {sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE, sortOrder: CONST.SORT_ORDER.DESC};
+        return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
     }
 
     if (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') {

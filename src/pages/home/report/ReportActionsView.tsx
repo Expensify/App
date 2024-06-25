@@ -252,6 +252,18 @@ function ReportActionsView({
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
+        if (!reportActionID || indexOfLinkedAction > -1) {
+            return;
+        }
+
+        // This function is triggered when a user clicks on a link to navigate to a report.
+        // For each link click, we retrieve the report data again, even though it may already be cached.
+        // There should be only one openReport execution per page start or navigating
+        Report.openReport(reportID, reportActionID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, indexOfLinkedAction]);
+
+    useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
         if (wasLoginChangedDetected && didUserLogInDuringSession() && isUserCreatedPolicyRoom(report)) {
             openReportIfNecessary();
