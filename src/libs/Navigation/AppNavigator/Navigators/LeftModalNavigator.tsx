@@ -9,12 +9,13 @@ import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavi
 import type {AuthScreensParamList, LeftModalNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import Overlay from './Overlay';
 
 type LeftModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.LEFT_MODAL_NAVIGATOR>;
 
-const loadChatFinder = () => require('../../../../pages/ChatFinderPage').default as React.ComponentType;
-const loadWorkspaceSwitcherPage = () => require('../../../../pages/WorkspaceSwitcherPage').default as React.ComponentType;
+const loadChatFinder = () => require<ReactComponentModule>('../../../../pages/ChatFinderPage').default;
+const loadWorkspaceSwitcherPage = () => require<ReactComponentModule>('../../../../pages/WorkspaceSwitcherPage').default;
 
 const Stack = createStackNavigator<LeftModalNavigatorParamList>();
 

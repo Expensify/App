@@ -1,4 +1,4 @@
-import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, RouteProp, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
@@ -9,7 +9,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
+import isCentralPaneName from '@libs/NavigationUtils';
 import SCREENS from '@src/SCREENS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
@@ -21,7 +21,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
     const reverseRoutes = [...routes].reverse();
 
     reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
+        if (isCentralPaneName(route.name)) {
             // Remove all central pane routes except the last 3. This will improve performance.
             if (count < 3) {
                 result.push(route);
@@ -61,20 +61,20 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {stateToRender, searchRoute} = useMemo(() => {
         const routes = reduceCentralPaneRoutes(state.routes);
 
-        const lastRoute = routes[routes.length - 1];
-        const isLastRouteSearchRoute = getTopmostCentralPaneRoute({routes: [lastRoute]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
+        // On narrow layout, if we are on /search route we want to hide the search central pane route.
+        if (isSmallScreenWidth) {
+            const isSearchCentralPane = (route: RouteProp<ParamListBase>) => getTopmostCentralPaneRoute({routes: [route]} as State<RootStackParamList>)?.name === SCREENS.SEARCH.CENTRAL_PANE;
 
-        const firstRoute = routes[0];
-
-        // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
-        if (isSmallScreenWidth && isLastRouteSearchRoute) {
+            const lastRoute = routes[routes.length - 1];
+            const lastSearchCentralPane = isSearchCentralPane(lastRoute) ? lastRoute : undefined;
+            const filteredRoutes = routes.filter((route) => !isSearchCentralPane(route));
             return {
                 stateToRender: {
                     ...state,
-                    index: 0,
-                    routes: [firstRoute],
+                    index: filteredRoutes.length - 1,
+                    routes: filteredRoutes,
                 },
-                searchRoute: lastRoute,
+                searchRoute: lastSearchCentralPane,
             };
         }
 

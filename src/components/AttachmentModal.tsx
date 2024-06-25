@@ -18,7 +18,6 @@ import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import useNativeDriver from '@libs/useNativeDriver';
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
@@ -306,7 +305,7 @@ function AttachmentModal({
     }, []);
 
     const isDirectoryCheck = useCallback((data: FileObject) => {
-        if ('webkitGetAsEntry' in data && typeof data.webkitGetAsEntry === 'function' && data.webkitGetAsEntry().isDirectory) {
+        if ('webkitGetAsEntry' in data && (data as DataTransferItem).webkitGetAsEntry()?.isDirectory) {
             setIsAttachmentInvalid(true);
             setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
             setAttachmentInvalidReason('attachmentPicker.folderNotAllowedMessage');
@@ -357,28 +356,6 @@ function AttachmentModal({
             }
         },
         [isValidFile, getModalType, isDirectoryCheck],
-    );
-
-    /**
-     * In order to gracefully hide/show the confirm button when the keyboard
-     * opens/closes, apply an animation to fade the confirm button out/in. And since
-     * we're only updating the opacity of the confirm button, we must also conditionally
-     * disable it.
-     *
-     * @param shouldFadeOut If true, fade out confirm button. Otherwise fade in.
-     */
-    const updateConfirmButtonVisibility = useCallback(
-        (shouldFadeOut: boolean) => {
-            setIsConfirmButtonDisabled(shouldFadeOut);
-            const toValue = shouldFadeOut ? 0 : 1;
-
-            Animated.timing(confirmButtonFadeAnimation, {
-                toValue,
-                duration: 100,
-                useNativeDriver,
-            }).start();
-        },
-        [confirmButtonFadeAnimation],
     );
 
     /**
@@ -547,7 +524,7 @@ function AttachmentModal({
                                             source={sourceForAttachmentView}
                                             isAuthTokenRequired={isAuthTokenRequiredState}
                                             file={file}
-                                            onToggleKeyboard={updateConfirmButtonVisibility}
+                                            onToggleKeyboard={setIsConfirmButtonDisabled}
                                             isWorkspaceAvatar={isWorkspaceAvatar}
                                             maybeIcon={maybeIcon}
                                             fallbackSource={fallbackSource}
@@ -559,7 +536,7 @@ function AttachmentModal({
                             ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {!!onConfirm && (
+                    {!!onConfirm && !isConfirmButtonDisabled && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
@@ -617,7 +594,7 @@ export default withOnyx<AttachmentModalProps, AttachmentModalOnyxProps>({
     transaction: {
         key: ({report}) => {
             const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '-1', report?.parentReportActionID ?? '-1');
-            const transactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction?.originalMessage.IOUTransactionID ?? '-1' : '-1';
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },

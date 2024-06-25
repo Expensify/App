@@ -19,7 +19,7 @@ const launchCamera: LaunchCamera = (options, callback) => {
 
             launchCameraImagePicker(options, callback);
         })
-        .catch((error) => {
+        .catch((error: ErrorLaunchCamera) => {
             /* Intercept the permission error as well as any other errors and call the callback
              * follow the same pattern expected for image picker results */
             callback({
