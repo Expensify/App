@@ -67,8 +67,14 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         description: translate('workspace.sageIntacct.defaultVendor'),
         action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, 'non-reimbursable')),
         title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.errorFields?.exporter,
-        pendingAction: config?.pendingFields?.export,
+        hasError:
+            config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                ? !!config?.export?.errorFields?.nonReimbursableVendor
+                : !!config?.export?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+        pendingAction:
+            config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                ? config?.export?.pendingFields?.nonReimbursableVendor
+                : config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
     };
 
     const defaultVendor = (
@@ -90,8 +96,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         description: translate('workspace.sageIntacct.creditCardAccount'),
         action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
         title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.errorFields?.exporter,
-        pendingAction: config?.pendingFields?.export,
+        hasError: !!config?.export?.errorFields?.nonReimbursableAccount,
+        pendingAction: config?.export?.pendingFields?.nonReimbursableAccount,
     };
 
     const creditCardAccount = (
@@ -136,9 +142,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            updateSageIntacctDefaultVendor(policyID, {
-                                nonReimbursableCreditCardChargeDefaultVendor: null,
-                            });
+                            updateSageIntacctDefaultVendor(policyID, 'nonReimbursableCreditCardChargeDefaultVendor', null);
                             setIsSwitchOn(!isSwitchOn);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}

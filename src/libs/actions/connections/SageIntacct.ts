@@ -6,28 +6,25 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
+import type {Connections} from '@src/types/onyx/Policy';
 
-function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    policyID: string,
-    connectionName: TConnectionName,
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-) {
+function prepareOnyxData(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [connectionName]: {
+                    intacct: {
                         config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
+                            export: {
+                                [settingName]: settingValue,
+                                pendingFields: {
+                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                                errorFields: {
+                                    [settingName]: null,
+                                },
                             },
                         },
                     },
@@ -42,14 +39,16 @@ function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName ex
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [connectionName]: {
+                    intacct: {
                         config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            export: {
+                                [settingName]: settingValue,
+                                pendingFields: {
+                                    [settingName]: null,
+                                },
+                                errorFields: {
+                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                },
                             },
                         },
                     },
@@ -64,14 +63,16 @@ function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName ex
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [connectionName]: {
+                    intacct: {
                         config: {
-                            [settingName]: settingValue ?? null,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
+                            export: {
+                                [settingName]: settingValue,
+                                pendingFields: {
+                                    [settingName]: null,
+                                },
+                                errorFields: {
+                                    [settingName]: null,
+                                },
                             },
                         },
                     },
@@ -83,49 +84,45 @@ function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName ex
     return {optimisticData, failureData, successData};
 }
 
-function prepareOnyxDataForExport(policyID: string, settingValue: Partial<Connections['intacct']['config']['export']>) {
-    return prepareOnyxData(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.EXPORT, settingValue);
-}
-
-function prepareParametersForExport(policyID: string, settingValue: Partial<Connections['intacct']['config']['export']>) {
+function prepareParametersForExport(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
     return {
         policyID,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
         settingName: CONST.SAGE_INTACCT_CONFIG.EXPORT,
-        settingValue: JSON.stringify(settingValue),
+        settingValue: JSON.stringify({[settingName]: settingValue}),
         idempotencyKey: CONST.SAGE_INTACCT_CONFIG.EXPORT,
     };
 }
 
-function updateSageIntacctExport(policyID: string, settingValue: Partial<Connections['intacct']['config']['export']>) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForExport(policyID, settingValue);
-    const parameters = prepareParametersForExport(policyID, settingValue);
+function updateSageIntacctExport(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
+    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, settingName, settingValue);
+    const parameters = prepareParametersForExport(policyID, settingName, settingValue);
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
 function updateSageIntacctExporter(policyID: string, exporter: string) {
-    updateSageIntacctExport(policyID, {exporter});
+    updateSageIntacctExport(policyID, 'exporter', exporter);
 }
 
 function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
-    updateSageIntacctExport(policyID, {exportDate: date});
+    updateSageIntacctExport(policyID, 'exportDate', date);
 }
 
 function updateSageIntacctExportReimbursableExpense(policyID: string, reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>) {
-    updateSageIntacctExport(policyID, {reimbursable});
+    updateSageIntacctExport(policyID, 'reimbursable', reimbursable);
 }
 
-function updateSageIntacctDefaultVendor(policyID: string, settingValue: Partial<Connections['intacct']['config']['export']>) {
-    updateSageIntacctExport(policyID, settingValue);
+function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
+    updateSageIntacctExport(policyID, settingName, settingValue);
 }
 
 function updateSageIntacctExportNonReimbursableExpense(policyID: string, nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>) {
-    updateSageIntacctExport(policyID, {nonReimbursable});
+    updateSageIntacctExport(policyID, 'nonReimbursable', nonReimbursable);
 }
 
 function updateSageIntacctExportNonReimbursableAccount(policyID: string, nonReimbursableAccount: string) {
-    updateSageIntacctExport(policyID, {nonReimbursableAccount});
+    updateSageIntacctExport(policyID, 'nonReimbursableAccount', nonReimbursableAccount);
 }
 
 export {

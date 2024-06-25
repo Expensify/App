@@ -479,7 +479,7 @@ function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: str
     }));
 }
 
-function getSageIntacctNonReimbursableActiveDefaultVendor(policy: Policy | undefined): string | null | undefined {
+function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | null | undefined {
     const {
         nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
         nonReimbursableVendor: expenseReportDefaultVendor,
@@ -489,7 +489,7 @@ function getSageIntacctNonReimbursableActiveDefaultVendor(policy: Policy | undef
     return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
 }
 
-function getSageIntacctCreditCards(policy: Policy | undefined, selectedAccount: string | undefined): SelectorType[] {
+function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
     const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
     const isMatchFound = creditCards?.some(({name}) => name === selectedAccount);
 

@@ -634,7 +634,7 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Sage Intacct export configs */
-    export: {
+    export: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Current export status */
         exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
@@ -658,7 +658,10 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** */
         reimbursableExpenseReportDefaultVendor: string | null;
-    };
+
+        /** Collection of mapping field errors, which will be triggered when update action fails  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;

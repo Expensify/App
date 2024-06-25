@@ -70,8 +70,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
         title: reimbursableExpenseReportDefaultVendor
             ? getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors ?? [])
             : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.errorFields?.exporter,
-        pendingAction: config?.pendingFields?.export,
+        hasError: !!config?.export?.errorFields?.reimbursableExpenseReportDefaultVendor,
+        pendingAction: config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor,
     };
 
     const defaultVendor = (
@@ -114,7 +114,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
                         isActive={isSwitchOn}
                         onToggle={() => {
-                            updateSageIntacctDefaultVendor(policyID, {reimbursableExpenseReportDefaultVendor: null});
+                            updateSageIntacctDefaultVendor(policyID, 'reimbursableExpenseReportDefaultVendor', null);
                             setIsSwitchOn(!isSwitchOn);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}

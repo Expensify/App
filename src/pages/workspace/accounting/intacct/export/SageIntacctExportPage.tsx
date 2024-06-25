@@ -15,7 +15,7 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
 
-    const {export: exportConfig, pendingFields, errorFields, credentials} = policy?.connections?.intacct?.config ?? {};
+    const {export: exportConfig, credentials} = policy?.connections?.intacct?.config ?? {};
 
     const sections = useMemo(
         () => [
@@ -23,15 +23,15 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.preferredExporter'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER.getRoute(policyID)),
                 title: exportConfig?.exporter ?? translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!errorFields?.exporter,
-                pendingAction: pendingFields?.export,
+                hasError: !!exportConfig?.errorFields?.exporter,
+                pendingAction: exportConfig?.pendingFields?.exporter,
             },
             {
                 description: translate('workspace.sageIntacct.exportDate.label'),
                 action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE.getRoute(policyID)),
                 title: exportConfig?.exportDate ? translate(`workspace.sageIntacct.exportDate.values.${exportConfig.exportDate}.label`) : translate(`workspace.sageIntacct.notConfigured`),
-                hasError: !!errorFields?.exportDate,
-                pendingAction: pendingFields?.export,
+                hasError: !!exportConfig?.errorFields?.exportDate,
+                pendingAction: exportConfig?.pendingFields?.exportDate,
             },
             {
                 description: translate('workspace.sageIntacct.reimbursableExpenses.label'),
@@ -39,8 +39,8 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 title: exportConfig?.reimbursable
                     ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!errorFields?.reimbursable,
-                pendingAction: pendingFields?.export,
+                hasError: !!exportConfig?.errorFields?.reimbursable,
+                pendingAction: exportConfig?.pendingFields?.reimbursable,
             },
             {
                 description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
@@ -48,11 +48,11 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 title: exportConfig?.nonReimbursable
                     ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!errorFields?.nonReimbursable,
-                pendingAction: pendingFields?.export,
+                hasError: !!exportConfig?.errorFields?.nonReimbursable,
+                pendingAction: exportConfig?.pendingFields?.nonReimbursable,
             },
         ],
-        [errorFields, exportConfig, pendingFields, policyID, translate],
+        [exportConfig, policyID, translate],
     );
 
     return (

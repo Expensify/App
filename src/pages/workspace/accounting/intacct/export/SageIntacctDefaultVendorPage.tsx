@@ -19,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Connections} from '@src/types/onyx/Policy';
 
 type SageIntacctDefaultVendorPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR>;
 
@@ -53,19 +54,15 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (value !== defaultVendor) {
-                let settingValue;
+                let settingName: keyof Connections['intacct']['config']['export'];
                 if (isReimbursable) {
-                    settingValue = {reimbursableExpenseReportDefaultVendor: value};
+                    settingName = 'reimbursableExpenseReportDefaultVendor';
                 } else {
                     const {nonReimbursable} = policy?.connections?.intacct?.config.export ?? {};
-                    settingValue =
-                        nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
-                            ? {
-                                  nonReimbursableCreditCardChargeDefaultVendor: value,
-                              }
-                            : {nonReimbursableVendor: value};
+                    settingName =
+                        nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? 'nonReimbursableCreditCardChargeDefaultVendor' : 'nonReimbursableVendor';
                 }
-                updateSageIntacctDefaultVendor(policyID, settingValue);
+                updateSageIntacctDefaultVendor(policyID, settingName, value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },
