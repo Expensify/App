@@ -377,7 +377,7 @@ const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportPa
 });
 
 const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
-    [SCREENS.RESTRICTED_ACTION_ROOT]: () => require('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default as React.ComponentType,
+    [SCREENS.RESTRICTED_ACTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default as React.ComponentType,
 });
 
 export {
