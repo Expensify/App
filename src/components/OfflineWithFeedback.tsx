@@ -107,7 +107,8 @@ function OfflineWithFeedback({
                     return child;
                 }
 
-                const childProps = child.props as {children?: React.ReactNode; style?: AllStyles};
+                type ChildComponentProps = ChildrenProps & {style?: AllStyles};
+                const childProps = child.props as ChildComponentProps;
                 const props: StrikethroughProps = {
                     style: StyleUtils.combineStyles(childProps.style ?? [], styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
