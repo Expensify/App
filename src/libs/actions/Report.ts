@@ -1,14 +1,5 @@
-import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
-import {ExpensiMark, Str} from 'expensify-common';
-import isEmpty from 'lodash/isEmpty';
-import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {PartialDeep, ValueOf} from 'type-fest';
-import type {Emoji} from '@assets/emojis/types';
-import type {FileObject} from '@components/AttachmentModal';
-import AccountUtils from '@libs/AccountUtils';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
+import type { Emoji } from '@assets/emojis/types';
+import type { FileObject } from '@components/AttachmentModal';
 import * as API from '@libs/API';
 import type {
     AddCommentOrAttachementParams,
@@ -47,38 +38,40 @@ import type {
     UpdateRoomDescriptionParams,
 } from '@libs/API/parameters';
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import { READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS } from '@libs/API/types';
+import AccountUtils from '@libs/AccountUtils';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as CollectionUtils from '@libs/CollectionUtils';
-import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
-import {prepareDraftComment} from '@libs/DraftCommentUtils';
+import { prepareDraftComment } from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {NetworkStatus} from '@libs/NetworkConnection';
+import type { NetworkStatus } from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
-import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
+import { parseHtmlToMarkdown, parseHtmlToText } from '@libs/OnyxAwareParser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
-import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import processReportIDDeeplink from '@libs/processReportIDDeeplink';
+import { extractPolicyIDFromPath } from '@libs/PolicyUtils';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import type { OptimisticAddCommentReportAction } from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
-import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
-import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import { doesReportBelongToWorkspace } from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
+import type { CustomRNImageManipulatorResult } from '@libs/cropOrRotateImage/types';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import processReportIDDeeplink from '@libs/processReportIDDeeplink';
+import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import CONFIG from '@src/CONFIG';
-import type {OnboardingPurposeType} from '@src/CONST';
+import type { OnboardingPurposeType } from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type { Route } from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
@@ -93,17 +86,24 @@ import type {
     ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
-import type {Decision} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type { Decision } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
-import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability } from '@src/types/onyx/Report';
+import type { Message, ReportActions } from '@src/types/onyx/ReportAction';
+import type { EmptyObject } from '@src/types/utils/EmptyObject';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import { format as timezoneFormat, utcToZonedTime } from 'date-fns-tz';
+import { ExpensiMark, Str } from 'expensify-common';
+import isEmpty from 'lodash/isEmpty';
+import { DeviceEventEmitter, InteractionManager, Linking } from 'react-native';
+import type { NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate } from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type { PartialDeep, ValueOf } from 'type-fest';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
-import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
+import navigateFromNotification from './navigateFromNotification';
 
 type SubscriberCallback = (isFromCurrentUser: boolean, reportActionID: string | undefined) => void;
 
@@ -2743,6 +2743,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
 
+    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
+
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
             const participant: ReportParticipant = {
@@ -2756,10 +2759,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         {...report.participants},
     );
 
-    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
     const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+    const newParticipantAccountCleanUp = newAccountIDs.reduce<Record<number, null>>((participantCleanUp, newAccountID) => {
+        // eslint-disable-next-line no-param-reassign
+        participantCleanUp[newAccountID] = null;
+        return participantCleanUp;
+    }, {});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2784,6 +2791,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingChatMembers: successPendingChatMembers,
+                participants: newParticipantAccountCleanUp,
             },
         },
     ];
@@ -3759,87 +3767,11 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 }
 
 export {
-    searchInServer,
-    addComment,
-    addAttachment,
-    updateDescription,
-    updateWriteCapabilityAndNavigate,
-    updateNotificationPreference,
-    subscribeToReportTypingEvents,
-    subscribeToReportLeavingEvents,
-    unsubscribeFromReportChannel,
-    unsubscribeFromLeavingRoomReportChannel,
-    saveReportDraftComment,
-    broadcastUserIsTyping,
-    broadcastUserIsLeavingRoom,
-    togglePinnedState,
-    editReportComment,
-    handleUserDeletedLinksInHtml,
-    deleteReportActionDraft,
-    saveReportActionDraft,
-    deleteReportComment,
-    navigateToConciergeChat,
-    navigateToSystemChat,
-    addPolicyReport,
-    deleteReport,
-    navigateToConciergeChatAndDeleteReport,
-    setIsComposerFullSize,
-    expandURLPreview,
-    markCommentAsUnread,
-    readNewestAction,
-    openReport,
-    openReportFromDeepLink,
-    navigateToAndOpenReport,
-    navigateToAndOpenReportWithAccountIDs,
-    navigateToAndOpenChildReport,
-    toggleSubscribeToChildReport,
-    updatePolicyRoomNameAndNavigate,
-    clearPolicyRoomNameErrors,
-    clearReportNotFoundErrors,
-    clearIOUError,
-    subscribeToNewActionEvent,
-    notifyNewAction,
-    showReportActionNotification,
-    toggleEmojiReaction,
-    shouldShowReportActionNotification,
-    joinRoom,
-    leaveRoom,
-    inviteToRoom,
-    inviteToGroupChat,
-    removeFromRoom,
-    getCurrentUserAccountID,
-    setLastOpenedPublicRoom,
-    flagComment,
-    openLastOpenedPublicRoom,
-    updatePrivateNotes,
-    getReportPrivateNote,
-    clearPrivateNotesError,
-    hasErrorInPrivateNotes,
-    getOlderActions,
-    getNewerActions,
-    openRoomMembersPage,
-    savePrivateNotesDraft,
-    getDraftPrivateNote,
-    updateLastVisitTime,
-    clearNewRoomFormError,
-    updateReportField,
-    updateReportName,
-    deleteReportField,
-    clearReportFieldErrors,
-    resolveActionableMentionWhisper,
-    resolveActionableReportMentionWhisper,
-    updateRoomVisibility,
-    dismissTrackExpenseActionableWhisper,
-    setGroupDraft,
-    clearGroupChat,
-    startNewChat,
-    completeOnboarding,
-    updateGroupChatName,
-    updateGroupChatAvatar,
-    leaveGroupChat,
-    removeFromGroupChat,
-    updateGroupChatMemberRoles,
-    updateLoadingInitialReportAction,
-    clearAddRoomMemberError,
-    clearAvatarErrors,
+    addAttachment, addComment, addPolicyReport, broadcastUserIsLeavingRoom, broadcastUserIsTyping, clearAddRoomMemberError,
+    clearAvatarErrors, clearGroupChat, clearIOUError, clearNewRoomFormError, clearPolicyRoomNameErrors, clearPrivateNotesError, clearReportFieldErrors, clearReportNotFoundErrors, completeOnboarding, deleteReport, deleteReportActionDraft, deleteReportComment, deleteReportField, dismissTrackExpenseActionableWhisper, editReportComment, expandURLPreview, flagComment, getCurrentUserAccountID, getDraftPrivateNote, getNewerActions, getOlderActions, getReportPrivateNote, handleUserDeletedLinksInHtml, hasErrorInPrivateNotes, inviteToGroupChat, inviteToRoom, joinRoom, leaveGroupChat, leaveRoom, markCommentAsUnread, navigateToAndOpenChildReport, navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs, navigateToConciergeChat, navigateToConciergeChatAndDeleteReport, navigateToSystemChat, notifyNewAction, openLastOpenedPublicRoom, openReport,
+    openReportFromDeepLink, openRoomMembersPage, readNewestAction, removeFromGroupChat, removeFromRoom, resolveActionableMentionWhisper,
+    resolveActionableReportMentionWhisper, savePrivateNotesDraft, saveReportActionDraft, saveReportDraftComment, searchInServer, setGroupDraft, setIsComposerFullSize, setLastOpenedPublicRoom, shouldShowReportActionNotification, showReportActionNotification, startNewChat, subscribeToNewActionEvent, subscribeToReportLeavingEvents, subscribeToReportTypingEvents, toggleEmojiReaction, togglePinnedState, toggleSubscribeToChildReport, unsubscribeFromLeavingRoomReportChannel, unsubscribeFromReportChannel, updateDescription, updateGroupChatAvatar, updateGroupChatMemberRoles, updateGroupChatName, updateLastVisitTime, updateLoadingInitialReportAction, updateNotificationPreference, updatePolicyRoomNameAndNavigate, updatePrivateNotes, updateReportField,
+    updateReportName, updateRoomVisibility, updateWriteCapabilityAndNavigate
 };
+

@@ -158,6 +158,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
             login,
             accountID,
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            isOptimisticPersonalDetail: true,
         };
 
         /**
