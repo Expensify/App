@@ -1,16 +1,15 @@
 import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
-import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonViewProps} from './SelectionList/types';
 import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
 
 function UserListSkeletonView({shouldAnimate = true}: SkeletonViewProps) {
-    const theme = useTheme();
-
+    const styles = useThemeStyles();
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
-            itemViewStyle={{backgroundColor: theme.highlightBG, marginBottom: 12, marginHorizontal: 20, borderRadius: 8}}
+            itemViewStyle={[styles.highlightBG, styles.mb3, styles.mh5, styles.br2]}
             renderSkeletonItem={() => (
                 <>
                     <Circle
