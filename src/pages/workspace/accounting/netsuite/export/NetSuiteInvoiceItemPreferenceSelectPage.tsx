@@ -78,26 +78,27 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-        >
-            {config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT && (
-                <OfflineWithFeedback
-                    key={translate('workspace.netsuite.invoiceItem.label')}
-                    pendingAction={config?.pendingFields?.invoiceItem}
-                    errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
-                    errorRowStyles={[styles.ph5]}
-                    onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.netsuite.invoiceItem.label')}
-                        title={selectedItem ? selectedItem.name : undefined}
-                        interactive
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
-                        brickRoadIndicator={config?.errorFields?.invoiceItem ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
-                </OfflineWithFeedback>
-            )}
-        </SelectionScreen>
+            listFooterContent={
+                config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT ? (
+                    <OfflineWithFeedback
+                        key={translate('workspace.netsuite.invoiceItem.label')}
+                        pendingAction={config?.pendingFields?.invoiceItem}
+                        errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
+                        errorRowStyles={[styles.ph5]}
+                        onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.netsuite.invoiceItem.label')}
+                            title={selectedItem ? selectedItem.name : undefined}
+                            interactive
+                            shouldShowRightIcon
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT.getRoute(policyID))}
+                            brickRoadIndicator={config?.errorFields?.invoiceItem ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
+                ) : null
+            }
+        />
     );
 }
 
