@@ -118,7 +118,7 @@ function WorkspaceListValuesPage({
                 </View>
                 <FormProvider
                     ref={formRef}
-                    style={[styles.mh5, styles.flex1]}
+                    style={styles.flex1}
                     formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
