@@ -2576,7 +2576,8 @@ export default {
         export: {
             // TODO: Add correct translations
             notReadyHeading: 'Not ready to export',
-            notReadyDescription: 'Draft or outstanding expense reports... TODO',
+            notReadyDescription:
+                'Draft or outstanding expense reports can’t be exported to a connected accounting solution. Please approve or pay these expenses first before trying to export them.',
         },
         bills: {
             manageYourBills: 'Manage your bills',
