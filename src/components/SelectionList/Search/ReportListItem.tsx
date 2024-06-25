@@ -38,6 +38,7 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
 
     let total = reportItem?.total ?? 0;
 
+    // Only invert non-zero values otherwise we'll end up with -0.00
     if (total) {
         total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1;
     }
