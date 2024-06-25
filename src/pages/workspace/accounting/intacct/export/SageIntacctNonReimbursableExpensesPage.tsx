@@ -152,6 +152,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                             setIsSwitchOn(!isSwitchOn);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}
+                        pendingAction={config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor}
                     />
                     {isSwitchOn && defaultVendor}
                 </View>
