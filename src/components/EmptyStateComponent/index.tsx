@@ -9,24 +9,15 @@ import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
-import type {EmptyStateComponentProps} from './types';
+import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 1280 / 960;
-
-type VideoLoadedEventType = {
-    srcElement: {
-        videoWidth: number;
-        videoHeight: number;
-    };
-};
 
 function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const isSmallScreenWidth = getIsSmallScreenWidth();
 
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
-
-    const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -46,7 +37,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             HeaderComponent = (
                 <VideoPlayer
                     url={headerMedia}
-                    videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
+                    videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio: videoAspectRatio}]}
                     onVideoLoaded={setAspectRatio}
                     controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                     shouldUseControlsBottomMargin={false}

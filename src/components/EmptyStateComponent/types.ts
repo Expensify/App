@@ -27,5 +27,11 @@ type AnimationProps = MediaType<DotLottieAnimation, 'animation'>;
 
 type EmptyStateComponentProps = VideoProps | IllustrationProps | AnimationProps;
 
-// eslint-disable-next-line import/prefer-default-export
-export type {EmptyStateComponentProps};
+type VideoLoadedEventType = {
+    srcElement: {
+        videoWidth: number;
+        videoHeight: number;
+    };
+};
+
+export type {EmptyStateComponentProps, VideoLoadedEventType};
