@@ -1,7 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
+import LottieAnimations from '@components/LottieAnimations';
 import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -66,6 +68,19 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             },
         },
     ];
+
+    if (!canBeExported) {
+        return (
+            <ConfirmationPage
+                animation={LottieAnimations.Fireworks}
+                heading={translate('workspace.export.notReadyHeading')}
+                description={translate('workspace.export.notReadyDescription')}
+                shouldShowButton
+                buttonText={translate('common.buttonConfirm')}
+                onButtonPress={() => {}}
+            />
+        );
+    }
 
     return (
         <>

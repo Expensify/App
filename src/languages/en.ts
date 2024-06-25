@@ -2567,6 +2567,10 @@ export default {
                 },
             },
         },
+        export: {
+            notReadyHeading: 'Not ready to export',
+            notReadyDescription: 'Draft or outstanding expense reports... TODO',
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
