@@ -38,7 +38,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
@@ -80,7 +80,7 @@ type OnyxHOCProps = {
     markReadyForHydration?: () => void;
 };
 
-type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
 type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
 
@@ -352,11 +352,11 @@ function ReportScreen({
     }
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route.params.reportActionID) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
-    }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
+    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID]);
 
     if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
