@@ -33,7 +33,7 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     }
 
     let name;
-    let params;
+    let params: Record<string, string | undefined>;
     if (isCentralPaneName(action.payload.name)) {
         name = action.payload.name;
         params = action.payload.params;
