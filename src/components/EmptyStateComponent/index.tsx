@@ -11,7 +11,7 @@ import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
-const VIDEO_ASPECT_RATIO = 1280 / 960;
+const VIDEO_ASPECT_RATIO = 400 / 225;
 
 function EmptyStateComponent({
     SkeletonComponent,
@@ -89,7 +89,7 @@ function EmptyStateComponent({
             </View>
             <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
                 <View style={[styles.emptyStateContent(isSmallScreenWidth)]}>
-                    <View style={[styles.emptyStateHeader, headerStyles]}>{HeaderComponent}</View>
+                    <View style={[styles.emptyStateHeader(headerMediaType === 'illustration'), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.mb5]}>{subtitle}</Text>

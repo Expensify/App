@@ -5056,13 +5056,12 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         }),
 
-        emptyStateHeader: {
+        emptyStateHeader: (isIllustration: boolean) => ({
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
             minHeight: 200,
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
+            alignItems: isIllustration ? 'center' : 'stretch',
+        }),
 
         emptyFolderBG: {
             backgroundColor: theme.emptyFolderBG,
