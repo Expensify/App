@@ -20,6 +20,7 @@ import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languag
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -2170,10 +2171,11 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 /**
  * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
-function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, reportOrID: OnyxEntry<Report> | string, shouldUseShortDisplayName = true): string {
-    if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-        return '';
-    }
+function getReimbursementQueuedActionMessage(
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>,
+    reportOrID: OnyxEntry<Report> | string,
+    shouldUseShortDisplayName = true,
+): string {
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
@@ -2195,9 +2197,6 @@ function getReimbursementDeQueuedActionMessage(
     reportOrID: OnyxEntry<Report> | EmptyObject | string,
     isLHNPreview = false,
 ): string {
-    if (!ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
-        return '';
-    }
     const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] : reportOrID;
     const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction);
     const amount = originalMessage?.amount;
@@ -2786,7 +2785,7 @@ function canHoldUnholdReportAction(reportAction: OnyxInputOrEntry<ReportAction>)
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, backTo?: string): void => {
     if (!ReportActionsUtils.isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -2806,7 +2805,8 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
         IOU.unholdRequest(transactionID, reportAction.childReportID ?? '');
     } else {
         const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', activeRoute));
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID ?? '', backTo || activeRoute));
     }
 };
 
@@ -3527,6 +3527,18 @@ function goBackToDetailsPage(report: OnyxEntry<Report>) {
     }
 
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
+}
+
+function navigateBackAfterDeleteTransaction(backRoute: Route | undefined) {
+    if (!backRoute) {
+        return;
+    }
+    const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
+    if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.goBack(backRoute);
 }
 
 /**
@@ -7018,6 +7030,10 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
+function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
+    return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7261,6 +7277,7 @@ export {
     canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
+    navigateBackAfterDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,
     reportFieldsEnabled,
@@ -7292,6 +7309,7 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    findPolicyExpenseChatByPolicyID,
 };
 
 export type {

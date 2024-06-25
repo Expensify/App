@@ -127,7 +127,12 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {
+                title: translate('violations.hold'),
+                description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'),
+                danger: true,
+                shouldShowBorderBottom: true,
+            };
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
@@ -288,12 +293,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
-                onModalHide={() => {
-                    if (!navigateBackToAfterDelete.current) {
-                        return;
-                    }
-                    Navigation.goBack(navigateBackToAfterDelete.current);
-                }}
+                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
