@@ -2463,7 +2463,7 @@ export default {
                 const integrationName = currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
-            connectOtherIntegrationPrompt: (integrationToConnect?: ConnectionName): string => {
+            connectPrompt: (integrationToConnect?: ConnectionName): string => {
                 const integrationName = integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
                 return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },

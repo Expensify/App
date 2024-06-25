@@ -2462,34 +2462,13 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
             },
-            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
-                switch (integrationToConnect) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return `¿Estás seguro de que quieres desconectar ${
-                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración existente'
-                        } para configurar QuickBooks Online?`;
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return `¿Estás seguro de que quieres desconectar ${
-                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración existente'
-                        }  para configurar Xero?`;
-                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return `¿Estás seguro de que quieres desconectar ${
-                            currentIntegration ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'integración existente'
-                        }  para configurar NetSuite?`;
-                    default: {
-                        switch (currentIntegration) {
-                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                                return '¿Estás seguro de que quieres desconectar QuickBooks Online?';
-                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                                return '¿Estás seguro de que quieres desconectar Xero?';
-                            case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                                return '¿Estás seguro de que quieres desconectar NetSuite?';
-                            default: {
-                                return '¿Estás seguro de que quieres desconectar integración?';
-                            }
-                        }
-                    }
-                }
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+                const integrationName = currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration]: 'integración';
+                return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
+            },
+            connectPrompt: (integrationToConnect?: ConnectionName): string => {
+                const integrationName = integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
+                return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {

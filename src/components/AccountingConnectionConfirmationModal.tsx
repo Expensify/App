@@ -18,7 +18,7 @@ function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, 
             isVisible
             onConfirm={onConfirm}
             onCancel={onCancel}
-            prompt={translate('workspace.accounting.connectOtherIntegrationPrompt', integrationToConnect)}
+            prompt={translate('workspace.accounting.connectPrompt', integrationToConnect)}
             confirmText={translate('workspace.accounting.disconnect')}
             cancelText={translate('common.cancel')}
             danger
