@@ -190,7 +190,7 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
         return [];
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const message = reportAction?.message;
+    const message = getReportActionMessage(reportAction);
 
     if (!(originalMessage && 'whisperedTo' in originalMessage) && !(message && 'whisperedTo' in message)) {
         return [];
