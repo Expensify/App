@@ -62,6 +62,7 @@ function ItemListSkeletonView({
             items.push(
                 <View
                     key={`skeletonContainer${i}`}
+                    // style={[themeStyles.mr5, itemViewStyle]}
                     style={{opacity}}
                 >
                     <View style={itemViewStyle}>
