@@ -24,7 +24,7 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return PaginationUtils.getContinuousChain(sortedAllReportActions, pages ?? [], (item) => item.reportActionID, reportActionID);
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, pages, (item) => item.reportActionID, reportActionID);
     }, [reportActionID, sortedAllReportActions, pages]);
 
     const linkedAction = useMemo(() => sortedAllReportActions.find((obj) => String(obj.reportActionID) === String(reportActionID)), [sortedAllReportActions, reportActionID]);
