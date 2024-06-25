@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
+import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -38,19 +38,14 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                 small
             />
             {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', integrationToDisconnect)}
-                    isVisible={isDisconnectModalOpen}
+                <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
                         setIsDisconnectModalOpen(false);
                     }}
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO, integrationToDisconnect)}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             )}
         </>
