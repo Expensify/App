@@ -113,7 +113,20 @@ describe('CurrencyUtils', () => {
             [2500, 25],
             [2500.5, 25], // The backend should never send a decimal .5 value
         ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount)).toBe(expectedResult);
+            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, CONST.CURRENCY.USD)).toBe(expectedResult);
+        });
+    });
+
+    describe('convertToFrontendAmountAsInteger VND', () => {
+        test.each([
+            [2500, 25],
+            [2550, 26],
+            [25, 0],
+            [2500, 25],
+            [2586, 26],
+            [2500.5, 25], // The backend should never send a decimal .5 value
+        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, 'VND')).toBe(expectedResult);
         });
     });
 
@@ -127,7 +140,22 @@ describe('CurrencyUtils', () => {
             [undefined, ''],
             [0, '0.00'],
         ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsString(input)).toBe(expectedResult);
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input, CONST.CURRENCY.USD)).toBe(expectedResult);
+        });
+    });
+
+    describe('convertToFrontendAmountAsString VND', () => {
+        test.each([
+            [2500, '25'],
+            [2550, '26'],
+            [25, '0'],
+            [2500.5, '25'],
+            [null, ''],
+            [undefined, ''],
+            [0, '0'],
+            [2586, '26']
+        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input, 'VND')).toBe(expectedResult);
         });
     });
 
