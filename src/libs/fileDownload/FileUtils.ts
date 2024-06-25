@@ -15,7 +15,9 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 function showSuccessAlert(successMessage?: string) {
     Alert.alert(
         Localize.translateLocal('fileDownload.success.title'),
-        successMessage ?? Localize.translateLocal('fileDownload.success.message'),
+        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        successMessage || Localize.translateLocal('fileDownload.success.message'),
         [
             {
                 text: Localize.translateLocal('common.ok'),
