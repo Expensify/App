@@ -34,10 +34,6 @@ export default {
         maxHeight: '100%',
     },
 
-    mnh0: {
-        minHeight: 0,
-    },
-
     mnh100: {
         minHeight: '100%',
     },
