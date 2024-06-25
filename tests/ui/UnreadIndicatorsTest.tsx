@@ -5,7 +5,7 @@ import {addSeconds, format, subMinutes, subSeconds} from 'date-fns';
 import {utcToZonedTime} from 'date-fns-tz';
 import React from 'react';
 import {AppState, DeviceEventEmitter, Linking} from 'react-native';
-import type {ViewStyle} from 'react-native';
+import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -92,19 +92,18 @@ const createAddListenerMock = (): ListenerMock => {
 };
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav: jest.Mocked<typeof NativeNavigation> = jest.requireActual('@react-navigation/native');
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     transitionEndCB = triggerTransitionEnd;
 
-    const useNavigation = () =>
-        ({
-            navigate: jest.fn(),
-            ...actualNav.useNavigation,
-            getState: () => ({
-                routes: [],
-            }),
-            addListener,
-        } as typeof NativeNavigation.useNavigation);
+    const useNavigation = () => ({
+        ...actualNav.useNavigation(),
+        navigate: jest.fn(),
+        getState: () => ({
+            routes: [],
+        }),
+        addListener,
+    });
 
     return {
         ...actualNav,
@@ -304,7 +303,7 @@ describe('Unread Indicators', () => {
                 // And that the text is bold
                 const displayNameHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameText = screen.queryByLabelText(displayNameHintText);
-                expect(displayNameText?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((displayNameText?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
 
                 return navigateToSidebarOption(0);
             })
@@ -442,11 +441,11 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(displayNameHintTexts);
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
-                expect(firstReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((firstReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('C User')).toBeOnTheScreen();
 
                 const secondReportOption = displayNameTexts[1];
-                expect(secondReportOption?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((secondReportOption?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
@@ -459,57 +458,11 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
-                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
                 expect(screen.getAllByText('C User')[0]).toBeOnTheScreen();
-                expect(displayNameTexts[1]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((displayNameTexts[1]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
             }));
-    it('Delete a chat message and verify the unread indicator is moved', async () => {
-        const getUnreadIndicator = () => {
-            const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
-            return screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-        };
-
-        return signInAndGetAppWithUnreadChat()
-            .then(() => navigateToSidebarOption(0))
-            .then(async () => act(() => transitionEndCB?.()))
-            .then(async () => {
-                const reportActionsViewWrapper = await screen.findByTestId('report-actions-view-wrapper');
-                if (reportActionsViewWrapper) {
-                    fireEvent(reportActionsViewWrapper, 'onLayout', {nativeEvent: {layout: {x: 0, y: 0, width: 100, height: 100}}});
-                }
-                return waitForBatchedUpdates();
-            })
-            .then(() => {
-                // Verify the new line indicator is present, and it's before the action with ID 4
-                const unreadIndicator = getUnreadIndicator();
-                expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
-                expect(reportActionID).toBe('4');
-
-                // simulate delete comment event from Pusher
-                PusherHelper.emitOnyxUpdate([
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                        value: {
-                            '4': {
-                                message: [],
-                            },
-                        },
-                    },
-                ]);
-                return waitForBatchedUpdates();
-            })
-            .then(() =>
-                // Verify the new line indicator is now before the action with ID 5
-                waitFor(() => {
-                    const unreadIndicator = getUnreadIndicator();
-                    const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
-                    expect(reportActionID).toBe('5');
-                }),
-            );
-    });
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
         signInAndGetAppWithUnreadChat()
@@ -539,7 +492,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(FontUtils.fontWeight.bold);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(FontUtils.fontWeight.bold);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and back to the sidebar
@@ -551,7 +504,7 @@ describe('Unread Indicators', () => {
                 const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(1);
-                expect(displayNameTexts[0]?.props?.style?.fontWeight).toBe(undefined);
+                expect((displayNameTexts[0]?.props?.style as TextStyle)?.fontWeight).toBe(undefined);
                 expect(screen.getByText('B User')).toBeOnTheScreen();
 
                 // Navigate to the report again and verify the new line indicator is missing

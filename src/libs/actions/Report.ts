@@ -148,6 +148,10 @@ type GuidedSetupData = Array<
           AddCommentOrAttachementParams)
 >;
 
+type ReportError = {
+    type?: string;
+};
+
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
@@ -341,7 +345,7 @@ function subscribeToReportTypingEvents(reportID: string) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
-    }).catch((error) => {
+    }).catch((error: ReportError) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
 }
@@ -372,7 +376,7 @@ function subscribeToReportLeavingEvents(reportID: string) {
         }
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
-    }).catch((error) => {
+    }).catch((error: ReportError) => {
         Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
 }
@@ -974,9 +978,20 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID);
+            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         } else {
-            newChat = ReportUtils.buildOptimisticChatReport([...participantAccountIDs, currentUserAccountID]);
+            newChat = ReportUtils.buildOptimisticChatReport(
+                [...participantAccountIDs, currentUserAccountID],
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
         }
     }
     const report = isEmptyObject(chat) ? newChat : chat;

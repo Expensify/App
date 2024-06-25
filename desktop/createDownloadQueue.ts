@@ -22,6 +22,10 @@ type CreateDownloadQueue = () => {
     dequeueDownloadItem: () => DownloadItem | undefined;
 };
 
+type CreateDownloadQueueModule = {
+    default: CreateDownloadQueue;
+};
+
 /**
  * Returns the filename with extension based on the given name and MIME type.
  * @param name - The name of the file.
@@ -119,4 +123,4 @@ const createDownloadQueue: CreateDownloadQueue = () => {
 };
 
 export default createDownloadQueue;
-export type {DownloadItem, CreateDownloadQueue};
+export type {DownloadItem, CreateDownloadQueueModule};
