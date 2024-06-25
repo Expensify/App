@@ -49,7 +49,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const maxParticipantsReached = useMemo(() => selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS, [selectedOptions.length]);
 
     const defaultOptions = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
@@ -99,12 +98,12 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     );
 
     useEffect(() => {
-        if (!debouncedSearchTerm.length || maxParticipantsReached) {
+        if (!debouncedSearchTerm.length) {
             return;
         }
 
         Report.searchInServer(debouncedSearchTerm);
-    }, [debouncedSearchTerm, maxParticipantsReached]);
+    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         if (!newGroupDraft?.participants) {
@@ -142,7 +141,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         selectedOptions,
         setSelectedOptions,
         headerMessage,
-        maxParticipantsReached,
     };
 }
 
