@@ -31,7 +31,7 @@ import type {
     ReportAction,
     ReportMetadata,
     ReportNameValuePairs,
-    ReportViolation,
+    ReportViolationName,
     ReportViolations,
     Session,
     Task,
@@ -7031,7 +7031,7 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
-function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolation | undefined {
+function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolationName | undefined {
     if (!violations || !reportField) {
         return undefined;
     }
@@ -7039,7 +7039,7 @@ function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField:
     return Object.values(CONST.REPORT_VIOLATIONS).find((v) => !!violations[v] && violations[v][reportField.fieldID]);
 }
 
-function getFieldViolationTranslation(violation: ReportViolation | undefined, reportField: PolicyReportField): string {
+function getFieldViolationTranslation(violation: ReportViolationName | undefined, reportField: PolicyReportField): string {
     if (!violation) {
         return '';
     }
