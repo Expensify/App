@@ -19,13 +19,16 @@ import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Report from '@userActions/Report';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
 
 type MoneyRequestParticipantsSelectorProps = {
@@ -378,6 +381,20 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         onFinish,
     ]);
 
+    const onSelectRow = (option: Participant) => {
+        if (option.isPolicyExpenseChat && option.policyID && SubscriptionUtils.shouldRestrictUserBillableActions(option.policyID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
+            return;
+        }
+
+        if (isIOUSplit) {
+            addParticipantToSelection(option);
+            return;
+        }
+
+        addSingleParticipant(option);
+    };
+
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
@@ -388,7 +405,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
+            onSelectRow={onSelectRow}
             shouldDebounceRowSelect
             footerContent={footerContent}
             headerMessage={header}
