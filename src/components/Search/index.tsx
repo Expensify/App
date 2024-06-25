@@ -174,7 +174,21 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             return;
         }
 
-        item.transactions.forEach((transaction) => toggleTransaction(transaction));
+        if (item.transactions.every((transaction) => selectedItems[transaction.keyForList]?.isSelected)) {
+            const reducedSelectedItems = item.transactions.reduce((acc: SelectedTransactions, currentTransaction) => {
+                if (!selectedItems[currentTransaction.keyForList]) {
+                    acc[currentTransaction.keyForList] = selectedItems[currentTransaction.keyForList];
+                }
+                return acc;
+            }, {});
+
+            setSelectedItems(reducedSelectedItems);
+            return;
+        }
+
+        setSelectedItems(
+            Object.fromEntries(item.transactions.map((transaction) => [transaction.keyForList, {isSelected: true, canDelete: transaction.canDelete, action: transaction.action}])),
+        );
     };
 
     const toggleAllTransactions = () => {

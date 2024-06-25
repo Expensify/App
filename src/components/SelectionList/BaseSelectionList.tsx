@@ -24,6 +24,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
+import * as SearchUtils from '@libs/SearchUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -431,10 +432,9 @@ function BaseSelectionList<TItem extends ListItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         const handleOnCheckboxPress = () => {
-            if (`transactions` in item) {
+            if (SearchUtils.isReportListItem(item)) {
                 return onCheckboxPress;
             }
-
             return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
         };
 

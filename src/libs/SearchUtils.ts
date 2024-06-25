@@ -1,7 +1,7 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -274,5 +274,9 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
+function isReportListItem(item: ListItem): item is ReportListItemType {
+    return `transactions` in item;
+}
+
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItem};
 export type {SearchColumnType, SortOrder};
