@@ -73,7 +73,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     const menuItems: MenuItem[] = [
         {
-            description: translate('workspace.netsuite.exportAs'),
+            description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.getRoute(policyID, params.expenseType)),
             brickRoadIndicator: exportDestinationError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDestination ? translate(`workspace.netsuite.exportDestination.values.${exportDestination}.label`) : undefined,
@@ -84,7 +84,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             shouldParseHelperText: true,
         },
         {
-            description: translate('workspace.netsuite.defaultVendor'),
+            description: translate('workspace.accounting.defaultVendor'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.getRoute(policyID, params.expenseType)),
             brickRoadIndicator: config?.errorFields?.defaultVendor ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: defaultVendor ? defaultVendor.name : undefined,

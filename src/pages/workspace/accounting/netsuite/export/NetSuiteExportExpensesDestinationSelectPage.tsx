@@ -56,7 +56,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     return (
         <SelectionScreen
             displayName={NetSuiteExportExpensesDestinationSelectPage.displayName}
-            title="workspace.netsuite.exportAs"
+            title="workspace.accounting.exportAs"
             sections={[{data}]}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectDestination(selection as MenuListItem)}

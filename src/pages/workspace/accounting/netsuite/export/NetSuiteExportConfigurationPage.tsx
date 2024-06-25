@@ -80,7 +80,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const menuItems: Array<MenuItem | ToggleItem | DividerLineItem> = [
         {
             type: 'menuitem',
-            description: translate('workspace.netsuite.preferredExporter'),
+            description: translate('workspace.accounting.preferredExporter'),
             onPress: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
             },
@@ -201,7 +201,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     return (
         <ConnectionLayout
             displayName={NetSuiteExportConfigurationPage.displayName}
-            headerTitle="workspace.netsuite.export"
+            headerTitle="workspace.accounting.export"
             headerSubtitle={config?.subsidiary ?? ''}
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

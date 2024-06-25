@@ -69,7 +69,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 subtitle={translate('workspace.qbo.defaultVendorDescription')}
                                 switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
                                 errors={errorFields?.autoCreateVendor ?? undefined}
-                                title={translate('workspace.qbo.defaultVendor')}
+                                title={translate('workspace.accounting.defaultVendor')}
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                                 isActive={!!autoCreateVendor}
                                 onToggle={(isOn) =>

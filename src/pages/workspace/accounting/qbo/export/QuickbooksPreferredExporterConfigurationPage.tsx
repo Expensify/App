@@ -69,12 +69,12 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper testID={QuickbooksPreferredExporterConfigurationPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.preferredExporter')} />
                 <SelectionList
                     headerContent={
                         <>
-                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
-                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
+                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accounting.exportPreferredExporterNote')}</Text>
+                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.accounting.exportPreferredExporterSubNote')}</Text>
                         </>
                     }
                     sections={[{data}]}
