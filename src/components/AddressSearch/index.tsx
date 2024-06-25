@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserLocation from '@libs/actions/UserLocation';
 import * as ApiUtils from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
@@ -267,12 +268,17 @@ function AddressSearch(
                 setIsFetchingCurrentLocation(false);
                 setLocationErrorCode(null);
 
+                const {latitude, longitude} = successData.coords;
+
                 const location = {
-                    lat: successData.coords.latitude,
-                    lng: successData.coords.longitude,
+                    lat: latitude,
+                    lng: longitude,
                     address: CONST.YOUR_LOCATION_TEXT,
                     name: CONST.YOUR_LOCATION_TEXT,
                 };
+
+                // Update the current user location
+                UserLocation.setUserLocation({longitude, latitude});
                 onPress?.(location);
             },
             (errorData) => {
