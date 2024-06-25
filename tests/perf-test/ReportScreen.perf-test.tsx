@@ -2,6 +2,7 @@ import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stac
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
+import type ReactNative from 'react-native';
 import {Dimensions, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
@@ -50,7 +51,7 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 }));
 
 jest.mock('react-native', () => {
-    const actualReactNative = jest.requireActual('react-native');
+    const actualReactNative = jest.requireActual<typeof ReactNative>('react-native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualReactNative,
