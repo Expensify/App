@@ -331,7 +331,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/ChangeBillingCurrency').default as React.ComponentType,
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: () =>
-        require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard/AddPaymentCard').default as React.ComponentType,
+        require<ReactComponentModule>('../../../../pages/settings/Subscription/PaymentCard').default as React.ComponentType,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
