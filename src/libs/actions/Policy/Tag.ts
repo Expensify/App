@@ -589,12 +589,11 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    errors: {
-                        [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                    },
                     [newName]: null,
-                    [oldName]: oldPolicyTags,
+                    [oldName]: {
+                        ...oldPolicyTags,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    },
                 },
             },
         ],
