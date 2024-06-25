@@ -20,6 +20,7 @@ import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languag
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -3528,6 +3529,18 @@ function goBackToDetailsPage(report: OnyxEntry<Report>) {
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'));
 }
 
+function navigateBackAfterDeleteTransaction(backRoute: Route | undefined) {
+    if (!backRoute) {
+        return;
+    }
+    const topmostCentralPaneRoute = Navigation.getTopMostCentralPaneRouteFromRootState();
+    if (topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.goBack(backRoute);
+}
+
 /**
  * Go back to the previous page from the edit private page of a given report
  */
@@ -6539,9 +6552,9 @@ function hasHeldExpenses(iouReportID?: string): boolean {
 /**
  * Check if all expenses in the Report are on hold
  */
-function hasOnlyHeldExpenses(iouReportID: string): boolean {
-    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-    return !transactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+function hasOnlyHeldExpenses(iouReportID: string, transactions?: OnyxCollection<Transaction>): boolean {
+    const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID, transactions);
+    return !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
 
 /**
@@ -7264,6 +7277,7 @@ export {
     canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
+    navigateBackAfterDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,
     reportFieldsEnabled,
