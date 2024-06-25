@@ -1434,7 +1434,7 @@ export default {
     },
     privatePersonalDetails: {
         personalDetails: 'Personal details',
-        privateDataMessage: 'These details are used for travel and payments. They're never shown on your public profile.',
+        privateDataMessage: "These details are used for travel and payments. They're never shown on your public profile.",
         legalName: 'Legal name',
         legalFirstName: 'Legal first name',
         legalLastName: 'Legal last name',
