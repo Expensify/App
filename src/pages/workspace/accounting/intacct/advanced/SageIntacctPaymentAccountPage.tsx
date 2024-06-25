@@ -25,7 +25,7 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const {reimbursementAccountID} = policy?.connections?.intacct?.config.sync ?? {};
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, reimbursementAccountID), [reimbursementAccountID, policy]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -46,18 +46,17 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
         [policyID, reimbursementAccountID],
     );
 
-    // TODO: test on empty list
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noAccountsFound')}
-                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+                title={translate('workspace.common.noAccountsFound')}
+                subtitle={translate('workspace.common.noAccountsFoundDescription', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}
             />
         ),
-        [translate, styles.pb10],
+        [translate],
     );
 
     return (

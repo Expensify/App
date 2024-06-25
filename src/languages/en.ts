@@ -112,6 +112,19 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
+function integrationName(integration: ConnectionName): string {
+    switch (integration) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return 'Quickbooks Online';
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return 'Xero';
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return 'Sage Intacct';
+        default:
+            return 'Integration';
+    }
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -1987,6 +2000,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Add the account in ${integrationName(integration)} and sync the connection again.`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2422,18 +2437,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             intacct: 'Sage Intacct',
-            integrationName: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                        return 'Sage Intacct';
-                    default:
-                        return 'Integration';
-                }
-            },
+            integrationName,
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',

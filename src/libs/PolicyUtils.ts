@@ -409,16 +409,14 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
-function getSageIntacctBankAccounts(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
-    const vendors = policy?.connections?.intacct?.data?.bankAccounts ?? [];
+function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
+    const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
 
-    const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
-
-    return (vendors ?? []).map(({id, name}) => ({
+    return (bankAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: isMatchFound && selectedVendorId === id,
+        isSelected: selectedBankAccountId === id,
     }));
 }
 

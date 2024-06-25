@@ -1335,7 +1335,7 @@ const CONST = {
 
     SAGE_INTACCT: {
         APPROVAL_MODE: {
-            MANUAL: 'MANUAL',
+            APPROVAL_MANUAL: 'APPROVAL_MANUAL',
         },
     },
 
