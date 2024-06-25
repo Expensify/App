@@ -13,7 +13,17 @@ import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
 const VIDEO_ASPECT_RATIO = 1280 / 960;
 
-function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles}: EmptyStateComponentProps) {
+function EmptyStateComponent({
+    SkeletonComponent,
+    headerMediaType,
+    headerMedia,
+    buttonText,
+    buttonAction,
+    title,
+    subtitle,
+    headerStyles,
+    customIllustartionWidth = '100%',
+}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const isSmallScreenWidth = getIsSmallScreenWidth();
 
@@ -57,7 +67,12 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             );
             break;
         case 'illustration':
-            HeaderComponent = <ImageSVG src={headerMedia} />;
+            HeaderComponent = (
+                <ImageSVG
+                    width={customIllustartionWidth}
+                    src={headerMedia}
+                />
+            );
             break;
         default:
             HeaderComponent = null;

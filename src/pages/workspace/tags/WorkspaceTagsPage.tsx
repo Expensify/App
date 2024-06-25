@@ -11,7 +11,6 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import DotLottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
@@ -336,9 +335,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 {!hasVisibleTag && !isLoading && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType="animation"
-                        headerMedia={DotLottieAnimations.Coin}
-                        headerStyles={styles.activeComponentBG}
+                        headerMediaType="illustration"
+                        headerMedia={Illustrations.EmptyState}
+                        headerStyles={styles.emptyFolderBG}
+                        customIllustartionWidth={184}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />

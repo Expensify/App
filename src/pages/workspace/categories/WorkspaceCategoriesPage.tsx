@@ -11,7 +11,6 @@ import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import DotLottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
@@ -322,9 +321,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {shouldShowEmptyState && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType="animation"
-                        headerMedia={DotLottieAnimations.Coin}
-                        headerStyles={styles.activeComponentBG}
+                        headerMediaType="illustration"
+                        headerMedia={Illustrations.EmptyState}
+                        headerStyles={styles.emptyFolderBG}
+                        customIllustartionWidth={184}
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     />

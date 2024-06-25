@@ -5059,6 +5059,13 @@ const styles = (theme: ThemeColors) =>
         emptyStateHeader: {
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
+            minHeight: 200,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        emptyFolderBG: {
+            backgroundColor: theme.emptyFolderBG,
         },
     } satisfies Styles);
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import LottieAnimations from '@components/LottieAnimations';
+import * as Illustrations from '@components/Icon/Illustrations';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,9 +12,10 @@ function EmptySearchView() {
     return (
         <EmptyStateComponent
             SkeletonComponent={SearchRowSkeleton}
-            headerMediaType="animation"
-            headerMedia={LottieAnimations.Coin}
-            headerStyles={styles.activeComponentBG}
+            headerMediaType="illustration"
+            headerMedia={Illustrations.EmptyState}
+            headerStyles={styles.emptyFolderBG}
+            customIllustartionWidth={184}
             title={translate('search.searchResults.emptyResults.title')}
             subtitle={translate('search.searchResults.emptyResults.subtitle')}
         />

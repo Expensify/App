@@ -15,6 +15,7 @@ type SharedProps<T> = {
     buttonAction?: () => void;
     headerStyles?: StyleProp<ViewStyle>;
     headerMediaType: T;
+    customIllustartionWidth?: string | number;
 };
 
 type MediaType<HeaderMedia, T extends MediaTypes> = SharedProps<T> & {
