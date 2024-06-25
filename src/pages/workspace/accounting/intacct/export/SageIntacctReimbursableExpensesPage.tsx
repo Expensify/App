@@ -57,7 +57,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value !== reimbursable) {
                 updateSageIntacctExportReimbursableExpense(policyID, row.value);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
+            if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
+                Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
+            }
         },
         [reimbursable, policyID],
     );
