@@ -291,6 +291,7 @@ const SCREENS = {
         TAXES: 'Workspace_Taxes',
         REPORT_FIELDS: 'Workspace_ReportFields',
         REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
+        REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',

@@ -19,9 +19,9 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
-import ListValuesSelector from './ListValuesSelector';
 import TypeSelector from './TypeSelector';
 
 type CreatePolicyReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE>;
@@ -133,11 +133,10 @@ function CreatePolicyReportFieldPage({
                             )}
 
                             {inputValues[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && (
-                                <InputWrapper
-                                    InputComponent={ListValuesSelector}
-                                    inputID={INPUT_IDS.LIST_VALUES}
-                                    subtitle={translate('workspace.reportFields.listInputSubtitle')}
-                                    label={translate('common.listValues')}
+                                <MenuItemWithTopDescription
+                                    description={translate('common.listValues')}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID))}
                                 />
                             )}
                         </View>
