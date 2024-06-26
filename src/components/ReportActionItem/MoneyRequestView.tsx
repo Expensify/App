@@ -419,7 +419,10 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
+                            if (
+                                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                                Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))
+                            ) {
                                 deleteTransaction(parentReport, parentReportAction);
                             }
                             Transaction.clearError(transaction.transactionID);
