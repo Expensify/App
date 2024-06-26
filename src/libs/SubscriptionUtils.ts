@@ -4,6 +4,15 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, Policy} from '@src/types/onyx';
+import * as PolicyUtils from './PolicyUtils';
+
+let currentUserAccountID: number = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID ?? -1;
+    },
+});
 
 let firstDayFreeTrial: OnyxEntry<string>;
 Onyx.connect({
@@ -106,6 +115,8 @@ function doesUserHavePaymentCardAdded(): boolean {
 function shouldRestrictUserBillableActions(policyID: string): boolean {
     const currentDate = new Date();
 
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
     // past due and is past its grace period end.
@@ -114,10 +125,9 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 
         if (userBillingGracePeriodEnd && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {
             // Extracts the owner account ID from the collection member key.
-            const ownerAccountID = entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length);
+            const ownerAccountID = Number(entryKey.slice(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END.length));
 
-            const ownerPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            if (String(ownerPolicy?.ownerAccountID ?? -1) === ownerAccountID) {
+            if (PolicyUtils.isPolicyOwner(policy, ownerAccountID)) {
                 return true;
             }
         }
@@ -125,7 +135,13 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 
     // If it reached here it means that the user is actually the workspace's owner.
     // We should restrict the workspace's owner actions if it's past its grace period end date and it's owing some amount.
-    if (ownerBillingGraceEndPeriod && amountOwed !== undefined && amountOwed > 0 && isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))) {
+    if (
+        PolicyUtils.isPolicyOwner(policy, currentUserAccountID) &&
+        ownerBillingGraceEndPeriod &&
+        amountOwed !== undefined &&
+        amountOwed > 0 &&
+        isAfter(currentDate, fromUnixTime(ownerBillingGraceEndPeriod))
+    ) {
         return true;
     }
 
