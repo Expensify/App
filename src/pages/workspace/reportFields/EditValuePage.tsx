@@ -62,7 +62,6 @@ function EditValuePage({
     const editValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
-            // Do not call the API if the edited tag name is the same as the current tag name
             if (currentValueName !== valueName) {
                 renameReportFieldsListValue(valueIndex, valueName);
             }
