@@ -914,7 +914,7 @@ function getParentReport(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTyp
 /**
  * Returns the report
  */
-function getReport(reportID: string): OnyxEntry<OnyxTypes.Report> | EmptyObject {
+function getReport(reportID: string): OnyxEntry<OnyxTypes.Report> {
     return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
 }
 
