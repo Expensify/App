@@ -3623,6 +3623,9 @@ function trackExpense(
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const isMovingTransactionFromTrackExpense = IOUUtils.isMovingTransactionFromTrackExpense(action);
 
+    // Pass an open receipt so the distance expense will show a map with the route optimistically
+    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+
     const {
         createdWorkspaceParams,
         iouReport,
@@ -3645,7 +3648,7 @@ function trackExpense(
             currency,
             created,
             merchant,
-            receipt,
+            trackedReceipt,
             category,
             tag,
             taxCode,
