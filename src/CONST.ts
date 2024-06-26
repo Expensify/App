@@ -1334,10 +1334,6 @@ const CONST = {
         },
     },
 
-    NETSUITE_CONFIG: {
-        SUBSIDIARY: 'subsidiary',
-    },
-
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -1351,6 +1347,7 @@ const CONST = {
     },
 
     NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
         EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
