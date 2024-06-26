@@ -27,6 +27,7 @@ import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
+import {ListItem} from "@components/SelectionList/types";
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -35,7 +36,7 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
     /** Selected participants from MoneyRequestModal with login */
-    participants?: Participant[];
+    participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
@@ -378,7 +379,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         onFinish,
     ]);
 
-    const onSelectRow = useCallback((item) => {
+    const onSelectRow = useCallback((item: Participant) => {
         if (isIOUSplit) {
             addParticipantToSelection(item);
             return;
