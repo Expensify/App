@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const PAYMENT_STATUS = {
     POLICY_OWNER_WITH_AMOUNT_OWED: 'policy_owner_with_amount_owed',
@@ -42,25 +43,13 @@ Onyx.connect({
 let billingDisputePending: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        billingDisputePending = value;
-    },
+    callback: (value) => (billingDisputePending = value),
 });
 
 let billingStatus: OnyxEntry<BillingStatus>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        billingStatus = value;
-    },
+    callback: (value) => (billingStatus = value),
 });
 
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
@@ -153,6 +142,10 @@ function getAmountOwed(): number {
     return amountOwed ?? 0;
 }
 
+function hasAmountOwed(): boolean {
+    return !!amountOwed;
+}
+
 /**
  * @returns Whether there is a card authentication error.
  */
@@ -192,7 +185,7 @@ function getCardForSubscriptionBilling(): Fund | undefined {
  * @returns Whether the card is due to expire soon.
  */
 function hasCardExpiringSoon(): boolean {
-    if (billingStatus) {
+    if (!isEmptyObject(billingStatus ?? {})) {
         return false;
     }
 
@@ -229,7 +222,7 @@ type SubscriptionStatus = {
  */
 function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
-        if (amountOwed) {
+        if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
             if (hasGracePeriodOverdue() === false) {
                 return {
@@ -246,21 +239,20 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (hasGracePeriodOverdue() && !amountOwed) {
+            if (hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 };
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue() === false && amountOwed) {
+            if (hasGracePeriodOverdue() === false) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 };
             }
         }
     }
-
     // 5. Billing disputed by cardholder
     if (hasBillingDisputePending()) {
         return {
