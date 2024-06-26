@@ -6592,15 +6592,18 @@ function getNonHeldAndFullAmount(iouReport: OnyxEntry<Report>, policy: OnyxEntry
     const transactions = TransactionUtils.getAllReportTransactions(iouReport?.reportID ?? '-1');
     const hasPendingTransaction = transactions.some((transaction) => !!transaction.pendingAction);
 
+    // if the report is an expense report, the total amount should be negated
+    const coefficient = isExpenseReport(iouReport) ? -1 : 1;
+
     if (hasUpdatedTotal(iouReport, policy) && hasPendingTransaction) {
         const unheldTotal = transactions.reduce((currentVal, transaction) => currentVal - (!TransactionUtils.isOnHold(transaction) ? transaction.amount : 0), 0);
 
-        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency)];
+        return [CurrencyUtils.convertToDisplayString(unheldTotal, iouReport?.currency), CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency)];
     }
 
     return [
-        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * -1, iouReport?.currency),
-        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * -1, iouReport?.currency),
+        CurrencyUtils.convertToDisplayString((iouReport?.unheldTotal ?? 0) * coefficient, iouReport?.currency),
+        CurrencyUtils.convertToDisplayString((iouReport?.total ?? 0) * coefficient, iouReport?.currency),
     ];
 }
 
