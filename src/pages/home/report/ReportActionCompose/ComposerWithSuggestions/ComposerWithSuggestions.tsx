@@ -437,7 +437,7 @@ function ComposerWithSuggestions(
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
-    const todoGiveThisAProperName = useCallback(({
+    const handleComposerUpdate = useCallback(({
         fullNewText,
         diffText,
         endPositionOfNewAddedText,
@@ -527,14 +527,14 @@ function ComposerWithSuggestions(
             const currentText = valueRef.current;
             const fullNewText = currentText.substring(0, start) + diffText + currentText.substring(start + before);
 
-            todoGiveThisAProperName({
+            handleComposerUpdate({
                 fullNewText,
                 diffText,
                 endPositionOfNewAddedText: endPosition,
                 shouldDebounceSaveComment: true,
             })
         },
-        [todoGiveThisAProperName],
+        [handleComposerUpdate],
     );
 
     /**
@@ -544,7 +544,7 @@ function ComposerWithSuggestions(
         (text: string) => {
             const newFullText = ComposerUtils.insertText(valueRef.current, selection, text)
             const endPositionOfNewAddedText = selection.start + text.length;
-            todoGiveThisAProperName({
+            handleComposerUpdate({
                 fullNewText: newFullText,
                 diffText: text,
                 endPositionOfNewAddedText,
@@ -553,7 +553,7 @@ function ComposerWithSuggestions(
                 shouldDebounceSaveComment: true,
             });
         },
-        [selection, todoGiveThisAProperName],
+        [selection, handleComposerUpdate],
     );
 
     const onSelectionChange = useCallback(
