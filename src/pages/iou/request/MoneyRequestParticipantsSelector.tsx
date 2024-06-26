@@ -11,6 +11,7 @@ import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +28,6 @@ import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Participant} from '@src/types/onyx/IOU';
-import {ListItem} from "@components/SelectionList/types";
 
 type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -379,13 +379,16 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         onFinish,
     ]);
 
-    const onSelectRow = useCallback((item: Participant) => {
-        if (isIOUSplit) {
-            addParticipantToSelection(item);
-            return;
-        }
-        addSingleParticipant(item);
-    }, [isIOUSplit, addParticipantToSelection, addSingleParticipant]);
+    const onSelectRow = useCallback(
+        (item: Participant) => {
+            if (isIOUSplit) {
+                addParticipantToSelection(item);
+                return;
+            }
+            addSingleParticipant(item);
+        },
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant],
+    );
 
     return (
         <SelectionList
