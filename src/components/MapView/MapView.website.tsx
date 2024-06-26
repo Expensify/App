@@ -6,12 +6,13 @@ import {useFocusEffect} from '@react-navigation/native';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {MapRef} from 'react-map-gl';
+import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,7 +40,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             waypoints,
             mapPadding,
             accessToken,
-            userLocation: cachedUserLocation,
+            userLocation,
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
             interactive = true,
@@ -55,7 +56,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const [mapRef, setMapRef] = useState<MapRef | null>(null);
         const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
+        const currentPosition = userLocation ?? initialLocation;
+        const prevUserPosition = usePrevious(currentPosition);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const [shouldResetBoundaries, setShouldResetBoundaries] = useState<boolean>(false);
         const setRef = useCallback((newRef: MapRef | null) => setMapRef(newRef), []);
@@ -73,7 +75,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition(initialLocation);
             },
             [initialLocation],
         );
@@ -97,7 +98,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
                     UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
@@ -112,11 +112,15 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 return;
             }
 
+            // Avoid animating the naviagtion to the same location
+            const shouldAnimate = prevUserPosition.longitude !== currentPosition.longitude || prevUserPosition.latitude !== currentPosition.latitude;
+
             mapRef.flyTo({
                 center: [currentPosition.longitude, currentPosition.latitude],
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                animate: shouldAnimate,
             });
-        }, [currentPosition, userInteractedWithMap, mapRef, shouldPanMapToCurrentPosition]);
+        }, [currentPosition, mapRef, prevUserPosition, shouldPanMapToCurrentPosition]);
 
         const resetBoundaries = useCallback(() => {
             if (!waypoints || waypoints.length === 0) {
@@ -206,7 +210,28 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding]);
 
-        return !isOffline && !!accessToken && !!currentPosition ? (
+        const initialViewState: Partial<ViewState> | undefined = useMemo(() => {
+            if (!interactive) {
+                if (!waypoints) {
+                    return undefined;
+                }
+                const {northEast, southWest} = utils.getBounds(
+                    waypoints.map((waypoint) => waypoint.coordinate),
+                    directionCoordinates,
+                );
+                return {
+                    zoom: initialState.zoom,
+                    bounds: [northEast, southWest],
+                };
+            }
+            return {
+                longitude: currentPosition?.longitude,
+                latitude: currentPosition?.latitude,
+                zoom: initialState.zoom,
+            };
+        }, [waypoints, directionCoordinates, interactive, currentPosition, initialState.zoom]);
+
+        return !isOffline && !!accessToken && !!initialViewState ? (
             <View
                 style={style}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -217,25 +242,23 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     ref={setRef}
                     mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}
-                    initialViewState={{
-                        longitude: currentPosition?.longitude,
-                        latitude: currentPosition?.latitude,
-                        zoom: initialState.zoom,
-                    }}
+                    initialViewState={initialViewState}
                     style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
                     mapStyle={styleURL}
                     interactive={interactive}
                 >
-                    <Marker
-                        key="Current-position"
-                        longitude={currentPosition?.longitude ?? 0}
-                        latitude={currentPosition?.latitude ?? 0}
-                    >
-                        <View style={styles.currentPositionDot} />
-                    </Marker>
+                    {interactive && (
+                        <Marker
+                            key="Current-position"
+                            longitude={currentPosition?.longitude ?? 0}
+                            latitude={currentPosition?.latitude ?? 0}
+                        >
+                            <View style={styles.currentPositionDot} />
+                        </Marker>
+                    )}
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
-                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0])) {
+                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
                             return null;
                         }
                         return (
@@ -250,15 +273,17 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     })}
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Map>
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <Button
-                        onPress={centerMap}
-                        iconFill={theme.icon}
-                        medium
-                        icon={Expensicons.Crosshair}
-                        accessibilityLabel={translate('common.center')}
-                    />
-                </View>
+                {interactive && (
+                    <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                        <Button
+                            onPress={centerMap}
+                            iconFill={theme.icon}
+                            medium
+                            icon={Expensicons.Crosshair}
+                            accessibilityLabel={translate('common.center')}
+                        />
+                    </View>
+                )}
             </View>
         ) : (
             <PendingMapView
