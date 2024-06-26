@@ -772,6 +772,7 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
+        expensesOnHold: 'All expenses were put on hold. Review the comments for next steps.',
         expenseDuplicate: 'This expense has the same details as another one. Review the duplicates to remove the hold.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
@@ -2186,6 +2187,12 @@ export default {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
+        netsuite: {
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -2424,6 +2431,7 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            netsuite: 'NetSuite',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -3309,6 +3317,7 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            viewPaymentHistory: 'View payment history',
         },
         yourPlan: {
             title: 'Your plan',
