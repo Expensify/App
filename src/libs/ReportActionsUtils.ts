@@ -191,17 +191,18 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
     const originalMessage = getOriginalMessage(reportAction);
     const message = getReportActionMessage(reportAction);
 
-    if (!(originalMessage && 'whisperedTo' in originalMessage) && !(message && 'whisperedTo' in message)) {
+    if (!(originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) && !(message && typeof message === 'object' && 'whisperedTo' in message)) {
         return [];
     }
-
+    
     if (!Array.isArray(message) && typeof message === 'object' && 'whisperedTo' in message) {
         return message?.whisperedTo ?? [];
     }
-
-    if (originalMessage && 'whisperedTo' in originalMessage) {
+    
+    if (originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) {
         return originalMessage?.whisperedTo ?? [];
     }
+    
 
     return [];
 }
