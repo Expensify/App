@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -102,7 +102,7 @@ function ProfilePage({
     ];
 
     useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
+        App.openProfile(currentUserPersonalDetails);
     }, [currentUserPersonalDetails]);
 
     const privateOptions = [
