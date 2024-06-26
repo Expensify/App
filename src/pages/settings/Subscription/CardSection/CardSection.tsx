@@ -33,7 +33,7 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | null>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? ''));
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? ''));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
@@ -48,7 +48,7 @@ function CardSection() {
     };
 
     const handleBillingBannerClose = () => {
-        setBillingStatus(null);
+        setBillingStatus(undefined);
     };
 
     let BillingBanner: React.ReactNode | undefined;
