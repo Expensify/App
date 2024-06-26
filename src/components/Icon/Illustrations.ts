@@ -7,6 +7,7 @@ import ConciergeExclamation from '@assets/images/product-illustrations/concierge
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
+import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
@@ -192,4 +193,5 @@ export {
     SendMoney,
     CheckmarkCircle,
     CreditCardEyes,
+    FolderWithPapers,
 };

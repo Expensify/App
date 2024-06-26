@@ -19,6 +19,7 @@ import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
+import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {BaseForm} from '@src/types/form/Form';
@@ -37,6 +38,7 @@ type ValidInputs =
     | typeof CountrySelector
     | typeof AmountForm
     | typeof BusinessTypePicker
+    | typeof DimensionTypeSelector
     | typeof StateSelector
     | typeof RoomNameInput
     | typeof ValuePicker

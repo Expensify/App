@@ -429,6 +429,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const isItemFocused = (!isDisabled || item.isSelected) && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
+        console.log('%%%%%\n', 'shouldPreventDefaultFocusOnSelectRow', shouldPreventDefaultFocusOnSelectRow);
 
         return (
             <>
@@ -441,13 +442,14 @@ function BaseSelectionList<TItem extends ListItem>(
                     onSelectRow={() => selectRow(item)}
                     onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
                     onDismissError={() => onDismissError?.(item)}
-                    shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    shouldPreventDefaultFocusOnSelectRow
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
                     shouldPreventEnterKeySubmit
                     rightHandSideComponent={rightHandSideComponent}
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
                     onFocus={() => {
+                        console.log('%%%%%\n', 'i use OnFocus event');
                         if (isDisabled) {
                             return;
                         }

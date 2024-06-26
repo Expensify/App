@@ -639,6 +639,21 @@ type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_
 /** Mapping names for Sage Intacct */
 type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
 
+//* * TODO */
+/**
+ *
+ */
+type SageIntacctDimension = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Name of user defined dimention */
+    name: string;
+
+    /** Mapping value for user defined dimention */
+    mapping: Omit<SageIntacctMappingValue, typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT>;
+
+    /** Collection of mapping field errors, which will be triggered when update action fails  */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 /** Mapping type for Sage Intacct */
 type SageIntacctMappingType = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether should sync items for Sage Intacct */
@@ -660,13 +675,7 @@ type SageIntacctMappingType = OnyxCommon.OnyxValueWithOfflineFeedback<{
     projects: SageIntacctMappingValue;
 
     /** User defined dimention type for Sage Intacct */
-    dimensions: {
-        /** Name of user defined dimention */
-        name: string;
-
-        /** Mapping value for user defined dimention */
-        mapping: Omit<SageIntacctMappingValue, typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT>;
-    };
+    dimensions: SageIntacctDimension[];
 
     /** Collection of mapping field errors, which will be triggered when update action fails  */
     errorFields?: OnyxCommon.ErrorFields;
@@ -1124,4 +1133,5 @@ export type {
     SageIntacctMappingValue,
     SageIntacctMappingType,
     SageIntacctMappingName,
+    SageIntacctDimension,
 };

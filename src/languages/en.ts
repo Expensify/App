@@ -1950,6 +1950,7 @@ export default {
             categories: 'Categories',
             tags: 'Tags',
             reportFields: 'Report Fields',
+            reportField: 'Report Fields',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2205,6 +2206,8 @@ export default {
             expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
             importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
             userDefinedDimensions: 'User-defined dimensions',
+            addUserDefinedDimension: 'Add user-defined dimension',
+            integrationName: 'Integration name',
         },
         type: {
             free: 'Free',

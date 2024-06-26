@@ -6,7 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctDimension, SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: SageIntacctMappingValue | boolean) {
     const optimisticData: OnyxUpdate[] = [
@@ -126,6 +126,72 @@ function updateSageIntacctProjectsMapping(policyID: string, mappingValue: SageIn
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS, mappingValue)); // this will be changed to another API call when BE is ready
 }
 
+function addSageIntacctUserDimensions(
+    policyID: string,
+    name: string,
+    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG,
+) {
+    const parameters = {
+        policyID,
+    };
+    // dodać tablicę z istniejącymi ziomami
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            mappings: {
+                                dimensions: [{name, mapping}],
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            mappings: {
+                                dimensions: [{name, mapping}],
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            mappings: {
+                                dimensions: [{name, mapping}],
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});
+}
+
 function getUpdateFunctionForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>) {
     switch (mappingName) {
         case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
@@ -151,4 +217,5 @@ export {
     updateSageIntacctCustomersMapping,
     updateSageIntacctProjectsMapping,
     getUpdateFunctionForMapping,
+    addSageIntacctUserDimensions,
 };
