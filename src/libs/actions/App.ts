@@ -7,14 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
-import type {
-    GetMissingOnyxMessagesParams,
-    HandleRestrictedEventParams,
-    OpenAppParams,
-    OpenOldDotLinkParams,
-    ReconnectAppParams,
-    UpdatePreferredLocaleParams,
-} from '@libs/API/parameters';
+import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
