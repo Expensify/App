@@ -45,7 +45,7 @@ function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosit
             <View style={[styles.mh5, styles.mv5]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>
+                    <TextPill textStyles={styles.holdRequestInline}>{translate('violations.hold')}</TextPill>
                 </View>
                 <HoldMenuSectionList />
                 <Button

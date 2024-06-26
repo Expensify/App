@@ -207,6 +207,7 @@ export default {
     oldDotWireframeIconWidth: 263.38,
     oldDotWireframeIconHeight: 143.28,
     sectionIllustrationHeight: 220,
+    restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
     welcomeVideoDelay: 1000,
@@ -240,11 +241,16 @@ export default {
 
     searchTypeColumnWidth: 52,
 
+    h20: 20,
+    h28: 28,
     h36: 36,
+    w20: 20,
     w28: 28,
     w36: 36,
     w40: 40,
     w44: 44,
+    w52: 52,
     w80: 80,
+    w92: 92,
     w96: 96,
 } as const;

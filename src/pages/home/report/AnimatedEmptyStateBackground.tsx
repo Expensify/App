@@ -45,7 +45,7 @@ function AnimatedEmptyStateBackground() {
     }, [isReducedMotionEnabled]);
 
     return (
-        <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle(shouldUseNarrowLayout)}>
+        <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
             <Animated.Image
                 source={illustrations.EmptyStateBackgroundImage}
                 style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}

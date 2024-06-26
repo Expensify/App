@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,21 +22,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/RoomNameForm';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 type RoomNamePageOnyxProps = {
     /** All reports shared with the user */
     reports: OnyxCollection<Report>;
-
-    /** Policy of the report for which the name is being edited */
-    policy: OnyxEntry<Policy>;
 };
 
 type RoomNamePageProps = RoomNamePageOnyxProps & {
     report: Report;
 };
 
-function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
+function RoomNamePage({report, reports}: RoomNamePageProps) {
     const styles = useThemeStyles();
     const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
     const isFocused = useIsFocused();
@@ -78,7 +75,7 @@ function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
             includeSafeAreaPaddingBottom={false}
             testID={RoomNamePage.displayName}
         >
-            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? '-1'))}
@@ -111,8 +108,5 @@ RoomNamePage.displayName = 'RoomNamePage';
 export default withOnyx<RoomNamePageProps, RoomNamePageOnyxProps>({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`,
     },
 })(RoomNamePage);
