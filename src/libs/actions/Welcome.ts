@@ -66,7 +66,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  */
 function isFirstTimeHybridAppUser({onFirstTimeInHybridApp, onSubsequentRuns}: HasOpenedForTheFirstTimeFromHybridAppProps) {
     tryNewDotStatusPromise.then(() => {
-        let completedHybridAppOnboarding = !tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
+        let completedHybridAppOnboarding = tryNewDotData?.classicRedirect?.completedHybridAppOnboarding;
         // Backend might return strings instead of booleans
         if (typeof completedHybridAppOnboarding === 'string') {
             completedHybridAppOnboarding = completedHybridAppOnboarding === 'true';
