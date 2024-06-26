@@ -1,7 +1,7 @@
 import SCREENS from '@src/SCREENS';
 import type {CentralPaneName} from './Navigation/types';
 
-const CENTRAL_PANE_SCREEN_NAMES = [
+const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.SETTINGS.WORKSPACES,
     SCREENS.SETTINGS.PREFERENCES.ROOT,
     SCREENS.SETTINGS.SECURITY,
@@ -13,14 +13,14 @@ const CENTRAL_PANE_SCREEN_NAMES = [
     SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
     SCREENS.SEARCH.CENTRAL_PANE,
     SCREENS.REPORT,
-];
+]);
 
 function isCentralPaneName(screen: string | undefined): screen is CentralPaneName {
     if (!screen) {
         return false;
     }
 
-    return CENTRAL_PANE_SCREEN_NAMES.includes(screen as CentralPaneName);
+    return CENTRAL_PANE_SCREEN_NAMES.has(screen as CentralPaneName);
 }
 
 export default isCentralPaneName;
