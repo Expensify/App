@@ -3,7 +3,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
@@ -31,7 +30,6 @@ const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedT
 function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
     return (
