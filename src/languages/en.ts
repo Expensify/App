@@ -274,7 +274,6 @@ export default {
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
         youAppearToBeOffline: 'You appear to be offline.',
-        weMightHaveProblem: 'We might have a problem. Check out ',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         attachementWillBeAvailableOnceBackOnline: 'Attachment will become available once back online.',
         areYouSure: 'Are you sure?',
@@ -341,6 +340,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        disable: 'Disable',
     },
     location: {
         useCurrent: 'Use current location',
@@ -423,7 +423,7 @@ export default {
         findMember: 'Find a member',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Start a call',
+        tooltip: 'Book a call',
     },
     hello: 'Hello',
     phoneCountryCode: '1',
@@ -632,6 +632,10 @@ export default {
         trackDistance: 'Track distance',
         noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
         updateDestination: 'Update destination',
+        tooltip: {
+            title: 'Quick action! ',
+            subtitle: 'Just a tap away.',
+        },
     },
     iou: {
         amount: 'Amount',
@@ -759,6 +763,7 @@ export default {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
+        unhold: 'Unhold',
         holdExpense: 'Hold expense',
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
@@ -767,8 +772,10 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
+        expensesOnHold: 'All expenses were put on hold. Review the comments for next steps.',
         expenseDuplicate: 'This expense has the same details as another one. Review the duplicates to remove the hold.',
         reviewDuplicates: 'Review duplicates',
+        keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
         confirmPay: 'Confirm payment amount',
@@ -1024,7 +1031,6 @@ export default {
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
         copy: 'Copy',
-        disable: 'Disable',
     },
     recoveryCodeForm: {
         error: {
@@ -1182,8 +1188,8 @@ export default {
         approver: 'Approver',
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
-        makeOrTrackPaymentsTitle: 'Make or track payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        makeOrTrackPaymentsTitle: 'Payments',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -1307,6 +1313,9 @@ export default {
             },
         },
     },
+    reportDetailsPage: {
+        inWorkspace: ({policyName}) => `in ${policyName}`,
+    },
     reportDescriptionPage: {
         roomDescription: 'Room description',
         roomDescriptionOptional: 'Room description (optional)',
@@ -1402,6 +1411,7 @@ export default {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
+        getStarted: 'Get started',
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
         purpose: {
@@ -2005,7 +2015,7 @@ export default {
             exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
             preferredExporter: 'Preferred exporter',
-            date: 'Date',
+            date: 'Export date',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportInvoices: 'Export invoices to',
             exportCompany: 'Export company cards as',
@@ -2087,7 +2097,7 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.',
                 [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
 
@@ -2177,6 +2187,12 @@ export default {
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
+        netsuite: {
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -2259,8 +2275,16 @@ export default {
             },
         },
         reportFields: {
+            addField: 'Add field',
             delete: 'Delete field',
             deleteConfirmation: 'Are you sure that you want to delete this field?',
+            emptyReportFields: {
+                title: "You haven't created any report fields",
+                subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
+            },
+            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
+            disableReportFields: 'Disable report fields',
+            disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
         },
         tags: {
             tagName: 'Tag name',
@@ -2397,6 +2421,7 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            netsuite: 'NetSuite',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -2521,6 +2546,36 @@ export default {
                             return 'Syncing Xero data';
                         case 'xeroSyncStep':
                             return 'Loading data';
+                        case 'netSuiteSyncConnection':
+                            return 'Initializing connection to NetSuite';
+                        case 'netSuiteSyncCustomers':
+                            return 'Importing customers';
+                        case 'netSuiteSyncInitData':
+                            return 'Retrieving data from NetSuite';
+                        case 'netSuiteSyncImportTaxes':
+                            return 'Importing taxes';
+                        case 'netSuiteSyncImportItems':
+                            return 'Importing items';
+                        case 'netSuiteSyncData':
+                            return 'Importing data into Expensify';
+                        case 'netSuiteSyncAccounts':
+                            return 'Syncing accounts';
+                        case 'netSuiteSyncCurrencies':
+                            return 'Syncing currencies';
+                        case 'netSuiteSyncCategories':
+                            return 'Syncing categories';
+                        case 'netSuiteSyncImportEmployees':
+                            return 'Importing employees';
+                        case 'netSuiteSyncReportFields':
+                            return 'Importing data as Expensify report fields';
+                        case 'netSuiteSyncTags':
+                            return 'Importing data as Expensify tags';
+                        case 'netSuiteSyncUpdateConnectionData':
+                            return 'Updating connection info';
+                        case 'netSuiteSyncNetSuiteReimbursedReports':
+                            return 'Marking Expensify reports as reimbursed';
+                        case 'netSuiteSyncExpensifyReimbursedReports':
+                            return 'Marking NetSuite bills and invoices as paid';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2687,6 +2742,19 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        restrictedAction: {
+            restricted: 'Restricted',
+            actionsAreCurrentlyRestricted: ({workspaceName}) => `Actions on the ${workspaceName} workspace are currently restricted`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+                `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
+            youWillNeedToAddOrUpdatePaymentCard: "You'll need to add or update the payment card on file to unlock new workspace activity.",
+            addPaymentCardToUnlock: 'Add a payment card to unlock!',
+            addPaymentCardToContinueUsingWorkspace: 'Add a payment card to continue using this workspace',
+            pleaseReachOutToYourWorkspaceAdmin: 'Please reach out to your workspace admin for any questions.',
+            chatWithYourAdmin: 'Chat with your admin',
+            chatInAdmins: 'Chat in #admins',
+            addPaymentCard: 'Add payment card',
         },
     },
     getAssistancePage: {
@@ -3166,11 +3234,15 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+        keepThisOne: 'Keep this one',
         hold: 'Hold',
     },
     violationDismissal: {
         rter: {
             manual: 'marked this receipt as cash.',
+        },
+        duplicatedTransaction: {
+            manual: 'resolved the duplicate',
         },
     },
     videoPlayer: {
@@ -3215,17 +3287,25 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        billingBanner: {
+            preTrial: {
+                title: 'Start a free trial',
+                subtitle: 'To get started, ',
+                subtitleLink: 'complete your setup checklist here',
+            },
+        },
         cardSection: {
             title: 'Payment',
             subtitle: 'Add a payment card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
-            cardNextPayment: 'Your next payment date is',
+            cardNextPayment: ({nextPaymentDate}) => `Your next payment date is ${nextPaymentDate}.`,
             cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,
             cardInfo: ({name, expiration, currency}) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
             changeCard: 'Change payment card',
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            viewPaymentHistory: 'View payment history',
         },
         yourPlan: {
             title: 'Your plan',
@@ -3298,8 +3378,8 @@ export default {
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
-            whatsMainReason: 'What’s the main reason you’re disabling auto-renew on your subscription?',
-            renewsOn: ({date}) => `Renews on ${date}`,
+            whatsMainReason: "What's the main reason you're disabling auto-renew?",
+            renewsOn: ({date}) => `Renews on ${date}.`,
         },
     },
     feedbackSurvey: {
@@ -3307,5 +3387,10 @@ export default {
         tooExpensive: 'Too expensive',
         inadequateSupport: 'Inadequate customer support',
         businessClosing: 'Company closing, downsizing, or acquired',
+        additionalInfoTitle: 'What software are you moving to and why?',
+        additionalInfoInputLabel: 'Your response',
+    },
+    roomChangeLog: {
+        updateRoomDescription: 'set the room description to:',
     },
 } satisfies TranslationBase;

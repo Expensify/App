@@ -2,21 +2,17 @@ require('dotenv').config();
 
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
+const ReactCompilerConfig = {
+    runtimeModule: 'react-compiler-runtime',
+};
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
 const defaultPlugins = [
+    ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
 
     '@babel/transform-runtime',
     '@babel/plugin-proposal-class-properties',
-
-    [
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            'react-native-web': true,
-            native: true,
-        },
-    ],
 
     // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
@@ -25,6 +21,19 @@ const defaultPlugins = [
     // Keep it last
     'react-native-reanimated/plugin',
 ];
+
+// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
+// ignore it for desktop builds.
+if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
+    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
+    defaultPlugins.push([
+        '@fullstory/babel-plugin-annotate-react',
+        {
+            'react-native-web': true,
+            native: true,
+        },
+    ]);
+}
 
 const webpack = {
     presets: defaultPresets,
@@ -135,6 +144,12 @@ module.exports = (api) => {
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
+
+    // don't include react-compiler in jest, because otherwise tests will fail
+    if (runningIn !== 'babel-jest') {
+        // must run first!
+        metro.plugins.unshift(['babel-plugin-react-compiler', ReactCompilerConfig]);
+    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };
