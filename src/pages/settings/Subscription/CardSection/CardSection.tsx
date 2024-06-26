@@ -14,7 +14,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import CardSectionActions from './CardSectionActions';
@@ -29,6 +32,7 @@ function CardSection() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const plan = useSubscriptionPlan();
     const isEligibleForRefund = useIsEligibleForRefund();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
@@ -77,8 +81,8 @@ function CardSection() {
                             <CardSectionActions />
                         </View>
                     )}
-                    {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
                 </View>
+                {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
                 {!isEmptyObject(defaultCard?.accountData && plan && isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
@@ -89,6 +93,19 @@ function CardSection() {
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
                         onPress={() => setIsRequestRefundModalVisible(true)}
+                    />
+                )}
+                {!!account?.hasPurchases && (
+                    <MenuItem
+                        shouldShowRightIcon
+                        icon={Expensicons.History}
+                        iconStyles={[]}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        style={styles.mt5}
+                        title={translate('subscription.cardSection.viewPaymentHistory')}
+                        titleStyle={styles.textStrong}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
+                        hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
             </Section>
