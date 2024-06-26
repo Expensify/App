@@ -64,15 +64,11 @@ function openWalletPage() {
         },
     ];
 
-    return API.read(
-        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        {},
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function getMakeDefaultPaymentOnyxData(
