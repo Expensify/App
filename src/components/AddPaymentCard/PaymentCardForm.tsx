@@ -137,6 +137,7 @@ function PaymentCardForm({
 
     const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
     const [currency, setCurrency] = useState<keyof typeof CONST.CURRENCY>(CONST.CURRENCY.USD);
+    const [cardNumber, setCardNumber] = useState('');
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
@@ -181,6 +182,23 @@ function PaymentCardForm({
         setIsCurrencyModalVisible(false);
     }, []);
 
+    const onChangeCardNumber = useCallback((newValue: string) => {
+        // replace all characters that are not spaces or digits
+        let validCardNumber = newValue.replace(/[^\d ]/g, '');
+
+        // gets only the first 16 digits if the inputted number have more digits than that
+        validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
+
+        // add the spacing between every 4 digits
+        validCardNumber =
+            validCardNumber
+                .replace(/ /g, '')
+                .match(/.{1,4}/g)
+                ?.join(' ') ?? '';
+
+        setCardNumber(validCardNumber);
+    }, []);
+
     if (!shouldShowPaymentCardForm) {
         return null;
     }
@@ -204,6 +222,8 @@ function PaymentCardForm({
                     role={CONST.ROLE.PRESENTATION}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
+                    onChangeText={onChangeCardNumber}
+                    value={cardNumber}
                 />
                 <InputWrapper
                     InputComponent={TextInput}

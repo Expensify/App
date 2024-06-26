@@ -658,8 +658,8 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        pendingMatchWithCreditCard: 'Receipt pending match with credit card.',
-        pendingMatchWithCreditCardDescription: 'Receipt pending match with credit card. Mark as cash to ignore and request payment.',
+        pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
+        pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
         markAsCash: 'Mark as cash',
         routePending: 'Route pending...',
         receiptScanning: 'Receipt scanning...',
@@ -767,6 +767,7 @@ export default {
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
         expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
+        expensesOnHold: 'All expenses were put on hold. Review the comments for next steps.',
         expenseDuplicate: 'This expense has the same details as another one. Review the duplicates to remove the hold.',
         reviewDuplicates: 'Review duplicates',
         keepAll: 'Keep all',
@@ -2036,7 +2037,7 @@ export default {
             },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
-            exportInvoicesDescription: 'Invoices will export to this account in QuickBooks Online.',
+            exportInvoicesDescription: 'Use this account when exporting invoices to QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
@@ -2150,7 +2151,7 @@ export default {
             },
             exportDate: {
                 label: 'Export date',
-                description: 'Use this date when exporting reports to Xero.',
+                description: 'Use this date when exporting purchase bills to Xero.',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
@@ -2168,7 +2169,7 @@ export default {
             },
             invoiceStatus: {
                 label: 'Purchase bill status',
-                description: 'Choose a status for purchase bills exported to Xero.',
+                description: 'Use this status when exporting purchase bills to Xero.',
                 values: {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Awaiting approval',
@@ -2180,6 +2181,12 @@ export default {
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
+        },
+        netsuite: {
+            subsidiary: 'Subsidiary',
+            subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
+            noSubsidiariesFound: 'No subsidiaries found',
+            noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
         },
         type: {
             free: 'Free',
@@ -2409,6 +2416,7 @@ export default {
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments, and keep your finances in sync.',
             qbo: 'Quickbooks Online',
             xero: 'Xero',
+            netsuite: 'NetSuite',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -3292,6 +3300,7 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            viewPaymentHistory: 'View payment history',
         },
         yourPlan: {
             title: 'Your plan',
