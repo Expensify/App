@@ -1,17 +1,14 @@
-import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function useIsEligibleForRefund() {
+function useIsEligibleForRefund(): boolean | undefined {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    return useMemo(() => {
-        if (!account) {
-            return false;
-        }
+    if (!account) {
+        return false;
+    }
 
-        return account.isEligibleForRefund;
-    }, [account]);
+    return account.isEligibleForRefund;
 }
 
 export default useIsEligibleForRefund;

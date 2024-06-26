@@ -5,6 +5,7 @@ import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps,
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
@@ -106,6 +107,14 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
+
+    useEffect(() => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+    }, []);
+
+    useEffect(() => {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {isEligibleForRefund: true, hasPurchases: true});
+    }, []);
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();

@@ -1024,7 +1024,7 @@ function dismissTrackTrainingModal() {
 }
 
 function requestRefund() {
-    API.write(WRITE_COMMANDS.REQUEST_REFUND, {});
+    API.write(WRITE_COMMANDS.REQUEST_REFUND, null);
 }
 
 export {

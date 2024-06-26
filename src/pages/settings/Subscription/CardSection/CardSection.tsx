@@ -30,7 +30,7 @@ function CardSection() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const plan = useSubscriptionPlan();
+    const subscriptionPlan = useSubscriptionPlan();
     const isEligibleForRefund = useIsEligibleForRefund();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
@@ -82,30 +82,28 @@ function CardSection() {
                         </View>
                     )}
                 </View>
+
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-                {!isEmptyObject(defaultCard?.accountData && plan && isEligibleForRefund) && (
+                {!!account?.hasPurchases && (
+                    <MenuItem
+                        shouldShowRightIcon
+                        icon={Expensicons.History}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                        title={translate('subscription.cardSection.viewPaymentHistory')}
+                        titleStyle={styles.textStrong}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
+                        hoverAndPressStyle={styles.hoveredComponentBG}
+                    />
+                )}
+                {!!(subscriptionPlan && isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
                         icon={Expensicons.Bill}
-                        iconStyles={[]}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         style={styles.mt5}
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
                         onPress={() => setIsRequestRefundModalVisible(true)}
-                    />
-                )}
-                {!!account?.hasPurchases && (
-                    <MenuItem
-                        shouldShowRightIcon
-                        icon={Expensicons.History}
-                        iconStyles={[]}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        style={styles.mt5}
-                        title={translate('subscription.cardSection.viewPaymentHistory')}
-                        titleStyle={styles.textStrong}
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
             </Section>
@@ -115,9 +113,7 @@ function CardSection() {
                     title={translate('subscription.cardSection.requestRefund')}
                     isVisible={isRequestRefundModalVisible}
                     onConfirm={requestRefund}
-                    onCancel={() => {
-                        setIsRequestRefundModalVisible(false);
-                    }}
+                    onCancel={() => setIsRequestRefundModalVisible(false)}
                     prompt={
                         <>
                             <Text style={styles.mb4}>{translate('subscription.cardSection.requestRefundModal.phrase1')}</Text>
