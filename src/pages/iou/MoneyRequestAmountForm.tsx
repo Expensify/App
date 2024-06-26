@@ -148,14 +148,17 @@ function MoneyRequestAmountForm(
         });
     }, [isFocused, wasFocused]);
 
-    const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount, currency) : '';
-        moneyRequestAmountInput.current?.changeAmount(frontendAmount);
-        moneyRequestAmountInput.current?.changeSelection({
-            start: frontendAmount.length,
-            end: frontendAmount.length,
-        });
-    }, [currency]);
+    const initializeAmount = useCallback(
+        (newAmount: number) => {
+            const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount, currency) : '';
+            moneyRequestAmountInput.current?.changeAmount(frontendAmount);
+            moneyRequestAmountInput.current?.changeSelection({
+                start: frontendAmount.length,
+                end: frontendAmount.length,
+            });
+        },
+        [currency],
+    );
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number') {

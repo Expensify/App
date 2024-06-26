@@ -97,7 +97,7 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string 
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,  currency: string = CONST.CURRENCY.USD): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }

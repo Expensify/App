@@ -9,12 +9,12 @@ import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, 
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
 import {isCorporateCard, isExpensifyCard} from './CardUtils';
+import {getCurrencyDecimals} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
-import {getCurrencyDecimals} from "./CurrencyUtils";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({

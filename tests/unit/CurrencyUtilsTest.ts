@@ -152,7 +152,7 @@ describe('CurrencyUtils', () => {
             [null, ''],
             [undefined, ''],
             [0, '0'],
-            [2586, '26']
+            [2586, '26'],
         ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
             expect(CurrencyUtils.convertToFrontendAmountAsString(input, 'VND')).toBe(expectedResult);
         });
