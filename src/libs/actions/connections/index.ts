@@ -236,6 +236,11 @@ function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionNam
 }
 
 function hasSynchronizationError(policy: OnyxEntry<Policy>, connectionName: PolicyConnectionName, isSyncInProgress: boolean): boolean {
+    // NetSuite does not use the conventional lastSync object, so we need to check for lastErrorSyncDate
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+        return !isSyncInProgress && !!policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE].lastErrorSyncDate;
+    }
+
     return !isSyncInProgress && policy?.connections?.[connectionName]?.lastSync?.isSuccessful === false;
 }
 
