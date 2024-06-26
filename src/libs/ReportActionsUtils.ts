@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type OldDotOriginalMessage from '@src/types/onyx/OldDotOriginalMessage';
+import type OldDotAction from '@src/types/onyx/OldDotAction';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1187,75 +1187,84 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction): action
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
+        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.DONATION,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
+}
+
+function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
+    if (!Array.isArray(legacyAction?.message)) {
+        return getReportActionText(legacyAction);
+    }
+    if (legacyAction.message.length !== 0) {
+        // Sometime html can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return legacyAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
+    }
+    return '';
 }
 
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction({
-    reportAction,
-    oldDotOriginalMessage: {actionName, originalMessage},
-}: {
-    reportAction: OnyxEntry<ReportAction>;
-    oldDotOriginalMessage: OldDotOriginalMessage;
-}): string {
-    if (!Array.isArray(reportAction?.message)) {
-        return getReportActionText(reportAction);
-    } else if (reportAction.message.length !== 0) {
-        // Sometime html can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return reportAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
-    }
+function getMessageOfOldDotReportAction(oldDotAction: OldDotAction): string {
+    const {originalMessage, actionName} = oldDotAction;
 
-    switch (actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
-            const {oldValue, newValue, fieldName} = originalMessage;
+    if (oldDotAction.originalMessage) {
+        switch (actionName) {
+            case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
+                const {oldValue, newValue, fieldName} = originalMessage;
 
-            return Localize.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
+                return Localize.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
+            }
+            case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
+                const {fromPolicy, toPolicy} = originalMessage;
+                return Localize.translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
+            }
+            case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
+                const {delegateUser, originalManager} = originalMessage;
+                return Localize.translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
+            }
+            case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
+                return Localize.translateLocal('report.actions.type.exportedToCSV');
+            case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
+                return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
+            case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE:
+                return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage: originalMessage.errorMessage});
+            case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
+                return Localize.translateLocal('report.actions.type.managerAttachReceipt');
+            case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
+                return Localize.translateLocal('report.actions.type.managerDetachReceipt');
+            case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
+                const {amount, currency} = originalMessage;
+                return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
+            }
+            case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
+                return Localize.translateLocal('report.actions.type.outdatedBankAccount');
+            case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
+                return Localize.translateLocal('report.actions.type.reimbursementACHBounce');
+            case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED:
+                return Localize.translateLocal('report.actions.type.reimbursementACHCancelled');
+            case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
+                return Localize.translateLocal('report.actions.type.reimbursementAccountChanged');
+            case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
+                return Localize.translateLocal('report.actions.type.reimbursementDelayed');
+            case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
+                return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
+            case CONST.REPORT.ACTIONS.TYPE.SHARE:
+                return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
+            case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
+                return Localize.translateLocal('report.actions.type.unshare', {to: originalMessage.to});
+            case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
+                return Localize.translateLocal('report.actions.type.takeControl');
+            default:
+                return '';
         }
-        case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
-            const {fromPolicy, toPolicy} = originalMessage;
-            return Localize.translateLocal('report.actions.type.changePolicy', {fromPolicy, toPolicy});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
-            const {delegateUser, originalManager} = originalMessage;
-            return Localize.translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
-            return Localize.translateLocal('report.actions.type.exportedToCSV');
-        case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
-            return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
-        case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE:
-            return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage: originalMessage.errorMessage});
-        case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
-            return Localize.translateLocal('report.actions.type.managerAttachReceipt');
-        case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
-            return Localize.translateLocal('report.actions.type.managerDetachReceipt');
-        case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
-            const {amount, currency} = originalMessage;
-            return Localize.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
-        }
-        case CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
-            return Localize.translateLocal('report.actions.type.outdatedBankAccount');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
-            return Localize.translateLocal('report.actions.type.reimbursementACHBounce');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED:
-            return Localize.translateLocal('report.actions.type.reimbursementACHCancelled');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
-            return Localize.translateLocal('report.actions.type.reimbursementAccountChanged');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
-            return Localize.translateLocal('report.actions.type.reimbursementDelayed');
-        case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize.translateLocal('report.actions.type.selectedForRandomAudit');
-        case CONST.REPORT.ACTIONS.TYPE.SHARE:
-            return Localize.translateLocal('report.actions.type.share', {to: originalMessage.to});
-        case CONST.REPORT.ACTIONS.TYPE.UNSHARE:
-            return Localize.translateLocal('report.actions.type.unshare', {to: originalMessage.to});
-        case CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL:
-            return Localize.translateLocal('report.actions.type.takeControl');
-        default:
-            return '';
+    } else {
+        return getMessageOfOldDotLegacyAction(oldDotAction);
     }
 }
 

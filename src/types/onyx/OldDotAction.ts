@@ -432,9 +432,33 @@ type OldDotOriginalMessageMap = {
 /**
  *
  */
-type OldDotOriginalMessage = ValueOf<OldDotOriginalMessageMap>;
+type OldDotLegacyMessage = {
+    /**
+     *
+     */
+    html?: string;
+    /**
+     *
+     */
+    text?: string;
+};
 
-export default OldDotOriginalMessage;
+/**
+ *
+ */
+type OldDotLegacyAction = {
+    /**
+     *
+     */
+    message: OldDotLegacyMessage[] | OldDotLegacyMessage;
+};
+
+/**
+ *
+ */
+type OldDotAction = ValueOf<OldDotOriginalMessageMap>;
+
+export default OldDotAction;
 export type {
     OriginalMessageChangeField,
     OldDotOriginalMessageActionName,
@@ -456,4 +480,5 @@ export type {
     OriginalMessageUnshare,
     OriginalMessageTakeControl,
     OldDotOriginalMessageMap,
+    OldDotLegacyAction,
 };

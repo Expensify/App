@@ -5,7 +5,7 @@ import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import type OldDotOriginalMessage from './OldDotOriginalMessage';
+import type OldDotAction from './OldDotAction';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
 import type {Decision} from './OriginalMessage';
@@ -270,7 +270,13 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /**
  *
  */
-type OldDotReportAction = ReportActionBase & OldDotOriginalMessage;
+type OldDotReportAction = ReportActionBase &
+    OldDotAction & {
+        /**
+         *
+         */
+        message?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
+    };
 
 /**
  *

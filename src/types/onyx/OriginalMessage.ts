@@ -1,8 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type AssertTypesEqual from '@src/types/utils/AssertTypesEqual';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {OldDotOriginalMessageMap} from './OldDotOriginalMessage';
+import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type ReportActionName from './ReportActionName';
 
 /** Types of join workspace resolutions */
@@ -512,14 +511,6 @@ type OriginalMessageMap = {
     } & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>]: OriginalMessageChangeLog;
     };
-
-/** */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type AssertOriginalMessageDefinedForAllActions = AssertTypesEqual<
-    ReportActionName,
-    keyof OriginalMessageMap,
-    `Error: Types don't match, OriginalMessageMap type is missing: ${Exclude<ReportActionName, keyof OriginalMessageMap>}`
->;
 
 /** */
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
