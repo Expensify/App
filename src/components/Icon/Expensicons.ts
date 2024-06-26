@@ -99,6 +99,7 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
@@ -368,4 +369,5 @@ export {
     Clear,
     CheckCircle,
     CheckmarkCircle,
+    NetSuiteSquare,
 };
