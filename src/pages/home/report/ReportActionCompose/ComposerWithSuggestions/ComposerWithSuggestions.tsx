@@ -546,25 +546,6 @@ function ComposerWithSuggestions(
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
-    // const onChangeText = useCallback(
-    //     (commentValue: string) => {
-    //         updateComment(commentValue, true);
-
-    //         if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
-    //             const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-    //             syncSelectionWithOnChangeTextRef.current = null;
-
-    //             // ensure that selection is set imperatively after all state changes are effective
-    //             InteractionManager.runAfterInteractions(() => {
-    //                 // note: this implementation is only available on non-web RN, thus the wrapping
-    //                 // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-    //                 textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
-    //             });
-    //         }
-    //     },
-    //     [updateComment],
-    // );
-
     // This contains the previous value that we receive directly from the native text input (not our formatted value)
     const prevNativeTextRef = useRef(value);
     const onChange = useCallback(
