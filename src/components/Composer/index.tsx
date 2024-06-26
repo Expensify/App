@@ -334,14 +334,14 @@ function Composer(
                 autoCorrect={!Browser.isMobileSafari()}
                 placeholderTextColor={theme.placeholderText}
                 ref={(el) => (textInput.current = el)}
-                selection={selection}
-                style={[inputStyleMemo]}
+                style={inputStyleMemo}
                 markdownStyle={markdownStyle}
                 value={value}
                 defaultValue={defaultValue}
                 autoFocus={autoFocus}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
+                selection={selection}
                 onSelectionChange={addCursorPositionToSelectionChange}
                 onContentSizeChange={(e) => {
                     setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
