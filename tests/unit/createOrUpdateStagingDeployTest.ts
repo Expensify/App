@@ -12,6 +12,11 @@ import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
+type Arguments = {
+    issue_number?: number;
+    labels?: string;
+};
+
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
 jest.mock('fs');
@@ -37,7 +42,7 @@ beforeAll(() => {
                         },
                     }),
                 ),
-                update: jest.fn().mockImplementation((arg) =>
+                update: jest.fn().mockImplementation((arg: Arguments) =>
                     Promise.resolve({
                         data: {
                             ...arg,
@@ -171,7 +176,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             return [];
         });
 
-        mockListIssues.mockImplementation((args) => {
+        mockListIssues.mockImplementation((args: Arguments) => {
             if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                 return {data: [closedStagingDeployCash]};
             }
@@ -266,7 +271,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return [];
             });
 
-            mockListIssues.mockImplementation((args) => {
+            mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
                 }
@@ -341,7 +346,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 }
                 return [];
             });
-            mockListIssues.mockImplementation((args) => {
+            mockListIssues.mockImplementation((args: Arguments) => {
                 if (args.labels === CONST.LABELS.STAGING_DEPLOY) {
                     return {data: [openStagingDeployCashBefore, closedStagingDeployCash]};
                 }
