@@ -30,6 +30,10 @@ import withFailTimeout from './utils/withFailTimeout';
 
 type Result = Record<string, number[]>;
 
+type CustomConfig = {
+    default: unknown;
+};
+
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
 const getArg = (argName: string): string | undefined => {
@@ -46,7 +50,7 @@ const setConfigPath = (configPathParam: string | undefined) => {
     if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath).default;
+    const customConfig = require<CustomConfig>(configPath).default;
     config = Object.assign(defaultConfig, customConfig);
 };
 

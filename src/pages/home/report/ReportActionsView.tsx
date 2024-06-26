@@ -12,7 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
@@ -96,10 +96,11 @@ function ReportActionsView({
     isLoadingNewerReportActions = false,
     hasLoadingNewerReportActionsError = false,
     isReadyForCommentLinking = false,
+    transactionThreadReportID,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
@@ -157,8 +158,8 @@ function ReportActionsView({
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
     const combinedReportActions = useMemo(
-        () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions),
-        [allReportActions, transactionThreadReportActions],
+        () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportID ?? null, transactionThreadReportActions),
+        [allReportActions, transactionThreadReportActions, transactionThreadReportID],
     );
 
     const parentReportActionForTransactionThread = useMemo(
@@ -250,6 +251,18 @@ function ReportActionsView({
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+
+    useEffect(() => {
+        if (!reportActionID || indexOfLinkedAction > -1) {
+            return;
+        }
+
+        // This function is triggered when a user clicks on a link to navigate to a report.
+        // For each link click, we retrieve the report data again, even though it may already be cached.
+        // There should be only one openReport execution per page start or navigating
+        Report.openReport(reportID, reportActionID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, indexOfLinkedAction]);
 
     useEffect(() => {
         const wasLoginChangedDetected = prevAuthTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS && !session?.authTokenType;
