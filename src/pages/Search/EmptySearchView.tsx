@@ -4,6 +4,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 function EmptySearchView() {
     const {translate} = useLocalize();
@@ -12,7 +13,7 @@ function EmptySearchView() {
     return (
         <EmptyStateComponent
             SkeletonComponent={SearchRowSkeleton}
-            headerMediaType="illustration"
+            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
             headerMedia={Illustrations.EmptyState}
             headerStyles={styles.emptyFolderBG}
             headerContentStyles={styles.emptyStateFolderIconSize}

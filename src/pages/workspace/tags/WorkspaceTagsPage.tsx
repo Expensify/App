@@ -335,7 +335,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 {!hasVisibleTag && !isLoading && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType="illustration"
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                         headerMedia={Illustrations.EmptyState}
                         headerStyles={styles.emptyFolderBG}
                         headerContentStyles={styles.emptyStateFolderIconSize}

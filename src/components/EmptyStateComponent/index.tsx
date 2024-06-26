@@ -32,7 +32,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
 
     const HeaderComponent = useMemo(() => {
         switch (headerMediaType) {
-            case 'video':
+            case CONST.EMPTY_STATE_MEDIA.VIDEO:
                 return (
                     <VideoPlayer
                         url={headerMedia}
@@ -45,7 +45,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                         isLooping
                     />
                 );
-            case 'animation':
+            case CONST.EMPTY_STATE_MEDIA.ANIMATION:
                 return (
                     <Lottie
                         source={headerMedia}
@@ -54,7 +54,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                         style={headerContentStyles}
                     />
                 );
-            case 'illustration':
+            case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
                 return (
                     <ImageSVG
                         style={headerContentStyles}
@@ -76,7 +76,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
             </View>
             <View style={styles.emptyStateForeground(isSmallScreenWidth)}>
                 <View style={[styles.emptyStateContent(isSmallScreenWidth)]}>
-                    <View style={[styles.emptyStateHeader(headerMediaType === 'illustration'), headerStyles]}>{HeaderComponent}</View>
+                    <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>

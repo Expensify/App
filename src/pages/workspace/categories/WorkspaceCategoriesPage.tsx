@@ -321,7 +321,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {shouldShowEmptyState && (
                     <EmptyStateComponent
                         SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType="illustration"
+                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
                         headerMedia={Illustrations.EmptyState}
                         headerStyles={styles.emptyFolderBG}
                         headerContentStyles={styles.emptyStateFolderIconSize}

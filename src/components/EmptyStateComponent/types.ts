@@ -1,12 +1,14 @@
 import type {ImageStyle} from 'expo-image';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import type TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ValidSkeletons = typeof SearchRowSkeleton | typeof TableRowSkeleton;
-type MediaTypes = 'video' | 'illustration' | 'animation';
+type MediaTypes = ValueOf<typeof CONST.EMPTY_STATE_MEDIA>;
 
 type SharedProps<T> = {
     SkeletonComponent: ValidSkeletons;
