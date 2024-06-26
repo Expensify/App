@@ -1,0 +1,1087 @@
+diff --git a/node_modules/eslint/lib/cli-engine/cli-engine.js b/node_modules/eslint/lib/cli-engine/cli-engine.js
+index 49c8902..b794942 100644
+--- a/node_modules/eslint/lib/cli-engine/cli-engine.js
++++ b/node_modules/eslint/lib/cli-engine/cli-engine.js
+@@ -86,6 +86,7 @@ const validFixTypes = new Set(["directive", "problem", "suggestion", "layout"]);
+  * @property {boolean|string} [reportUnusedDisableDirectives] `true`, `"error"` or '"warn"' adds reports for unused eslint-disable directives
+  * @property {boolean} [globInputPaths] Set to false to skip glob resolution of input file paths to lint (default: true). If false, each input file paths is assumed to be a non-glob path to an existing file.
+  * @property {string} [resolvePluginsRelativeTo] The folder where plugins should be resolved from, defaulting to the CWD
++ * @property {boolean} [parallel] Run eslint in parallel across multiple worker processes
+  */
+ 
+ /**
+@@ -1066,6 +1067,11 @@ CLIEngine.getFormatter = CLIEngine.prototype.getFormatter;
+ 
+ module.exports = {
+     CLIEngine,
++    verifyText,
++    calculateStatsPerRun,
++    calculateStatsPerFile,
++    createIgnoreResult,
++    iterateRuleDeprecationWarnings,
+ 
+     /**
+      * Get the internal slots of a given CLIEngine instance for tests.
+diff --git a/node_modules/eslint/lib/cli.js b/node_modules/eslint/lib/cli.js
+index 1d909ec..09e6717 100644
+--- a/node_modules/eslint/lib/cli.js
++++ b/node_modules/eslint/lib/cli.js
+@@ -20,10 +20,11 @@ const fs = require("fs"),
+     { promisify } = require("util"),
+     { ESLint } = require("./eslint"),
+     { FlatESLint, shouldUseFlatConfig } = require("./eslint/flat-eslint"),
++    { ParallelESLint } = require("./parallel/parallel-eslint"),
+     createCLIOptions = require("./options"),
+     log = require("./shared/logging"),
+     RuntimeInfo = require("./shared/runtime-info"),
+-    { normalizeSeverityToString } = require("./shared/severity");
++    { translateOptions } = require("./translate-options");
+ const { Legacy: { naming } } = require("@eslint/eslintrc");
+ const { ModuleImporter } = require("@humanwhocodes/module-importer");
+ 
+@@ -47,168 +48,6 @@ const mkdir = promisify(fs.mkdir);
+ const stat = promisify(fs.stat);
+ const writeFile = promisify(fs.writeFile);
+ 
+-/**
+- * Predicate function for whether or not to apply fixes in quiet mode.
+- * If a message is a warning, do not apply a fix.
+- * @param {LintMessage} message The lint result.
+- * @returns {boolean} True if the lint message is an error (and thus should be
+- * autofixed), false otherwise.
+- */
+-function quietFixPredicate(message) {
+-    return message.severity === 2;
+-}
+-
+-/**
+- * Translates the CLI options into the options expected by the ESLint constructor.
+- * @param {ParsedCLIOptions} cliOptions The CLI options to translate.
+- * @param {"flat"|"eslintrc"} [configType="eslintrc"] The format of the
+- *      config to generate.
+- * @returns {Promise<ESLintOptions>} The options object for the ESLint constructor.
+- * @private
+- */
+-async function translateOptions({
+-    cache,
+-    cacheFile,
+-    cacheLocation,
+-    cacheStrategy,
+-    config,
+-    configLookup,
+-    env,
+-    errorOnUnmatchedPattern,
+-    eslintrc,
+-    ext,
+-    fix,
+-    fixDryRun,
+-    fixType,
+-    global,
+-    ignore,
+-    ignorePath,
+-    ignorePattern,
+-    inlineConfig,
+-    parser,
+-    parserOptions,
+-    plugin,
+-    quiet,
+-    reportUnusedDisableDirectives,
+-    reportUnusedDisableDirectivesSeverity,
+-    resolvePluginsRelativeTo,
+-    rule,
+-    rulesdir,
+-    warnIgnored
+-}, configType) {
+-
+-    let overrideConfig, overrideConfigFile;
+-    const importer = new ModuleImporter();
+-
+-    if (configType === "flat") {
+-        overrideConfigFile = (typeof config === "string") ? config : !configLookup;
+-        if (overrideConfigFile === false) {
+-            overrideConfigFile = void 0;
+-        }
+-
+-        let globals = {};
+-
+-        if (global) {
+-            globals = global.reduce((obj, name) => {
+-                if (name.endsWith(":true")) {
+-                    obj[name.slice(0, -5)] = "writable";
+-                } else {
+-                    obj[name] = "readonly";
+-                }
+-                return obj;
+-            }, globals);
+-        }
+-
+-        overrideConfig = [{
+-            languageOptions: {
+-                globals,
+-                parserOptions: parserOptions || {}
+-            },
+-            rules: rule ? rule : {}
+-        }];
+-
+-        if (reportUnusedDisableDirectives || reportUnusedDisableDirectivesSeverity !== void 0) {
+-            overrideConfig[0].linterOptions = {
+-                reportUnusedDisableDirectives: reportUnusedDisableDirectives
+-                    ? "error"
+-                    : normalizeSeverityToString(reportUnusedDisableDirectivesSeverity)
+-            };
+-        }
+-
+-        if (parser) {
+-            overrideConfig[0].languageOptions.parser = await importer.import(parser);
+-        }
+-
+-        if (plugin) {
+-            const plugins = {};
+-
+-            for (const pluginName of plugin) {
+-
+-                const shortName = naming.getShorthandName(pluginName, "eslint-plugin");
+-                const longName = naming.normalizePackageName(pluginName, "eslint-plugin");
+-
+-                plugins[shortName] = await importer.import(longName);
+-            }
+-
+-            overrideConfig[0].plugins = plugins;
+-        }
+-
+-    } else {
+-        overrideConfigFile = config;
+-
+-        overrideConfig = {
+-            env: env && env.reduce((obj, name) => {
+-                obj[name] = true;
+-                return obj;
+-            }, {}),
+-            globals: global && global.reduce((obj, name) => {
+-                if (name.endsWith(":true")) {
+-                    obj[name.slice(0, -5)] = "writable";
+-                } else {
+-                    obj[name] = "readonly";
+-                }
+-                return obj;
+-            }, {}),
+-            ignorePatterns: ignorePattern,
+-            parser,
+-            parserOptions,
+-            plugins: plugin,
+-            rules: rule
+-        };
+-    }
+-
+-    const options = {
+-        allowInlineConfig: inlineConfig,
+-        cache,
+-        cacheLocation: cacheLocation || cacheFile,
+-        cacheStrategy,
+-        errorOnUnmatchedPattern,
+-        fix: (fix || fixDryRun) && (quiet ? quietFixPredicate : true),
+-        fixTypes: fixType,
+-        ignore,
+-        overrideConfig,
+-        overrideConfigFile
+-    };
+-
+-    if (configType === "flat") {
+-        options.ignorePatterns = ignorePattern;
+-        options.warnIgnored = warnIgnored;
+-    } else {
+-        options.resolvePluginsRelativeTo = resolvePluginsRelativeTo;
+-        options.rulePaths = rulesdir;
+-        options.useEslintrc = eslintrc;
+-        options.extensions = ext;
+-        options.ignorePath = ignorePath;
+-        if (reportUnusedDisableDirectives || reportUnusedDisableDirectivesSeverity !== void 0) {
+-            options.reportUnusedDisableDirectives = reportUnusedDisableDirectives
+-                ? "error"
+-                : normalizeSeverityToString(reportUnusedDisableDirectivesSeverity);
+-        }
+-    }
+-
+-    return options;
+-}
+-
+ /**
+  * Count error messages.
+  * @param {LintResult[]} results The lint results.
+@@ -407,9 +246,15 @@ const cli = {
+ 
+         const ActiveESLint = usingFlatConfig ? FlatESLint : ESLint;
+ 
+-        const engine = new ActiveESLint(await translateOptions(options, usingFlatConfig ? "flat" : "eslintrc"));
++        let engine;
+         let results;
+ 
++        if (options.parallel) {
++            engine = new ParallelESLint(options);
++        } else {
++            engine = new ActiveESLint(await translateOptions(options, usingFlatConfig ? "flat" : "eslintrc"));
++        }
++
+         if (useStdin) {
+             results = await engine.lintText(text, {
+                 filePath: options.stdinFilename,
+diff --git a/node_modules/eslint/lib/eslint/eslint.js b/node_modules/eslint/lib/eslint/eslint.js
+index 7085d5a..8325fcd 100644
+--- a/node_modules/eslint/lib/eslint/eslint.js
++++ b/node_modules/eslint/lib/eslint/eslint.js
+@@ -695,6 +695,9 @@ ESLint.configType = "eslintrc";
+ 
+ module.exports = {
+     ESLint,
++    processOptions,
++    compareResultsByFilePath,
++    createRulesMeta,
+ 
+     /**
+      * Get the private class members of a given ESLint instance for tests.
+diff --git a/node_modules/eslint/lib/linter/timing.js b/node_modules/eslint/lib/linter/timing.js
+index 1076ff2..506390b 100644
+--- a/node_modules/eslint/lib/linter/timing.js
++++ b/node_modules/eslint/lib/linter/timing.js
+@@ -155,7 +155,10 @@ module.exports = (function() {
+     return {
+         time,
+         enabled,
+-        getListSize
++        getListSize,
++        getData() {
++            return data;
++        }
+     };
+ 
+ }());
+diff --git a/node_modules/eslint/lib/options.js b/node_modules/eslint/lib/options.js
+index 089f347..2ea5203 100644
+--- a/node_modules/eslint/lib/options.js
++++ b/node_modules/eslint/lib/options.js
+@@ -58,6 +58,8 @@ const optionator = require("optionator");
+  * @property {boolean} [version] Output the version number
+  * @property {boolean} warnIgnored Show warnings when the file list includes ignored files
+  * @property {string[]} _ Positional filenames or patterns
++ * @property {boolean} parallel Run eslint in parallel using multiple worker processes
++ * @property {number} concurrency Maximum number of worker processes to use in parallel mode
+  */
+ 
+ //------------------------------------------------------------------------------
+@@ -392,6 +394,18 @@ module.exports = function(usingFlatConfig) {
+                 option: "print-config",
+                 type: "path::String",
+                 description: "Print the configuration for the given file"
++            },
++            {
++                option: "parallel",
++                type: "Boolean",
++                default: false,
++                description: "Run eslint in parallel across multiple worker processes"
++            },
++            {
++                option: "concurrency",
++                type: "Int",
++                default: "-1",
++                description: "Number of worker processes to use in parallel mode. -1=cpuCount-1"
+             }
+         ].filter(value => !!value)
+     });
+diff --git a/node_modules/eslint/lib/parallel/parallel-engine-worker.js b/node_modules/eslint/lib/parallel/parallel-engine-worker.js
+new file mode 100644
+index 0000000..8b6b536
+--- /dev/null
++++ b/node_modules/eslint/lib/parallel/parallel-engine-worker.js
+@@ -0,0 +1,132 @@
++"use strict";
++
++const fs = require("fs");
++const {
++    CLIEngine,
++    getCLIEngineInternalSlots,
++    verifyText
++} = require("../cli-engine/cli-engine");
++const { translateOptions } = require("../translate-options");
++const debug = require("debug")("eslint:parallel");
++const timing = require("../linter/timing");
++
++
++/**
++ * Child implementation for running the CLIEngine on a subset of files for the whole run.
++ */
++class ParallelEngineWorker extends CLIEngine {
++
++    /**
++     * Creates a new instance of the core CLI engine.
++     * @param {number} workerId Unique identifier for this worker.
++     * @param {CLIEngineOptions} providedOptions The options for this instance.
++     * @param {Object} [additionalData] Additional settings that are not CLIEngineOptions.
++     * @param {Record<string,Plugin>|null} [additionalData.preloadedPlugins] Preloaded plugins.
++     */
++    constructor(workerId, providedOptions, additionalData) {
++        super(providedOptions, additionalData);
++
++        /** @type {number} */
++        this.workerId = workerId;
++
++        /** @type {import("../cli").LintResult[]} */
++        this.results = [];
++    }
++
++    /**
++     * Executes the current configuration on an array of file names, specifically.
++     * @param {string[]} files An array of file names.
++     * @param {number} jobId Unique identifier for the job
++     * @returns {undefined}
++     */
++    executeOnFiles(files, jobId) {
++        const {
++            fileEnumerator,
++            lastConfigArrays,
++            linter,
++            options: {
++                allowInlineConfig,
++                cwd,
++                fix,
++                reportUnusedDisableDirectives
++            }
++        } = getCLIEngineInternalSlots(this);
++        const results = [];
++        const startTime = Date.now();
++
++        // Clear the last used config arrays.
++        lastConfigArrays.length = 0;
++
++        // Iterate source code files.
++        for (const { config, filePath } of fileEnumerator.iterateFiles(files)) {
++
++            /*
++             * Store used configs for:
++             * - this method uses to collect used deprecated rules.
++             * - `getRules()` method uses to collect all loaded rules.
++             * - `--fix-type` option uses to get the loaded rule's meta data.
++             */
++            if (!lastConfigArrays.includes(config)) {
++                lastConfigArrays.push(config);
++            }
++
++            // Do lint.
++            const result = verifyText({
++                text: fs.readFileSync(filePath, "utf8"),
++                filePath,
++                config,
++                cwd,
++                fix,
++                allowInlineConfig,
++                reportUnusedDisableDirectives,
++                fileEnumerator,
++                linter
++            });
++
++            results.push(result);
++        }
++
++        debug(`[worker:${this.workerId}] Parallel lint job ${jobId} completed in ${Date.now() - startTime}ms`);
++        this.results = this.results.concat(results);
++    }
++
++    /**
++     * Create a report from all results this worker has run so far.
++     * @returns {{results: import("../cli").LintResult[], timingData: object }} The complete lint report with timing data included
++     */
++    getReport() {
++        return {
++            results: this.results,
++            timingData: timing.getData()
++        };
++    }
++}
++
++/** @type {ParallelEngineWorker | undefined} */
++let worker;
++let isReady;
++
++process.on("message", async message => {
++    switch (message.type) {
++        case "init":
++            isReady = new Promise(resolve => {
++                translateOptions(message.options).then(options => {
++                    worker = new ParallelEngineWorker(message.workerId, options, { preloadedPlugins: options.plugins });
++                    resolve();
++                });
++            });
++            break;
++        case "files":
++            await isReady;
++            worker.executeOnFiles(message.files, message.id);
++            process.send({ type: "done" });
++            break;
++
++        case "report":
++            process.send({ type: "reportback", report: worker.getReport() });
++            break;
++
++        default:
++            break;
++    }
++});
+diff --git a/node_modules/eslint/lib/parallel/parallel-engine.js b/node_modules/eslint/lib/parallel/parallel-engine.js
+new file mode 100644
+index 0000000..21145b2
+--- /dev/null
++++ b/node_modules/eslint/lib/parallel/parallel-engine.js
+@@ -0,0 +1,211 @@
++"use strict";
++
++const {
++    CLIEngine,
++    getCLIEngineInternalSlots,
++    createIgnoreResult
++} = require("../cli-engine/cli-engine");
++const { processOptions } = require("../eslint/eslint");
++const builtInRules = require("../rules");
++const { translateOptions } = require("../translate-options");
++const { WorkerPool } = require("./worker-pool");
++const timing = require("../linter/timing");
++const debug = require("debug")("eslint:parallel");
++
++const BATCH_SIZE = 50;
++
++
++/**
++ * @typedef {import("../options").ParsedCLIOptions} ParsedCLIOptions
++ * @typedef {import("../cli-engine/cli-engine").LintReport} LintReport
++ */
++
++/**
++ * Merge the timing data from the given reports into a single target object.
++ * @param {Array<Record<string, number>>} data List of timing data objects from each worker
++ * @param {Record<string, number>} [target] The object to collate timing data into
++ * @returns {Record<string, number>} The collated timing data
++ */
++function mergeTimingData(data, target = {}) {
++    for (const timingData of data) {
++        for (const [key, value] of Object.entries(timingData)) {
++            if (target[key]) {
++                target[key] += value;
++            } else {
++                target[key] = value;
++            }
++        }
++    }
++    return target;
++}
++
++/**
++ * The supervising process for running multiple worker processes to lint files.
++ */
++class ParallelEngine {
++
++    /**
++     * @param {ParsedCLIOptions} options Options to pass to the worker engines
++     */
++    constructor(options) {
++        this.options = options;
++        this.pool = new WorkerPool(options);
++    }
++
++    /**
++     * Run the current configuration on an array of file and directory names.
++     * @param {string[]} patterns An array of file and directory names.
++     * @returns {LintResult} The results for all files that were linted.
++     */
++    async run(patterns) {
++        if (!this.engine) {
++            const translatedOptions = await translateOptions(this.options);
++            const processedOptions = processOptions(translatedOptions);
++
++            this.engine = new CLIEngine(processedOptions, { preloadedPlugins: processedOptions.plugins });
++        }
++        const {
++            fileEnumerator,
++            lastConfigArrays,
++            options: { cwd }
++        } = getCLIEngineInternalSlots(this.engine);
++        const results = [];
++        const startTime = Date.now();
++
++        // Clear the last used config arrays.
++        lastConfigArrays.length = 0;
++
++        /** @type {string[]} */
++        let fileBatch = [];
++
++        let jobCount = 0;
++
++        // Iterate source code files.
++        for (const { config, filePath, ignored } of fileEnumerator.iterateFiles(patterns)) {
++            if (ignored) {
++                results.push(createIgnoreResult(filePath, cwd));
++                continue;
++            }
++
++            /*
++             * Store used configs for:
++             * - this method uses to collect used deprecated rules.
++             * - `getRules()` method uses to collect all loaded rules.
++             * - `--fix-type` option uses to get the loaded rule's meta data.
++             */
++            if (!lastConfigArrays.includes(config)) {
++                lastConfigArrays.push(config);
++            }
++
++            fileBatch.push(filePath);
++            if (fileBatch.length >= BATCH_SIZE) {
++                jobCount += 1;
++                this.pool.run(fileBatch);
++                fileBatch = [];
++            }
++        }
++
++        jobCount += 1;
++        this.pool.run(fileBatch);
++
++        debug("All parallel jobs submitted, waiting on results");
++
++        // Wait for all of the job tasks to complete by counting down as they finish.
++        await new Promise(resolve => {
++            this.pool.onTaskCompleted(() => {
++                jobCount -= 1;
++                if (jobCount === 0) {
++                    resolve();
++                }
++            });
++        });
++
++        debug(`Linting complete in: ${Date.now() - startTime}ms`);
++
++        const poolResults = await this.pool.getResults();
++
++        // Merge timing data from worker processes into this processes' timings
++        mergeTimingData(poolResults.timingData, timing.getData());
++
++        this.pool.spinDown();
++        return results.concat(poolResults.results);
++    }
++
++
++    /**
++     * All of this should not have to exist. It's a copy from cli-engine.js
++     */
++
++    /**
++     * Returns the formatter representing the given format or null if the `format` is not a string.
++     * @param {string} [format] The name of the format to load or the path to a
++     *      custom formatter.
++     * @throws {any} As may be thrown by requiring of formatter
++     * @returns {(FormatterFunction|null)} The formatter function or null if the `format` is not a string.
++     */
++    getFormatter(format) {
++        const path = require("path");
++        const {
++            Legacy: {
++                naming,
++                ModuleResolver
++            }
++        } = require("@eslint/eslintrc");
++
++        const resolvedFormatName = format || "stylish";
++
++        // only strings are valid formatters
++        if (typeof resolvedFormatName === "string") {
++
++            // replace \ with / for Windows compatibility
++            const normalizedFormatName = resolvedFormatName.replace(/\\/gu, "/");
++
++            const slots = getCLIEngineInternalSlots(this);
++            const cwd = slots ? slots.options.cwd : process.cwd();
++            const namespace = naming.getNamespaceFromTerm(normalizedFormatName);
++
++            let formatterPath;
++
++            // if there's a slash, then it's a file (TODO: this check seems dubious for scoped npm packages)
++            if (!namespace && normalizedFormatName.includes("/")) {
++                formatterPath = path.resolve(cwd, normalizedFormatName);
++            } else {
++                try {
++                    const npmFormat = naming.normalizePackageName(normalizedFormatName, "eslint-formatter");
++
++                    formatterPath = ModuleResolver.resolve(npmFormat, path.join(cwd, "__placeholder__.js"));
++                } catch {
++                    formatterPath = path.resolve(path.join(__dirname, "..", "cli-engine", "formatters"), normalizedFormatName);
++                }
++            }
++
++            try {
++                return require(formatterPath);
++            } catch (ex) {
++                if (format === "table" || format === "codeframe") {
++                    ex.message = `The ${format} formatter is no longer part of core ESLint. Install it manually with \`npm install -D eslint-formatter-${format}\``;
++                } else {
++                    ex.message = `There was a problem loading formatter: ${formatterPath}\nError: ${ex.message}`;
++                }
++                throw ex;
++            }
++
++        } else {
++            return null;
++        }
++    }
++
++    getRules() {
++        const { lastConfigArrays } = getCLIEngineInternalSlots(this);
++
++        return new Map(function *() {
++            yield* builtInRules;
++
++            for (const configArray of lastConfigArrays) {
++                yield* configArray.pluginRules;
++            }
++        }());
++    }
++}
++
++module.exports = { ParallelEngine };
+diff --git a/node_modules/eslint/lib/parallel/parallel-eslint.js b/node_modules/eslint/lib/parallel/parallel-eslint.js
+new file mode 100644
+index 0000000..b60f130
+--- /dev/null
++++ b/node_modules/eslint/lib/parallel/parallel-eslint.js
+@@ -0,0 +1,110 @@
++/* eslint-disable class-methods-use-this -- disabling so that things work */
++"use strict";
++
++const { ParallelEngine } = require("./parallel-engine");
++const { compareResultsByFilePath, createRulesMeta } = require("../eslint/eslint");
++
++/** @typedef {import("../options").ParsedCLIOptions} ParsedCLIOptions */
++
++/**
++ * A parallelized implementation of ESLint, spawing multiple worker processes to
++ * distribute subsets of files to and collate into a final report.
++ *
++ * This class is needed to intercept the options before they get translated into
++ * JS objects, so that they can be passed to the worker processes first.
++ */
++class ParallelESLint {
++
++    /**
++     *
++     * @param {ParsedCLIOptions} options Un-translated options that can be passed to each worker
++     */
++    constructor(options) {
++        this.options = options;
++        this.parallelEngine = new ParallelEngine(options);
++    }
++
++    /**
++     * Executes the current configuration on an array of file and directory names.
++     * @param {string | string[]} patterns An array of file and directory names.
++     * @returns {Promise<import("../cli-engine/cli-engine").LintResult[]>} The results of linting the file patterns given.
++     */
++    async lintFiles(patterns) {
++        const patternsArray = Array.isArray(patterns) ? patterns : [patterns];
++
++        if (patternsArray.some(pattern => pattern.trim() === "")) {
++            throw new Error("'patterns' must be a non-empty string or an array of non-empty strings");
++        }
++
++        return this.parallelEngine.run(patterns);
++    }
++
++    /**
++     * A no-op for parallel operations, linting of stdin text is not supported.
++     * @returns {undefined}
++     */
++    async lintText() {
++        throw new Error("linting text from stdin is not supported in parallel mode");
++    }
++
++    /**
++     * This should not exist. It's a copy from eslint/eslint.js
++     *
++     * Returns the formatter representing the given formatter name.
++     * @param {string} [name] The name of the formatter to load.
++     * The following values are allowed:
++     * - `undefined` ... Load `stylish` builtin formatter.
++     * - A builtin formatter name ... Load the builtin formatter.
++     * - A third-party formatter name:
++     *   - `foo` → `eslint-formatter-foo`
++     *   - `@foo` → `@foo/eslint-formatter`
++     *   - `@foo/bar` → `@foo/eslint-formatter-bar`
++     * - A file path ... Load the file.
++     * @returns {Promise<LoadedFormatter>} A promise resolving to the formatter object.
++     * This promise will be rejected if the given formatter was not found or not
++     * a function.
++     */
++    async loadFormatter(name = "stylish") {
++        if (typeof name !== "string") {
++            throw new Error("'name' must be a string");
++        }
++
++        const formatter = this.parallelEngine.getFormatter(name);
++
++        if (typeof formatter !== "function") {
++            throw new Error(`Formatter must be a function, but got a ${typeof formatter}.`);
++        }
++
++        return {
++
++            /**
++             * The main formatter method.
++             * @param {LintResult[]} results The lint results to format.
++             * @param {ResultsMeta} resultsMeta Warning count and max threshold.
++             * @returns {string | Promise<string>} The formatted lint results.
++             */
++            format(results, resultsMeta) {
++                let rulesMeta = null;
++
++                results.sort(compareResultsByFilePath);
++
++                return formatter(results, {
++                    ...resultsMeta,
++                    get cwd() {
++                        return this.options.cwd;
++                    },
++                    get rulesMeta() {
++                        if (!rulesMeta) {
++                            rulesMeta = createRulesMeta(this.parallelEngine.getRules());
++                        }
++
++                        return rulesMeta;
++                    }
++                });
++            }
++        };
++    }
++}
++
++module.exports = { ParallelESLint };
++/* eslint-enable class-methods-use-this -- disabling so that things work */
+diff --git a/node_modules/eslint/lib/parallel/worker-pool.js b/node_modules/eslint/lib/parallel/worker-pool.js
+new file mode 100644
+index 0000000..547eac9
+--- /dev/null
++++ b/node_modules/eslint/lib/parallel/worker-pool.js
+@@ -0,0 +1,146 @@
++"use strict";
++
++const { fork } = require("child_process");
++const path = require("path");
++const os = require("os");
++
++const debug = require("debug")("eslint:parallel");
++
++/**
++ * Error thrown when a worker process exits unexpectedly.
++ */
++class WorkerExitedError extends Error {
++
++    /**
++     * @param {number | string} codeOrSignal Signal sent when the worker exited
++     */
++    constructor(codeOrSignal) {
++        super(`Worker exited with unexpected ${codeOrSignal} code`);
++    }
++}
++
++/**
++ * Pool of workers.
++ */
++class WorkerPool {
++
++    /**
++     * @param {import("../options").ParsedCLIOptions} options Options to send to spawned workers
++     */
++    constructor(options) {
++        this.options = options;
++
++        /** @type {Array<{worker: cluster.Worker; active: number; workerId: number }>} */
++        this.workers = [];
++
++        /** @type {number} */
++        this.workIdCounter = 0;
++
++        /** @type {number} */
++        this.nextWorkerId = 1;
++
++        /** @type {number} */
++        this.activeTasks = 0;
++
++        /** @type {(() => void)[]} */
++        this.subscriptions = [];
++
++        /** @type {number} */
++        this.maxSize = options.concurrency === -1 ? os.cpus().length - 1 : options.concurrency;
++    }
++
++    /**
++     * Schedules the given files to be linted.
++     * @param {string[]} files Files to be linted
++     * @returns {undefined}
++     */
++    run(files) {
++        if (this.workers.length < this.maxSize) {
++            this.spawnWorker();
++        }
++
++        this.activeTasks += 1;
++
++        const target = this.workers[0];
++        const id = this.workIdCounter++;
++
++        target.active++;
++        this.sortWorkers();
++
++        debug(`Submitting parallel job of ${files.length} files with id ${id} to worker ${target.workerId}`);
++        target.worker.send({ type: "files", files, id });
++    }
++
++    async getResults() {
++        const reportPromises = this.workers.map(({ worker }) => new Promise(resolve => {
++
++            /**
++             * Handle the report
++             * @param {any} message the message
++             * @returns {undefined}
++             */
++            function handleReport(message) {
++                if (message.type !== "reportback") {
++                    return;
++                }
++
++                resolve(message.report);
++                worker.off("message", handleReport);
++            }
++
++            worker.on("message", handleReport);
++            worker.send({ type: "report" });
++        }));
++
++        const reports = await Promise.all(reportPromises);
++
++        return { results: reports.flatMap(report => report.results), timingData: reports.map(report => report.timingData) };
++    }
++
++    sortWorkers() {
++        this.workers.sort((a, b) => a.active - b.active);
++    }
++
++    onTaskCompleted(callback) {
++        this.subscriptions.push(callback);
++    }
++
++    _sendTaskCompleted() {
++        for (const sub of this.subscriptions) {
++            sub();
++        }
++    }
++
++    /**
++     * Stop all the current worker processes.
++     * @returns {undefined}
++     */
++    spinDown() {
++        for (const { worker } of this.workers) {
++            worker.kill();
++        }
++
++        this.workers = [];
++    }
++
++    spawnWorker() {
++        const workerId = this.nextWorkerId++;
++
++        debug(`Spawning new parallel engine worker (${workerId})`);
++        const worker = fork(path.join(__dirname, "parallel-engine-worker.js"));
++
++        this.workers.unshift({ worker, active: 0, workerId });
++        worker.on("message", message => {
++            if (message.type === "done") {
++                this.activeTasks -= 1;
++                worker.active--;
++                this.sortWorkers();
++                this._sendTaskCompleted();
++            }
++        });
++
++        worker.send({ type: "init", options: this.options, workerId });
++    }
++}
++
++module.exports = { WorkerPool, WorkerExitedError };
+diff --git a/node_modules/eslint/lib/translate-options.js b/node_modules/eslint/lib/translate-options.js
+new file mode 100644
+index 0000000..f8f8394
+--- /dev/null
++++ b/node_modules/eslint/lib/translate-options.js
+@@ -0,0 +1,169 @@
++"use strict";
++
++const { Legacy: { naming } } = require("@eslint/eslintrc");
++const { ModuleImporter } = require("@humanwhocodes/module-importer");
++const { normalizeSeverityToString } = require("./shared/severity");
++
++/**
++ * Predicate function for whether or not to apply fixes in quiet mode.
++ * If a message is a warning, do not apply a fix.
++ * @param {LintMessage} message The lint result.
++ * @returns {boolean} True if the lint message is an error (and thus should be
++ * autofixed), false otherwise.
++ */
++function quietFixPredicate(message) {
++    return message.severity === 2;
++}
++
++/**
++ * Translates the CLI options into the options expected by the ESLint constructor.
++ * @param {ParsedCLIOptions} cliOptions The CLI options to translate.
++ * @param {"flat"|"eslintrc"} [configType="eslintrc"] The format of the
++ *      config to generate.
++ * @returns {Promise<ESLintOptions>} The options object for the ESLint constructor.
++ * @private
++ */
++async function translateOptions({
++    cache,
++    cacheFile,
++    cacheLocation,
++    cacheStrategy,
++    config,
++    configLookup,
++    env,
++    errorOnUnmatchedPattern,
++    eslintrc,
++    ext,
++    fix,
++    fixDryRun,
++    fixType,
++    global,
++    ignore,
++    ignorePath,
++    ignorePattern,
++    inlineConfig,
++    parser,
++    parserOptions,
++    plugin,
++    quiet,
++    reportUnusedDisableDirectives,
++    reportUnusedDisableDirectivesSeverity,
++    resolvePluginsRelativeTo,
++    rule,
++    rulesdir,
++    warnIgnored
++}, configType) {
++
++    let overrideConfig, overrideConfigFile;
++    const importer = new ModuleImporter();
++
++    if (configType === "flat") {
++        overrideConfigFile = (typeof config === "string") ? config : !configLookup;
++        if (overrideConfigFile === false) {
++            overrideConfigFile = void 0;
++        }
++
++        let globals = {};
++
++        if (global) {
++            globals = global.reduce((obj, name) => {
++                if (name.endsWith(":true")) {
++                    obj[name.slice(0, -5)] = "writable";
++                } else {
++                    obj[name] = "readonly";
++                }
++                return obj;
++            }, globals);
++        }
++
++        overrideConfig = [{
++            languageOptions: {
++                globals,
++                parserOptions: parserOptions || {}
++            },
++            rules: rule ? rule : {}
++        }];
++
++        if (reportUnusedDisableDirectives || reportUnusedDisableDirectivesSeverity !== void 0) {
++            overrideConfig[0].linterOptions = {
++                reportUnusedDisableDirectives: reportUnusedDisableDirectives
++                    ? "error"
++                    : normalizeSeverityToString(reportUnusedDisableDirectivesSeverity)
++            };
++        }
++
++        if (parser) {
++            overrideConfig[0].languageOptions.parser = await importer.import(parser);
++        }
++
++        if (plugin) {
++            const plugins = {};
++
++            for (const pluginName of plugin) {
++
++                const shortName = naming.getShorthandName(pluginName, "eslint-plugin");
++                const longName = naming.normalizePackageName(pluginName, "eslint-plugin");
++
++                plugins[shortName] = await importer.import(longName);
++            }
++
++            overrideConfig[0].plugins = plugins;
++        }
++
++    } else {
++        overrideConfigFile = config;
++
++        overrideConfig = {
++            env: env && env.reduce((obj, name) => {
++                obj[name] = true;
++                return obj;
++            }, {}),
++            globals: global && global.reduce((obj, name) => {
++                if (name.endsWith(":true")) {
++                    obj[name.slice(0, -5)] = "writable";
++                } else {
++                    obj[name] = "readonly";
++                }
++                return obj;
++            }, {}),
++            ignorePatterns: ignorePattern,
++            parser,
++            parserOptions,
++            plugins: plugin,
++            rules: rule
++        };
++    }
++
++    const options = {
++        allowInlineConfig: inlineConfig,
++        cache,
++        cacheLocation: cacheLocation || cacheFile,
++        cacheStrategy,
++        errorOnUnmatchedPattern,
++        fix: (fix || fixDryRun) && (quiet ? quietFixPredicate : true),
++        fixTypes: fixType,
++        ignore,
++        overrideConfig,
++        overrideConfigFile
++    };
++
++    if (configType === "flat") {
++        options.ignorePatterns = ignorePattern;
++        options.warnIgnored = warnIgnored;
++    } else {
++        options.resolvePluginsRelativeTo = resolvePluginsRelativeTo;
++        options.rulePaths = rulesdir;
++        options.useEslintrc = eslintrc;
++        options.extensions = ext;
++        options.ignorePath = ignorePath;
++        if (reportUnusedDisableDirectives || reportUnusedDisableDirectivesSeverity !== void 0) {
++            options.reportUnusedDisableDirectives = reportUnusedDisableDirectives
++                ? "error"
++                : normalizeSeverityToString(reportUnusedDisableDirectivesSeverity);
++        }
++    }
++
++    return options;
++}
++
++module.exports = { translateOptions };
