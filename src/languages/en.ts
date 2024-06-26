@@ -2224,7 +2224,7 @@ export default {
         moreFeatures: {
             spendSection: {
                 title: 'Spend',
-                subtitle: 'Enable optional functionality that helps you scale your team.',
+                subtitle: 'Enable functionality that helps you scale your team.',
             },
             organizeSection: {
                 title: 'Organize',
