@@ -4,10 +4,11 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import InitialListValueSelectorModal from './InitialListValueSelectorModal';
 
-type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
+type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
     /** Currently selected value */
     value?: string;
 
@@ -18,7 +19,7 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
     onInputChange?: (value: string) => void;
 };
 
-function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', onInputChange}: InitialListValueSelectorProps, forwardedRef: ForwardedRef<View>) {
+function InitialListValueSelector({value = '', label = '', rightLabel, subtitle = '', errorText = '', onInputChange}: InitialListValueSelectorProps, forwardedRef: ForwardedRef<View>) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -53,6 +54,8 @@ function InitialListValueSelector({value = '', label = '', rightLabel, subtitle 
                 title={value}
                 description={label}
                 rightLabel={rightLabel}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
                 onPress={showPickerModal}
             />
             <InitialListValueSelectorModal

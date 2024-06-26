@@ -2350,6 +2350,7 @@ export default {
             existingReportFieldNameError: 'A report field with this name already exists.',
             reportFieldNameRequiredError: 'Report field name is required.',
             reportFieldTypeRequiredError: 'Report field type is required.',
+            reportFieldInitialValueRequiredError: 'Report field initial value is required.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

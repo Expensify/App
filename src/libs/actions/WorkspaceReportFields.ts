@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {WorkspaceReportFieldsForm} from '@src/types/form/WorkspaceReportFieldsForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
 let listValues: string[];
@@ -82,4 +83,11 @@ function deleteReportFieldsListValue(valueIndexes: number[]) {
     });
 }
 
-export {setInitialCreateReportFieldsForm, createReportFieldsListValue, renameReportFieldsListValue, setReportFieldsListValueEnabled, deleteReportFieldsListValue};
+type CreateReportFieldArguments = Pick<WorkspaceReportFieldsForm, 'name' | 'type' | 'initialValue'>;
+
+function createReportField(policyID: string, {name, type, initialValue}: CreateReportFieldArguments) {
+    // eslint-disable-next-line no-console
+    console.log('createReportField', {policyID, name, type, initialValue, listValues, disabledListValues});
+}
+
+export {setInitialCreateReportFieldsForm, createReportFieldsListValue, renameReportFieldsListValue, setReportFieldsListValueEnabled, deleteReportFieldsListValue, createReportField};

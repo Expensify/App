@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setInitialCreateReportFieldsForm} from '@libs/actions/WorkspaceReportFields';
+import {createReportField, setInitialCreateReportFieldsForm} from '@libs/actions/WorkspaceReportFields';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -45,16 +45,21 @@ function WorkspaceCreateReportFieldPage({
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
-    const submitForm = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-        // eslint-disable-next-line no-console
-        console.log('submitForm', values);
-
-        Navigation.goBack();
-    }, []);
+    const submitForm = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+            createReportField(policyID, {
+                name: values[INPUT_IDS.NAME],
+                type: values[INPUT_IDS.TYPE],
+                initialValue: values[INPUT_IDS.INITIAL_VALUE],
+            });
+            Navigation.goBack();
+        },
+        [policyID],
+    );
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type} = values;
+            const {name, type, initialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
             if (!ValidationUtils.isRequiredFulfilled(name)) {
@@ -74,9 +79,13 @@ function WorkspaceCreateReportFieldPage({
                 errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
             }
 
+            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(initialValue)) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
+            }
+
             return errors;
         },
-        [policy?.fieldList, translate],
+        [availableListValuesLength, policy?.fieldList, translate],
     );
 
     useEffect(() => {

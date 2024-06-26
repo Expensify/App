@@ -11,15 +11,12 @@ import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
-type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
+type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel' | 'errorText'> & {
     /** Currently selected type */
     value?: string;
 
     /** Subtitle to display on field */
     subtitle?: string;
-
-    /** Form Error description */
-    errorText?: string;
 
     /** Function to call when the user selects a type */
     onInputChange?: (value: string) => void;
