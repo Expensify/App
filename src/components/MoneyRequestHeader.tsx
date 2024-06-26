@@ -64,7 +64,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
-    const moneyRequestReport = parentReport;
+    const isSelfDMTrackExpenseReport = ReportUtils.isTrackExpenseReport(report) && ReportUtils.isSelfDM(parentReport);
+    const moneyRequestReport = !isSelfDMTrackExpenseReport ? parentReport : undefined;
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
@@ -103,7 +104,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
         const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
