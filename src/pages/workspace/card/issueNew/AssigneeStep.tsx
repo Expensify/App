@@ -4,6 +4,8 @@ import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,8 +51,11 @@ function AssigneeStep() {
                 onSubmit={submit}
                 style={[styles.mh5, styles.flexGrow1]}
             >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
+                <SelectionList
+                    sections={[{data: [], shouldShow: true}]}
+                    ListItem={UserListItem}
+                    onSelectRow={() => {}}
+                />
             </FormProvider>
         </ScreenWrapper>
     );
