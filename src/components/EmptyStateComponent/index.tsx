@@ -96,4 +96,5 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
     );
 }
 
+EmptyStateComponent.displayName = 'EmptyStateComponent';
 export default EmptyStateComponent;
