@@ -3,6 +3,7 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,13 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: (onboarding) => !Array.isArray(onboarding) && (onboarding?.hasCompletedGuidedSetupFlow ?? true),
+        selector: (onboarding) => {
+            // onboarding is an array for old accounts and accounts created from olddot
+            if (Array.isArray(onboarding)) {
+                return true;
+            }
+            return onboarding?.hasCompletedGuidedSetupFlow;
+        },
     });
 
     useEffect(() => {
@@ -59,25 +66,27 @@ function OnboardingModalNavigator() {
                 onClick={handleOuterClick}
                 style={styles.onboardingNavigatorOuterView}
             >
-                <View
-                    onClick={(e) => e.stopPropagation()}
-                    style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}
-                >
-                    <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
-                        <Stack.Screen
-                            name={SCREENS.ONBOARDING.PURPOSE}
-                            component={OnboardingPurpose}
-                        />
-                        <Stack.Screen
-                            name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
-                            component={OnboardingPersonalDetails}
-                        />
-                        <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORK}
-                            component={OnboardingWork}
-                        />
-                    </Stack.Navigator>
-                </View>
+                <FocusTrapForScreens>
+                    <View
+                        onClick={(e) => e.stopPropagation()}
+                        style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}
+                    >
+                        <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.PURPOSE}
+                                component={OnboardingPurpose}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
+                                component={OnboardingPersonalDetails}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK}
+                                component={OnboardingWork}
+                            />
+                        </Stack.Navigator>
+                    </View>
+                </FocusTrapForScreens>
             </View>
         </NoDropZone>
     );

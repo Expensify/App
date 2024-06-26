@@ -52,9 +52,6 @@ type ReportFooterProps = {
     /** The pending action when we are adding a chat */
     pendingAction?: PendingAction;
 
-    /** Height of the list which the composer is part of */
-    listHeight?: number;
-
     /** Whether the report is ready for display */
     isReportReadyForDisplay?: boolean;
 
@@ -71,13 +68,12 @@ type ReportFooterProps = {
 function ReportFooter({
     lastReportAction,
     pendingAction,
-    report = {reportID: '0'},
+    report = {reportID: '-1'},
     reportMetadata,
     reportNameValuePairs,
     policy,
     isEmptyChat = true,
     isReportReadyForDisplay = true,
-    listHeight = 0,
     isComposerFullSize = false,
     onComposerBlur,
     onComposerFocus,
@@ -88,7 +84,7 @@ function ReportFooter({
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
-    const [isAnonymousUser] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+    const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: (dateString) => {
             if (!dateString) {
@@ -202,7 +198,7 @@ function ReportFooter({
                     )}
                 </View>
             )}
-            {!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth) && (
+            {!shouldHideComposer && (!!shouldShowComposeInput || !isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
@@ -215,7 +211,6 @@ function ReportFooter({
                             lastReportAction={lastReportAction}
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
-                            listHeight={listHeight}
                             isReportReadyForDisplay={isReportReadyForDisplay}
                         />
                     </SwipeableView>
@@ -232,7 +227,6 @@ export default memo(
     (prevProps, nextProps) =>
         lodashIsEqual(prevProps.report, nextProps.report) &&
         prevProps.pendingAction === nextProps.pendingAction &&
-        prevProps.listHeight === nextProps.listHeight &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.isEmptyChat === nextProps.isEmptyChat &&
         prevProps.lastReportAction === nextProps.lastReportAction &&

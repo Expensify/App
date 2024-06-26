@@ -85,7 +85,7 @@ type MenuData = {
     iconStyles?: StyleProp<ViewStyle>;
     fallbackIcon?: IconAsset;
     shouldStackHorizontally?: boolean;
-    avatarSize?: (typeof CONST.AVATAR_SIZE)[keyof typeof CONST.AVATAR_SIZE];
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
     floatRightAvatars?: TIcon[];
     title?: string;
     shouldShowRightIcon?: boolean;
@@ -325,9 +325,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={!!item.link}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={
-                                    !!activeRoute?.name && !!item.routeName && !!(activeRoute?.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
-                                }
+                                focused={!!activeRoute && !!item.routeName && !!(activeRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))}
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
@@ -358,7 +356,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
     const currentUserDetails = currentUserPersonalDetails;
     const avatarURL = currentUserDetails?.avatar ?? '';
-    const accountID = currentUserDetails?.accountID ?? '';
+    const accountID = currentUserDetails?.accountID ?? '-1';
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>

@@ -1,9 +1,10 @@
 import {getActionFromState} from '@react-navigation/core';
-import {findFocusedRoute} from '@react-navigation/native';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import {omitBy} from 'lodash';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import extractPolicyIDsFromState from '@libs/Navigation/linkingConfig/extractPolicyIDsFromState';
+import isCentralPaneName from '@libs/NavigationUtils';
 import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import getActionsFromPartialDiff from '@navigation/AppNavigator/getActionsFromPartialDiff';
@@ -28,6 +29,7 @@ import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getActionForBottomTabNavigator from './getActionForBottomTabNavigator';
 import getMinimalAction from './getMinimalAction';
+import type {ActionPayloadParams} from './types';
 
 export default function linkTo(navigation: NavigationContainerRef<RootStackParamList> | null, path: Route, type?: string, isActiveRoute?: boolean) {
     if (!navigation) {
@@ -44,17 +46,17 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const pathWithoutPolicyID = getPathWithoutPolicyID(`/${path}`) as Route;
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
     const stateFromPath = getStateFromPath(pathWithoutPolicyID) as PartialState<NavigationState<RootStackParamList>>;
-
     // Creating path with /w/ included if necessary.
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
     const policyIDs = !!topmostCentralPaneRoute?.params && 'policyIDs' in topmostCentralPaneRoute.params ? (topmostCentralPaneRoute?.params?.policyIDs as string) : '';
     const extractedPolicyID = extractPolicyIDFromPath(`/${path}`);
     const policyIDFromState = getPolicyIDFromState(rootState);
     const policyID = extractedPolicyID ?? policyIDFromState ?? policyIDs;
+    const lastRoute = rootState?.routes?.at(-1);
 
     const isNarrowLayout = getIsNarrowLayout();
 
-    const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
+    const isFullScreenOnTop = lastRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
     // policyIDs is present only on SCREENS.SEARCH.CENTRAL_PANE and it's displayed in the url as a query param, on the other pages this parameter is called policyID and it's shown in the url in the format: /w/:policyID
     if (policyID && !isFullScreenOnTop && !policyIDs) {
@@ -66,29 +68,35 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
+    const isReportInRhpOpened = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute?.state?.routes?.some((route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        const topRouteName = rootState?.routes?.at(-1)?.name;
+        const actionParams: ActionPayloadParams = action.payload.params;
+        const topRouteName = lastRoute?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== action.payload.params?.screen);
+        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== (actionParams?.screen ?? action.payload.name));
         const areParamsDifferent =
-            action.payload.params?.screen === SCREENS.REPORT
+            actionParams?.screen === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
                 : !shallowCompare(
                       omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
-                      omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+                      omitBy(actionParams?.params as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
 
         // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack by default
-        if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
+        if (isCentralPaneName(action.payload.name) && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const policyIDsFromState = extractPolicyIDsFromState(stateFromPath);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID || policyIDsFromState);
+            const isOpeningSearch = matchingBottomTabRoute.name === SCREENS.SEARCH.BOTTOM_TAB;
             const isNewPolicyID =
-                (topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID !== (matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID;
-            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID)) {
+                ((topmostBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '') !==
+                ((matchingBottomTabRoute?.params as Record<string, string | undefined>)?.policyID ?? '');
+
+            if (topmostBottomTabRoute && (topmostBottomTabRoute.name !== matchingBottomTabRoute.name || isNewPolicyID || isOpeningSearch)) {
                 root.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                     payload: matchingBottomTabRoute,
@@ -102,8 +110,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
-            if (action.payload.params?.screen === SCREENS.SEARCH.CENTRAL_PANE && action.payload?.params?.params && policyID) {
-                action.payload.params.params.policyIDs = policyID;
+            if (actionParams?.screen === SCREENS.SEARCH.CENTRAL_PANE && actionParams?.params && policyID) {
+                (actionParams.params as Record<string, string | undefined>).policyIDs = policyID;
             }
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
@@ -153,11 +161,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                     root.dispatch({
                         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
                         payload: {
-                            name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                            params: {
-                                screen: matchingCentralPaneRoute.name,
-                                params: matchingCentralPaneRoute.params,
-                            },
+                            name: matchingCentralPaneRoute.name,
+                            params: matchingCentralPaneRoute.params,
                         },
                     });
                 }
@@ -178,7 +183,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const targetFocusedRoute = findFocusedRoute(stateFromPath);
 
         // If the current focused route is the same as the target focused route, we don't want to navigate.
-        if (currentFocusedRoute?.name === targetFocusedRoute?.name) {
+        if (
+            currentFocusedRoute?.name === targetFocusedRoute?.name &&
+            shallowCompare(currentFocusedRoute?.params as Record<string, string | undefined>, targetFocusedRoute?.params as Record<string, string | undefined>)
+        ) {
             return;
         }
 
@@ -193,6 +201,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             root.dispatch(minimalAction);
             return;
         }
+    }
+
+    // When we navigate from the ReportScreen opened in RHP, this page shouldn't be removed from the navigation state to allow users to go back to it.
+    if (isReportInRhpOpened && action) {
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
     if (action !== undefined) {
