@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {RequireExactlyOne, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
@@ -164,6 +164,9 @@ type TaxRatesWithDefault = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Connection sync source values */
+type JobSourceValues = 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'NEWEXPENSIFY' | 'AUTOSYNC' | 'AUTOAPPROVE';
+
 /** Connection last synchronization state */
 type ConnectionLastSync = {
     /** Date when the connection's last successful sync occurred */
@@ -175,8 +178,8 @@ type ConnectionLastSync = {
     /** Whether the connection's last sync was successful */
     isSuccessful: boolean;
 
-    /** Where did the connection's last sync came from */
-    source: 'DIRECT' | 'EXPENSIFYWEB' | 'EXPENSIFYAPI' | 'AUTOSYNC' | 'AUTOAPPROVE';
+    /** Where did the connection's last sync job come from */
+    source: JobSourceValues;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -591,6 +594,361 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+/** Data stored about subsidiaries from NetSuite  */
+type NetSuiteSubsidiary = {
+    /** ID of the subsidiary */
+    internalID: string;
+
+    /** Country where subsidiary is present */
+    country: string;
+
+    /** Whether the subsidiary is an elimination subsidiary (a special type used to handle intercompany transaction) */
+    isElimination: boolean;
+
+    /** Name of the subsidiary */
+    name: string;
+};
+
+/** NetSuite bank account type values imported by Expensify */
+type AccountTypeValues = '_accountsPayable' | '_otherCurrentLiability' | '_creditCard' | '_bank' | '_otherCurrentAsset' | '_longTermLiability' | '_accountsReceivable' | '_expense';
+
+/** NetSuite Financial account (bank account, debit card, etc) */
+type NetSuiteAccount = {
+    /** GL code assigned to the financial account */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'GL Code': string;
+
+    /** Name of the account */
+    name: string;
+
+    /** ID assigned to the financial account in NetSuite */
+    id: string;
+
+    /** Type of the financial account */
+    type: AccountTypeValues;
+};
+
+/** NetSuite Tax account */
+type NetSuiteTaxAccount = {
+    /** Name of the tax account */
+    name: string;
+
+    /** ID assigned to the tax account in NetSuite */
+    externalID: string;
+
+    /** Country of the tax account */
+    country: string;
+};
+
+/** NetSuite Vendor Model */
+type NetSuiteVendor = {
+    /** ID of the vendor in NetSuite */
+    id: string;
+
+    /** Name of the vendor */
+    name: string;
+
+    /** E-mail of the vendor */
+    email: string;
+};
+
+/** NetSuite Invoice Item Model */
+type InvoiceItem = {
+    /** ID of the invoice item in NetSuite */
+    id: string;
+
+    /** Name of the invoice item */
+    name: string;
+};
+
+/** Data from the NetSuite accounting integration. */
+type NetSuiteConnectionData = {
+    /** Collection of the subsidiaries present in the NetSuite account */
+    subsidiaryList: NetSuiteSubsidiary[];
+
+    /** Collection of receivable accounts */
+    receivableList: NetSuiteAccount[];
+
+    /** Collection of vendors */
+    vendors: NetSuiteVendor[];
+
+    /** Collection of invoice items */
+    items: InvoiceItem[];
+
+    /** Collection of the payable accounts */
+    payableList: NetSuiteAccount[];
+
+    /** Collection of tax accounts */
+    taxAccountsList: NetSuiteTaxAccount[];
+};
+
+/** NetSuite mapping values */
+type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
+
+/** NetSuite invoice item preference values */
+type NetSuiteInvoiceItemPreferenceValues = 'create' | 'select';
+
+/** NetSuite export destination values */
+type NetSuiteExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+
+/** NetSuite expense report approval level values */
+type NetSuiteExpenseReportApprovalLevels = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
+
+/** NetSuite vendor bills approval level values */
+type NetSuiteVendorBillApprovalLevels = 'VENDOR_BILLS_APPROVED_NONE' | 'VENDOR_BILLS_APPROVAL_PENDING' | 'VENDOR_BILLS_APPROVED';
+
+/** NetSuite journal approval level values */
+type NetSuiteJournalApprovalLevels = 'JOURNALS_APPROVED_NONE' | 'JOURNALS_APPROVAL_PENDING' | 'JOURNALS_APPROVED';
+
+/** NetSuite export date values */
+type NetSuiteExportDateOptions = 'SUBMITTED' | 'EXPORTED' | 'LAST_EXPENSE';
+
+/** NetSuite journal posting preference values */
+type NetSuiteJournalPostingPreferences = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNALS_POSTING_INDIVIDUAL_LINE';
+
+/** The custom form selection options for transactions (any one will be used at most) */
+type NetSuiteCustomFormIDOptions = {
+    /** If the option is expense report */
+    expenseReport: string;
+
+    /** If the option is vendor bill */
+    vendorBill: string;
+
+    /** If the option is journal entry */
+    journalEntry: string;
+};
+
+/** User configuration for the NetSuite accounting integration. */
+type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Invoice Item Preference */
+    invoiceItemPreference: NetSuiteInvoiceItemPreferenceValues;
+
+    /** ID of the bank account for NetSuite invoice collections */
+    receivableAccount: string;
+
+    /** ID of the bank account for NetSuite tax posting */
+    taxPostingAccount: string;
+
+    /** Whether we should export to the most recent open period if the current one is closed  */
+    exportToNextOpenPeriod: boolean;
+
+    /** Whether we will include the original foreign amount of a transaction to NetSuite */
+    allowForeignCurrency: boolean;
+
+    /** Where to export reimbursable expenses */
+    reimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
+
+    /** The sub-entity within the NetSuite account for which this policy is connected */
+    subsidiary: string;
+
+    /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
+    syncOptions: {
+        /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
+        mapping: {
+            /** A general type of classification category in NetSuite */
+            classes: NetSuiteMappingValues;
+
+            /** A type of classification category in NetSuite linked to projects */
+            jobs: NetSuiteMappingValues;
+
+            /** A type of classification category in NetSuite linked to locations */
+            locations: NetSuiteMappingValues;
+
+            /** A type of classification category in NetSuite linked to customers */
+            customers: NetSuiteMappingValues;
+
+            /** A type of classification category in NetSuite linked to departments within the company */
+            departments: NetSuiteMappingValues;
+        };
+
+        /** Whether we want to import customers into NetSuite from across all subsidiaries */
+        crossSubsidiaryCustomers: boolean;
+
+        /** Whether we'll import employee supervisors and set them as managers in the Expensify approval workflow */
+        syncApprovalWorkflow: boolean;
+
+        /** Whether we import custom lists from NetSuite */
+        syncCustomLists: boolean;
+
+        /** The approval level we set for an Expense Report record created in NetSuite */
+        exportReportsTo: NetSuiteExpenseReportApprovalLevels;
+
+        /** The approval level we set for a Vendor Bill record created in NetSuite */
+        exportVendorBillsTo: NetSuiteVendorBillApprovalLevels;
+
+        /** Whether or not we need to set the final approver in this policy via sync */
+        setFinalApprover: boolean;
+
+        /** Whether we sync report reimbursement status between Expensify and NetSuite */
+        syncReimbursedReports: boolean;
+
+        /** The relevant details of the custom segments we import into Expensify and code onto expenses */
+        customSegments: Array<{
+            /** The name of the custom segment */
+            segmentName: string;
+
+            /** The ID of the custom segment in NetSuite */
+            internalID: string;
+
+            /** The ID of the transaction form field we'll code this segment onto during Export */
+            scriptID: string;
+
+            /** Whether we import this segment as a report field or tag */
+            mapping: 'tag' | 'reportField';
+        }>;
+
+        /** Whether to import Employees from NetSuite into Expensify */
+        syncPeople: boolean;
+
+        /** Whether to enable a new Expense Category into Expensify */
+        enableNewCategories: boolean;
+
+        /** A now unused configuration saying whether a customer had toggled AutoSync yet. */
+        hasChosenAutoSyncOption: boolean;
+
+        /** The final approver to be set in the Expensify approval workflow */
+        finalApprover: string;
+
+        /** Whether to import tax groups from NetSuite */
+        syncTax: boolean;
+
+        /** Whether to import custom segments from NetSuite */
+        syncCustomSegments: boolean;
+
+        /** The relevant details of the custom lists we import into Expensify and code onto expenses */
+        customLists: Array<{
+            /** The name of the custom list in NetSuite */
+            listName: string;
+
+            /** The internalID of the custom list in NetSuite */
+            internalID: string;
+
+            /** The ID of the transaction form field we'll code the list option onto during Export */
+            transactionFieldID: string;
+
+            /** Whether we import this list as a report field or tag */
+            mapping: 'tag' | 'reportField';
+        }>;
+
+        /** Whether we'll import Expense Categories into Expensify as categories */
+        syncCategories: boolean;
+
+        /** A now unused configuration saying whether a customer had toggled syncing reimbursement yet. */
+        hasChosenSyncReimbursedReportsOption: boolean;
+
+        /** The approval level we set for a Journal Entry record created in NetSuite */
+        exportJournalsTo: NetSuiteJournalApprovalLevels;
+    };
+
+    /** Whther to automatically create employees and vendors upon export in NetSuite if they don't exist */
+    autoCreateEntities: boolean;
+
+    /** The account to run auto export */
+    exporter: string;
+
+    /** The transaction date to set upon export */
+    exportDate: NetSuiteExportDateOptions;
+
+    /** The type of transaction in NetSuite we export non-reimbursable transactions to */
+    nonreimbursableExpensesExportDestination: NetSuiteExportDestinationValues;
+
+    /** Credit account for reimbursable transactions */
+    reimbursablePayableAccount: string;
+
+    /** Whether we post Journals as individual separate entries or a single unified entry */
+    journalPostingPreference: NetSuiteJournalPostingPreferences;
+
+    /** The Item record to associate with lines on an invoice created via Expensify */
+    invoiceItem: string;
+
+    /** The internaID of the selected subsidiary in NetSuite */
+    subsidiaryID: string;
+
+    /** The default vendor to use for Transactions in NetSuite */
+    defaultVendor: string;
+
+    /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
+    provincialTaxPostingAccount: string;
+
+    /** The account used for reimbursement in NetSuite */
+    reimbursementAccountID: string;
+
+    /** The account used for approvals in NetSuite */
+    approvalAccount: string;
+
+    /** Credit account for Non-reimbursables (not applicable to expense report entry) */
+    payableAcct: string;
+
+    /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
+    customFormIDOptions: {
+        /** The custom form selections for reimbursable transactions */
+        reimbursable: RequireExactlyOne<NetSuiteCustomFormIDOptions, 'expenseReport' | 'journalEntry' | 'vendorBill'>;
+
+        /** The custom form selections for non-reimbursable transactions */
+        nonReimbursable: RequireExactlyOne<NetSuiteCustomFormIDOptions, 'expenseReport' | 'journalEntry' | 'vendorBill'>;
+
+        /** Whether we'll use the custom form selections upon export to NetSuite */
+        enabled: boolean;
+    };
+
+    /** The account to use for Invoices export to NetSuite */
+    collectionAccount: string;
+
+    /** Whether this account is using the newer version of tax in NetSuite, SuiteTax */
+    suiteTaxEnabled: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
+/** NetSuite connection model */
+type NetSuiteConnection = {
+    /** Account ID of the NetSuite Integration */
+    accountID: string;
+
+    /** Encrypted tokenID for authenticating to NetSuite */
+    tokenID: string;
+
+    /** Config and Data for the NetSuite connection */
+    options: {
+        /** Data imported from NetSuite */
+        data: NetSuiteConnectionData;
+
+        /** Configuration of the connection */
+        config: NetSuiteConnectionConfig;
+    };
+
+    /** Whether the sync connection has been successful */
+    verified: boolean;
+
+    /** Date when the connection's last successful sync occurred */
+    lastSyncDate: string;
+
+    /** Date when the connection's last failed sync occurred */
+    lastErrorSyncDate: string;
+
+    /** Where did the connection's last sync came from */
+    source: JobSourceValues;
+
+    /** Config object used solely to store autosync settings */
+    config: {
+        /** NetSuite auto synchronization configs */
+        autoSync: {
+            /** Whether data should be automatically synched between the app and NetSuite */
+            enabled: boolean;
+
+            /** The bedrock job associated with the NetSuite Auto Sync job */
+            jobID: string;
+        };
+    };
+
+    /** Encrypted token secret for authenticating to NetSuite */
+    tokenSecret: string;
+};
+
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
     /** State of the last synchronization */
@@ -610,6 +968,9 @@ type Connections = {
 
     /** Xero integration connection */
     xero: Connection<XeroConnectionData, XeroConnectionConfig>;
+
+    /** NetSuite integration connection */
+    netsuite: NetSuiteConnection;
 };
 
 /** Names of integration connections */
@@ -786,9 +1147,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
-        /** The accountID of manager who the employee submits their expenses to on paid policies */
-        submitsTo?: number;
-
         /** The employee list of the policy */
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
@@ -953,4 +1311,5 @@ export type {
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,
+    NetSuiteSubsidiary,
 };

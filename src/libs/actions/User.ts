@@ -43,9 +43,7 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
 import * as Report from './Report';
@@ -61,7 +59,7 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails> | EmptyObject = {};
+let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
@@ -69,7 +67,7 @@ Onyx.connect({
             return;
         }
 
-        myPersonalDetails = value[currentUserAccountID] ?? {};
+        myPersonalDetails = value[currentUserAccountID] ?? undefined;
     },
 });
 
@@ -157,7 +155,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -240,7 +238,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                     ...oldLoginData,
                     errorFields: {
                         ...oldLoginData?.errorFields,
-                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -327,7 +325,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -431,7 +429,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                         validateCodeSent: null,
                     },
                     pendingFields: {
@@ -532,9 +530,13 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 }
             }
 
-            const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+            const types = flatten.map((data) => ReportActionsUtils.getOriginalMessage(data)).filter(Boolean);
 
             for (const message of types) {
+                if (!message) {
+                    return;
+                }
+
                 // Pay someone flow
                 if ('IOUDetails' in message) {
                     return playSound(SOUNDS.SUCCESS);
@@ -860,7 +862,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },
@@ -961,7 +963,7 @@ function clearCustomStatus() {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.CLEAR_STATUS, {}, {optimisticData});
+    API.write(WRITE_COMMANDS.CLEAR_STATUS, null, {optimisticData});
 }
 
 /**

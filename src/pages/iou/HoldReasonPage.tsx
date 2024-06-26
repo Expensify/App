@@ -1,6 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -45,7 +46,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const report = ReportUtils.getReport(reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
@@ -60,7 +61,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
         // as we do not allow requestee to edit fields like description and amount.
         // But, we still want the requestee to be able to put the request on hold
-        if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+        if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
             return;
         }
 
@@ -73,20 +74,20 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM> = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMMENT]);
 
             if (!values.comment) {
-                errors.comment = 'common.error.fieldRequired';
+                errors.comment = translate('common.error.fieldRequired');
             }
             // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
             // as we do not allow requestee to edit fields like description and amount.
             // But, we still want the requestee to be able to put the request on hold
-            if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+            if (ReportActionsUtils.isMoneyRequestAction(parentReportAction) && !ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
-                ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
+                ErrorUtils.addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
             }
 
             return errors;
         },
-        [parentReportAction, isWorkspaceRequest],
+        [parentReportAction, isWorkspaceRequest, translate],
     );
 
     useEffect(() => {
@@ -102,7 +103,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('iou.holdExpense')}
-                onBackButtonPress={navigateBack}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"

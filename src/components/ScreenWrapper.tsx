@@ -15,7 +15,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {CentralPaneNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -95,7 +95,7 @@ type ScreenWrapperProps = {
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<CentralPaneNavigatorParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<AuthScreensParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
@@ -139,7 +139,7 @@ function ScreenWrapper(
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -279,7 +279,7 @@ function ScreenWrapper(
                                                     : children
                                             }
                                             {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
-                                            {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
+                                            {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
                                                 <OfflineIndicator
                                                     containerStyles={[]}
                                                     style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
