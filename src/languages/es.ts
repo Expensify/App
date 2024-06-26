@@ -2235,7 +2235,7 @@ export default {
                     },
                     [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
                         label: 'Seleccionar existente',
-                        description: "Asociaremos las facturas de Expensify al artículo seleccionado a continuación.",
+                        description: 'Asociaremos las facturas de Expensify al artículo seleccionado a continuación.',
                     },
                 },
             },
