@@ -750,7 +750,7 @@ export default {
             atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes.',
             splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con usuarios individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
-            workspaceNotAccessible: 'El espacio de trabajo ya no está accesible. Por favor, intente de nuevo en un espacio de trabajo diferente.',
+            workspaceNotAccessible: 'El espacio de trabajo que seleccionaste ya no está accesible, posiblemente porque ha sido eliminado o ya no tienes acceso a él.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su billetera`,
         enableWallet: 'Habilitar Billetera',

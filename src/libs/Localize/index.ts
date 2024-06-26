@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
+import msgTranslationKeySwapMapping from '@src/languages/msgTranslationKeySwapMapping';
 import translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -232,14 +233,12 @@ function getDevicePreferredLocale(): Locale {
  * @param messageLocale - The locale of the message.
  * @returns - translation of the message or the original message if no translation found
  */
-function swapForTranslation(locale: Locale, message: string, messageLocale: Locale): string {
-    const language = messageLocale.substring(0, 2) as 'en' | 'es';
-    const matchedTranslationEntry = Object.entries(translations[language]).find(([, value]) => value === message) as [TranslationPaths, string] | undefined;
-    if (!matchedTranslationEntry) {
-        return message;
+function swapForTranslation(locale: Locale, message: string): string {
+    const translationKey: string | undefined = msgTranslationKeySwapMapping[message];
+    if (translationKey) {
+        return translate(locale, translationKey as TranslationPaths);
     }
-
-    return translate(locale, matchedTranslationEntry[0]);
+    return message;
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale, swapForTranslation};

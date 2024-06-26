@@ -30,7 +30,7 @@ type LocaleContextProps = {
     /** Returns translated string for given locale and phrase */
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string;
 
-    swapForTranslation: (message: string, messageLocale: Locale) => string;
+    swapForTranslation: (message: string) => string;
 
     /** Formats number formatted according to locale and options */
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
@@ -108,7 +108,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const fromLocaleDigit = useMemo<LocaleContextProps['fromLocaleDigit']>(() => (localeDigit) => LocaleDigitUtils.fromLocaleDigit(locale, localeDigit), [locale]);
 
-    const swapForTranslation = useMemo<LocaleContextProps['swapForTranslation']>(() => (message, messageLocale) => Localize.swapForTranslation(locale, message, messageLocale), [locale]);
+    const swapForTranslation = useMemo<LocaleContextProps['swapForTranslation']>(() => (message) => Localize.swapForTranslation(locale, message), [locale]);
 
     const contextValue = useMemo<LocaleContextProps>(
         () => ({

@@ -357,7 +357,7 @@ function MoneyRequestView({
         return Object.fromEntries(
             Object.entries(combinedErrors).map(([key, value]) =>
                 // swap for translation for each error message
-                [key, swapForTranslation(value as string, 'en')],
+                [key, swapForTranslation(value as string)],
             ),
         );
     }, [transaction?.errorFields?.route, transaction?.errors, parentReportAction?.errors, swapForTranslation]);
