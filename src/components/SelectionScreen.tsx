@@ -80,8 +80,8 @@ function SelectionScreen({
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
 
-    const policy = PolicyUtils.getPolicy(policyID ?? '');
-    const isConnectionEmpty = isEmpty(policy.connections?.[connectionName]);
+    const policy = PolicyUtils.getPolicy(policyID);
+    const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (
         <AccessOrNotFoundWrapper
