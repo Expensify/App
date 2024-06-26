@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -106,11 +107,18 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: Transactio
 
 function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const description = TransactionUtils.getDescription(transactionItem);
+    let merchant = transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description;
+
+    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem)) {
+        merchant = translate('iou.receiptStatusTitle');
+    }
+
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description}
+            text={merchant}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -118,12 +126,18 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
 
 function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const currency = TransactionUtils.getCurrency(transactionItem);
+    let amount = CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency);
+
+    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem)) {
+        amount = translate('iou.receiptStatusTitle');
+    }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
+            text={amount}
             style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
