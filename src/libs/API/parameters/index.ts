@@ -149,6 +149,7 @@ export type {default as CreateDistanceRequestParams} from './CreateDistanceReque
 export type {default as StartSplitBillParams} from './StartSplitBillParams';
 export type {default as SendMoneyParams} from './SendMoneyParams';
 export type {default as ApproveMoneyRequestParams} from './ApproveMoneyRequestParams';
+export type {default as UnapproveMoneyRequestParams} from './UnapproveMoneyRequestParams';
 export type {default as EditMoneyRequestParams} from './EditMoneyRequestParams';
 export type {default as ReplaceReceiptParams} from './ReplaceReceiptParams';
 export type {default as SubmitReportParams} from './SubmitReportParams';
