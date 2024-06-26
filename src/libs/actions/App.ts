@@ -17,7 +17,6 @@ import type {
 } from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Browser from '@libs/Browser';
-import DateUtils from '@libs/DateUtils';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -31,7 +30,6 @@ import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import * as Policy from './Policy/Policy';
 import * as Session from './Session';
