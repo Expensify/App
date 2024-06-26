@@ -30,26 +30,28 @@ PODS:
   - BVLinearGradient (2.8.1):
     - React-Core
   - DoubleConversion (1.1.6)
-  - EXAV (14.0.0):
+  - EXAV (14.0.5):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXImageLoader (4.7.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (51.0.0):
+  - Expo (51.0.14):
     - ExpoModulesCore
-  - ExpoAsset (10.0.6):
+  - ExpoAsset (10.0.9):
     - ExpoModulesCore
-  - ExpoImage (1.12.0):
+  - ExpoImage (1.12.12):
     - ExpoModulesCore
+    - libavif/libdav1d
     - SDWebImage (~> 5.19.1)
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
     - SDWebImageWebPCoder (~> 0.14.6)
-  - ExpoImageManipulator (12.0.0):
+  - ExpoImageManipulator (12.0.5):
     - EXImageLoader
     - ExpoModulesCore
-  - ExpoModulesCore (1.12.9):
+    - SDWebImageWebPCoder
+  - ExpoModulesCore (1.12.15):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -233,6 +235,10 @@ PODS:
     - hermes-engine/Pre-built (= 0.74.2)
   - hermes-engine/Pre-built (0.74.2)
   - libavif/core (0.11.1)
+  - libavif/libdav1d (0.11.1):
+    - libavif/core
+    - libdav1d (>= 0.6.0)
+  - libdav1d (1.2.0)
   - libwebp (1.3.2):
     - libwebp/demux (= 1.3.2)
     - libwebp/mux (= 1.3.2)
@@ -2382,6 +2388,7 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - libavif
+    - libdav1d
     - libwebp
     - lottie-ios
     - MapboxCommon
@@ -2636,13 +2643,13 @@ SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
-  EXAV: d88ed45b824d2aa99e5e9aceb5157ae497e89585
+  EXAV: cb6e8dbcc40873d8a386af357e6c2eb55d6d739e
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
-  Expo: 17eb02cbf2ac0db49a6bc0c80a6b635a900d4f60
-  ExpoAsset: 9b7433ecc5f1b608ccbb823492e062bde944abd2
-  ExpoImage: 7e5472cca4d546a031d27ea5bc40a77116ae56ec
-  ExpoImageManipulator: 0e9feedb937ab92d51238249702090ea423c1761
-  ExpoModulesCore: b3e29f9593d24651ee05eb88032a75ef66c16213
+  Expo: 9c87c876b45a6934894ba5e9353ee94fdba48125
+  ExpoAsset: 39e60dc31b16e204a9949caf3edb6dcda322e667
+  ExpoImage: 2ccccff1219ebc765e344f3338f2430af2df4824
+  ExpoImageManipulator: aea99205c66043a00a0af90e345395637b9902fa
+  ExpoModulesCore: 5d4cfc89c32be1396b58a6971ee9141dd5d3543c
   FBLazyVector: 4bc164e5b5e6cfc288d2b5ff28643ea15fa1a589
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
   FirebaseABTesting: 10cbce8db9985ae2e3847ea44e9947dd18f94e10
@@ -2665,6 +2672,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 8000756fc1c19d2e5697b90311f7832d2e33f6cd
   hermes-engine: 01d3e052018c2a13937aca1860fbedbccd4a41b7
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
+  libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: 042a44995748de42f2e6fcf334fc7545d6d2a840
