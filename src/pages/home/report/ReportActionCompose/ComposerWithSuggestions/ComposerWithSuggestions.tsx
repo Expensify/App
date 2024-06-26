@@ -757,7 +757,6 @@ function ComposerWithSuggestions(
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
-                {/* <TextInput accessibilityLabel="Text input field" multiline ref={setTextInputRef} placeholder={inputPlaceholder} value={value} onChange={onChange} style={styles.textInputCompose} /> */}
                 <Composer
                     checkComposerVisibility={checkComposerVisibility}
                     autoFocus={!!shouldAutoFocus}
