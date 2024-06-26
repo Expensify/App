@@ -72,17 +72,21 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-        const actionParams: ActionPayloadParams = action.payload.params;
+        const actionPayloadParams: ActionPayloadParams = action.payload.params;
         const topRouteName = lastRoute?.name;
+
+        // CentralPane screens aren't nested in any navigator, if actionPayloadParams?.screen is undefined, it means the screen name and parameters have to be read directly from action.payload
+        const actionName = actionPayloadParams?.screen ?? action.payload.name;
+        const actionParams = actionPayloadParams?.params ?? actionPayloadParams;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
-        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== (actionParams?.screen ?? action.payload.name));
+        const isTargetScreenDifferentThanCurrent = !!(!topmostCentralPaneRoute || topmostCentralPaneRoute.name !== actionName);
         const areParamsDifferent =
-            actionParams?.screen === SCREENS.REPORT
+            actionName === SCREENS.REPORT
                 ? getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath)
                 : !shallowCompare(
                       omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
-                      omitBy(actionParams?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+                      omitBy(actionParams as Record<string, unknown> | undefined, (value) => value === undefined),
                   );
 
         // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack by default
@@ -110,8 +114,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             }
 
             // If we navigate to SCREENS.SEARCH.CENTRAL_PANE, it's necessary to pass the current policyID, but we have to remember that this param is called policyIDs on this page
-            if (actionParams?.screen === SCREENS.SEARCH.CENTRAL_PANE && actionParams?.params && policyID) {
-                (actionParams.params as Record<string, string | undefined>).policyIDs = policyID;
+            if (actionName === SCREENS.SEARCH.CENTRAL_PANE && actionParams && policyID) {
+                (actionParams as Record<string, string | undefined>).policyIDs = policyID;
             }
 
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
