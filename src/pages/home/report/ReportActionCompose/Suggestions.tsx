@@ -9,6 +9,7 @@ import usePrevious from '@hooks/usePrevious';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
+import type { HandleComposerUpdateCallback } from './ComposerWithSuggestions/ComposerWithSuggestions';
 
 type SuggestionProps = {
     /** The current input value */
@@ -21,7 +22,7 @@ type SuggestionProps = {
     setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
-    updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
+    updateComment: HandleComposerUpdateCallback;
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;

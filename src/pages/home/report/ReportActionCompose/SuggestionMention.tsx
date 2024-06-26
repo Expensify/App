@@ -165,12 +165,16 @@ function SuggestionMention(
      */
     const insertSelectedMention = useCallback(
         (highlightedMentionIndexInner: number) => {
-            const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
+            const replaceUntil = suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1
+            const updateCommentArgs = SuggestionsUtils.getComposerUpdateArgsForSuggestionToInsert(value, mentionCode, {
+                start: suggestionValues.atSignIndex,
+                end: replaceUntil,
+            });
+            updateComment(updateCommentArgs);
+
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
                 start: selectionPosition,

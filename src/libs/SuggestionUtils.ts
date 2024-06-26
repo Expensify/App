@@ -1,3 +1,5 @@
+import type { TextSelection } from '@components/Composer/types';
+import type { HandleComposerUpdateArgs } from '@pages/home/report/ReportActionCompose/ComposerWithSuggestions/ComposerWithSuggestions';
 import CONST from '@src/CONST';
 
 /**
@@ -20,4 +22,24 @@ function hasEnoughSpaceForLargeSuggestionMenu(listHeight: number, composerHeight
     return availableHeight > menuHeight;
 }
 
-export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu};
+/**
+ * Replaces the selection range in currentText with the insert value
+ */
+function getComposerUpdateArgsForSuggestionToInsert(currentText: string, insert: string, selection: TextSelection): HandleComposerUpdateArgs {
+    const textBefore = currentText.slice(0, selection.start);
+    const textAfter = currentText.slice(selection.end);
+
+    const newText = `${insert} `;
+    const firstPart = textBefore + newText;
+    const fullNewText = firstPart + trimLeadingSpace(textAfter);
+    const endPosition = firstPart.length;
+
+    return {
+        diffText: newText,
+        fullNewText,
+        endPositionOfNewAddedText: endPosition,
+        shouldDebounceSaveComment: true,
+    };
+}
+
+export {trimLeadingSpace, hasEnoughSpaceForLargeSuggestionMenu, getComposerUpdateArgsForSuggestionToInsert};

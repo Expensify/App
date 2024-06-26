@@ -60,14 +60,20 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type SyncSelection = {
-    position: number;
-    value: string;
-};
+type HandleComposerUpdateArgs = {
+    // The full new text you'd like to display in the composer
+    fullNewText: string;
+    // The difference between the new text and the previous text
+    diffText: string;
+    // The position of the end of the newly added text
+    endPositionOfNewAddedText: number;
+    // Whether to debounce the saving of the comment
+    shouldDebounceSaveComment: boolean;
+}
+
+type HandleComposerUpdateCallback = (args: HandleComposerUpdateArgs) => void;
 
 type AnimatedRef = ReturnType<typeof useAnimatedRef>;
-
-type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
     /** The parent report actions for the report */
@@ -437,16 +443,11 @@ function ComposerWithSuggestions(
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
-    const handleComposerUpdate = useCallback(({
+    const handleComposerUpdate: HandleComposerUpdateCallback = useCallback(({
         fullNewText,
         diffText,
         endPositionOfNewAddedText,
         shouldDebounceSaveComment,
-    }: {
-        fullNewText: string;
-        diffText: string;
-        endPositionOfNewAddedText: number;
-        shouldDebounceSaveComment: boolean;
     }) => {
         raiseIsScrollLikelyLayoutTriggered();
         // Check for emojis:
@@ -569,6 +570,7 @@ function ComposerWithSuggestions(
 
     const hideSuggestionMenu = useCallback(
         (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            console.log('hideSuggestionMenu');
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -807,7 +809,7 @@ function ComposerWithSuggestions(
             <Suggestions
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
-                updateComment={updateComment}
+                updateComment={handleComposerUpdate}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
@@ -858,4 +860,4 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
 })(memo(ComposerWithSuggestionsWithRef));
 
-export type {ComposerWithSuggestionsProps, ComposerRef};
+export type {ComposerWithSuggestionsProps, ComposerRef, HandleComposerUpdateArgs, HandleComposerUpdateCallback};
