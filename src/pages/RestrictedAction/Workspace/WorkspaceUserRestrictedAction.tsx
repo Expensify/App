@@ -28,7 +28,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
 
     const openPolicyExpenseReport = useCallback(() => {
         const reportID = ReportUtils.findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
-        Report.openReport(reportID);
+        Navigation.resetToHome();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policyID]);
 
@@ -39,7 +39,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={Navigation.resetToHome}
             />
             <ScrollView
                 style={[styles.p5, styles.pt0]}

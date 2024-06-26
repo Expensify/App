@@ -28,7 +28,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
 
     const openAdminsReport = useCallback(() => {
         const reportID = `${PolicyUtils.getPolicy(policyID)?.chatReportIDAdmins}` ?? '-1';
-        Report.openReport(reportID);
+        Navigation.resetToHome();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policyID]);
 
@@ -39,7 +39,7 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={Navigation.resetToHome}
             />
             <ScrollView
                 style={[styles.p5, styles.pt0]}
