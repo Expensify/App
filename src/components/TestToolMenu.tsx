@@ -5,15 +5,11 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ApiUtils from '@libs/ApiUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import * as Network from '@userActions/Network';
-import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
@@ -92,24 +88,6 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     small
                     text={translate('initialSettingsPage.troubleshoot.destroy')}
                     onPress={() => Session.invalidateCredentials()}
-                />
-            </TestToolRow>
-            {/* Navigate to the Explanation Modal. This button is temporary to test Explanation Modal flow without HybridApp native module. */}
-            <TestToolRow title="Explanation modal">
-                <Button
-                    small
-                    text="Navigate"
-                    onPress={() => {
-                        Navigation.dismissModal();
-                        if (isSmallScreenWidth) {
-                            Navigation.navigate(ROUTES.HOME);
-                        } else {
-                            Report.navigateToConciergeChat();
-                        }
-                        setTimeout(() => {
-                            Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
-                        }, variables.welcomeVideoDelay);
-                    }}
                 />
             </TestToolRow>
         </>
