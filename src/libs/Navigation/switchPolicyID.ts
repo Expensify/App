@@ -3,8 +3,8 @@ import type {NavigationAction, NavigationContainerRef, NavigationState, PartialS
 import {getPathFromState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isCentralPaneName from '@libs/NavigationUtils';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -32,25 +32,32 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
         return;
     }
 
-    const params = action.payload.params as ActionPayloadParams;
-    let payloadParams = params?.params as Record<string, string | undefined>;
-    let screen = params.screen;
-
-    if (screen === SCREENS.SEARCH.CENTRAL_PANE) {
-        screen = SCREENS.SEARCH.BOTTOM_TAB;
+    let name;
+    let params: Record<string, string | undefined>;
+    if (isCentralPaneName(action.payload.name)) {
+        name = action.payload.name;
+        params = action.payload.params;
+    } else {
+        const actionPayloadParams = action.payload.params as ActionPayloadParams;
+        name = actionPayloadParams.screen;
+        params = actionPayloadParams?.params as Record<string, string | undefined>;
     }
 
-    if (!payloadParams) {
-        payloadParams = {policyID};
+    if (name === SCREENS.SEARCH.CENTRAL_PANE) {
+        name = SCREENS.SEARCH.BOTTOM_TAB;
+    }
+
+    if (!params) {
+        params = {policyID};
     } else {
-        payloadParams.policyID = policyID;
+        params.policyID = policyID;
     }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
-            name: screen,
-            params: payloadParams,
+            name,
+            params,
         },
         target: bottomTabNavigatorRoute.state.key,
     };
@@ -100,7 +107,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
 
     // If the layout is wide we need to push matching central pane route to the stack.
     if (shouldAddToCentralPane) {
-        const screen = topmostCentralPaneRoute?.name;
         const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
         if (isOpeningSearchFromBottomTab) {
@@ -120,11 +126,8 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         root.dispatch({
             type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
             payload: {
-                name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                params: {
-                    screen,
-                    params,
-                },
+                name: topmostCentralPaneRoute?.name,
+                params,
             },
         });
     } else {
