@@ -431,7 +431,7 @@ type OptionData = {
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
-    isUnsearchableViaParticipants?: boolean;
+    isSearchableViaParticipants?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -975,10 +975,10 @@ function isChatRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report is not searchable via participant
+ * Whether the provided report is searchable via participant
  */
-function isUnsearchableViaParticipants(report: OnyxEntry<Report>): boolean {
-    return isUserCreatedPolicyRoom(report) || isDefaultRoom(report) || isInvoiceRoom(report) || isTripRoom(report);
+function isSearchableViaParticipants(report: OnyxEntry<Report>): boolean {
+    return !isChatReport(report) || isDM(report) || isGroupChat(report) || isPolicyExpenseChat(report) || isSystemChat(report) || isSelfDM(report);
 }
 
 /**
@@ -5427,11 +5427,11 @@ function shouldReportBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report) &&
             !isInvoiceRoom(report) &&
-            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
+            // We omit sending back participants for certain reports when searching for reports since they aren't needed to display the results and can get very large.
             // So we allow showing rooms with no participants when searching for reports.
-            // In any other circumstances we should never have default rooms with no participants in Onyx.
+            // In any other circumstances we should never have these reports with no participants in Onyx.
             !isSearchingForReports &&
-            isUnsearchableViaParticipants(report))
+            !isSearchableViaParticipants(report))
     ) {
         return false;
     }
@@ -7325,7 +7325,7 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
-    isUnsearchableViaParticipants,
+    isSearchableViaParticipants,
     findPolicyExpenseChatByPolicyID,
 };
 

@@ -774,7 +774,7 @@ function createOption(
         policyID: undefined,
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
-        isUnsearchableViaParticipants: false,
+        isSearchableViaParticipants: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -811,7 +811,7 @@ function createOption(
         result.isSelfDM = ReportUtils.isSelfDM(report);
         result.isTripRoom = ReportUtils.isTripRoom(report);
         result.policyName = ReportUtils.getPolicyName(report);
-        result.isUnsearchableViaParticipants = ReportUtils.isUnsearchableViaParticipants(report);
+        result.isSearchableViaParticipants = ReportUtils.isSearchableViaParticipants(report);
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
@@ -1946,7 +1946,7 @@ function getOptions(
                 }
             }
 
-            if (!ReportUtils.isUnsearchableViaParticipants(report)) {
+            if (ReportUtils.isSearchableViaParticipants(report)) {
                 return;
             }
         }
@@ -2513,7 +2513,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             // - Policy rooms
             // - Invoice rooms
             // - Trip rooms
-            if (!item.isUnsearchableViaParticipants) {
+            if (item.isSearchableViaParticipants) {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
