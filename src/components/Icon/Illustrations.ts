@@ -6,6 +6,7 @@ import ConciergeBlue from '@assets/images/product-illustrations/concierge--blue.
 import ConciergeExclamation from '@assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
+import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import InvoiceOrange from '@assets/images/product-illustrations/invoice--orange.svg';
@@ -31,6 +32,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
@@ -39,6 +41,7 @@ import Binoculars from '@assets/images/simple-illustrations/simple-illustration_
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
+import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import CoffeeMug from '@assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import Coins from '@assets/images/simple-illustrations/simple-illustration__coins.svg';
 import CommentBubbles from '@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg';
@@ -46,6 +49,7 @@ import CompanyCard from '@assets/images/simple-illustrations/simple-illustration
 import ConciergeBubble from '@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg';
 import ConciergeNew from '@assets/images/simple-illustrations/simple-illustration__concierge.svg';
 import CreditCardsNew from '@assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
+import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
@@ -57,6 +61,7 @@ import House from '@assets/images/simple-illustrations/simple-illustration__hous
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
+import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
@@ -74,9 +79,12 @@ import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustra
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
+import SendMoney from '@assets/images/simple-illustrations/simple-illustration__sendmoney.svg';
 import ShieldYellow from '@assets/images/simple-illustrations/simple-illustration__shield.svg';
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
+import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
+import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
@@ -85,6 +93,8 @@ import TrashCan from '@assets/images/simple-illustrations/simple-illustration__t
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import WalletAlt from '@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
+import ExpensifyApprovedLogoLight from '@assets/images/subscription-details__approvedlogo--light.svg';
+import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 
 export {
     Abracadabra,
@@ -160,6 +170,7 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
+    Alert,
     TeachersUnite,
     Abacus,
     Binoculars,
@@ -174,4 +185,13 @@ export {
     Tag,
     CarIce,
     Lightbulb,
+    EmptyStateTravel,
+    SubscriptionAnnual,
+    SubscriptionPPU,
+    ExpensifyApprovedLogo,
+    ExpensifyApprovedLogoLight,
+    SendMoney,
+    CheckmarkCircle,
+    CreditCardEyes,
+    LockClosedOrange,
 };

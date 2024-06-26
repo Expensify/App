@@ -11,8 +11,8 @@ function HoldBanner() {
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pb3, styles.ph5, styles.borderBottom]}>
-            <TextPill>{translate('iou.hold')}</TextPill>
-            <Text style={[styles.textLabel, styles.pl3, styles.mw100, styles.flexShrink1]}>{translate('iou.requestOnHold')}</Text>
+            <TextPill>{translate('violations.hold')}</TextPill>
+            <Text style={[styles.textLabel, styles.pl3, styles.mw100, styles.flexShrink1]}>{translate('iou.expenseOnHold')}</Text>
         </View>
     );
 }

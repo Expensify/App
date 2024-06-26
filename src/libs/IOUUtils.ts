@@ -1,21 +1,14 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Report, Transaction} from '@src/types/onyx';
 import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(
-    requestType: IOURequestType,
-    iouType: ValueOf<typeof CONST.IOU.TYPE>,
-    transactionID: string,
-    reportID: string,
-    iouAction?: ValueOf<typeof CONST.IOU.ACTION>,
-): void {
-    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.MOVE) {
+function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
         Navigation.goBack();
         return;
     }
@@ -63,10 +56,10 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
- * @param isDeleting - whether the user is deleting the request
- * @param isUpdating - whether the user is updating the request
+ * @param isDeleting - whether the user is deleting the expense
+ * @param isUpdating - whether the user is updating the expense
  */
-function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
     iouReport: TReport,
     actorAccountID: number,
     amount: number,
@@ -102,7 +95,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
 }
 
 /**
- * Returns whether or not an IOU report contains money requests in a different currency
+ * Returns whether or not an IOU report contains expenses in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
@@ -112,10 +105,27 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
 }
 
 /**
- * Checks if the iou type is one of request, send, or split.
+ * Checks if the iou type is one of request, send, invoice or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE];
+    const moneyRequestType: string[] = [
+        CONST.IOU.TYPE.REQUEST,
+        CONST.IOU.TYPE.SUBMIT,
+        CONST.IOU.TYPE.SPLIT,
+        CONST.IOU.TYPE.SEND,
+        CONST.IOU.TYPE.PAY,
+        CONST.IOU.TYPE.TRACK,
+        CONST.IOU.TYPE.INVOICE,
+    ];
+    return moneyRequestType.includes(iouType);
+}
+
+/**
+ * Checks if the iou type is one of submit, pay, track, or split.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function temporary_isValidMoneyRequestType(iouType: string): boolean {
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.SUBMIT, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE];
     return moneyRequestType.includes(iouType);
 }
 
@@ -134,8 +144,8 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     return tagArray.join(CONST.COLON).replace(/:*$/, '');
 }
 
-function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.ACTION>) {
-    if (action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
+function isMovingTransactionFromTrackExpense(action?: IOUAction) {
+    if (action === CONST.IOU.ACTION.SUBMIT || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
         return true;
     }
 
@@ -144,10 +154,11 @@ function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.A
 
 export {
     calculateAmount,
-    updateIOUOwnerAndTotal,
+    insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
+    isMovingTransactionFromTrackExpense,
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
-    insertTagIntoTransactionTagsString,
-    isMovingTransactionFromTrackExpense,
+    updateIOUOwnerAndTotal,
+    temporary_isValidMoneyRequestType,
 };

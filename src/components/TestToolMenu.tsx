@@ -4,14 +4,11 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
-import compose from '@libs/compose';
-import Navigation from '@libs/Navigation/Navigation';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
@@ -91,29 +88,16 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
-
-            {/* Navigate to the new Onboarding flow (Stage 1). This button is temporary and should be removed after passing QA tests. */}
-            <TestToolRow title="Onboarding Flow">
-                <Button
-                    small
-                    text="Navigate"
-                    onPress={() => {
-                        Navigation.dismissModal();
-                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
-                    }}
-                />
-            </TestToolRow>
         </>
     );
 }
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default compose(
+export default withNetwork()(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
-    }),
-    withNetwork(),
-)(TestToolMenu);
+    })(TestToolMenu),
+);

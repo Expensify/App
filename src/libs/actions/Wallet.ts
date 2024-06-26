@@ -61,10 +61,6 @@ function setAdditionalDetailsErrors(errorFields: OnyxCommon.ErrorFields) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
 }
 
-function setAdditionalDetailsErrorMessage(additionalErrorMessage: string) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {additionalErrorMessage});
-}
-
 /**
  * Save the source that triggered the KYC wall and optionally the chat report ID associated with the IOU
  */
@@ -222,7 +218,7 @@ function openEnablePaymentsPage() {
     API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, {});
 }
 
-function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP>) {
+function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {
     Onyx.merge(ONYXKEYS.USER_WALLET, {currentStep});
 }
 
@@ -295,12 +291,15 @@ function requestPhysicalExpensifyCard(cardID: number, authToken: string, private
     API.write(WRITE_COMMANDS.REQUEST_PHYSICAL_EXPENSIFY_CARD, requestParams, {optimisticData});
 }
 
+function resetWalletAdditionalDetailsDraft() {
+    Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
+}
+
 export {
     openOnfidoFlow,
     openInitialSettingsPage,
     openEnablePaymentsPage,
     setAdditionalDetailsErrors,
-    setAdditionalDetailsErrorMessage,
     setAdditionalDetailsQuestions,
     updateCurrentStep,
     answerQuestionsForWallet,
@@ -309,4 +308,5 @@ export {
     acceptWalletTerms,
     setKYCWallSource,
     requestPhysicalExpensifyCard,
+    resetWalletAdditionalDetailsDraft,
 };

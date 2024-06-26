@@ -8,9 +8,9 @@ At Expensify, we primarily use [Storybook](https://storybook.js.org/) to provide
 
 The Storybook docs deploy automatically so there's nothing extra to do here. Storybook is built to the `/dist` folder and lives at [`https://new.expensify.com/docs/index.html`](https://new.expensify.com/docs/index.html).
 
-To test a local build we can run
+To test a local build, we can run
 
-```
+```shell
 npm run storybook-build
 ```
 
@@ -18,9 +18,9 @@ This will create a `/docs` directory in `/dist` with the static site.
 
 ### Local Testing
 
-To skip building and load Storybook on a local server run:
+To skip building and load Storybook on a local server, run:
 
-```
+```shell
 npm run storybook
 ```
 
@@ -30,7 +30,7 @@ npm run storybook
 
 All of our stories are located in a single directory `/src/stories`.
 
-To create a new story for a component that does not yet have one it's a good idea to copy an existing story file and then update the relevant details. We are using the [Component Story Format](https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format) to write our stories.
+To create a new story for a component that does not yet have one, it's a good idea to copy an existing story file and then update the relevant details. We are using the [Component Story Format](https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format) to write our stories.
 
 Here's an example story:
 

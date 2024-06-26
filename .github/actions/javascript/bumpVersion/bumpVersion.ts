@@ -1,9 +1,11 @@
 import * as core from '@actions/core';
 import {exec as originalExec} from 'child_process';
 import fs from 'fs';
+import type {PackageJson} from 'type-fest';
 import {promisify} from 'util';
 import {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} from '@github/libs/nativeVersionUpdater';
 import * as versionUpdater from '@github/libs/versionUpdater';
+import type {SemverLevel} from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
 
@@ -19,7 +21,7 @@ function updateNativeVersions(version: string) {
         .then(() => {
             console.log('Successfully updated Android!');
         })
-        .catch((err) => {
+        .catch((err: string | Error) => {
             console.error('Error updating Android');
             core.setFailed(err);
         });
@@ -42,13 +44,17 @@ function updateNativeVersions(version: string) {
 }
 
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
-if (!semanticVersionLevel || !Object.keys(versionUpdater.SEMANTIC_VERSION_LEVELS).includes(semanticVersionLevel)) {
+if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
     semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
     console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
 }
 
-const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString());
-const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
+const {version: previousVersion}: PackageJson = JSON.parse(fs.readFileSync('./package.json').toString());
+if (!previousVersion) {
+    core.setFailed('Error: Could not read package.json');
+}
+
+const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
 console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
 updateNativeVersions(newVersion);

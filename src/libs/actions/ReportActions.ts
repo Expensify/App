@@ -1,15 +1,28 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {Report as OnyxReportType, ReportActions} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Report from './Report';
 
 type IgnoreDirection = 'parent' | 'child';
+
+let allReportActions: OnyxCollection<ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReportActions = value),
+});
+
+let allReports: OnyxCollection<OnyxReportType>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
 
 function clearReportActionErrors(reportID: string, reportAction: ReportAction, keys?: string[]) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
@@ -25,13 +38,13 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
         });
 
         // If there's a linked transaction, delete that too
-        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID ?? '');
+        const linkedTransactionID = ReportActionUtils.getLinkedTransactionID(reportAction.reportActionID, originalReportID ?? '-1');
         if (linkedTransactionID) {
             Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`, null);
         }
 
         // Delete the failed task report too
-        const taskReportID = reportAction.message?.[0]?.taskReportID;
+        const taskReportID = ReportActionUtils.getReportActionMessage(reportAction)?.taskReportID;
         if (taskReportID && ReportActionUtils.isCreatedTaskReportAction(reportAction)) {
             Report.deleteReport(taskReportID);
         }
@@ -59,25 +72,12 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     });
 }
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
-            return;
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
-    },
-});
-
 /**
- * 
+ *
 ignore: `undefined` means we want to check both parent and children report actions
 ignore: `parent` or `child` means we want to ignore checking parent or child report actions because they've been previously checked
  */
-function clearAllRelatedReportActionErrors(reportID: string, reportAction: ReportAction | null, ignore?: IgnoreDirection, keys?: string[]) {
+function clearAllRelatedReportActionErrors(reportID: string, reportAction: ReportAction | null | undefined, ignore?: IgnoreDirection, keys?: string[]) {
     const errorKeys = keys ?? Object.keys(reportAction?.errors ?? {});
     if (!reportAction || errorKeys.length === 0) {
         return;
@@ -85,7 +85,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
 
     clearReportActionErrors(reportID, reportAction, keys);
 
-    const report = ReportUtils.getReport(reportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.parentReportID && report?.parentReportActionID && ignore !== 'parent') {
         const parentReportAction = ReportActionUtils.getReportAction(report.parentReportID, report.parentReportActionID);
         const parentErrorKeys = Object.keys(parentReportAction?.errors ?? {}).filter((err) => errorKeys.includes(err));
@@ -94,10 +94,10 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
-        const childActions = reportActionsByReport?.[reportAction.childReportID] ?? {};
+        const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
-            clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);
+            clearAllRelatedReportActionErrors(reportAction.childReportID ?? '-1', action, 'parent', childErrorKeys);
         });
     }
 }

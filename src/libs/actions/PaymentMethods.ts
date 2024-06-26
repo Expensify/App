@@ -3,6 +3,7 @@ import type {MutableRefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -10,7 +11,6 @@ import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
@@ -30,7 +30,7 @@ const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup(fallbackRoute: Route = ROUTES.HOME) {
+function continueSetup(fallbackRoute?: Route) {
     if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
@@ -192,6 +192,64 @@ function addPaymentCard(params: PaymentCardParams) {
         },
     ];
 
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ * Calls the API to add a new card.
+ *
+ */
+function addSubscriptionPaymentCard(cardData: {
+    cardNumber: string;
+    cardYear: string;
+    cardMonth: string;
+    cardCVV: string;
+    addressName: string;
+    addressZip: string;
+    currency: ValueOf<typeof CONST.CURRENCY>;
+}) {
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
+
+    const parameters: AddPaymentCardParams = {
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+        currency,
+        isP2PDebitCard: false,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            value: {isLoading: false},
+        },
+    ];
+
+    // TODO integrate API for subscription card as a follow up
     API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
         optimisticData,
         successData,
@@ -374,6 +432,7 @@ export {
     makeDefaultPaymentMethod,
     kycWallRef,
     continueSetup,
+    addSubscriptionPaymentCard,
     clearDebitCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,

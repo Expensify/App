@@ -5,7 +5,6 @@
  * By doing this, we avoid bundling any E2E testing code
  * into the actual release app.
  */
-import type {ValueOf} from 'type-fest';
 import * as Metrics from '@libs/Metrics';
 import Performance from '@libs/Performance';
 import Config from 'react-native-config';
@@ -13,9 +12,7 @@ import E2EConfig from '../../../tests/e2e/config';
 import E2EClient from './client';
 import installNetworkInterceptor from './utils/NetworkInterceptor';
 import LaunchArgs from './utils/LaunchArgs';
-import type { TestConfig } from './types';
-
-type Tests = Record<ValueOf<typeof E2EConfig.TEST_NAMES>, (config: TestConfig) => void>;
+import type {TestModule, Tests} from './types';
 
 console.debug('==========================');
 console.debug('==== Running e2e test ====');
@@ -34,11 +31,11 @@ if (!appInstanceId) {
 
 // import your test here, define its name and config first in e2e/config.js
 const tests: Tests = {
-    [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
-    [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
-    [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
-    [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
-    [E2EConfig.TEST_NAMES.Linking]: require('./tests/linkingTest.e2e').default,
+    [E2EConfig.TEST_NAMES.AppStartTime]: require<TestModule>('./tests/appStartTimeTest.e2e').default,
+    [E2EConfig.TEST_NAMES.OpenChatFinderPage]: require<TestModule>('./tests/openChatFinderPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ChatOpening]: require<TestModule>('./tests/chatOpeningTest.e2e').default,
+    [E2EConfig.TEST_NAMES.ReportTyping]: require<TestModule>('./tests/reportTypingTest.e2e').default,
+    [E2EConfig.TEST_NAMES.Linking]: require<TestModule>('./tests/linkingTest.e2e').default,
 };
 
 // Once we receive the TII measurement we know that the app is initialized and ready to be used:
@@ -66,6 +63,7 @@ E2EClient.getTestConfig()
             console.error(`[E2E] Test '${config.name}' not found`);
             // instead of throwing, report the error to the server, which is better for DX
             return E2EClient.submitTestResults({
+                branch: Config.E2E_BRANCH,
                 name: config.name,
                 error: `Test '${config.name}' not found`,
                 isCritical: false, 

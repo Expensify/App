@@ -13,10 +13,11 @@ function RadioListItem<TItem extends ListItem>({
     isDisabled,
     onSelectRow,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
+    shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     isMultilineSupported = false,
     onFocus,
+    shouldSyncFocus,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -32,10 +33,12 @@ function RadioListItem<TItem extends ListItem>({
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            pendingAction={item.pendingAction}
         >
             <>
                 <View style={[styles.flex1, styles.alignItemsStart]}>

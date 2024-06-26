@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
 import type {FileObject} from '@components/AttachmentModal';
@@ -242,7 +242,7 @@ function base64ToFile(base64: string, filename: string): File {
 }
 
 function validateImageForCorruption(file: FileObject): Promise<void> {
-    if (!Str.isImage(file.name ?? '')) {
+    if (!Str.isImage(file.name ?? '') || !file.uri) {
         return Promise.resolve();
     }
     return new Promise((resolve, reject) => {
@@ -250,6 +250,13 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
             .then(() => resolve())
             .catch(() => reject(new Error('Error reading file: The file is corrupted')));
     });
+}
+
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
 }
 
 export {
@@ -264,5 +271,6 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
     validateImageForCorruption,
 };

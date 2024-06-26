@@ -3,15 +3,13 @@ import React, {useMemo} from 'react';
 import type {TextStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getReport} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,9 +33,8 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
 
     // Get mention details based on reportID from tag attribute
     if (!isEmpty(htmlAttributeReportID)) {
-        const report = getReport(htmlAttributeReportID);
-
-        reportID = report?.reportID ?? undefined;
+        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
+        reportID = report?.reportID ?? htmlAttributeReportID;
         mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
         // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
@@ -62,8 +59,11 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const htmlAttributeReportID = tnode.attributes.reportid;
 
     const currentReportID = useCurrentReportID();
-    const currentReport = getReport(currentReportID?.currentReportID);
-    const isGroupPolicyReport = useMemo(() => (currentReport && !isEmptyObject(currentReport) ? ReportUtils.isGroupPolicy(currentReport) : false), [currentReport]);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID || -1}`);
+
+    // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
+    const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
 
     const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
     if (!mentionDetails) {

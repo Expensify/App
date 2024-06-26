@@ -5,7 +5,9 @@ import * as Middleware from '@libs/Middleware';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import pkg from '../../../package.json';
@@ -37,6 +39,20 @@ type OnyxData = {
     failureData?: OnyxUpdate[];
     finallyData?: OnyxUpdate[];
 };
+
+// For all write requests, we'll send the lastUpdateID that is applied to this client. This will
+// allow us to calculate previousUpdateID faster.
+let lastUpdateIDAppliedToClient = -1;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => {
+        if (value) {
+            lastUpdateIDAppliedToClient = value;
+        } else {
+            lastUpdateIDAppliedToClient = -1;
+        }
+    },
+});
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
@@ -81,6 +97,7 @@ function write<TCommand extends WriteCommand>(command: TCommand, apiCommandParam
             // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
             shouldRetry: true,
             canCancel: true,
+            clientUpdateID: lastUpdateIDAppliedToClient,
         },
         ...onyxDataWithoutOptimisticData,
     };
@@ -129,6 +146,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand | 
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType,
+        clientUpdateID: lastUpdateIDAppliedToClient,
     };
 
     // Assemble all the request data we'll be storing
@@ -159,6 +177,9 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.
+    if (PersistedRequests.getLength() > 0) {
+        Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
+    }
     SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 

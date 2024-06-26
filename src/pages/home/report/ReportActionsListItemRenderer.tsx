@@ -17,6 +17,9 @@ type ReportActionsListItemRendererProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
+
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -43,6 +46,12 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportAction: boolean;
+
+    /** If the thread divider line will be used */
+    shouldUseThreadDividerLine?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -58,6 +67,9 @@ function ReportActionsListItemRenderer({
     shouldDisplayNewMarker,
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
+    isFirstVisibleReportAction = false,
+    shouldUseThreadDividerLine = false,
+    parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -74,12 +86,11 @@ function ReportActionsListItemRenderer({
                 pendingAction: reportAction.pendingAction,
                 actionName: reportAction.actionName,
                 errors: reportAction.errors,
-                originalMessage: reportAction.originalMessage,
+                originalMessage: reportAction?.originalMessage,
                 childCommenterCount: reportAction.childCommenterCount,
                 linkMetadata: reportAction.linkMetadata,
                 childReportID: reportAction.childReportID,
                 childLastVisibleActionCreated: reportAction.childLastVisibleActionCreated,
-                whisperedToAccountIDs: reportAction.whisperedToAccountIDs,
                 error: reportAction.error,
                 created: reportAction.created,
                 actorAccountID: reportAction.actorAccountID,
@@ -97,6 +108,7 @@ function ReportActionsListItemRenderer({
                 childReportName: reportAction.childReportName,
                 childManagerAccountID: reportAction.childManagerAccountID,
                 childMoneyRequestCount: reportAction.childMoneyRequestCount,
+                childOwnerAccountID: reportAction.childOwnerAccountID,
             } as ReportAction),
         [
             reportAction.reportActionID,
@@ -104,12 +116,11 @@ function ReportActionsListItemRenderer({
             reportAction.pendingAction,
             reportAction.actionName,
             reportAction.errors,
-            reportAction.originalMessage,
+            reportAction?.originalMessage,
             reportAction.childCommenterCount,
             reportAction.linkMetadata,
             reportAction.childReportID,
             reportAction.childLastVisibleActionCreated,
-            reportAction.whisperedToAccountIDs,
             reportAction.error,
             reportAction.created,
             reportAction.actorAccountID,
@@ -127,6 +138,7 @@ function ReportActionsListItemRenderer({
             reportAction.childReportName,
             reportAction.childManagerAccountID,
             reportAction.childMoneyRequestCount,
+            reportAction.childOwnerAccountID,
         ],
     );
 
@@ -140,6 +152,8 @@ function ReportActionsListItemRenderer({
             reportActions={reportActions}
             transactionThreadReport={transactionThreadReport}
             index={index}
+            isFirstVisibleReportAction={isFirstVisibleReportAction}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     ) : (
         <ReportActionItem
@@ -147,19 +161,22 @@ function ReportActionsListItemRenderer({
             parentReportAction={parentReportAction}
             report={report}
             transactionThreadReport={transactionThreadReport}
+            parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
-                [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
+                ReportUtils.isPolicyExpenseChat(report) &&
+                [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
                     (type) => type === reportAction.actionName,
                 )
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
+            isFirstVisibleReportAction={isFirstVisibleReportAction}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     );
 }
