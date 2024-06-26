@@ -376,9 +376,9 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  */
 function getCombinedReportActions(
     reportActions: ReportAction[],
+    transactionThreadReportID: string | null,
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
-    transactionThreadReportID?: string | null,
 ): ReportAction[] {
     // There is a chance that transactionThreadReportActions is not loaded yet.
     // We only check for emptiness when there are multiple IOUs,
