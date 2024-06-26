@@ -9,8 +9,8 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {canEditMoneyRequest} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -73,14 +73,15 @@ function IOURequestStepTag({
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionTag = TransactionUtils.getTag(currentTransaction);
     const tag = TransactionUtils.getTag(currentTransaction, tagListIndex);
-    const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID];
+    const reportAction = reportActions?.[report?.parentReportActionID ?? reportActionID] ?? null;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     const shouldShowTag = ReportUtils.isReportInGroupPolicy(report) && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = !shouldShowTag || (isEditing && (isSplitBill ? !canEditSplitBill : reportAction && !canEditMoneyRequest(reportAction)));
+    const shouldShowNotFoundPage =
+        !shouldShowTag || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportActionsUtils.isMoneyRequestAction(reportAction) || !ReportUtils.canEditMoneyRequest(reportAction)));
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -96,7 +97,7 @@ function IOURequestStepTag({
             return;
         }
         if (isEditing) {
-            IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '0', updatedTag, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTag(transactionID, report?.reportID ?? '-1', updatedTag, policy, policyTags, policyCategories);
             Navigation.dismissModal();
             return;
         }
@@ -115,7 +116,7 @@ function IOURequestStepTag({
             <>
                 <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
                 <TagPicker
-                    policyID={report?.policyID ?? ''}
+                    policyID={report?.policyID ?? '-1'}
                     tagListName={policyTagListName}
                     tagListIndex={tagListIndex}
                     selectedTag={tag}
@@ -138,13 +139,13 @@ export default withWritableReportOrNotFound(
                 },
             },
             policy: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '-1'}`,
             },
             policyCategories: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '-1'}`,
             },
             policyTags: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '-1'}`,
             },
             reportActions: {
                 key: ({
@@ -153,7 +154,7 @@ export default withWritableReportOrNotFound(
                         params: {action, iouType},
                     },
                 }) => {
-                    let reportID: string | undefined = '0';
+                    let reportID: string | undefined = '-1';
                     if (action === CONST.IOU.ACTION.EDIT) {
                         reportID = iouType === CONST.IOU.TYPE.SPLIT ? report?.reportID : report?.parentReportID;
                     }

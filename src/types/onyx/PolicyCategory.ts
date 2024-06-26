@@ -1,5 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Model of policy category */
 type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a category */
     name: string;
@@ -33,6 +34,7 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors | null;
 }>;
 
+/** Record of policy categories, indexed by their name */
 type PolicyCategories = Record<string, PolicyCategory>;
 
 export type {PolicyCategory, PolicyCategories};

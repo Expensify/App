@@ -13,6 +13,7 @@ import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import type BaseModalProps from '@components/Modal/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useLocationBias from '@hooks/useLocationBias';
@@ -58,6 +59,7 @@ function IOURequestStepWaypoint({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const navigation = useNavigation();
     const isFocused = navigation.isFocused();
     const {translate} = useLocalize();
@@ -90,13 +92,13 @@ function IOURequestStepWaypoint({
         const errors = {};
         const waypointValue = values[`waypoint${pageIndex}`] ?? '';
         if (isOffline && waypointValue !== '' && !ValidationUtils.isValidAddress(waypointValue)) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'bankAccount.error.address');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, translate('bankAccount.error.address'));
         }
 
         // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.error.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, translate('distance.error.selectSuggestedAddress'));
         }
 
         return errors;
@@ -130,6 +132,7 @@ function IOURequestStepWaypoint({
 
     const deleteStopAndHideModal = () => {
         Transaction.removeWaypoint(transaction, pageIndex, action === CONST.IOU.ACTION.CREATE);
+        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE);
         setIsDeleteStopModalOpen(false);
         Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID));
     };
@@ -172,7 +175,10 @@ function IOURequestStepWaypoint({
                         {
                             icon: Expensicons.Trashcan,
                             text: translate('distance.deleteWaypoint'),
-                            onSelected: () => setIsDeleteStopModalOpen(true),
+                            onSelected: () => {
+                                setRestoreFocusType(undefined);
+                                setIsDeleteStopModalOpen(true);
+                            },
                         },
                     ]}
                 />
@@ -187,6 +193,7 @@ function IOURequestStepWaypoint({
                     cancelText={translate('common.cancel')}
                     shouldEnableNewFocusManagement
                     danger
+                    restoreFocusType={restoreFocusType}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
@@ -207,7 +214,7 @@ function IOURequestStepWaypoint({
                             ref={(e: HTMLElement | null) => {
                                 textInput.current = e as unknown as TextInput;
                             }}
-                            hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
+                            hint={!isOffline ? translate('distance.error.selectSuggestedAddress') : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}

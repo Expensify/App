@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +14,6 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -37,7 +37,6 @@ type CategorySettingsPageProps = CategorySettingsPageOnyxProps & StackScreenProp
 function CategorySettingsPage({route, policyCategories, navigation}: CategorySettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
@@ -75,14 +74,6 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
     };
 
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-    const threeDotsMenuItems = [];
-    if (!isThereAnyAccountingConnection) {
-        threeDotsMenuItems.push({
-            icon: Expensicons.Trashcan,
-            text: translate('workspace.categories.deleteCategory'),
-            onSelected: () => setDeleteCategoryConfirmModalVisible(true),
-        });
-    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -96,10 +87,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     title={route.params.categoryName}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                    threeDotsMenuItems={threeDotsMenuItems}
                     onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
                 />
                 <ConfirmModal
@@ -138,6 +126,7 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+<<<<<<< HEAD
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.payrollCode}>
                         <MenuItemWithTopDescription
                             title={policyCategory.payrollCode}
@@ -146,6 +135,15 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+=======
+                    {!isThereAnyAccountingConnection && (
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                        />
+                    )}
+>>>>>>> main
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

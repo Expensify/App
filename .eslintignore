@@ -9,3 +9,4 @@ android/**/build/**
 docs/vendor/**
 docs/assets/**
 web/gtm.js
+**/.expo/**

@@ -34,15 +34,27 @@ function SearchFilters({query}: SearchFiltersProps) {
     const filterItems: SearchMenuFilterItem[] = [
         {
             title: translate('common.expenses'),
-            query: CONST.TAB_SEARCH.ALL,
+            query: CONST.SEARCH.TAB.ALL,
             icon: Expensicons.Receipt,
-            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
+            route: ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL),
         },
         {
             title: translate('common.shared'),
-            query: CONST.TAB_SEARCH.SHARED,
+            query: CONST.SEARCH.TAB.SHARED,
             icon: Expensicons.Send,
-            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SHARED),
+            route: ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.SHARED),
+        },
+        {
+            title: translate('common.drafts'),
+            query: CONST.SEARCH.TAB.DRAFTS,
+            icon: Expensicons.Pencil,
+            route: ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.DRAFTS),
+        },
+        {
+            title: translate('common.finished'),
+            query: CONST.SEARCH.TAB.FINISHED,
+            icon: Expensicons.CheckCircle,
+            route: ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.FINISHED),
         },
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.query === query);

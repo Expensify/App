@@ -1,5 +1,4 @@
 import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import type {ErrorType} from 'onfido-sdk-ui/types/Types';
 import React, {forwardRef, useEffect} from 'react';
 import type {ForwardedRef} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -12,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -93,7 +92,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error: ErrorType) => {
+        onError: (error: OnfidoError) => {
             const errorType = error.type;
             const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});

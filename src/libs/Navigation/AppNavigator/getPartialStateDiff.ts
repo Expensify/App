@@ -72,8 +72,8 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
             (!stateTopmostFullScreen && templateStateTopmostFullScreen) ||
             (stateTopmostFullScreen &&
                 templateStateTopmostFullScreen &&
-                stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name &&
-                !shallowCompare(stateTopmostFullScreen.params as Record<string, unknown> | undefined, templateStateTopmostFullScreen.params as Record<string, unknown> | undefined))
+                (stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name ||
+                    !shallowCompare(stateTopmostFullScreen.params as Record<string, unknown> | undefined, templateStateTopmostFullScreen.params as Record<string, unknown> | undefined)))
         ) {
             diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = fullScreenDiff;
         }
