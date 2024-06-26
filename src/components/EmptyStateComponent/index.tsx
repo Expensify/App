@@ -81,7 +81,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                     <View style={styles.p8}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
-                        {buttonText && buttonAction && (
+                        {!!buttonText && !!buttonAction && (
                             <Button
                                 success
                                 onPress={buttonAction}
