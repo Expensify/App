@@ -351,8 +351,11 @@ const ONYXKEYS = {
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
-    /** Indicates the result of ClearOutstandingBalance, it can either be success or failed */
-    SUBSCRIPTION_RETRY_BILLING_STATUS: 'subscriptionRetryBillingStatus',
+    /** Indicates whether ClearOutstandingBalance failed */
+    SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED: 'subscriptionRetryBillingStatusFailed',
+
+    /** Indicates whether ClearOutstandingBalance was successful */
+    SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL: 'subscriptionRetryBillingStatusSuccessful',
 
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
@@ -740,7 +743,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
-    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS]: OnyxTypes.RetryBillingStatus;
+    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: boolean;
+    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: boolean;
     [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
     [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;

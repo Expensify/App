@@ -67,7 +67,6 @@ import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
-import type RetryBillingStatus from './RetryBillingStatus';
 import type ReviewDuplicates from './ReviewDuplicates';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
@@ -195,7 +194,6 @@ export type {
     ReviewDuplicates,
     PrivateSubscription,
     BillingGraceEndPeriod,
-    RetryBillingStatus,
     StripeCustomerID,
     BillingStatus,
 };
