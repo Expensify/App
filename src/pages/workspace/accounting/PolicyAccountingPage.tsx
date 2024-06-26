@@ -143,7 +143,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
-    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
+    const successfulDate = useMemo(() => {
+        if (!connectedIntegration) {
+            return undefined;
+        }
+        if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE) {
+            return policy?.connections?.netsuite.lastSyncDate;
+        }
+        return policy?.connections?.[connectedIntegration]?.lastSync?.successfulDate;
+    }, [connectedIntegration, policy?.connections]);
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
