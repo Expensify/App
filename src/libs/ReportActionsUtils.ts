@@ -380,10 +380,7 @@ function getCombinedReportActions(
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
 ): ReportAction[] {
-    // There is a chance that transactionThreadReportActions is not loaded yet.
-    // We only check for emptiness when there are multiple IOUs,
-    // this will prevent the sub-report preview from being displayed when there is only one IOU.
-    if (isEmptyObject(transactionThreadReportActions) && _.isEmpty(transactionThreadReportID)) {
+    if (_.isEmpty(transactionThreadReportID)) {
         return reportActions;
     }
 
