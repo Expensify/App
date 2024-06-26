@@ -617,7 +617,9 @@ describe('Unread Indicators', () => {
                     const hintText = Localize.translateLocal('accessibilityHints.lastChatMessagePreview');
                     const alternateText = screen.queryAllByLabelText(hintText);
                     expect(alternateText).toHaveLength(1);
-                    expect(screen.getByText('Current User Comment 1')).toBeOnTheScreen();
+
+                    // This message is visible on the sidebar and the report screen, so there are two occurrences.
+                    expect(screen.getAllByText('Current User Comment 1')[0]).toBeOnTheScreen();
 
                     if (lastReportAction) {
                         Report.deleteReportComment(REPORT_ID, lastReportAction);

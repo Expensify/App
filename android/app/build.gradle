@@ -107,8 +107,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009000115
-        versionName "9.0.1-15"
+        versionCode 1009000200
+        versionName "9.0.2-0"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -186,6 +186,23 @@ android {
     variantFilter { variant ->
         if (variant.name == "adhocDebug" || variant.name == "e2eDebug" || variant.name == "e2edeltaDebug") {
             setIgnore(true)
+        }
+    }
+}
+
+afterEvaluate {
+    // As the App is building from source, we need to make sure hermesc is built before the JS bundle is created.
+    // Otherwise the release version of the app will fail to build due to missing hermesc.
+    def hermesCTask = gradle.includedBuild("react-native").task(":packages:react-native:ReactAndroid:hermes-engine:buildHermesC")
+
+    android.applicationVariants.configureEach { variant ->
+        if (variant.buildType.name == "release") {
+            def variantName = variant.name.capitalize()
+            def bundleTask = tasks.named("createBundle${variantName}JsAndAssets").getOrNull()
+
+            if (bundleTask != null) {
+                bundleTask.dependsOn(hermesCTask)
+            }
         }
     }
 }

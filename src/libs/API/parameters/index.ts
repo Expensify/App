@@ -235,3 +235,4 @@ export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTok
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as ReportExportParams} from './ReportExportParams';
 export type {default as MarkAsExportedParams} from './MarkAsExportedParams';
+export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
