@@ -7,6 +7,12 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
+
+type SubsidiaryParam = {
+    subsidiaryID: string;
+    subsidiary: string;
+};
 
 function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     policyID: string,
@@ -86,6 +92,89 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
         },
     ];
     return {optimisticData, failureData, successData};
+}
+
+function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    subsidiary: newSubsidiary.subsidiary,
+                                    subsidiaryID: newSubsidiary.subsidiaryID,
+                                    pendingFields: {
+                                        subsidiary: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    },
+                                    errorFields: {
+                                        subsidiary: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    subsidiary: newSubsidiary.subsidiary,
+                                    subsidiaryID: newSubsidiary.subsidiaryID,
+                                    errorFields: {
+                                        subsidiary: null,
+                                    },
+                                    pendingFields: {
+                                        subsidiary: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    subsidiary: oldSubsidiary.subsidiary,
+                                    subsidiaryID: oldSubsidiary.subsidiaryID,
+                                    errorFields: {
+                                        subsidiary: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                    pendingFields: {
+                                        subsidiary: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        ...newSubsidiary,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
 function updateNetSuiteExporter(policyID: string, exporter: string, oldExporter: string) {
@@ -255,6 +344,7 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
 }
 
 export {
+    updateNetSuiteSubsidiary,
     updateNetSuiteExporter,
     updateNetSuiteExportDate,
     updateNetSuiteReimbursableExpensesExportDestination,
