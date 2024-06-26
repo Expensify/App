@@ -39,8 +39,8 @@ fi
 
 info "Ensuring correct version of cocoapods is used..."
 
-POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+)(\.[[:digit:]]+)?';
-POD_VERSION_FROM_GEMFILE="$(sed -nr "s/gem \"cocoapods\", \"~> $POD_VERSION_REGEX\"/\1/p" Gemfile)"
+POD_VERSION_REGEX='([[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+)?';
+POD_VERSION_FROM_GEMFILE="$(sed -nr "s/gem \"cocoapods\", \"= $POD_VERSION_REGEX\"/\1/p" Gemfile)"
 info "Pod version from Gemfile: $POD_VERSION_FROM_GEMFILE"
 
 POD_VERSION_FROM_PODFILE_LOCK="$(sed -nr "s/COCOAPODS: $POD_VERSION_REGEX/\1/p" ios/Podfile.lock)"

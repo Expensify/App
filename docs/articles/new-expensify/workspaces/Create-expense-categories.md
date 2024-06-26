@@ -8,6 +8,8 @@ In Expensify, categories refer to the **chart of accounts, GL accounts, expense 
 
 An admin can manually create categories for a workspace, or they will be automatically imported if your workspace is connected to another platform such as QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite. These imported categories can be enabled or disabled to use as categories for expenses added to Expensify. Additionally, Expensify will learn how you apply categories to specific merchants over time and apply them automatically.
 
+![The Categories tab]({{site.url}}/assets/images/ExpensifyHelp_R3_Categories_1.png){:width="100%"}
+
 # Manually add or delete categories
 
 {% include selector.html values="desktop, mobile" %}

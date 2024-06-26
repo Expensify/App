@@ -58,6 +58,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
+
+    /** Whether report is from group policy */
+    isGroupPolicyReport?: boolean;
 };
 
 // native ids
@@ -66,8 +69,11 @@ const messageEditInput = 'messageEditInput';
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
+// video source -> video attributes
+const draftMessageVideoAttributeCache = new Map<string, string>();
+
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
@@ -105,7 +111,11 @@ function ReportActionItemMessageEdit(
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        const originalMessage = parseHtmlToMarkdown(action.message?.[0]?.html ?? '');
+        draftMessageVideoAttributeCache.clear();
+
+        const originalMessage = parseHtmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), undefined, undefined, (videoSource, attrs) => {
+            draftMessageVideoAttributeCache.set(videoSource, attrs);
+        });
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
@@ -296,7 +306,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -427,6 +437,7 @@ function ReportActionItemMessageEdit(
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                            isGroupPolicyReport={isGroupPolicyReport}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>

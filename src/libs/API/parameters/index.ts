@@ -165,7 +165,6 @@ export type {default as CreateWorkspaceCategoriesParams} from './CreateWorkspace
 export type {default as RenameWorkspaceCategoriesParams} from './RenameWorkspaceCategoriesParams';
 export type {default as SetWorkspaceRequiresCategoryParams} from './SetWorkspaceRequiresCategoryParams';
 export type {default as DeleteWorkspaceCategoriesParams} from './DeleteWorkspaceCategoriesParams';
-export type {default as SetWorkspaceAutoReportingParams} from './SetWorkspaceAutoReportingParams';
 export type {default as SetWorkspaceAutoReportingFrequencyParams} from './SetWorkspaceAutoReportingFrequencyParams';
 export type {default as SetWorkspaceAutoReportingMonthlyOffsetParams} from './SetWorkspaceAutoReportingMonthlyOffsetParams';
 export type {default as SetWorkspaceApprovalModeParams} from './SetWorkspaceApprovalModeParams';
@@ -192,6 +191,8 @@ export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDis
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
+export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
+export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetPolicyDistanceRatesDefaultCategoryParams} from './SetPolicyDistanceRatesDefaultCategoryParams';
@@ -221,6 +222,7 @@ export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpensePa
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
 export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
+export type {default as DismissViolationParams} from './DismissViolationParams';
 export type {default as SearchParams} from './Search';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
@@ -231,3 +233,4 @@ export type {default as UpdateSubscriptionAutoRenewParams} from './UpdateSubscri
 export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from './UpdateSubscriptionAddNewUsersAutomaticallyParams';
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
+export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';

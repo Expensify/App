@@ -5,8 +5,10 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@navigation/Navigation';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -24,12 +26,12 @@ function CardSectionActions() {
             {
                 icon: Expensicons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => {}, // TODO: update with navigation to "add card" screen (https://github.com/Expensify/App/issues/38621)
+                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
             },
             {
                 icon: Expensicons.MoneyCircle,
                 text: translate('subscription.cardSection.changeCurrency'),
-                onSelected: () => {}, // TODO: update with navigation to "change currency" screen (https://github.com/Expensify/App/issues/38621)
+                onSelected: () => {}, // TODO: update with navigation to "change currency" screen (https://github.com/Expensify/App/issues/38629)
             },
         ],
         [translate],
