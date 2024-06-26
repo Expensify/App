@@ -16,10 +16,19 @@ type FieldItemType = {
 };
 
 type ReviewFieldsProps = {
+    /* Step Names which are displayed in stepper */
     stepNames: string[];
+
+    /* Label which is displyed to describe current step  */
     label: string;
+
+    /* Values to choose from */
     options: Array<{text: string; value: string | boolean | undefined}> | undefined;
+
+    /* Current index */
     index: number;
+
+    /* Callback to what should happen after selecting row */
     onSelectRow: (item: FieldItemType) => void;
 };
 
