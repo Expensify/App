@@ -2347,6 +2347,9 @@ export default {
             editValue: 'Edit value',
             listValues: 'List values',
             addValue: 'Add value',
+            existingReportFieldNameError: 'A report field with this name already exists.',
+            reportFieldNameRequiredError: 'Report field name is required.',
+            reportFieldTypeRequiredError: 'Report field type is required.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',

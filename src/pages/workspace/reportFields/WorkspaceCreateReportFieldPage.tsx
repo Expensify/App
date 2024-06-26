@@ -19,6 +19,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
+import * as ErrorUtils from '@src/libs/ErrorUtils';
+import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -31,7 +33,7 @@ type WorkspaceCreateReportFieldPageProps = WithPolicyAndFullscreenLoadingProps &
 const defaultDate = DateUtils.extractDate(new Date().toString());
 
 function WorkspaceCreateReportFieldPage({
-    // policy,
+    policy,
     route: {
         params: {policyID},
     },
@@ -50,15 +52,32 @@ function WorkspaceCreateReportFieldPage({
         Navigation.goBack();
     }, []);
 
-    const validateForm = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
+    const validateForm = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
+            const {name, type} = values;
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-        // TODO: Add validation logic here
-        // eslint-disable-next-line no-console
-        console.log('validateForm', values);
+            if (!ValidationUtils.isRequiredFulfilled(name)) {
+                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
+            } else if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
+                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+            } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    INPUT_IDS.NAME,
+                    translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
+                );
+            }
 
-        return errors;
-    }, []);
+            if (!ValidationUtils.isRequiredFulfilled(type)) {
+                errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
+            }
+
+            return errors;
+        },
+        [policy?.fieldList, translate],
+    );
 
     useEffect(() => {
         setInitialCreateReportFieldsForm();

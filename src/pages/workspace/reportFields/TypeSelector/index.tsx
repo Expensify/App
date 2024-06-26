@@ -7,6 +7,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
 import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
+import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 
@@ -17,6 +18,9 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
     /** Subtitle to display on field */
     subtitle?: string;
 
+    /** Form Error description */
+    errorText?: string;
+
     /** Function to call when the user selects a type */
     onInputChange?: (value: string) => void;
 
@@ -24,7 +28,7 @@ type TypeSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLabel'> & {
     onTypeSelected?: (reportFieldType: PolicyReportFieldType) => void;
 };
 
-function TypeSelector({value, label = '', rightLabel, subtitle = '', onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
+function TypeSelector({value, label = '', rightLabel, subtitle = '', errorText = '', onInputChange, onTypeSelected}: TypeSelectorProps, forwardedRef: ForwardedRef<View>) {
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -51,6 +55,8 @@ function TypeSelector({value, label = '', rightLabel, subtitle = '', onInputChan
                 title={value ? Str.recapitalize(translate(getReportFieldTypeTranslationKey(value as PolicyReportFieldType))) : ''}
                 description={label}
                 rightLabel={rightLabel}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
                 onPress={showPickerModal}
             />
             <TypeSelectorModal
