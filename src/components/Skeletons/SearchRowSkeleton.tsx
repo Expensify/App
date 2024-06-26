@@ -11,13 +11,12 @@ type SearchRowSkeletonProps = {
     gradientOpacityEnabled?: boolean;
 };
 
-const barHeight = '10';
-const shortBarWidth = '40';
-const longBarWidth = '120';
+const barHeight = 8;
+const longBarWidth = 120;
 
 function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth, isSmallScreenWidth, isLargeScreenWidth} = useWindowDimensions();
     if (isSmallScreenWidth) {
         return (
             <ItemListSkeletonView
@@ -108,42 +107,69 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
             renderSkeletonItem={() => (
                 <>
                     <Rect
-                        x="20"
-                        y="10"
-                        rx="5"
-                        ry="5"
-                        width="40"
-                        height="40"
+                        x={12}
+                        y={12}
+                        rx={5}
+                        ry={5}
+                        width={36}
+                        height={40}
                     />
                     <Rect
-                        x="80"
-                        y="25"
-                        width={shortBarWidth}
+                        x={60}
+                        y={28}
+                        width={30}
                         height={barHeight}
                     />
                     <Rect
-                        x="150"
-                        y="25"
+                        x={102}
+                        y={28}
                         width={longBarWidth}
                         height={barHeight}
                     />
+                    {isLargeScreenWidth && (
+                        <>
+                            <Rect
+                                x={234}
+                                y={28}
+                                width={longBarWidth}
+                                height={barHeight}
+                            />
+
+                            <Rect
+                                x={366}
+                                y={28}
+                                width={60}
+                                height={barHeight}
+                            />
+                        </>
+                    )}
+
                     <Rect
-                        x="320"
-                        y="25"
-                        width={longBarWidth}
+                        // We have to calculate this value to make sure the element is aligned to the button on the right side. Below is the calculation:
+                        // 375 is the width of the left pane
+                        // 80 is the width of the button on the right side
+                        // 12 is the margin between the element and the right border
+                        // 24 is the padding of the central pane summing two sides
+                        // 12 is the gap between the element and the right button
+                        // 80 is the width of the element itself
+                        x={windowWidth - 375 - 80 - 12 - 24 - 12 - 80}
+                        y={28}
+                        width={80}
                         height={barHeight}
                     />
+
                     <Rect
-                        x="480"
-                        y="25"
-                        width={longBarWidth}
-                        height={barHeight}
-                    />
-                    <Rect
-                        x="660"
-                        y="25"
-                        width="100%"
-                        height={barHeight}
+                        // We have to calculate this value to make sure the element is aligned to the right border. Below is the calculation:
+                        // 375 is the width of the left pane
+                        // 80 is the width of the element itself
+                        // 12 is the margin between the element and the right border
+                        // 24 is the padding of the central pane summing two sides
+                        x={windowWidth - 375 - 80 - 12 - 24}
+                        y={18}
+                        rx={15}
+                        ry={15}
+                        width={80}
+                        height={28}
                     />
                 </>
             )}
