@@ -119,6 +119,7 @@ function WorkspaceListValuesPage({
                 </View>
                 {shouldShowEmptyState && (
                     <WorkspaceEmptyStateSection
+                        containerStyle={styles.bgTransparent}
                         title="You haven't created any list values"
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle="Add a custom values that appears on reports."
