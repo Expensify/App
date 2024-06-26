@@ -249,7 +249,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(moneyRequestReport);
         const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
         const isInvoiceReport = ReportUtils.isInvoiceReport(moneyRequestReport);
-        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
+        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus)) && !isInvoiceReport) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdExpense'),
