@@ -10,6 +10,10 @@ type PopoverAnchorPosition = {
     left?: number;
 };
 
+type WindowState = {
+    shouldGoBack: boolean;
+};
+
 type BaseModalProps = Partial<ModalProps> & {
     /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
     fullscreen?: boolean;
@@ -86,4 +90,4 @@ type BaseModalProps = Partial<ModalProps> & {
 };
 
 export default BaseModalProps;
-export type {PopoverAnchorPosition};
+export type {PopoverAnchorPosition, WindowState};

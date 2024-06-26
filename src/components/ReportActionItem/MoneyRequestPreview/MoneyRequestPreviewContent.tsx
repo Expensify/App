@@ -205,7 +205,7 @@ function MoneyRequestPreviewContent({
             } else if (isMerchantMissing) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.missingMerchant')}`;
             } else if (shouldShowHoldMessage) {
-                message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+                message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
             }
         } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
             message += ` • ${translate('violations.reviewRequired')}`;
@@ -214,7 +214,7 @@ function MoneyRequestPreviewContent({
         } else if (iouReport?.isCancelledIOU) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (shouldShowHoldMessage) {
-            message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
+            message += ` ${CONST.DOT_SEPARATOR} ${translate('violations.hold')}`;
         }
         return message;
     };
