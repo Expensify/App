@@ -17,7 +17,7 @@ function ChangeBillingCurrency() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
+    const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
     const changeBillingCurrency = useCallback((currency?: ValueOf<typeof CONST.CURRENCY>, values?: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
         if (values?.securityCode) {

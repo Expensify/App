@@ -1062,7 +1062,7 @@ export default {
         paymentCurrency: 'Moneda de pago',
         note: 'Nota: Cambiar tu moneda de pago puede afectar cuánto pagarás por Expensify. Consulta nuestra',
         noteLink: 'página de precios',
-        notDetails: 'para conocer todos los detalles.',
+        noteDetails: 'para conocer todos los detalles.',
     },
     addDebitCardPage: {
         addADebitCard: 'Añadir una tarjeta de débito',

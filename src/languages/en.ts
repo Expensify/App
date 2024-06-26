@@ -1065,7 +1065,7 @@ export default {
         paymentCurrency: 'Payment currency',
         note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
         noteLink: 'pricing page',
-        notDetails: 'for full details.',
+        noteDetails: 'for full details.',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',

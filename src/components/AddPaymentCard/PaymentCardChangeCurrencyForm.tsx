@@ -7,15 +7,14 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
+import PaymentCardCurrencyHeader from './PaymentCardCurrencyHeader';
 import PaymentCardCurrencyModal from './PaymentCardCurrencyModal';
 
 type PaymentCardFormProps = {
@@ -25,23 +24,6 @@ type PaymentCardFormProps = {
 };
 
 const REQUIRED_FIELDS = [INPUT_IDS.SECURITY_CODE];
-
-function HeaderCurrencyInfo({isSectionList}: {isSectionList?: boolean}) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    return (
-        <View style={[isSectionList && styles.mh5]}>
-            <Text style={[styles.mt3, isSectionList && styles.mb5]}>
-                {`${translate('billingCurrency.note')}`}{' '}
-                <TextLink
-                    style={styles.link}
-                    href={CONST.PRICING}
-                >{`${translate('billingCurrency.noteLink')}`}</TextLink>{' '}
-                {`${translate('billingCurrency.notDetails')}`}
-            </Text>
-        </View>
-    );
-}
 
 function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeRequired, initialCurrency}: PaymentCardFormProps) {
     const styles = useThemeStyles();
@@ -103,7 +85,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
             >
-                <HeaderCurrencyInfo />
+                <PaymentCardCurrencyHeader />
                 <>
                     <View style={[styles.mt5, styles.mhn5]}>
                         <MenuItemWithTopDescription
@@ -139,7 +121,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     return (
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
-                headerContent={<HeaderCurrencyInfo isSectionList />}
+                headerContent={<PaymentCardCurrencyHeader isSectionList />}
                 initiallyFocusedOptionKey={currency}
                 containerStyle={[styles.mhn5]}
                 sections={sections}
