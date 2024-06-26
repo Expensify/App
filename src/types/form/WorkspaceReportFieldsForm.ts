@@ -27,5 +27,5 @@ type WorkspaceReportFieldsForm = Form<
     }
 >;
 
-export type {WorkspaceReportFieldsForm};
+export type {WorkspaceReportFieldsForm, InputID};
 export default INPUT_IDS;

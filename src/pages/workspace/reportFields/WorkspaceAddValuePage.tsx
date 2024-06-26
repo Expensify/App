@@ -4,7 +4,7 @@ import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
@@ -12,9 +12,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createReportFieldsListValue} from '@libs/actions/WorkspaceReportFields';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -31,26 +30,9 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
-            const valueName = values[INPUT_IDS.VALUE_NAME].trim();
-
-            if (!ValidationUtils.isRequiredFulfilled(valueName)) {
-                errors.valueName = translate('workspace.reportFields.listValueRequiredError');
-            } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.some((currentValueName) => currentValueName === valueName)) {
-                errors.valueName = translate('workspace.reportFields.existingListValueError');
-            } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
-                    errors,
-                    'valueName',
-                    translate('common.error.characterLimitExceedCounter', {length: [...valueName].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}),
-                );
-            }
-
-            return errors;
-        },
-        [formDraft, translate],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
+            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.VALUE_NAME),
+        [formDraft],
     );
 
     const createValue = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
