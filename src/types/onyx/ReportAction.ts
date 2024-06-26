@@ -269,13 +269,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
 /**
  *
  */
-type OldDotReportAction = ReportActionBase &
-    OldDotAction & {
-        /**
-         *
-         */
-        message?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
-    };
+type OldDotReportAction = ReportActionBase & OldDotAction;
 
 /**
  *
