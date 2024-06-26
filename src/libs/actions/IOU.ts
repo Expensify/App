@@ -4017,7 +4017,7 @@ function createSplitsAndOnyxData(
                     },
                     [splitIOUReportAction.reportActionID]: {
                         errors: getReceiptError(receipt, filename),
-                    },                    
+                    },
                 },
             },
         );
