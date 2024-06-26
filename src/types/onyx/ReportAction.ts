@@ -4,7 +4,6 @@ import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type OldDotAction from './OldDotAction';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
@@ -222,7 +221,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: FileObject | EmptyObject;
+    attachmentInfo?: FileObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
