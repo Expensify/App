@@ -3760,26 +3760,57 @@ export default {
     subscription: {
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
         billingBanner: {
-            outdatedInfo: 'Tu información de pago está desactualizada',
-            updatePaymentInformation: 'Por favor, actualiza tu información de pago.',
-            updateCardDataByDate: ({date}) => `Actualiza tu tarjeta de pago antes del ${date} para continuar utilizando todas tus herramientas favoritas`,
-            paymentPastDuePayByDate: ({date}) => `Tu pago está vencido. Por favor, paga tu factura antes del ${date} para evitar la interrupción del servicio.`,
-            paymentPastDue: 'Tu pago está vencido. Por favor, paga tu factura.',
-            cardCouldNotBeCharged: 'No se ha podido realizar el cobro a tu tarjeta',
-            retryMessage:
-                'Antes de volver a intentarlo, llama directamente a tu banco para que autorice los cargos de Expensify y elimine las retenciones. De lo contrario, añade una tarjeta de pago diferente.',
-            cardNotFullyAuthenticated: ({cardEnding}) =>
-                `Tu tarjeta de pago no ha sido autenticada completamente. Por favor, completa el proceso de autenticación para activar tu tarjeta de pago que termina en ${cardEnding}.`,
-            cardDeclinedDueToInsufficientFunds: ({amountOwed}) =>
-                `Tu tarjeta de pago fue rechazada por falta de fondos. Vuelve a intentarlo o añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
-            cardExpired: ({amountOwed}) => `Tu tarjeta de pago ha expirado. Por favor, añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
-            cardExpiringSoon: 'Tu tarjeta caducará pronto',
-            cardWillExpireAtTheEndOfMonth:
-                'Tu tarjeta de pago caducará a finales de este mes. Haz clic en el menú de tres puntos que aparece a continuación para actualizarla y continuar utilizando todas tus herramientas favoritas.',
+            policyOwnerAmountOwed: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: ({date}) => `Actualiza tu tarjeta de pago antes del ${date} para continuar utilizando todas tus herramientas favoritas`,
+            },
+            policyOwnerAmountOwedOverdue: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: 'Por favor, actualiza tu información de pago.',
+            },
+            policyOwnerUnderInvoicing: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: ({date}) => `Tu pago está vencido. Por favor, paga tu factura antes del ${date} para evitar la interrupción del servicio.`,
+            },
+            policyOwnerUnderInvoicingOverdue: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: 'Tu pago está vencido. Por favor, paga tu factura.',
+            },
+            billingDisputePending: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed, cardEnding}) =>
+                    `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
+            },
+            cardAuthenticationRequired: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({cardEnding}) =>
+                    `Tu tarjeta de pago no ha sido autenticada completamente. Por favor, completa el proceso de autenticación para activar tu tarjeta de pago que termina en ${cardEnding}.`,
+            },
+            insufficientFunds: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed}) =>
+                    `Tu tarjeta de pago fue rechazada por falta de fondos. Vuelve a intentarlo o añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
+            },
+            cardExpired: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed}) => `Tu tarjeta de pago ha expirado. Por favor, añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
+            },
+            cardExpireSoon: {
+                title: 'Tu tarjeta caducará pronto',
+                subtitle:
+                    'Tu tarjeta de pago caducará a finales de este mes. Haz clic en el menú de tres puntos que aparece a continuación para actualizarla y continuar utilizando todas tus herramientas favoritas.',
+            },
+            retryBillingSuccess: {
+                title: 'Éxito!',
+                subtitle: 'Tu tarjeta fue facturada correctamente.',
+            },
+            retryBillingError: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle:
+                    'Antes de volver a intentarlo, llama directamente a tu banco para que autorice los cargos de Expensify y elimine las retenciones. De lo contrario, añade una tarjeta de pago diferente.',
+            },
             cardOnDispute: ({amountOwed, cardEnding}) =>
                 `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
-            succeeded: 'Éxito!',
-            billedSuccessfully: 'Tu tarjeta fue facturada correctamente.',
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
                 subtitle: 'Para empezar, ',
