@@ -99,7 +99,7 @@ function ReportActionItemImage({
 
     let propsObj: ReceiptImageProps;
 
-    if (isEReceipt) {
+    if (isEReceipt && !shouldUseTripEReceiptThumbnail) {
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize)};
     } else if (thumbnail && !isLocalFile) {
         propsObj = {
