@@ -133,7 +133,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             if (ReportActionsUtils.isMoneyRequestAction(lastReportAction)) {
                 lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage(lastReportAction)?.IOUTransactionID ?? '-1';
             }
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
             return (
                 <OptionRowLHNData

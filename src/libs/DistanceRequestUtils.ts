@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
@@ -78,7 +77,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
  * @returns [currency] - The currency associated with the rate.
  * @returns [unit] - The unit of measurement for the distance.
  */
-function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy> | EmptyObject): MileageRate | undefined {
+function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | undefined {
     if (isEmptyObject(policy) || !policy?.customUnits) {
         return undefined;
     }

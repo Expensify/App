@@ -72,7 +72,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     preferredLocale: CONST.LOCALES.DEFAULT,
 });
 
-function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}, children}: LocaleContextProviderProps) {
+function LocaleContextProvider({preferredLocale, currentUserPersonalDetails, children}: LocaleContextProviderProps) {
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails]);

@@ -199,7 +199,7 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            IOU.approveMoneyRequest(iouReport ?? {}, true);
+            IOU.approveMoneyRequest(iouReport, true);
         }
     };
 
