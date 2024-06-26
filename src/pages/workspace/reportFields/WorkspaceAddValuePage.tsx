@@ -72,7 +72,7 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('common.addValue')}
+                    title={translate('workspace.reportFields.addValue')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider

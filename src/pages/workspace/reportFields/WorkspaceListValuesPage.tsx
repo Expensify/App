@@ -200,7 +200,7 @@ function WorkspaceListValuesPage({
                     medium
                     success
                     icon={Expensicons.Plus}
-                    text={translate('common.addValue')}
+                    text={translate('workspace.reportFields.addValue')}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
                 />
             </View>
@@ -220,7 +220,7 @@ function WorkspaceListValuesPage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('common.listValues')}
+                    title={translate('workspace.reportFields.listValues')}
                     onBackButtonPress={Navigation.goBack}
                 >
                     {getHeaderButtons()}

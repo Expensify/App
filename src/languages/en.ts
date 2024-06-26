@@ -341,8 +341,6 @@ export default {
         finished: 'Finished',
         disable: 'Disable',
         initialValue: 'Initial value',
-        listValues: 'List values',
-        addValue: 'Add value',
         currentDate: 'Current date',
         value: 'Value',
     },
@@ -2311,6 +2309,8 @@ export default {
             listValueRequiredError: 'List value name is required.',
             existingListValueError: 'A list value with this name already exists.',
             editValue: 'Edit value',
+            listValues: 'List values',
+            addValue: 'Add value',
         },
         tags: {
             tagName: 'Tag name',
