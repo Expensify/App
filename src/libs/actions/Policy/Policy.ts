@@ -196,9 +196,7 @@ function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefine
  */
 function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyFreePolicies = false): boolean {
     const adminChatEnabledPolicies = Object.values(policies ?? {}).filter(
-        (policy) =>
-            policy &&
-            ((!includeOnlyFreePolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.role === CONST.POLICY.ROLE.ADMIN && policy.isPolicyExpenseChatEnabled)),
+        (policy) => policy && !includeOnlyFreePolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.role === CONST.POLICY.ROLE.ADMIN && policy.isPolicyExpenseChatEnabled,
     );
 
     if (adminChatEnabledPolicies.length === 0) {
@@ -2519,13 +2517,16 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                     taxRates: {
                         ...defaultTaxRates,
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
-                                acc[taxKey] = {
-                                    ...defaultTaxRates.taxes[taxKey],
-                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                                };
-                                return acc;
-                            }, {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>),
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (acc, taxKey) => {
+                                    acc[taxKey] = {
+                                        ...defaultTaxRates.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    };
+                                    return acc;
+                                },
+                                {} as Record<string, TaxRate & {pendingAction: typeof CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}>,
+                            ),
                         },
                     },
                 },
@@ -2538,10 +2539,13 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
                 value: {
                     taxRates: {
                         taxes: {
-                            ...Object.keys(defaultTaxRates.taxes).reduce((acc, taxKey) => {
-                                acc[taxKey] = {pendingAction: null};
-                                return acc;
-                            }, {} as Record<string, {pendingAction: null}>),
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (acc, taxKey) => {
+                                    acc[taxKey] = {pendingAction: null};
+                                    return acc;
+                                },
+                                {} as Record<string, {pendingAction: null}>,
+                            ),
                         },
                     },
                 },

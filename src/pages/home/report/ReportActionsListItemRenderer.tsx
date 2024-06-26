@@ -108,7 +108,7 @@ function ReportActionsListItemRenderer({
                 childReportName: reportAction.childReportName,
                 childManagerAccountID: reportAction.childManagerAccountID,
                 childMoneyRequestCount: reportAction.childMoneyRequestCount,
-            } as ReportAction),
+            }) as ReportAction,
         [
             reportAction.reportActionID,
             reportAction.message,
