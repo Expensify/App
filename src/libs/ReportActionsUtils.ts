@@ -1,4 +1,4 @@
-import {ExpensiMark, fastMerge} from 'expensify-common';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -21,6 +21,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import {parseHtmlToText} from './OnyxAwareParser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -190,7 +191,7 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
         return [];
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const message = reportAction?.message;
+    const message = getReportActionMessage(reportAction);
 
     if (!(originalMessage && 'whisperedTo' in originalMessage) && !(message && 'whisperedTo' in message)) {
         return [];
@@ -1128,14 +1129,15 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
 }
 
 function getReportActionText(reportAction: PartialReportAction): string {
-    const html = getReportActionHtml(reportAction);
-    const parser = new ExpensiMark();
-    return html ? parser.htmlToText(html) : '';
+    const message = getReportActionMessage(reportAction);
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const text = (message?.html || message?.text) ?? '';
+    return text ? parseHtmlToText(text) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    const parser = new ExpensiMark();
-    return html ? parser.htmlToText(html) : '';
+    return html ? parseHtmlToText(html) : '';
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
@@ -1201,7 +1203,9 @@ function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): 
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
-    return reportAction?.message?.map((element) => getTextFromHtml(element?.html)).join('') ?? '';
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return reportAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -1327,7 +1331,9 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html)}`, '') ?? '';
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
 function getDismissedViolationMessageText(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {

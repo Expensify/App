@@ -50,11 +50,11 @@ class JobMocker {
                     jobWith = job.with;
                     delete job.with;
                 }
-                job.steps = mockJob.steps.map((step): StepIdentifier => {
-                    const mockStep: StepIdentifier = {
+                job.steps = mockJob.steps.map((step) => {
+                    const mockStep = {
                         name: step.name,
                         run: step.mockWith,
-                    };
+                    } as StepIdentifier;
                     if (step.id) {
                         mockStep.id = step.id;
                     }
