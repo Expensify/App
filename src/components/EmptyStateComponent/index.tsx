@@ -71,7 +71,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
         <View style={styles.flex1}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
-                    gradientOpacity
+                    gradientOpacityEnabled
                     shouldAnimate={false}
                 />
             </View>

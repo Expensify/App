@@ -18,18 +18,18 @@ function getLinedWidth(index: number): string {
 
 type OptionsListSkeletonViewProps = {
     shouldAnimate?: boolean;
-    gradientOpacity?: boolean;
+    gradientOpacityEnabled?: boolean;
     shouldStyleAsTable?: boolean;
 };
 
-function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacity = false}: OptionsListSkeletonViewProps) {
+function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false}: OptionsListSkeletonViewProps) {
     const styles = useThemeStyles();
 
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             itemViewStyle={shouldStyleAsTable && [styles.highlightBG, styles.mb3, styles.mh5, styles.br2]}
-            gradientOpacity={gradientOpacity}
+            gradientOpacityEnabled={gradientOpacityEnabled}
             renderSkeletonItem={({itemIndex}) => {
                 const lineWidth = getLinedWidth(itemIndex);
 

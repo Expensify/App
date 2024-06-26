@@ -6,21 +6,21 @@ import ItemListSkeletonView from './ItemListSkeletonView';
 type TableListItemSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
-    gradientOpacity?: boolean;
+    gradientOpacityEnabled?: boolean;
 };
 
 const barHeight = '8';
 const shortBarWidth = '60';
 const longBarWidth = '124';
 
-function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity = false}: TableListItemSkeletonProps) {
+function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: TableListItemSkeletonProps) {
     const styles = useThemeStyles();
 
     return (
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
-            gradientOpacity={gradientOpacity}
+            gradientOpacityEnabled={gradientOpacityEnabled}
             itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
             renderSkeletonItem={() => (
                 <>

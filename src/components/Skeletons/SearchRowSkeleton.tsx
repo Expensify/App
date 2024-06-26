@@ -8,14 +8,14 @@ import ItemListSkeletonView from './ItemListSkeletonView';
 type SearchRowSkeletonProps = {
     shouldAnimate?: boolean;
     fixedNumItems?: number;
-    gradientOpacity?: boolean;
+    gradientOpacityEnabled?: boolean;
 };
 
 const barHeight = '10';
 const shortBarWidth = '40';
 const longBarWidth = '120';
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity = false}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     if (isSmallScreenWidth) {
@@ -23,7 +23,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
             <ItemListSkeletonView
                 itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
                 itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
-                gradientOpacity={gradientOpacity}
+                gradientOpacityEnabled={gradientOpacityEnabled}
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 renderSkeletonItem={() => (
@@ -103,7 +103,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
         <ItemListSkeletonView
             shouldAnimate={shouldAnimate}
             fixedNumItems={fixedNumItems}
-            gradientOpacity={gradientOpacity}
+            gradientOpacityEnabled={gradientOpacityEnabled}
             itemViewStyle={[styles.highlightBG, styles.mb3, styles.br3, styles.mr3, styles.ml3]}
             renderSkeletonItem={() => (
                 <>

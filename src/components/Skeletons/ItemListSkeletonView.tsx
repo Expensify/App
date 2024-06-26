@@ -10,7 +10,7 @@ type ListItemSkeletonProps = {
     shouldAnimate?: boolean;
     renderSkeletonItem: (args: {itemIndex: number}) => React.ReactNode;
     fixedNumItems?: number;
-    gradientOpacity?: boolean;
+    gradientOpacityEnabled?: boolean;
     itemViewStyle?: StyleProp<ViewStyle>;
     itemViewHeight?: number;
 };
@@ -33,7 +33,7 @@ function ItemListSkeletonView({
     shouldAnimate = true,
     renderSkeletonItem,
     fixedNumItems,
-    gradientOpacity = false,
+    gradientOpacityEnabled = false,
     itemViewStyle = {},
     itemViewHeight = CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT,
 }: ListItemSkeletonProps) {
@@ -63,7 +63,7 @@ function ItemListSkeletonView({
     const skeletonViewItems = useMemo(() => {
         const items = [];
         for (let i = 0; i < numItems; i++) {
-            const opacity = gradientOpacity ? 1 - i / (numItems - 1) : 1;
+            const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
             items.push(
                 <View
                     key={`skeletonContainer${i}`}
@@ -81,7 +81,7 @@ function ItemListSkeletonView({
             );
         }
         return items;
-    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacity, itemViewHeight, itemViewStyle]);
+    }, [numItems, shouldAnimate, theme, themeStyles, renderSkeletonItem, gradientOpacityEnabled, itemViewHeight, itemViewStyle]);
 
     return (
         <View
