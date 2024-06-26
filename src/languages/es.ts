@@ -3691,7 +3691,6 @@ export default {
                 if (formattedLimit) {
                     message += ` ${formattedLimit}`;
                 }
-
                 if (category) {
                     message += ' el límite de la categoría';
                 }
