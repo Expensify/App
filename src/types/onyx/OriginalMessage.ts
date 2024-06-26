@@ -237,6 +237,9 @@ type OriginalMessageChangeLog = {
     /** Name of the chat room */
     roomName?: string;
 
+    /** Description of the chat room */
+    description?: string;
+
     /** ID of the report */
     reportID?: number;
 };

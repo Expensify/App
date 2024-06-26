@@ -17,7 +17,7 @@ const isPdfFilePasswordProtected = (file: FileObject): Promise<boolean> =>
                     () => {
                         resolve(false);
                     },
-                    (error) => {
+                    (error: Error) => {
                         if (error.name === 'PasswordException') {
                             resolve(true);
                             return;
