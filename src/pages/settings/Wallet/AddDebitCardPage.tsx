@@ -12,7 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function DebitCardPage() {
     const {translate} = useLocalize();
-    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM);
+    const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
 
@@ -20,10 +20,10 @@ function DebitCardPage() {
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
      */
     useEffect(() => {
-        PaymentMethods.clearDebitCardFormErrorAndSubmit();
+        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearDebitCardFormErrorAndSubmit();
+            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
