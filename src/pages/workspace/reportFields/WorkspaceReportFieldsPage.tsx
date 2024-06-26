@@ -20,15 +20,21 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
-type ReportFieldForList = ListItem & {value: string; fieldID: string};
+type ReportFieldForList = ListItem & {
+    value: string;
+    fieldID: string;
+    orderWeight?: number;
+};
 
 type WorkspaceReportFieldsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
@@ -79,6 +85,10 @@ function WorkspaceReportFieldsPage({
             ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
             : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
         setSelectedReportFields(updatedReportFields);
+    };
+
+    const navigateToReportFieldSettings = (reportField: ReportFieldForList) => {
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_SETTINGS.getRoute(policyID, reportField.fieldID));
     };
 
     const isLoading = reportFieldsList === undefined;
@@ -151,7 +161,7 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple
                         sections={[{data: reportFieldsList, isDisabled: false}]}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={() => {}}
+                        onSelectRow={navigateToReportFieldSettings}
                         onSelectAll={() => {}}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}
