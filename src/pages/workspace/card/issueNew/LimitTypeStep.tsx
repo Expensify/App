@@ -1,15 +1,16 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
+import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 function LimitTypeStep() {
     const {translate} = useLocalize();
@@ -23,6 +24,30 @@ function LimitTypeStep() {
     const handleBackButtonPress = () => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
     };
+
+    const data = useMemo(
+        () => [
+            {
+                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+                text: translate('workspace.card.issueNewCard.smartLimit'),
+                alternateText: translate('workspace.card.issueNewCard.smartLimitDescription'),
+                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            },
+            {
+                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                text: translate('workspace.card.issueNewCard.fixedAmount'),
+                alternateText: translate('workspace.card.issueNewCard.fixedAmountDescription'),
+                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+            },
+            {
+                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                text: translate('workspace.card.issueNewCard.monthly'),
+                alternateText: translate('workspace.card.issueNewCard.monthlyDescription'),
+                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+            },
+        ],
+        [translate],
+    );
 
     return (
         <ScreenWrapper
@@ -42,15 +67,20 @@ function LimitTypeStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                submitButtonText={translate('common.next')}
-                onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
-            >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
-            </FormProvider>
+
+            <SelectionList
+                ListItem={RadioListItem}
+                onSelectRow={() => {}}
+                sections={[{data}]}
+            />
+            <Button
+                success
+                large
+                pressOnEnter
+                text={translate('common.next')}
+                onPress={submit}
+                style={styles.m5}
+            />
         </ScreenWrapper>
     );
 }
