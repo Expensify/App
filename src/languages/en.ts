@@ -1055,6 +1055,18 @@ export default {
             genericFailureMessage: "Private notes couldn't be saved.",
         },
     },
+    billingCurrency: {
+        error: {
+            securityCode: 'Please enter a valid security code.',
+        },
+        securityCode: 'Security code',
+        changeBillingCurrency: 'Change billing currency',
+        changePaymentCurrency: 'Change payment currency',
+        paymentCurrency: 'Payment currency',
+        note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
+        noteLink: 'pricing page',
+        noteDetails: 'for full details.',
+    },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
         nameOnCard: 'Name on card',
