@@ -3790,7 +3790,7 @@ export default {
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
                 subtitle: 'Para empezar, ',
-                subtitleLink: 'completa la lista de configuración aquí',
+                subtitleLink: 'completa la lista de configuración aquí.',
             },
         },
         cardSection: {
