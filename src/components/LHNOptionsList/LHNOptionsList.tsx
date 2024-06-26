@@ -10,7 +10,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import Text from '@components/Text';
+import TextBlock from '@components/TextBlock';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -61,36 +61,52 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const emptyLHNSubtitle = useMemo(
         () => (
-            <View>
-                <Text
-                    color={theme.placeholderText}
-                    style={[styles.textAlignCenter]}
-                >
-                    {translate('common.emptyLHN.subtitleText1')}
-                    <Icon
-                        src={Expensicons.MagnifyingGlass}
-                        width={variables.emptyLHNIconWidth}
-                        height={variables.emptyLHNIconHeight}
-                        small
-                        inline
-                        fill={theme.icon}
-                        additionalStyles={styles.alignItemsCenter}
-                    />
-                    {translate('common.emptyLHN.subtitleText2')}
-                    <Icon
-                        src={Expensicons.Plus}
-                        width={variables.emptyLHNIconWidth}
-                        height={variables.emptyLHNIconHeight}
-                        small
-                        inline
-                        fill={theme.icon}
-                        additionalStyles={styles.alignItemsCenter}
-                    />
-                    {translate('common.emptyLHN.subtitleText3')}
-                </Text>
+            <View style={[styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.flexWrap, styles.textAlignCenter]}>
+                <TextBlock
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText1')}
+                />
+                <Icon
+                    src={Expensicons.MagnifyingGlass}
+                    width={variables.emptyLHNIconWidth}
+                    height={variables.emptyLHNIconHeight}
+                    fill={theme.icon}
+                    small
+                    additionalStyles={styles.mh1}
+                />
+                <TextBlock
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText2')}
+                />
+                <Icon
+                    src={Expensicons.Plus}
+                    width={variables.emptyLHNIconWidth}
+                    height={variables.emptyLHNIconHeight}
+                    fill={theme.icon}
+                    small
+                    additionalStyles={styles.mh1}
+                />
+                <TextBlock
+                    color={theme.textSupporting}
+                    textStyles={[styles.textAlignCenter, styles.textNormal]}
+                    text={translate('common.emptyLHN.subtitleText3')}
+                />
             </View>
         ),
-        [theme, styles.alignItemsCenter, styles.textAlignCenter, translate],
+        [
+            styles.alignItemsCenter,
+            styles.flexRow,
+            styles.justifyContentCenter,
+            styles.flexWrap,
+            styles.textAlignCenter,
+            styles.mh1,
+            theme.icon,
+            theme.textSupporting,
+            styles.textNormal,
+            translate,
+        ],
     );
 
     /**
@@ -98,13 +114,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      */
     const renderItem = useCallback(
         ({item: reportID}: RenderItemProps): ReactElement => {
-            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
-            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? null;
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`] ?? null;
-            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? ''] ?? null;
-            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`] ?? null;
-            const transactionID = itemParentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? itemParentReportAction.originalMessage.IOUTransactionID ?? '' : '';
-            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null;
+            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
+            const itemParentReportAction = itemParentReportActions?.[itemFullReport?.parentReportActionID ?? '-1'];
+            const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${itemFullReport?.policyID}`];
+            const transactionID = ReportActionsUtils.isMoneyRequestAction(itemParentReportAction)
+                ? ReportActionsUtils.getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? '-1'
+                : '-1';
+            const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             const hasDraftComment = DraftCommentUtils.isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
             const sortedReportActions = ReportActionsUtils.getSortedReportActionsForDisplay(itemReportActions);
             const lastReportAction = sortedReportActions[0];
@@ -112,10 +130,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             // Get the transaction for the last report action
             let lastReportActionTransactionID = '';
 
-            if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                lastReportActionTransactionID = lastReportAction.originalMessage?.IOUTransactionID ?? '';
+            if (ReportActionsUtils.isMoneyRequestAction(lastReportAction)) {
+                lastReportActionTransactionID = ReportActionsUtils.getOriginalMessage(lastReportAction)?.IOUTransactionID ?? '-1';
             }
-            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`] ?? {};
+            const lastReportActionTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${lastReportActionTransactionID}`];
 
             return (
                 <OptionRowLHNData

@@ -30,6 +30,10 @@ import withFailTimeout from './utils/withFailTimeout';
 
 type Result = Record<string, number[]>;
 
+type CustomConfig = {
+    default: unknown;
+};
+
 // VARIABLE CONFIGURATION
 const args = process.argv.slice(2);
 const getArg = (argName: string): string | undefined => {
@@ -46,7 +50,7 @@ const setConfigPath = (configPathParam: string | undefined) => {
     if (!configPath?.startsWith('.')) {
         configPath = `./${configPath}`;
     }
-    const customConfig = require(configPath).default;
+    const customConfig = require<CustomConfig>(configPath).default;
     config = Object.assign(defaultConfig, customConfig);
 };
 
@@ -185,7 +189,7 @@ const runTests = async (): Promise<void> => {
         // by default we do 2 warmups:
         // - first warmup to pass a login flow
         // - second warmup to pass an actual flow and cache network requests
-        const iterations = test.warmupRuns ?? 2;
+        const iterations = 2;
         for (let i = 0; i < iterations; i++) {
             // Warmup the main app:
             await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`);

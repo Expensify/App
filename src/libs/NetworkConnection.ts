@@ -8,12 +8,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as NetworkActions from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
-import checkInternetReachability from './checkInternetReachability';
 import Log from './Log';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
 type NetworkStatus = ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>;
+
+type ResponseJSON = {
+    jsonCode: number;
+};
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 let callbackID = 0;
@@ -43,21 +46,10 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)
     if (isOffline && !isCurrentlyOffline) {
-        NetworkActions.setIsBackendReachable(true, 'moved from offline to online');
         triggerReconnectionCallbacks('offline status changed');
     }
 
     isOffline = isCurrentlyOffline;
-}
-
-function setNetWorkStatus(isInternetReachable: boolean | null): void {
-    let networkStatus;
-    if (!isBoolean(isInternetReachable)) {
-        networkStatus = CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
-    } else {
-        networkStatus = isInternetReachable ? CONST.NETWORK.NETWORK_STATUS.ONLINE : CONST.NETWORK.NETWORK_STATUS.OFFLINE;
-    }
-    NetworkActions.setNetWorkStatus(networkStatus);
 }
 
 // Update the offline status in response to changes in shouldForceOffline
@@ -91,72 +83,51 @@ Onyx.connect({
     },
 });
 
-/**
- * Set interval to periodically (re)check backend status.
- * Because backend unreachability might imply lost internet connection, we need to check internet reachability.
- * @returns clearInterval cleanup
- */
-function subscribeToBackendAndInternetReachability(): () => void {
-    const intervalID = setInterval(() => {
-        // Offline status also implies backend unreachability
-        if (isOffline) {
-            // Periodically recheck the network connection
-            // More info: https://github.com/Expensify/App/issues/42988
-            recheckNetworkConnection();
-            Log.info(`[NetworkStatus] Rechecking the network connection with "isOffline" set to "true" to double-check internet reachability.`);
+let accountID = 0;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        if (!session?.accountID) {
             return;
         }
-        // Using the API url ensures reachability is tested over internet
-        fetch(`${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`, {
-            method: 'GET',
-            cache: 'no-cache',
-        })
-            .then((response) => {
+        accountID = session.accountID;
+    },
+});
+
+/**
+ * Set up the event listener for NetInfo to tell whether the user has
+ * internet connectivity or not. This is more reliable than the Pusher
+ * `disconnected` event which takes about 10-15 seconds to emit.
+ * @returns unsubscribe method
+ */
+function subscribeToNetInfo(): () => void {
+    // Note: We are disabling the configuration for NetInfo when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for "offline".
+    // If you need to test the "recheck" feature then switch to the production API proxy server.
+    if (!CONFIG.IS_USING_LOCAL_WEB) {
+        // Calling NetInfo.configure (re)checks current state. We use it to force a recheck whenever we (re)subscribe
+        NetInfo.configure({
+            // By default, NetInfo uses `/` for `reachabilityUrl`
+            // When App is served locally (or from Electron) this address is always reachable - even offline
+            // Using the API url ensures reachability is tested over internet
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`,
+            reachabilityMethod: 'GET',
+            reachabilityTest: (response) => {
                 if (!response.ok) {
                     return Promise.resolve(false);
                 }
                 return response
                     .json()
-                    .then((json) => Promise.resolve(json.jsonCode === 200))
+                    .then((json: ResponseJSON) => Promise.resolve(json.jsonCode === 200))
                     .catch(() => Promise.resolve(false));
-            })
-            .then((isBackendReachable: boolean) => {
-                if (isBackendReachable) {
-                    NetworkActions.setIsBackendReachable(true, 'successfully completed API request');
-                    return;
-                }
-                NetworkActions.setIsBackendReachable(false, 'request succeeded, but internet reachability test failed');
-                checkInternetReachability().then((isInternetReachable: boolean) => {
-                    setOfflineStatus(!isInternetReachable, 'checkInternetReachability was called after api/ping returned a non-200 jsonCode');
-                    setNetWorkStatus(isInternetReachable);
-                });
-            })
-            .catch(() => {
-                NetworkActions.setIsBackendReachable(false, 'request failed and internet reachability test failed');
-                checkInternetReachability().then((isInternetReachable: boolean) => {
-                    setOfflineStatus(!isInternetReachable, 'checkInternetReachability was called after api/ping request failed');
-                    setNetWorkStatus(isInternetReachable);
-                });
-            });
-    }, CONST.NETWORK.BACKEND_CHECK_INTERVAL_MS);
+            },
 
-    return () => {
-        clearInterval(intervalID);
-    };
-}
+            // If a check is taking longer than this time we're considered offline
+            reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+        });
+    }
 
-/**
- * Monitor internet connectivity and perform periodic backend reachability checks
- * @returns unsubscribe method
- */
-function subscribeToNetworkStatus(): () => void {
-    // Note: We are disabling the reachability check when using the local web API since requests can get stuck in a 'Pending' state and are not reliable indicators for reachability.
-    // If you need to test the "recheck" feature then switch to the production API proxy server.
-    const unsubscribeFromBackendReachability = !CONFIG.IS_USING_LOCAL_WEB ? subscribeToBackendAndInternetReachability() : undefined;
-
-    // Set up the event listener for NetInfo to tell whether the user has
-    // internet connectivity or not. This is more reliable than the Pusher
-    // `disconnected` event which takes about 10-15 seconds to emit.
+    // Subscribe to the state change event via NetInfo so we can update
+    // whether a user has internet connectivity or not.
     const unsubscribeNetInfo = NetInfo.addEventListener((state) => {
         Log.info('[NetworkConnection] NetInfo state change', false, {...state});
         if (shouldForceOffline) {
@@ -165,11 +136,27 @@ function subscribeToNetworkStatus(): () => void {
         }
         setOfflineStatus(state.isInternetReachable === false, 'NetInfo received a state change event');
         Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${!!state.isInternetReachable} with network state: ${JSON.stringify(state)}`);
-        setNetWorkStatus(state.isInternetReachable);
+        let networkStatus;
+        if (!isBoolean(state.isInternetReachable)) {
+            networkStatus = CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
+        } else {
+            networkStatus = state.isInternetReachable ? CONST.NETWORK.NETWORK_STATUS.ONLINE : CONST.NETWORK.NETWORK_STATUS.OFFLINE;
+        }
+        NetworkActions.setNetWorkStatus(networkStatus);
     });
 
+    // Periodically recheck the network connection
+    // More info: https://github.com/Expensify/App/issues/42988
+    const recheckIntervalID = setInterval(() => {
+        if (!isOffline) {
+            return;
+        }
+        recheckNetworkConnection();
+        Log.info(`[NetworkStatus] Rechecking the network connection with "isOffline" set to "true" to double-check internet reachability.`);
+    }, CONST.NETWORK.RECHECK_INTERVAL_MS);
+
     return () => {
-        unsubscribeFromBackendReachability?.();
+        clearInterval(recheckIntervalID);
         unsubscribeNetInfo();
     };
 }
@@ -220,6 +207,6 @@ export default {
     onReconnect,
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
-    subscribeToNetworkStatus,
+    subscribeToNetInfo,
 };
 export type {NetworkStatus};

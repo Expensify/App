@@ -22,14 +22,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -166,7 +165,7 @@ function ReportActionsList({
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);
@@ -218,7 +217,7 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const linkedReportActionID = route.params?.reportActionID ?? '';
+    const linkedReportActionID = route.params?.reportActionID ?? '-1';
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before
@@ -484,7 +483,7 @@ function ReportActionsList({
             return !ReportUtils.isCanceledTaskReport(report, parentReportAction);
         }
 
-        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
+        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
     const calculateUnreadMarker = useCallback(() => {
@@ -529,14 +528,11 @@ function ReportActionsList({
         lastMessageTime.current = null;
         if (
             scrollingVerticalOffset.current >= MSG_VISIBLE_THRESHOLD ||
-            !(
-                sortedVisibleReportActions &&
-                sortedVisibleReportActions.some(
-                    (reportAction) =>
-                        newMessageTimeReference &&
-                        newMessageTimeReference < reportAction.created &&
-                        (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
-                )
+            !sortedVisibleReportActions.some(
+                (reportAction) =>
+                    newMessageTimeReference &&
+                    newMessageTimeReference < reportAction.created &&
+                    (ReportActionsUtils.isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID(),
             )
         ) {
             return;
@@ -604,7 +600,7 @@ function ReportActionsList({
         [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
     );
 
-    const lastReportAction: OnyxTypes.ReportAction | EmptyObject = useMemo(() => sortedReportActions.at(-1) ?? {}, [sortedReportActions]);
+    const lastReportAction: OnyxTypes.ReportAction | undefined = useMemo(() => sortedReportActions.at(-1) ?? undefined, [sortedReportActions]);
 
     const retryLoadOlderChatsError = useCallback(() => {
         loadOlderChats(true);
@@ -625,12 +621,12 @@ function ReportActionsList({
                 type={CONST.LIST_COMPONENTS.FOOTER}
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
-                lastReportActionName={lastReportAction.actionName}
+                lastReportActionName={lastReportAction?.actionName}
                 hasError={hasLoadingOlderReportActionsError}
                 onRetry={retryLoadOlderChatsError}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline, hasLoadingOlderReportActionsError, retryLoadOlderChatsError]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction?.actionName, isOffline, hasLoadingOlderReportActionsError, retryLoadOlderChatsError]);
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
