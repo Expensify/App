@@ -4195,17 +4195,19 @@ function buildOptimisticIOUReportAction(
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
 function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticApprovedReportAction {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+    };
+
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachment: false,
-        originalMessage: {
-            amount,
-            currency,
-            expenseReportID,
-        },
+        originalMessage,
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
@@ -4225,19 +4227,17 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
 function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticUnapprovedReportAction {
-    const originalMessage = {
-        amount,
-        currency,
-        expenseReportID,
-    };
-
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachment: false,
-        originalMessage,
+        originalMessage: {
+            amount,
+            currency,
+            expenseReportID,
+        },
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, Math.abs(amount), '', currency),
         person: [
             {
