@@ -29,7 +29,11 @@ To approve an expense,
 {% include info.html %}
 Admins can modify an expense, if needed.
 {% include end-info.html %}
- 
+
+![The approve button in an expense]({{site.url}}/assets/images/ExpensExpensifyHelp_ApproveExpense_1.png){:width="100%"}
+
+![The approve button when you click into the expense]({{site.url}}/assets/images/ExpensExpensifyHelp_ApproveExpense_1.png){:width="100%"}
+
 You’re now ready to pay the expense. 
 
 # Hold an expense
