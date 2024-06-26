@@ -86,7 +86,7 @@ function ReportActionsListItemRenderer({
                 pendingAction: reportAction.pendingAction,
                 actionName: reportAction.actionName,
                 errors: reportAction.errors,
-                originalMessage: reportAction.originalMessage,
+                originalMessage: reportAction?.originalMessage,
                 childCommenterCount: reportAction.childCommenterCount,
                 linkMetadata: reportAction.linkMetadata,
                 childReportID: reportAction.childReportID,
@@ -108,6 +108,7 @@ function ReportActionsListItemRenderer({
                 childReportName: reportAction.childReportName,
                 childManagerAccountID: reportAction.childManagerAccountID,
                 childMoneyRequestCount: reportAction.childMoneyRequestCount,
+                childOwnerAccountID: reportAction.childOwnerAccountID,
             } as ReportAction),
         [
             reportAction.reportActionID,
@@ -115,7 +116,7 @@ function ReportActionsListItemRenderer({
             reportAction.pendingAction,
             reportAction.actionName,
             reportAction.errors,
-            reportAction.originalMessage,
+            reportAction?.originalMessage,
             reportAction.childCommenterCount,
             reportAction.linkMetadata,
             reportAction.childReportID,
@@ -137,6 +138,7 @@ function ReportActionsListItemRenderer({
             reportAction.childReportName,
             reportAction.childManagerAccountID,
             reportAction.childMoneyRequestCount,
+            reportAction.childOwnerAccountID,
         ],
     );
 
