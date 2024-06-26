@@ -3190,7 +3190,7 @@ export default {
                     message += ` ${formattedLimit}`;
                 }
                 if (category) {
-                    message += ` category limit`;
+                    message += ' category limit';
                 }
             }
 
