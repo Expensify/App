@@ -548,7 +548,7 @@ function ComposerWithSuggestions(
 
     // This contains the previous value that we receive directly from the native text input (not our formatted value)
     const prevNativeTextRef = useRef(value);
-    const onChange = useCallback(
+    const handleInputChange = useCallback(
         ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
             const {count, start, before, text: fullNewText} = nativeEvent;
             const previousNativeText = prevNativeTextRef.current;
@@ -845,7 +845,7 @@ function ComposerWithSuggestions(
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChange={onChange}
+                    onChange={handleInputChange}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
