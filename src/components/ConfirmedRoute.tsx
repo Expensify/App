@@ -104,7 +104,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
 
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
 
-    return !isOffline && Boolean(mapboxAccessToken?.token) && shouldDisplayMap ? (
+    return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView
             interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
@@ -118,6 +118,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHa
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}
+            requireRouteToDisplayMap={requireRouteToDisplayMap}
         />
     ) : (
         <PendingMapView

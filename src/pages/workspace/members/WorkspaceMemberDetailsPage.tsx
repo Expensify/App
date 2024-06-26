@@ -85,18 +85,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     );
 
     useEffect(() => {
-        if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
-            return;
-        }
-
-        const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
-
-        if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-        }
-    }, [accountID, policy?.errorFields?.changeOwner, policy?.isChangeOwnerSuccessful, policyID]);
-
-    useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
@@ -160,11 +148,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 imageStyles={[styles.avatarXLarge]}
                                 source={details.avatar}
                                 avatarID={accountID}
+                                type={CONST.ICON_TYPE_AVATAR}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 fallbackIcon={fallbackIcon}
                             />
                         </OfflineWithFeedback>
-                        {Boolean(details.displayName ?? '') && (
+                        {!!(details.displayName ?? '') && (
                             <Text
                                 style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                                 numberOfLines={1}

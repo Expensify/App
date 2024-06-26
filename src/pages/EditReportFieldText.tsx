@@ -36,11 +36,11 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELD_EDIT_FORM> = {};
             if (isRequired && values[fieldKey].trim() === '') {
-                errors[fieldKey] = 'common.error.fieldRequired';
+                errors[fieldKey] = translate('common.error.fieldRequired');
             }
             return errors;
         },
-        [fieldKey, isRequired],
+        [fieldKey, isRequired, translate],
     );
 
     return (

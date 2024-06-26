@@ -16,6 +16,7 @@ import CardSection from './CardSection/CardSection';
 import ReducedFunctionalityMessage from './ReducedFunctionalityMessage';
 import SubscriptionDetails from './SubscriptionDetails';
 import SubscriptionPlan from './SubscriptionPlan';
+import SubscriptionSettings from './SubscriptionSettings';
 
 function SubscriptionSettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -33,7 +34,10 @@ function SubscriptionSettingsPage() {
     }
 
     return (
-        <ScreenWrapper testID={SubscriptionSettingsPage.displayName}>
+        <ScreenWrapper
+            testID={SubscriptionSettingsPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+        >
             <HeaderWithBackButton
                 title={translate('workspace.common.subscription')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -46,6 +50,7 @@ function SubscriptionSettingsPage() {
                     <CardSection />
                     <SubscriptionPlan />
                     <SubscriptionDetails />
+                    <SubscriptionSettings />
                 </View>
             </ScrollView>
         </ScreenWrapper>

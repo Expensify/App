@@ -212,6 +212,7 @@ function WorkspacesListRow({
                             <Avatar
                                 source={ownerDetails.avatar}
                                 avatarID={ownerDetails.accountID}
+                                type={CONST.ICON_TYPE_AVATAR}
                                 size={CONST.AVATAR_SIZE.SMALL}
                                 containerStyles={styles.workspaceOwnerAvatarWrapper}
                             />
