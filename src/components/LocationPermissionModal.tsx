@@ -17,9 +17,12 @@ type LocationPermissionModalProps = {
 
     /** Should start the permission flow? */
     startPermissionFlow: boolean;
+
+    /** Reset the permission flow */
+    resetPermissionFlow: () => void;
 };
 
-function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
@@ -37,7 +40,7 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             }
 
             setShowModal(true);
-            setHasError(status === RESULTS.BLOCKED || status === RESULTS.DENIED);
+            setHasError(status === RESULTS.BLOCKED);
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
     }, [startPermissionFlow]);
@@ -45,27 +48,27 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
     const errorHandler = (cb: () => void) => () => {
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
+            setShowModal(false);
+            setHasError(false);
+            resetPermissionFlow();
             return;
         }
         cb();
     };
 
     const onConfirm = errorHandler(() => {
-        requestLocationPermission()
-            .then((status) => {
-                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                    onGrant();
-                } else {
-                    onDeny(status);
-                }
-            })
-            .catch(() => {
-                onDeny(RESULTS.BLOCKED);
-            })
-            .finally(() => {
-                setShowModal(false);
-                setHasError(false);
-            });
+        requestLocationPermission().then((status) => {
+            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                onGrant();
+            } else if (status === RESULTS.BLOCKED) {
+                setHasError(true);
+                return;
+            } else {
+                onDeny(status);
+            }
+            setShowModal(false);
+            setHasError(false);
+        });
     });
 
     const onCancel = () => {

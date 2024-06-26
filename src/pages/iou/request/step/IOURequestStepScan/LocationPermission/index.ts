@@ -23,10 +23,10 @@ function getLocationPermission(): Promise<PermissionStatus> {
         if (navigator.geolocation) {
             navigator.permissions.query({name: 'geolocation'}).then((result) => {
                 if (result.state === 'prompt') {
-                    resolve(RESULTS.UNAVAILABLE);
+                    resolve(RESULTS.DENIED);
                     return;
                 }
-                resolve(result.state === 'granted' ? RESULTS.GRANTED : RESULTS.DENIED);
+                resolve(result.state === 'granted' ? RESULTS.GRANTED : RESULTS.BLOCKED);
             });
         } else {
             resolve(RESULTS.UNAVAILABLE);

@@ -593,6 +593,7 @@ function IOURequestStepConfirmation({
                     {gpsRequired && (
                         <LocationPermissionModal
                             startPermissionFlow={startLocationPermissionFlow}
+                            resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                             onGrant={() => createTransaction(selectedParticipantList, true)}
                             onDeny={() => createTransaction(selectedParticipantList, false)}
                         />
@@ -621,6 +622,7 @@ function IOURequestStepConfirmation({
                         shouldShowSmartScanFields={isMovingTransactionFromTrackExpense ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
                         payeePersonalDetails={payeePersonalDetails}
+                        shouldPlaySound={!gpsRequired}
                     />
                 </View>
             )}
