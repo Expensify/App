@@ -312,8 +312,6 @@ function ComposerWithSuggestions(
     const textInputRef = useRef<TextInput | null>(null);
     const insertedEmojisRef = useRef<Emoji[]>([]);
 
-    const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
-
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
@@ -547,44 +545,51 @@ function ComposerWithSuggestions(
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
-    const onChangeText = useCallback(
-        (commentValue: string) => {
-            updateComment(commentValue, true);
+    // const onChangeText = useCallback(
+    //     (commentValue: string) => {
+    //         updateComment(commentValue, true);
 
-            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
-                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-                syncSelectionWithOnChangeTextRef.current = null;
+    //         if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
+    //             const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+    //             syncSelectionWithOnChangeTextRef.current = null;
 
-                // ensure that selection is set imperatively after all state changes are effective
-                InteractionManager.runAfterInteractions(() => {
-                    // note: this implementation is only available on non-web RN, thus the wrapping
-                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
-                });
-            }
-        },
-        [updateComment],
-    );
+    //             // ensure that selection is set imperatively after all state changes are effective
+    //             InteractionManager.runAfterInteractions(() => {
+    //                 // note: this implementation is only available on non-web RN, thus the wrapping
+    //                 // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+    //                 textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
+    //             });
+    //         }
+    //     },
+    //     [updateComment],
+    // );
 
+    // This contains the previous value that we receive directly from the native text input (not our formatted value)
+    const prevNativeTextRef = useRef(value);
     const onChange = useCallback(
         ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
             const {count, start, before, text: fullNewText} = nativeEvent;
+            const previousNativeText = prevNativeTextRef.current;
+            prevNativeTextRef.current = fullNewText;
 
-            if (fullNewText === valueRef.current) {
+            if (fullNewText === valueRef.current || fullNewText === previousNativeText) {
+                // The text hasn't changed (note: the handler gets called for selection changes as well)
                 return;
             }
-            console.log(nativeEvent);
 
             // This method is called to notify you that, within "fullNewText", the "count" characters
             // beginning at "start" have just replaced old text that had length "before".
-            const newText = fullNewText.substring(start, start + count);
+            const diffText = fullNewText.substring(start, start + count);
             // Replace newText in the original text:
             const currentText = valueRef.current;
-            const updatedText = currentText.substring(0, start) + newText + currentText.substring(start + before);
+            const newText = currentText.substring(0, start) + diffText + currentText.substring(start + before);
 
-            // Check for emojis
-            const isEmojiInserted = newText.trim() === newText && EmojiUtils.containsOnlyEmojis(newText);
-            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(updatedText, start + count) : updatedText;
+            // Check for emojis:
+            // - Either add a whitespace if the user typed an emoji
+            // - Or insert an emoji when the user types :emojiCode:
+            // - Extract all emojis from the updated text and update the frequently used emojis
+            const isEmojiInserted = diffText.trim() === diffText && EmojiUtils.containsOnlyEmojis(diffText);
+            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(newText, start + count) : newText;
             const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
             if (emojis.length) {
                 // TODO: This could be all moved to debouncedUpdateFrequentlyUsedEmojis, and the insertedEmojisRef could be removed
@@ -598,6 +603,7 @@ function ComposerWithSuggestions(
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
+            emojisPresentBefore.current = emojis;
 
             // Make LTR compatible if needed
             const newCommentConverted = convertToLTRForComposer(newComment);
@@ -608,36 +614,29 @@ function ComposerWithSuggestions(
             const isCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
             setIsCommentEmpty(isCommentEmpty);
 
-            // Update selection
-            const position = Math.max((selection.end ?? 0) + (newComment.length - valueRef.current.length), cursorPosition ?? 0);
-            if (commentWithSpaceInserted !== newComment && isIOSNative) {
-                syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+            // Update selection eventually
+            if (newComment !== newText) {
+                const position = Math.max((selection.end ?? 0) + (newComment.length - valueRef.current.length), cursorPosition ?? 0);
+                setSelection((prevSelection) => ({
+                    start: position,
+                    end: position,
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
+                if (isIOSNative) {
+                    // ensure that selection is set imperatively after all state changes are effective
+                    InteractionManager.runAfterInteractions(() => {
+                        // note: this implementation is only available on non-web RN, thus the wrapping
+                        // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                        textInputRef.current?.setSelection(position, position);
+                    });
+                }
             }
-            setSelection((prevSelection) => ({
-                start: position,
-                end: position,
-                positionX: prevSelection.positionX,
-                positionY: prevSelection.positionY,
-            }));
 
             // Update onyx related state:
-            // Report.saveReportDraftComment(reportID, newCommentConverted);
             debouncedSaveReportComment(reportID, newCommentConverted);
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
-            }
-
-            // From onChangeText:
-            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
-                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-                syncSelectionWithOnChangeTextRef.current = null;
-
-                // ensure that selection is set imperatively after all state changes are effective
-                InteractionManager.runAfterInteractions(() => {
-                    // note: this implementation is only available on non-web RN, thus the wrapping
-                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
-                });
             }
         },
         [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, selection.end, setIsCommentEmpty, suggestionsRef],
@@ -864,7 +863,6 @@ function ComposerWithSuggestions(
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    // onChangeText={onChangeText}
                     onChange={onChange}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
