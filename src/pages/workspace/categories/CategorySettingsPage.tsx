@@ -126,7 +126,6 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-<<<<<<< HEAD
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.payrollCode}>
                         <MenuItemWithTopDescription
                             title={policyCategory.payrollCode}
@@ -135,7 +134,6 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-=======
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
@@ -143,7 +141,6 @@ function CategorySettingsPage({route, policyCategories, navigation}: CategorySet
                             onPress={() => setDeleteCategoryConfirmModalVisible(true)}
                         />
                     )}
->>>>>>> main
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
