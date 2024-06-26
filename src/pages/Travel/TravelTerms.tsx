@@ -92,7 +92,7 @@ function TravelTerms() {
 
                                     Travel.acceptSpotnanaTerms();
                                     setError(false);
-                                    Navigation.resetToHome();
+                                    Navigation.goBack();
                                 }}
                                 message={errorMessage}
                                 isAlertVisible={error || !!errorMessage}

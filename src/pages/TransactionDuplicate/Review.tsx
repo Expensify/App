@@ -3,6 +3,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,16 +43,18 @@ function TransactionDuplicateReview() {
     };
 
     return (
-        <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
-            <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
-            <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
-                <Button
-                    text={translate('iou.keepAll')}
-                    onPress={keepAll}
-                />
-            </View>
-            <DuplicateTransactionsList transactions={transactions} />
-        </ScreenWrapper>
+        <FullPageNotFoundView shouldShow={transactionID === '-1'}>
+            <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
+                <HeaderWithBackButton title={translate('iou.reviewDuplicates')} />
+                <View style={[styles.justifyContentCenter, styles.ph5, styles.pb3, styles.borderBottom]}>
+                    <Button
+                        text={translate('iou.keepAll')}
+                        onPress={keepAll}
+                    />
+                </View>
+                <DuplicateTransactionsList transactions={transactions} />
+            </ScreenWrapper>
+        </FullPageNotFoundView>
     );
 }
 

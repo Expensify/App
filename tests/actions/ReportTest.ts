@@ -186,7 +186,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments) => (callArguments[URL_ARGUMENT_INDEX] as string).includes('AddComment'));
+                const addCommentCalls = (global.fetch as jest.Mock).mock.calls.filter((callArguments: string[]) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
