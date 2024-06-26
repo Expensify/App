@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,6 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
-import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
