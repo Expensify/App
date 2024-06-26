@@ -2291,7 +2291,7 @@ export default {
             dropdownAlternateText: 'Add a list of options to choose from.',
             nameInputSubtitle: 'Choose a name for the report field.',
             typeInputSubtitle: 'Choose what type of report field to use.',
-            initialValueInputSubtitle: 'Enter a value to show in the report field by default.',
+            initialValueInputSubtitle: 'Enter a starting value to show in the report field.',
             listValuesInputSubtitle: 'These values will appear in your report field dropdown. Enabled values can be selected by members.',
             listInputSubtitle: 'These values will appear in your report field list. Enabled values can be selected by members.',
             deleteValue: 'Delete value',
