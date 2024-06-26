@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Lottie from '@components/Lottie';
 import LottieAnimations from '@components/LottieAnimations';
-import useIsSplashHidden from '@hooks/useIsSplashHidden';
+import useSplashScreen from '@hooks/useSplashScreen';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -26,7 +26,7 @@ function SignInHeroImage() {
         };
     }, [shouldUseNarrowLayout, isMediumScreenWidth]);
 
-    const isSplashHidden = useIsSplashHidden();
+    const {isSplashHidden} = useSplashScreen();
     // Prevents rendering of the Lottie animation until the splash screen is hidden
     // by returning an empty view of the same size as the animation.
     // See issue: https://github.com/Expensify/App/issues/34696

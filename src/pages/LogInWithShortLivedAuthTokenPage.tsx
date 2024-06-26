@@ -16,13 +16,13 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
-import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
+import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 
 type LogInWithShortLivedAuthTokenPageOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -35,6 +35,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {navigateToExitUrl} = useHybridAppMiddleware();
     const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
@@ -66,8 +67,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
-                Navigation.navigate(url);
-                Welcome.handleHybridAppOnboarding();
+                navigateToExitUrl(url);
             });
         }
         // The only dependencies of the effect are based on props.route

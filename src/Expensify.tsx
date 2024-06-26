@@ -1,7 +1,7 @@
 import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking} from 'react-native';
+import {AppState, Linking, NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -77,9 +77,12 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-type SplashScreenHiddenContextType = {isSplashHidden?: boolean};
+// HybridApp needs access to SetStateAction in order to properly hide SplashScreen when React Native was booted before.
+type SplashScreenHiddenContextType = {isSplashHidden?: boolean; setIsSplashHidden: React.Dispatch<React.SetStateAction<boolean>>};
 
-const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({});
+const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({
+    setIsSplashHidden: () => {},
+});
 
 function Expensify({
     isCheckingPublicRoom = true,
@@ -112,13 +115,6 @@ function Expensify({
     const isAuthenticatedRef = useRef(false);
     isAuthenticatedRef.current = isAuthenticated;
 
-    const contextValue = useMemo(
-        () => ({
-            isSplashHidden,
-        }),
-        [isSplashHidden],
-    );
-
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
@@ -141,6 +137,14 @@ function Expensify({
         setIsSplashHidden(true);
         Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
+
+    const contextValue = useMemo(
+        () => ({
+            isSplashHidden,
+            setIsSplashHidden,
+        }),
+        [isSplashHidden, setIsSplashHidden],
+    );
 
     useLayoutEffect(() => {
         // Initialize this client as being an active client
@@ -263,8 +267,8 @@ function Expensify({
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
-
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {/* HybridApp has own middleware to hide SplashScreen */}
+            {!NativeModules.HybridAppModule && shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }
