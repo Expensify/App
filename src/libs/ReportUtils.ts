@@ -3863,7 +3863,7 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
-        parentReportActionID,
+        parentReportActionID: NumberUtils.rand64(),
     };
 }
 
