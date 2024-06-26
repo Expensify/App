@@ -57,7 +57,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
     const stop = useCallback(async () => {
-        const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.WEB);
+        const path = await stopProfiling(getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.WEB, newFileName);
         setFilePath(path);
 
         const amountOfTotalMemory = await DeviceInfo.getTotalMemory();
@@ -160,7 +160,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
             </TestToolRow>
             {!!filePath && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${getPlatform() === CONST.PLATFORM.WEB ? filePath : newFileName}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
                         <Button
                             small
