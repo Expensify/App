@@ -17,6 +17,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
+import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -24,7 +25,7 @@ import linkTo from './linkTo';
 import navigationRef from './navigationRef';
 import setNavigationActionToMicrotaskQueue from './setNavigationActionToMicrotaskQueue';
 import switchPolicyID from './switchPolicyID';
-import type {NavigationStateRoute, State, StateOrRoute, SwitchPolicyIDParams} from './types';
+import type {NavigationStateRoute, RootStackParamList, State, StateOrRoute, SwitchPolicyIDParams} from './types';
 
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
@@ -366,6 +367,10 @@ function navigateWithSwitchPolicyID(params: SwitchPolicyIDParams) {
     return switchPolicyID(navigationRef.current, params);
 }
 
+function getTopMostCentralPaneRouteFromRootState() {
+    return getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export default {
     setShouldPopAllStateOnUP,
     navigate,
@@ -387,6 +392,7 @@ export default {
     resetToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,
+    getTopMostCentralPaneRouteFromRootState,
 };
 
 export {navigationRef};
