@@ -4195,19 +4195,17 @@ function buildOptimisticIOUReportAction(
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
 function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticApprovedReportAction {
-    const originalMessage = {
-        amount,
-        currency,
-        expenseReportID,
-    };
-
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         isAttachment: false,
-        originalMessage,
+        originalMessage: {
+            amount,
+            currency,
+            expenseReportID,
+        },
         message: getIOUReportActionMessage(expenseReportID, CONST.REPORT.ACTIONS.TYPE.APPROVED, Math.abs(amount), '', currency),
         person: [
             {
