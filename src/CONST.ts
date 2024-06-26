@@ -1728,7 +1728,6 @@ const CONST = {
         },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
-            ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAGS_ENABLED: 'areTagsEnabled',
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',

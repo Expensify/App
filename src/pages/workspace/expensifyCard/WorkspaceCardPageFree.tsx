@@ -1,6 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
+import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
+import {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -11,6 +13,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import localeCompare from '@libs/LocaleCompare';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -19,16 +23,38 @@ import WorkspaceCardListRow from '@pages/workspace/expensifyCard/WorkspaceCardLi
 import WorkspaceCardsListLabel from '@pages/workspace/expensifyCard/WorkspaceCardsListLabel';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+import type {ExpensifyCard, ExpensifyCardsList} from '@src/types/onyx';
 
 type WorkspaceCardPageFreeProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 const stickyHeaderIndices = [0];
 
-const mockedCards = [
-    {cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''}, description: 'Test 1', limit: 1000, lastFour: '1234'},
-    {cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''}, description: 'Test 2', limit: 2000, lastFour: '5678'},
-    {cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''}, description: 'Test 3', limit: 3000, lastFour: '9108'},
-];
+const mockedCards: OnyxEntry<ExpensifyCardsList> = {
+    '1': {
+        cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
+        name: 'Test 1',
+        limit: 1000,
+        lastFourPAN: '1234',
+    },
+    '2': {
+        cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
+        name: 'Test 2',
+        limit: 2000,
+        lastFourPAN: '1234',
+    },
+    '3': {
+        cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
+        name: 'Test 3',
+        limit: 3000,
+        lastFourPAN: '1234',
+    },
+};
+
+const mockedSettings = {
+    currentBalance: 5000,
+    remainingLimit: 3000,
+    cashBack: 2000,
+};
 
 function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -38,22 +64,36 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
     const policyID = route.params.policyID;
 
+    // TODO: uncomment code below to use data from Onyx when it's supported
+    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${policyID}_Expensify Card`);
+    // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
+    const cardsList = mockedCards;
+    const cardSettings = mockedSettings;
+
+    const sortedCards = useMemo(() => {
+        return Object.values(cardsList ?? {}).sort((a, b) => {
+            const aName = PersonalDetailsUtils.getDisplayNameOrDefault(a.cardholder);
+            const bName = PersonalDetailsUtils.getDisplayNameOrDefault(b.cardholder);
+            return localeCompare(aName, bName);
+        });
+    }, [cardsList]);
+
     const renderCardsInfo = () => {
         return (
             <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mv5, styles.mh5]}>
                 <View style={[styles.flexRow, styles.flex1]}>
                     <WorkspaceCardsListLabel
-                        type={'currentBalance'}
-                        value={10000}
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE] as number}
                     />
                     <WorkspaceCardsListLabel
-                        type={'remainingLimit'}
-                        value={20000}
+                        type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
+                        value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT] as number}
                     />
                 </View>
                 <WorkspaceCardsListLabel
-                    type={'cashBack'}
-                    value={30000}
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
+                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK] as number}
                     style={isLessThanMediumScreen ? styles.mt3 : undefined}
                 />
             </View>
@@ -82,13 +122,12 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
         );
     };
 
-    const renderItem = ({item, index}) => {
+    const renderItem = ({item, index}: ListRenderItemInfo<ExpensifyCard>) => {
         return (
             <OfflineWithFeedback
                 key={`${item.title}_${index}`}
                 pendingAction={item.pendingAction}
                 errorRowStyles={styles.ph5}
-                onClose={item.dismissError}
                 errors={item.errors}
             >
                 <PressableWithoutFeedback
@@ -99,10 +138,10 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
                     {({hovered}) => (
                         <WorkspaceCardListRow
                             style={hovered && styles.hoveredComponentBG}
-                            lastFour={item.lastFour}
+                            lastFourPAN={item.lastFourPAN as string}
                             cardholder={item.cardholder}
-                            limit={item.limit}
-                            description={item.description}
+                            limit={item.limit as string}
+                            name={item.name as string}
                         />
                     )}
                 </PressableWithoutFeedback>
@@ -114,6 +153,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
+            // TODO: uncomment when feature support is implemented
             // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
@@ -136,7 +176,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
                 {renderCardsInfo()}
 
                 <FlatList
-                    data={mockedCards}
+                    data={sortedCards}
                     renderItem={renderItem}
                     ListHeaderComponent={WorkspaceCardListHeader}
                     stickyHeaderIndices={stickyHeaderIndices}

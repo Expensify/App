@@ -1,3 +1,6 @@
+import type ExpensifyCard from '@src/types/onyx/ExpensifyCard';
+import type {ExpensifyCardsList} from '@src/types/onyx/ExpensifyCard';
+import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {BankAccountList} from './BankAccount';
@@ -102,6 +105,9 @@ export type {
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,
+    ExpensifyCardsList,
+    ExpensifyCard,
+    ExpensifyCardSettings,
     FrequentlyUsedEmoji,
     Fund,
     FundList,

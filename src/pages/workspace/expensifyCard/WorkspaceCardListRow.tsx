@@ -15,10 +15,10 @@ type WorkspacesListRowProps = {
     style: StyleProp<ViewStyle>;
 
     /** The last four digits of the card */
-    lastFour: string;
+    lastFourPAN: string;
 
     /** Card description */
-    description: string;
+    name: string;
 
     /** Cardholder personal details */
     cardholder: PersonalDetails;
@@ -27,7 +27,7 @@ type WorkspacesListRowProps = {
     limit: string;
 };
 
-function WorkspaceCardListRow({style, limit, cardholder, lastFour, description}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: WorkspacesListRowProps) {
     const styles = useThemeStyles();
 
     const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
@@ -52,7 +52,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFour, description}:
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}
                     >
-                        {description}
+                        {name}
                     </Text>
                 </View>
             </View>
@@ -61,7 +61,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFour, description}:
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
                 >
-                    {lastFour}
+                    {lastFourPAN}
                 </Text>
             </View>
             <View style={[styles.flexRow, styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
