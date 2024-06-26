@@ -13,7 +13,6 @@ import type Report from '@src/types/onyx/Report';
 import type {Message, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
@@ -122,7 +121,7 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
     return (getReportActionMessage(reportAction)?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): boolean {
+function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (isEmptyObject(reportAction)) {
         return false;
     }
@@ -277,11 +276,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxInputOrEntry<Report> | EmptyObject): ReportAction | EmptyObject {
+function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<ReportAction> {
     if (!report?.parentReportID || !report.parentReportActionID) {
-        return {};
+        return undefined;
     }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
 /**
@@ -299,7 +298,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | Optimist
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): boolean {
+function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (isEmptyObject(parentReportAction) || !isMoneyRequestAction(parentReportAction)) {
         return false;
     }
@@ -1288,9 +1287,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
-    const lastReadTime = report.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
+function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
+    const lastReadTime = report?.lastReadTime ?? '';
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID ?? '-1')));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
@@ -1319,14 +1318,14 @@ function isActionableJoinRequestPending(reportID: string): boolean {
     return !!findPendingRequest;
 }
 
-function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | EmptyObject) {
+function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
     return [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action?.actionName);
 }
 
 /**
  * Gets the text version of the message in a report action
  */
-function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | EmptyObject): string {
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): string {
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
