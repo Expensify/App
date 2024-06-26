@@ -399,18 +399,6 @@ function ComposerWithSuggestions(
         return trimmedComment;
     }, [setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
 
-    /**
-     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
-     */
-    const replaceSelectionWithText = useCallback(
-        (text: string) => {
-            // selection replacement should be debounced to avoid conflicts with text typing
-            // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(ComposerUtils.insertText(valueRef.current, selection, text), true);
-        },
-        [selection, updateComment],
-    );
-
     const triggerHotkeyActions = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
             const webEvent = event as unknown as KeyboardEvent;
@@ -449,82 +437,123 @@ function ComposerWithSuggestions(
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
+    const todoGiveThisAProperName = useCallback(({
+        fullNewText,
+        diffText,
+        endPositionOfNewAddedText,
+        shouldDebounceSaveComment,
+    }: {
+        fullNewText: string;
+        diffText: string;
+        endPositionOfNewAddedText: number;
+        shouldDebounceSaveComment: boolean;
+    }) => {
+        raiseIsScrollLikelyLayoutTriggered();
+        // Check for emojis:
+        // - Either add a whitespace if the user typed an emoji
+        // - Or insert an emoji when the user types :emojiCode:
+        // - Extract all emojis from the updated text and update the frequently used emojis
+        const isEmojiInserted = diffText.trim() === diffText && EmojiUtils.containsOnlyEmojis(diffText);
+        const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(fullNewText, endPositionOfNewAddedText) : fullNewText;
+        const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+        if (emojis.length) {
+            const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+            if (newEmojis.length) {
+                // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
+                if (suggestionsRef.current) {
+                    suggestionsRef.current.resetSuggestions();
+                }
+                insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+                debouncedUpdateFrequentlyUsedEmojis();
+            }
+        }
+        emojisPresentBefore.current = emojis;
+
+        // Make LTR compatible if needed
+        const newCommentConverted = convertToLTRForComposer(newComment);
+
+        // Update state
+        setValue(newCommentConverted);
+
+        // Update selection eventually
+        if (newComment !== fullNewText) {
+            const position = Math.max((selection.end ?? 0) + (newComment.length - valueRef.current.length), cursorPosition ?? 0);
+            setSelection((prevSelection) => ({
+                start: position,
+                end: position,
+                positionX: prevSelection.positionX,
+                positionY: prevSelection.positionY,
+            }));
+            if (isIOSNative) {
+                // ensure that selection is set imperatively after all state changes are effective
+                InteractionManager.runAfterInteractions(() => {
+                    // note: this implementation is only available on non-web RN, thus the wrapping
+                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                    textInputRef.current?.setSelection(position, position);
+                });
+            }
+        }
+
+        // Update onyx related state:
+        if (shouldDebounceSaveComment) {
+            isCommentPendingSaved.current = true;
+            debouncedSaveReportComment(reportID, newCommentConverted);
+        } else {
+            Report.saveReportDraftComment(reportID, newCommentConverted);
+        }
+        if (newCommentConverted) {
+            debouncedBroadcastUserIsTyping(reportID);
+        }
+    }, [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, raiseIsScrollLikelyLayoutTriggered, reportID, selection.end, suggestionsRef])
+
     // This contains the previous value that we receive directly from the native text input (not our formatted value)
     const prevNativeTextRef = useRef(value);
     const handleInputChange = useCallback(
         ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
-            const {count, start, before, text: fullNewText} = nativeEvent;
+            const {count, start, before, text: nativeText} = nativeEvent;
             const previousNativeText = prevNativeTextRef.current;
-            prevNativeTextRef.current = fullNewText;
+            prevNativeTextRef.current = nativeText;
 
-            if (fullNewText === valueRef.current || fullNewText === previousNativeText) {
+            if (nativeText === valueRef.current || nativeText === previousNativeText) {
                 // The text hasn't changed (note: the handler gets called for selection changes as well)
                 return;
             }
 
             // This method is called to notify you that, within "fullNewText", the "count" characters
             // beginning at "start" have just replaced old text that had length "before".
-            const diffText = fullNewText.substring(start, start + count);
+            const endPosition = start + count;
+            const diffText = nativeText.substring(start, endPosition);
             // Replace newText in the original text:
             const currentText = valueRef.current;
-            const newText = currentText.substring(0, start) + diffText + currentText.substring(start + before);
+            const fullNewText = currentText.substring(0, start) + diffText + currentText.substring(start + before);
 
-            // Check for emojis:
-            // - Either add a whitespace if the user typed an emoji
-            // - Or insert an emoji when the user types :emojiCode:
-            // - Extract all emojis from the updated text and update the frequently used emojis
-            const isEmojiInserted = diffText.trim() === diffText && EmojiUtils.containsOnlyEmojis(diffText);
-            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(newText, start + count) : newText;
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
-            if (emojis.length) {
-                // TODO: This could be all moved to debouncedUpdateFrequentlyUsedEmojis, and the insertedEmojisRef could be removed
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis.length) {
-                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
-                    if (suggestionsRef.current) {
-                        suggestionsRef.current.resetSuggestions();
-                    }
-                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-            }
-            emojisPresentBefore.current = emojis;
-
-            // Make LTR compatible if needed
-            const newCommentConverted = convertToLTRForComposer(newComment);
-
-            // Update state
-            setValue(newCommentConverted);
-            // TODO: this could be done in a useEffect
-            const isCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            setIsCommentEmpty(isCommentEmpty);
-
-            // Update selection eventually
-            if (newComment !== newText) {
-                const position = Math.max((selection.end ?? 0) + (newComment.length - valueRef.current.length), cursorPosition ?? 0);
-                setSelection((prevSelection) => ({
-                    start: position,
-                    end: position,
-                    positionX: prevSelection.positionX,
-                    positionY: prevSelection.positionY,
-                }));
-                if (isIOSNative) {
-                    // ensure that selection is set imperatively after all state changes are effective
-                    InteractionManager.runAfterInteractions(() => {
-                        // note: this implementation is only available on non-web RN, thus the wrapping
-                        // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                        textInputRef.current?.setSelection(position, position);
-                    });
-                }
-            }
-
-            // Update onyx related state:
-            debouncedSaveReportComment(reportID, newCommentConverted);
-            if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID);
-            }
+            todoGiveThisAProperName({
+                fullNewText,
+                diffText,
+                endPositionOfNewAddedText: endPosition,
+                shouldDebounceSaveComment: true,
+            })
         },
-        [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, reportID, selection.end, setIsCommentEmpty, suggestionsRef],
+        [todoGiveThisAProperName],
+    );
+
+    /**
+     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
+     */
+    const replaceSelectionWithText = useCallback(
+        (text: string) => {
+            const newFullText = ComposerUtils.insertText(valueRef.current, selection, text)
+            const endPositionOfNewAddedText = selection.start + text.length;
+            todoGiveThisAProperName({
+                fullNewText: newFullText,
+                diffText: text,
+                endPositionOfNewAddedText,
+                // selection replacement should be debounced to avoid conflicts with text typing
+                // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
+                shouldDebounceSaveComment: true,
+            });
+        },
+        [selection, todoGiveThisAProperName],
     );
 
     const onSelectionChange = useCallback(
