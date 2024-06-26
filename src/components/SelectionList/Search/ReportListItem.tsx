@@ -32,10 +32,17 @@ type ReportCellProps = {
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
     const styles = useThemeStyles();
 
+    let total = reportItem?.total ?? 0;
+
+    // Only invert non-zero values otherwise we'll end up with -0.00
+    if (total) {
+        total *= reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1;
+    }
+
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString((reportItem?.type === CONST.REPORT.TYPE.EXPENSE ? -1 : 1) * (reportItem?.total ?? 0), reportItem?.currency)}
+            text={CurrencyUtils.convertToDisplayString(total, reportItem?.currency)}
             style={[styles.optionDisplayName, styles.textNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );

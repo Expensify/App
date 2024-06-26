@@ -10,6 +10,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
+type RequestError = Error & {
+    name?: string;
+    message?: string;
+};
+
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -89,7 +94,7 @@ function process(): Promise<void> {
             RequestThrottle.clear();
             return process();
         })
-        .catch((error) => {
+        .catch((error: RequestError) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {

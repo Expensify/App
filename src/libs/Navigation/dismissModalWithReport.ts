@@ -4,6 +4,7 @@ import {StackActions} from '@react-navigation/native';
 import {findLastIndex} from 'lodash';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import isCentralPaneName from '@libs/NavigationUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -64,7 +65,7 @@ function dismissModalWithReport(targetReport: OnyxEntry<Report>, navigationRef: 
                 // If not-found page is in the route stack, we need to close it
             } else if (state.routes.some((route) => route.name === SCREENS.NOT_FOUND)) {
                 const lastRouteIndex = state.routes.length - 1;
-                const centralRouteIndex = findLastIndex(state.routes, (route) => route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR);
+                const centralRouteIndex = findLastIndex(state.routes, (route) => isCentralPaneName(route.name));
                 navigationRef.dispatch({...StackActions.pop(lastRouteIndex - centralRouteIndex), target: state.key});
             } else {
                 navigationRef.dispatch({...StackActions.pop(), target: state.key});
