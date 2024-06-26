@@ -309,6 +309,22 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
 }
 
 /**
+ * Returns filtered list for one transaction view
+ * Separated it from getCombinedReportActions, so it can be reused
+ */
+function getFilteredForOneTransactionView(reportActions: ReportAction[], isSelfDM = false): ReportAction[] {
+    const filteredReportActions = reportActions.filter((action) => {
+        const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
+        if (isSelfDM) {
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+        }
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+    });
+
+    return filteredReportActions;
+}
+
+/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -322,14 +338,7 @@ function getCombinedReportActions(reportActions: ReportAction[], transactionThre
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
-        if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
-        }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
-    });
+    const filteredReportActions = getFilteredForOneTransactionView([...reportActions, ...filteredTransactionThreadReportActions], isSelfDM);
 
     return getSortedReportActions(filteredReportActions, true);
 }
@@ -877,6 +886,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     );
 }
 
+//maybe that?
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
@@ -1322,6 +1332,7 @@ export {
     wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
     isTripPreview,
+    getFilteredForOneTransactionView,
 };
 
 export type {LastVisibleMessage};

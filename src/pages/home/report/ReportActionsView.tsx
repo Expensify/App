@@ -516,7 +516,7 @@ function ReportActionsView({
             createdAction.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         }
 
-        return [...actions, createdAction];
+        return moneyRequestActions.length === 1 ? ReportActionsUtils.getFilteredForOneTransactionView([...actions, createdAction]) : [...actions, createdAction];
     }, [reportActions, report, transactionThreadReport]);
 
     // Comments have not loaded at all yet do nothing
