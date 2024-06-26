@@ -3,11 +3,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
 /**
- * @param reportFieldType Report field type
- * @returns translation key for the report type
+ * Gets the translation key for the report field type
  */
 function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
-    // TODO: Clarify type
     const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textType',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateType',
@@ -18,11 +16,9 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
 }
 
 /**
- * @param reportFieldType Report field type
- * @returns translation key for the report type alternative text
+ * Gets the translation key for the alternative text for the report field
  */
 function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
-    // TODO: Clarify type
     const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textAlternateText',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateAlternateText',
