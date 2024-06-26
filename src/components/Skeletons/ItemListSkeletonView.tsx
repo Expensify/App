@@ -53,7 +53,6 @@ function ItemListSkeletonView({
             const totalHeight = event.nativeEvent.layout.height;
 
             const newNumItems = Math.ceil(totalHeight / totalItemHeight);
-
             if (newNumItems !== numItems) {
                 setNumItems(newNumItems);
             }
