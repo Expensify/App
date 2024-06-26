@@ -236,22 +236,42 @@ function clearOutstandingBalance() {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
-                value: 'pending',
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: true,
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
-                value: 'success',
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+                value: true,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+                value: false,
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
-                value: 'failed',
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+                value: false,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+                value: true,
             },
         ],
     };

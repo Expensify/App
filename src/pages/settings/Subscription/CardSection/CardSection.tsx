@@ -12,8 +12,8 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +32,9 @@ function CardSection() {
     const theme = useTheme();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [subscriptionRetryBillingStatus] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS);
+    const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING);
+    const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
+    const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const {isOffline} = useNetwork();
     const defaultCard = SubscriptionUtils.getCardForSubscriptionBilling();
 
@@ -46,7 +48,7 @@ function CardSection() {
 
     useEffect(() => {
         setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? ''));
-    }, [subscriptionRetryBillingStatus, defaultCard?.accountData?.cardNumber, translate]);
+    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, defaultCard?.accountData?.cardNumber, translate]);
 
     const handleRetryPayment = () => {
         Subscription.clearOutstandingBalance();
@@ -111,7 +113,7 @@ function CardSection() {
                     <Button
                         text={translate('subscription.cardSection.retryPaymentButton')}
                         isDisabled={isOffline}
-                        isLoading={subscriptionRetryBillingStatus === CONST.SUBSCRIPTION_RETRY_BILLING_STATUS.PENDING}
+                        isLoading={subscriptionRetryBillingStatusPending}
                         onPress={handleRetryPayment}
                         style={styles.w100}
                         success
