@@ -15,70 +15,70 @@ type SearchColumnConfig = {
     columnName: SearchColumnType;
     translationKey: TranslationPaths;
     isColumnSortable?: boolean;
-    shouldShow: (data: OnyxTypes.SearchResults['data']) => boolean;
+    shouldShow: (data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']) => boolean;
 };
 
 const SearchColumns: SearchColumnConfig[] = [
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.RECEIPT,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
         translationKey: 'common.receipt',
         shouldShow: () => true,
         isColumnSortable: false,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.DATE,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
         translationKey: 'common.date',
         shouldShow: () => true,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.MERCHANT,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
         translationKey: 'common.merchant',
         shouldShow: (data: OnyxTypes.SearchResults['data']) => SearchUtils.getShouldShowMerchant(data),
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
         translationKey: 'common.description',
         shouldShow: (data: OnyxTypes.SearchResults['data']) => !SearchUtils.getShouldShowMerchant(data),
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.FROM,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
         translationKey: 'common.from',
         shouldShow: () => true,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.TO,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TO,
         translationKey: 'common.to',
         shouldShow: () => true,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.CATEGORY,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
-        shouldShow: () => true,
+        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowCategoryColumn ?? false,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.TAG,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
-        shouldShow: () => true,
+        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowTagColumn ?? false,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.TAX_AMOUNT,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        shouldShow: () => true,
+        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowTaxColumn ?? false,
         isColumnSortable: false,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.TOTAL_AMOUNT,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
         translationKey: 'common.total',
         shouldShow: () => true,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.TYPE,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TYPE,
         translationKey: 'common.type',
         shouldShow: () => true,
         isColumnSortable: false,
     },
     {
-        columnName: CONST.SEARCH_TABLE_COLUMNS.ACTION,
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         shouldShow: () => true,
         isColumnSortable: false,
@@ -87,6 +87,7 @@ const SearchColumns: SearchColumnConfig[] = [
 
 type SearchTableHeaderProps = {
     data: OnyxTypes.SearchResults['data'];
+    metadata: OnyxTypes.SearchResults['search'];
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
     isSortingAllowed: boolean;
@@ -94,7 +95,7 @@ type SearchTableHeaderProps = {
     shouldShowYear: boolean;
 };
 
-function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed, onSortPress, shouldShowYear}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
@@ -109,12 +110,12 @@ function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPre
         <View style={[styles.ph5, styles.pb3]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
                 {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
-                    if (!shouldShow(data)) {
+                    if (!shouldShow(data, metadata)) {
                         return null;
                     }
 
                     const isActive = sortBy === columnName;
-                    const textStyle = columnName === CONST.SEARCH_TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
+                    const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
                     const isSortable = isSortingAllowed && isColumnSortable;
 
                     return (
@@ -122,7 +123,7 @@ function SearchTableHeader({data, sortBy, sortOrder, isSortingAllowed, onSortPre
                             key={translationKey}
                             text={translate(translationKey)}
                             textStyle={textStyle}
-                            sortOrder={sortOrder ?? CONST.SORT_ORDER.ASC}
+                            sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             containerStyle={[StyleUtils.getSearchTableColumnStyles(columnName, shouldShowYear)]}
                             isSortable={isSortable}

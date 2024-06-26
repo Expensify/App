@@ -138,9 +138,11 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        RESTRICTED_ACTION: 'RestrictedAction',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -177,6 +179,10 @@ const SCREENS = {
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
         STATE_SELECTOR: 'Money_Request_State_Selector',
+    },
+
+    TRANSACTION_DUPLICATE: {
+        REVIEW: 'Transaction_Duplicate_Review',
     },
 
     IOU_SEND: {
@@ -263,6 +269,7 @@ const SCREENS = {
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
+            NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Net_Suite_Subsidiary_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
@@ -283,6 +290,7 @@ const SCREENS = {
         TAGS_EDIT: 'Tags_Edit',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
+        REPORT_FIELDS: 'Workspace_ReportFields',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
@@ -378,6 +386,7 @@ const SCREENS = {
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
+    RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

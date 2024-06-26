@@ -6679,7 +6679,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -12050,14 +12050,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12071,6 +12063,14 @@ module.exports = require("assert");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 

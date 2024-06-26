@@ -25,6 +25,35 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.REPORT_AVATAR]: ROUTES.REPORT_AVATAR.route,
         [SCREENS.TRANSACTION_RECEIPT]: ROUTES.TRANSACTION_RECEIPT.route,
         [SCREENS.WORKSPACE_JOIN_USER]: ROUTES.WORKSPACE_JOIN_USER.route,
+        [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+        [SCREENS.SETTINGS.PROFILE.ROOT]: {
+            path: ROUTES.SETTINGS_PROFILE,
+            exact: true,
+        },
+        [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
+            path: ROUTES.SETTINGS_PREFERENCES,
+            exact: true,
+        },
+        [SCREENS.SETTINGS.SECURITY]: {
+            path: ROUTES.SETTINGS_SECURITY,
+            exact: true,
+        },
+        [SCREENS.SETTINGS.WALLET.ROOT]: {
+            path: ROUTES.SETTINGS_WALLET,
+            exact: true,
+        },
+        [SCREENS.SETTINGS.ABOUT]: {
+            path: ROUTES.SETTINGS_ABOUT,
+            exact: true,
+        },
+        [SCREENS.SETTINGS.TROUBLESHOOT]: {
+            path: ROUTES.SETTINGS_TROUBLESHOOT,
+            exact: true,
+        },
+        [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
+        [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH.route,
+        [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
+        [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
 
         // Sidebar
         [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]: {
@@ -38,39 +67,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
             },
         },
 
-        [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: {
-            screens: {
-                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
-                [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                    path: ROUTES.SETTINGS_PROFILE,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-                    path: ROUTES.SETTINGS_PREFERENCES,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.SECURITY]: {
-                    path: ROUTES.SETTINGS_SECURITY,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.WALLET.ROOT]: {
-                    path: ROUTES.SETTINGS_WALLET,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.ABOUT]: {
-                    path: ROUTES.SETTINGS_ABOUT,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.TROUBLESHOOT]: {
-                    path: ROUTES.SETTINGS_TROUBLESHOOT,
-                    exact: true,
-                },
-                [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
-                [SCREENS.SEARCH.CENTRAL_PANE]: ROUTES.SEARCH.route,
-                [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: ROUTES.SETTINGS_SUBSCRIPTION,
-            },
-        },
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
@@ -337,6 +333,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_INVOICE_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
@@ -678,6 +675,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
+                    screens: {
+                        [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
+                            exact: true,
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
                         [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
@@ -740,6 +745,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: {
+                    screens: {
+                        [SCREENS.RESTRICTED_ACTION_ROOT]: ROUTES.RESTRICTED_ACTION.route,
+                    },
+                },
             },
         },
 
@@ -784,6 +794,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.TAXES]: {
                     path: ROUTES.WORKSPACE_TAXES.route,
+                },
+                [SCREENS.WORKSPACE.REPORT_FIELDS]: {
+                    path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
