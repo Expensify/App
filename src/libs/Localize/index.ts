@@ -50,12 +50,7 @@ type TranslationPhraseArgType = number | Record<string, string | number | undefi
 type TranslationPhraseFunction = (...args: any[]) => string;
 type PluralTranslationPhraseFunction = (args: TranslationPhraseArgType) => string;
 
-type PhraseParameters<T> = 
-    T extends PluralTranslationPhraseFunction
-        ? [TranslationPhraseArgType]
-        : T extends TranslationPhraseFunction
-        ? Parameters<T>
-        : never[];
+type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [TranslationPhraseArgType] : T extends TranslationPhraseFunction ? Parameters<T> : never[];
 
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 

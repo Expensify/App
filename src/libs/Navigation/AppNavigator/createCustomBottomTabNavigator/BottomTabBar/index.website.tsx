@@ -99,13 +99,13 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <Tooltip text={translate('common.search')}>
+            <Tooltip text={translate('common.searchText')}>
                 <PressableWithFeedback
                     onPress={() => {
                         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
                     }}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
+                    accessibilityLabel={translate('common.searchText')}
                     wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
