@@ -47,7 +47,7 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({participants = [], onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -378,6 +378,14 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         onFinish,
     ]);
 
+    const onSelectRow = useCallback((item) => {
+        if (isIOUSplit) {
+            addParticipantToSelection(item);
+            return;
+        }
+        addSingleParticipant(item);
+    }, [isIOUSplit, addParticipantToSelection, addSingleParticipant]);
+
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
@@ -388,7 +396,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
+            onSelectRow={onSelectRow}
             shouldDebounceRowSelect
             footerContent={footerContent}
             headerMessage={header}
