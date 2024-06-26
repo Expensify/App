@@ -76,6 +76,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type {TravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
 import type User from './User';
 import type UserLocation from './UserLocation';
@@ -164,6 +165,7 @@ export type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    TravelSettings,
     User,
     UserLocation,
     UserMetadata,
