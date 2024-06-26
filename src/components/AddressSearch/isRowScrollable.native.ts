@@ -1,8 +1,8 @@
 /**
  * Whether the address suggestions list is scrollable
- * 
+ *
  * On native, this is set to false because the whole screen is scrollable
  */
-const isRowScrollable: boolean = false
+const isRowScrollable = false;
 
-export default isRowScrollable
+export default isRowScrollable;

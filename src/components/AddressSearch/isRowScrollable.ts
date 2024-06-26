@@ -1,6 +1,6 @@
 /**
  * Whether the address suggestions list is scrollable
  */
-const isRowScrollable: boolean = true
+const isRowScrollable = true;
 
-export default isRowScrollable
+export default isRowScrollable;
