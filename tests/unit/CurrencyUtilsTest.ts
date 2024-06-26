@@ -122,7 +122,6 @@ describe('CurrencyUtils', () => {
             [2500, 25],
             [2550, 26],
             [25, 0],
-            [2500, 25],
             [2586, 26],
             [2500.5, 25], // The backend should never send a decimal .5 value
         ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult) => {

@@ -87,7 +87,7 @@ function convertToBackendAmount(amountAsFloat: number): number {
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string): number {
+function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
     const decimals = getCurrencyDecimals(currency);
     return Number((Math.round(amountAsInt) / 100.0).toFixed(decimals));
 }
@@ -97,7 +97,7 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string)
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,  currency: string): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,  currency: string = CONST.CURRENCY.USD): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }

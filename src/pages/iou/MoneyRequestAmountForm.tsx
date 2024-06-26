@@ -155,7 +155,7 @@ function MoneyRequestAmountForm(
             start: frontendAmount.length,
             end: frontendAmount.length,
         });
-    }, []);
+    }, [currency]);
 
     useEffect(() => {
         if (!currency || typeof amount !== 'number') {

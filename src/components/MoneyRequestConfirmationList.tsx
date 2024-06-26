@@ -332,7 +332,7 @@ function MoneyRequestConfirmationList({
         const taxAmount = TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount, currency);
         const taxAmountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
         IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', taxAmountInSmallestCurrencyUnits);
-    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID]);
+    }, [policy, shouldShowTax, previousTransactionAmount, previousTransactionCurrency, transaction, isDistanceRequest, customUnitRateID, currency]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {

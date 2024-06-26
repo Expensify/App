@@ -14,7 +14,7 @@ import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import Permissions from './Permissions';
 import {getCleanedTagName, getCustomUnitRate} from './PolicyUtils';
-import {getCurrencyDecimals} from "@libs/CurrencyUtils";
+import {getCurrencyDecimals} from "./CurrencyUtils";
 
 let allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
