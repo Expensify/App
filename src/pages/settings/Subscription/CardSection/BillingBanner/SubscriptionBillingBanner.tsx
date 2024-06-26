@@ -7,9 +7,6 @@ import BillingBanner from './BillingBanner';
 import type {BillingBannerProps} from './BillingBanner';
 
 type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 'subtitleStyle' | 'style' | 'brickRoadIndicator' | 'icon'> & {
-    /** Indicates whether there is an active trial */
-    isTrialActive?: boolean;
-
     /** Indicates whether there is an error */
     isError?: boolean;
 
@@ -17,12 +14,8 @@ type SubscriptionBillingBannerProps = Omit<BillingBannerProps, 'titleStyle' | 's
     icon?: IconAsset;
 };
 
-function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isTrialActive, isError, onRightIconPress, rightIconAccessibilityLabel}: SubscriptionBillingBannerProps) {
+function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isError, onRightIconPress, rightIconAccessibilityLabel}: SubscriptionBillingBannerProps) {
     const styles = useThemeStyles();
-
-    const backgroundStyle = isTrialActive ? styles.trialBannerBackgroundColor : styles.hoveredComponentBG;
-
-    const subtitleStyle = isTrialActive ? [] : styles.textSupporting;
 
     const iconAsset = icon ?? isError ? Illustrations.CreditCardEyes : Illustrations.CheckmarkCircle;
 
@@ -32,8 +25,8 @@ function SubscriptionBillingBanner({title, subtitle, rightIcon, icon, isTrialAct
             subtitle={subtitle}
             icon={iconAsset}
             brickRoadIndicator={isError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
-            subtitleStyle={subtitleStyle}
-            style={backgroundStyle}
+            subtitleStyle={styles.textSupporting}
+            style={styles.hoveredComponentBG}
             rightIcon={rightIcon}
             onRightIconPress={onRightIconPress}
             rightIconAccessibilityLabel={rightIconAccessibilityLabel}

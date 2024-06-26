@@ -59,7 +59,6 @@ function CardSection() {
             <SubscriptionBillingBanner
                 title={billingStatus.title}
                 subtitle={billingStatus.subtitle}
-                isTrialActive={false}
                 isError={billingStatus.isError}
                 icon={billingStatus.icon}
                 rightIcon={billingStatus.rightIcon}

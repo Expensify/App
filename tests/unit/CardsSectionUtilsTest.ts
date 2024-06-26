@@ -1,4 +1,29 @@
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import type {Phrase, PhraseParameters} from '@libs/Localize';
+import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
+import type {TranslationPaths} from '@src/languages/types';
+import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- this param is required for the mock
+function translateMock<TKey extends TranslationPaths>(key: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+    return key;
+}
+
+const CARD_ENDING = '1234';
+const AMOUNT_OWED = 100;
+const GRACE_PERIOD_DATE = 1750819200;
+
+const mockGetSubscriptionStatus = jest.fn();
+
+jest.mock('@libs/SubscriptionUtils', () => ({
+    ...jest.requireActual<typeof SubscriptionUtils>('@libs/SubscriptionUtils'),
+    getAmountOwed: () => AMOUNT_OWED,
+    getOverdueGracePeriodDate: () => GRACE_PERIOD_DATE,
+    getSubscriptionStatus: () => mockGetSubscriptionStatus() as BillingStatusResult,
+}));
 
 describe('getNextBillingDate', () => {
     beforeAll(() => {
@@ -33,5 +58,160 @@ describe('getNextBillingDate', () => {
         const expectedNextBillingDate = 'August 1, 2024';
 
         expect(CardSectionUtils.getNextBillingDate()).toEqual(expectedNextBillingDate);
+    });
+});
+
+describe('CardSectionUtils', () => {
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    beforeAll(() => {
+        mockGetSubscriptionStatus.mockReturnValue('');
+    });
+
+    it('should return undefined by default', () => {
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toBeUndefined();
+    });
+
+    it('should return POLICY_OWNER_WITH_AMOUNT_OWED variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.outdatedInfo',
+            subtitle: 'subscription.billingBanner.updateCardDataByDate',
+            isError: true,
+            isRetryAvailable: true,
+        });
+    });
+
+    it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.outdatedInfo',
+            subtitle: 'subscription.billingBanner.updatePaymentInformation',
+            isError: true,
+        });
+    });
+
+    it('should return OWNER_OF_POLICY_UNDER_INVOICING variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.outdatedInfo',
+            subtitle: 'subscription.billingBanner.paymentPastDuePayByDate',
+            isError: true,
+            isAddButtonDark: true,
+        });
+    });
+
+    it('should return OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.outdatedInfo',
+            subtitle: 'subscription.billingBanner.paymentPastDue',
+            isError: true,
+            isAddButtonDark: true,
+        });
+    });
+
+    it('should return BILLING_DISPUTE_PENDING variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.cardCouldNotBeCharged',
+            subtitle: 'subscription.billingBanner.cardOnDispute',
+            isError: true,
+            isRetryAvailable: false,
+        });
+    });
+
+    it('should return CARD_AUTHENTICATION_REQUIRED variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.cardCouldNotBeCharged',
+            subtitle: 'subscription.billingBanner.cardNotFullyAuthenticated',
+            isError: true,
+            isAuthenticatingRequired: true,
+        });
+    });
+
+    it('should return INSUFFICIENT_FUNDS variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.cardCouldNotBeCharged',
+            subtitle: 'subscription.billingBanner.cardDeclinedDueToInsufficientFunds',
+            isError: true,
+            isRetryAvailable: true,
+        });
+    });
+
+    it('should return CARD_EXPIRED variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.CARD_EXPIRED,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.cardCouldNotBeCharged',
+            subtitle: 'subscription.billingBanner.cardExpired',
+            isError: true,
+            isRetryAvailable: true,
+        });
+    });
+
+    it('should return CARD_EXPIRE_SOON variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.cardExpiringSoon',
+            subtitle: 'subscription.billingBanner.cardWillExpireAtTheEndOfMonth',
+            isError: false,
+            icon: Illustrations.CreditCardEyes,
+        });
+    });
+
+    it('should return RETRY_BILLING_SUCCESS variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.succeeded',
+            subtitle: 'subscription.billingBanner.billedSuccessfully',
+            isError: false,
+            rightIcon: Expensicons.Close,
+        });
+    });
+
+    it('should return RETRY_BILLING_ERROR variant', () => {
+        mockGetSubscriptionStatus.mockReturnValue({
+            status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
+        });
+
+        expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
+            title: 'subscription.billingBanner.cardCouldNotBeCharged',
+            subtitle: 'subscription.billingBanner.retryMessage',
+            isError: true,
+        });
     });
 });
