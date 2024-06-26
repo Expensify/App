@@ -32,7 +32,6 @@ export type {default as OpenAppParams} from './OpenAppParams';
 export type {default as OpenOldDotLinkParams} from './OpenOldDotLinkParams';
 export type {default as OpenPlaidBankAccountSelectorParams} from './OpenPlaidBankAccountSelectorParams';
 export type {default as OpenPlaidBankLoginParams} from './OpenPlaidBankLoginParams';
-export type {default as OpenProfileParams} from './OpenProfileParams';
 export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePageParams';
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';

@@ -101,10 +101,6 @@ function ProfilePage({
         },
     ];
 
-    useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
-    }, [currentUserPersonalDetails]);
-
     const privateOptions = [
         {
             description: translate('privatePersonalDetails.legalName'),

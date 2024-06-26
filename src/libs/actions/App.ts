@@ -12,7 +12,6 @@ import type {
     HandleRestrictedEventParams,
     OpenAppParams,
     OpenOldDotLinkParams,
-    OpenProfileParams,
     ReconnectAppParams,
     UpdatePreferredLocaleParams,
 } from '@libs/API/parameters';
@@ -457,52 +456,6 @@ function redirectThirdPartyDesktopSignIn() {
     }
 }
 
-function openProfile(personalDetails: OnyxTypes.PersonalDetails) {
-    const oldTimezoneData = personalDetails.timezone ?? {};
-    let newTimezoneData = oldTimezoneData;
-
-    if (oldTimezoneData?.automatic ?? true) {
-        newTimezoneData = {
-            automatic: true,
-            selected: Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone,
-        };
-    }
-
-    newTimezoneData = DateUtils.formatToSupportedTimezone(newTimezoneData);
-
-    const parameters: OpenProfileParams = {
-        timezone: JSON.stringify(newTimezoneData),
-    };
-
-    // We expect currentUserAccountID to be a number because it doesn't make sense to open profile if currentUserAccountID is not set
-    if (typeof currentUserAccountID === 'number') {
-        API.write(WRITE_COMMANDS.OPEN_PROFILE, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: newTimezoneData,
-                        },
-                    },
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            timezone: oldTimezoneData,
-                        },
-                    },
-                },
-            ],
-        });
-    }
-}
-
 /**
  * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
  */
@@ -558,7 +511,6 @@ export {
     setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    openProfile,
     redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
