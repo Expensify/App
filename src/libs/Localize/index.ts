@@ -46,11 +46,16 @@ function init() {
 }
 
 type PluralFormPhrase = Record<string, string>;
-type PhraseParameters<T> = T extends (args: number | Record<string, string | number | undefined>) => string
-    ? [number | Record<string, string | number | undefined>]
-    : T extends (...args: infer A) => string
-    ? A
-    : [];
+type TranslationPhraseArgType = number | Record<string, string | number | undefined>;
+type TranslationPhraseFunction = (...args: any[]) => string;
+type PluralTranslationPhraseFunction = (args: TranslationPhraseArgType) => string;
+
+type PhraseParameters<T> = 
+    T extends PluralTranslationPhraseFunction
+        ? [TranslationPhraseArgType]
+        : T extends TranslationPhraseFunction
+        ? Parameters<T>
+        : never[];
 
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
