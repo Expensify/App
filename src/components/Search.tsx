@@ -150,7 +150,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const isSortingAllowed = sortableSearchTabs.includes(query);
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
-
+    console.log('over here', sortedData)
     return (
         <SelectionList<ReportListItemType | TransactionListItemType>
             customListHeader={
