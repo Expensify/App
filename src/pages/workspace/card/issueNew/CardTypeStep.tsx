@@ -2,11 +2,15 @@ import React from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,6 +27,7 @@ function CardTypeStep() {
     const handleBackButtonPress = () => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE);
     };
+    const isSelected = false;
 
     return (
         <ScreenWrapper
@@ -42,15 +47,26 @@ function CardTypeStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                submitButtonText={translate('common.next')}
-                onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
-            >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
-            </FormProvider>
+            <View style={styles.mh5}>
+                <MenuItem
+                    icon={Illustrations.HandCard}
+                    title={translate('workspace.card.issueNewCard.physicalCard')}
+                    description={translate('workspace.card.issueNewCard.physicalCardDescription')}
+                    shouldShowRightIcon
+                    iconWidth={variables.menuIconSize}
+                    iconHeight={variables.menuIconSize}
+                    wrapperStyle={[styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected]}
+                />
+                <MenuItem
+                    icon={Illustrations.VirtualCard}
+                    title={translate('workspace.card.issueNewCard.virtualCard')}
+                    description={translate('workspace.card.issueNewCard.virtualCardDescription')}
+                    shouldShowRightIcon
+                    iconWidth={variables.menuIconSize}
+                    iconHeight={variables.menuIconSize}
+                    wrapperStyle={[styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected]}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
