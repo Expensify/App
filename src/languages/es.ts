@@ -2210,32 +2210,32 @@ export default {
             subsidiary: 'Subsidiaria',
             subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a NetSuite.',
-            exportReimbursable: 'Export reimbursable expenses as',
-            exportNonReimbursable: 'Export non-reimbursable expenses as',
+            exportReimbursable: 'Exportar gastos reembolsables como',
+            exportNonReimbursable: 'Exportar gastos no reembolsables como',
             exportInvoices: 'Exportar facturas a',
-            journalEntriesTaxPostingAccount: 'Journal entries tax posting account',
-            journalEntriesProvTaxPostingAccount: 'Journal entries provincial tax posting account',
-            foreignCurrencyAmount: 'Export foreign currency amount',
-            exportToNextOpenPeriod: 'Export to next open period',
-            nonReimbursableJournalPostingAccount: 'Non-reimbursable journal posting account',
-            reimbursableJournalPostingAccount: 'Reimbursable journal posting account',
+            journalEntriesTaxPostingAccount: 'Cuenta de registro de impuestos de asientos contables',
+            journalEntriesProvTaxPostingAccount: 'Cuenta de registro de impuestos provinciales de asientos contables',
+            foreignCurrencyAmount: 'Exportar importe en moneda extranjera',
+            exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
+            nonReimbursableJournalPostingAccount: 'Cuenta de registro de diario no reembolsable',
+            reimbursableJournalPostingAccount: 'Cuenta de registro de diario reembolsable',
             journalPostingPreference: {
-                label: 'Journal entries posting preference',
+                label: 'Preferencia de registro de asientos contables',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each individual expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Entrada única y detallada para cada informe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrada única para cada gasto individual',
                 },
             },
             invoiceItem: {
-                label: 'Invoice item',
+                label: 'Artículo de la factura',
                 values: {
                     [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: {
-                        label: 'Create one for me',
-                        description: 'We\'ll create an "Expensify invoice line item" for you upon export (if one doesn’t exist already).',
+                        label: 'Crear uno para mí',
+                        description: "Crearemos un 'Artículo de línea de factura de Expensify' para ti al exportar (si aún no existe).",
                     },
                     [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
-                        label: 'Select existing',
-                        description: "We'll tie invoices from Expensify to the item selected below.",
+                        label: 'Seleccionar existente',
+                        description: "Asociaremos las facturas de Expensify al artículo seleccionado a continuación.",
                     },
                 },
             },
@@ -2245,55 +2245,55 @@ export default {
                 values: {
                     [CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Fecha del último gasto',
-                        description: 'Fecha del gasto mas reciente en el informe',
+                        description: 'Fecha del gasto mas reciente en el informe.',
                     },
                     [CONST.NETSUITE_EXPORT_DATE.EXPORTED]: {
                         label: 'Fecha de exportación',
-                        description: 'Fecha de exportación del informe a NetSuite',
+                        description: 'Fecha de exportación del informe a NetSuite.',
                     },
                     [CONST.NETSUITE_EXPORT_DATE.SUBMITTED]: {
                         label: 'Fecha de envío',
-                        description: 'Fecha en la que el informe se envió para su aprobación',
+                        description: 'Fecha en la que el informe se envió para su aprobación.',
                     },
                 },
             },
             exportDestination: {
                 values: {
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
-                        label: 'Expense reports',
-                        reimbursableDescription: 'Reimbursable expenses will export as expense reports to NetSuite.',
-                        nonReimbursableDescription: 'Non-reimbursable expenses will export as expense reports to NetSuite.',
+                        label: 'Informes de gastos',
+                        reimbursableDescription: 'Los gastos reembolsables se exportarán como informes de gastos a NetSuite.',
+                        nonReimbursableDescription: 'Los gastos no reembolsables se exportarán como informes de gastos a NetSuite.',
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
-                        label: 'Vendor bills',
+                        label: 'Facturas de proveedores',
                         reimbursableDescription:
-                            'Reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            'Los gastos reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
                             '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
                         nonReimbursableDescription:
-                            'Non-reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            'Los gastos no reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
                             '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
                     },
                     [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
-                        label: 'Journal Entries',
+                        label: 'Asientos contables',
                         reimbursableDescription:
-                            'Reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            'Los gastos reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
                             '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
                         nonReimbursableDescription:
-                            'Non-reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            'Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
                             '\n' +
-                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
                     },
                 },
             },
-            noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza de nuevo la conexión.',
-            noVendorsFound: 'No vendors found',
-            noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
-            noItemsFound: 'No invoice items found',
-            noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo.',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Añade proveedores en NetSuite y sincroniza la conexión de nuevo.',
+            noItemsFound: 'No se han encontrado artículos de factura',
+            noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
         },
