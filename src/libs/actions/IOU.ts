@@ -365,11 +365,13 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
 }
 
 /**
- *
+ * Reset the money request with a new report ID. Unlike the initMoneyRequest function, this function only
+ * set the new report ID (and isFromGlobalCreate flag) and reset the participants of the draft transaction
  * @param transactionID
  * @param reportID
+ * @param isFromGlobalCreate
  */
-function resetMoneyRequest(transactionID: string, reportID: string, isFromGlobalCreate: boolean) {
+function resetMoneyRequestReportID(transactionID: string, reportID: string, isFromGlobalCreate: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         reportID,
         participants: [],
@@ -7010,7 +7012,7 @@ export {
     detachReceipt,
     editMoneyRequest,
     initMoneyRequest,
-    resetMoneyRequest,
+    resetMoneyRequestReportID,
     navigateToStartStepIfScanFileCannotBeRead,
     payMoneyRequest,
     payInvoice,
