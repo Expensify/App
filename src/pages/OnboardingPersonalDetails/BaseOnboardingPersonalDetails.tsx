@@ -91,7 +91,7 @@ function BaseOnboardingPersonalDetails({
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
