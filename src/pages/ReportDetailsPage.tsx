@@ -228,7 +228,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // TODO: show modal if report is exported to accounting
         // setIsUnapproveModalVisible(true);
 
-        IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
+        IOU.unapproveExpenseReport(moneyRequestReport ?? {});
     }, [moneyRequestReport]);
 
     const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
@@ -683,7 +683,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onConfirm={() => {
                         setIsUnapproveModalVisible(false);
                         Navigation.dismissModal();
-                        IOU.unapproveMoneyRequest(moneyRequestReport ?? {});
+                        IOU.unapproveExpenseReport(moneyRequestReport ?? {});
                     }}
                     cancelText={translate('common.cancel')}
                     onCancel={() => setIsUnapproveModalVisible(false)}

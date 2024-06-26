@@ -6339,7 +6339,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function unapproveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
+function unapproveExpenseReport(expenseReport: OnyxTypes.Report | EmptyObject) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     const total = expenseReport.total ?? 0;
 
@@ -7067,7 +7067,7 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
 
 export {
     approveMoneyRequest,
-    unapproveMoneyRequest,
+    unapproveExpenseReport,
     canApproveIOU,
     canIOUBePaid,
     cancelPayment,
