@@ -3256,25 +3256,55 @@ export default {
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         billingBanner: {
-            outdatedInfo: 'Your payment info is outdated',
-            updatePaymentInformation: 'Please update your payment information.',
-            updateCardDataByDate: ({date}) => `Update your payment card by ${date} to continue using all of your favorite features.`,
-            paymentPastDuePayByDate: ({date}) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption.`,
-            paymentPastDue: 'Your payment is past due. Please pay your invoice.',
-            cardCouldNotBeCharged: 'Your card couldn’t be charged',
-            retryMessage: 'Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card.',
-            cardNotFullyAuthenticated: ({cardEnding}) =>
-                `Your payment card hasn’t been fully authenticated. Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
-            cardDeclinedDueToInsufficientFunds: ({amountOwed}) =>
-                `Your payment card was declined due to insufficient funds. Please retry or add a new payment card to clear your ${amountOwed} outstanding balance.`,
-            cardExpired: ({amountOwed}) => `Your payment card expired. Please add a new payment card to clear your ${amountOwed} outstanding balance.`,
-            cardExpiringSoon: 'Your card is expiring soon',
-            cardWillExpireAtTheEndOfMonth:
-                'Your payment card will expire at the end of this month. Click the three-dot menu below to update it and continue using all your favorite features.',
+            policyOwnerAmountOwed: {
+                title: 'Your payment info is outdated',
+                subtitle: ({date}) => `Update your payment card by ${date} to continue using all of your favorite features.`,
+            },
+            policyOwnerAmountOwedOverdue: {
+                title: 'Your payment info is outdated',
+                subtitle: 'Please update your payment information.',
+            },
+            policyOwnerUnderInvoicing: {
+                title: 'Your payment info is outdated',
+                subtitle: ({date}) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption.`,
+            },
+            policyOwnerUnderInvoicingOverdue: {
+                title: 'Your payment info is outdated',
+                subtitle: 'Your payment is past due. Please pay your invoice.',
+            },
+            billingDisputePending: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({amountOwed, cardEnding}) =>
+                    `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
+            },
+            cardAuthenticationRequired: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({cardEnding}) =>
+                    `Your payment card hasn’t been fully authenticated. Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
+            },
+            insufficientFunds: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({amountOwed}) =>
+                    `Your payment card was declined due to insufficient funds. Please retry or add a new payment card to clear your ${amountOwed} outstanding balance.`,
+            },
+            cardExpired: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({amountOwed}) => `Your payment card expired. Please add a new payment card to clear your ${amountOwed} outstanding balance.`,
+            },
+            cardExpireSoon: {
+                title: 'Your card is expiring soon',
+                subtitle: 'Your payment card will expire at the end of this month. Click the three-dot menu below to update it and continue using all your favorite features.',
+            },
+            retryBillingSuccess: {
+                title: 'Success!',
+                subtitle: 'Your card has been billed successfully.',
+            },
+            retryBillingError: {
+                title: 'Your card couldn’t be charged',
+                subtitle: 'Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card.',
+            },
             cardOnDispute: ({amountOwed, cardEnding}) =>
                 `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
-            succeeded: 'Success!',
-            billedSuccessfully: 'Your card has been billed successfully.',
             preTrial: {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',

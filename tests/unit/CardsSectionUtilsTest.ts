@@ -80,8 +80,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.outdatedInfo',
-            subtitle: 'subscription.billingBanner.updateCardDataByDate',
+            title: 'subscription.billingBanner.policyOwnerAmountOwed.title',
+            subtitle: 'subscription.billingBanner.policyOwnerAmountOwed.subtitle',
             isError: true,
             isRetryAvailable: true,
         });
@@ -93,8 +93,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.outdatedInfo',
-            subtitle: 'subscription.billingBanner.updatePaymentInformation',
+            title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
+            subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
             isError: true,
         });
     });
@@ -105,8 +105,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.outdatedInfo',
-            subtitle: 'subscription.billingBanner.paymentPastDuePayByDate',
+            title: 'subscription.billingBanner.policyOwnerUnderInvoicing.title',
+            subtitle: 'subscription.billingBanner.policyOwnerUnderInvoicing.subtitle',
             isError: true,
             isAddButtonDark: true,
         });
@@ -118,8 +118,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.outdatedInfo',
-            subtitle: 'subscription.billingBanner.paymentPastDue',
+            title: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.title',
+            subtitle: 'subscription.billingBanner.policyOwnerUnderInvoicingOverdue.subtitle',
             isError: true,
             isAddButtonDark: true,
         });
@@ -131,8 +131,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.cardCouldNotBeCharged',
-            subtitle: 'subscription.billingBanner.cardOnDispute',
+            title: 'subscription.billingBanner.billingDisputePending.title',
+            subtitle: 'subscription.billingBanner.billingDisputePending.subtitle',
             isError: true,
             isRetryAvailable: false,
         });
@@ -144,10 +144,10 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.cardCouldNotBeCharged',
-            subtitle: 'subscription.billingBanner.cardNotFullyAuthenticated',
+            title: 'subscription.billingBanner.cardAuthenticationRequired.title',
+            subtitle: 'subscription.billingBanner.cardAuthenticationRequired.subtitle',
             isError: true,
-            isAuthenticatingRequired: true,
+            isAuthenticationRequired: true,
         });
     });
 
@@ -157,8 +157,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.cardCouldNotBeCharged',
-            subtitle: 'subscription.billingBanner.cardDeclinedDueToInsufficientFunds',
+            title: 'subscription.billingBanner.insufficientFunds.title',
+            subtitle: 'subscription.billingBanner.insufficientFunds.subtitle',
             isError: true,
             isRetryAvailable: true,
         });
@@ -170,8 +170,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.cardCouldNotBeCharged',
-            subtitle: 'subscription.billingBanner.cardExpired',
+            title: 'subscription.billingBanner.cardExpired.title',
+            subtitle: 'subscription.billingBanner.cardExpired.subtitle',
             isError: true,
             isRetryAvailable: true,
         });
@@ -183,8 +183,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.cardExpiringSoon',
-            subtitle: 'subscription.billingBanner.cardWillExpireAtTheEndOfMonth',
+            title: 'subscription.billingBanner.cardExpireSoon.title',
+            subtitle: 'subscription.billingBanner.cardExpireSoon.subtitle',
             isError: false,
             icon: Illustrations.CreditCardEyes,
         });
@@ -196,8 +196,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.succeeded',
-            subtitle: 'subscription.billingBanner.billedSuccessfully',
+            title: 'subscription.billingBanner.retryBillingSuccess.title',
+            subtitle: 'subscription.billingBanner.retryBillingSuccess.subtitle',
             isError: false,
             rightIcon: Expensicons.Close,
         });
@@ -209,8 +209,8 @@ describe('CardSectionUtils', () => {
         });
 
         expect(CardSectionUtils.getBillingStatus(translateMock, CARD_ENDING)).toEqual({
-            title: 'subscription.billingBanner.cardCouldNotBeCharged',
-            subtitle: 'subscription.billingBanner.retryMessage',
+            title: 'subscription.billingBanner.retryBillingError.title',
+            subtitle: 'subscription.billingBanner.retryBillingError.subtitle',
             isError: true,
         });
     });
