@@ -142,7 +142,7 @@ function WorkspaceCreateReportFieldPage({
                                     InputComponent={InitialListValueSelector}
                                     inputID={INPUT_IDS.INITIAL_VALUE}
                                     label={translate('common.initialValue')}
-                                    subtitle="Choose what list value of report field to use by default."
+                                    subtitle={translate('workspace.reportFields.listValuesInputSubtitle')}
                                     rightLabel={translate('common.required')}
                                 />
                             )}

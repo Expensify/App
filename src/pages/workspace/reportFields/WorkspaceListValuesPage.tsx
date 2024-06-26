@@ -122,7 +122,7 @@ function WorkspaceListValuesPage({
         if (selectedValuesArray.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
-                text: selectedValuesArray.length === 1 ? 'Delete value' : 'Delete values',
+                text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                 value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteValuesConfirmModalVisible(true),
             });
@@ -144,7 +144,7 @@ function WorkspaceListValuesPage({
 
                 options.push({
                     icon: Expensicons.DocumentSlash,
-                    text: enabledValues.length === 1 ? 'Disable value' : 'Disable values',
+                    text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
                     value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedValues({});
@@ -170,7 +170,7 @@ function WorkspaceListValuesPage({
 
                 options.push({
                     icon: Expensicons.Document,
-                    text: disabledValues.length === 1 ? 'Enable value' : 'Enable values',
+                    text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
                     value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedValues({});
@@ -231,9 +231,9 @@ function WorkspaceListValuesPage({
                 {shouldShowEmptyState && (
                     <WorkspaceEmptyStateSection
                         containerStyle={styles.bgTransparent}
-                        title="You haven't created any list values"
+                        title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                         icon={Illustrations.EmptyStateExpenses}
-                        subtitle="Add a custom values that appears on reports."
+                        subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                     />
                 )}
                 {!shouldShowEmptyState && (
@@ -255,8 +255,8 @@ function WorkspaceListValuesPage({
                     isVisible={deleteValuesConfirmModalVisible}
                     onConfirm={handleDeleteValues}
                     onCancel={() => setDeleteValuesConfirmModalVisible(false)}
-                    title={selectedValuesArray.length === 1 ? 'Delete value' : 'Delete values'}
-                    prompt={selectedValuesArray.length === 1 ? 'Are you sure you want to delete this value?' : 'Are you sure you want to delete these values?'}
+                    title={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues')}
+                    prompt={translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

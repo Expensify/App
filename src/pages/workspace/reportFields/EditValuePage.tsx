@@ -42,9 +42,9 @@ function EditValuePage({
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME].trim();
 
             if (!ValidationUtils.isRequiredFulfilled(valueName)) {
-                errors.valueName = 'Required';
+                errors.valueName = translate('workspace.reportFields.listValueRequiredError');
             } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.some((listValueName) => listValueName === valueName)) {
-                errors.valueName = 'Exists';
+                errors.valueName = translate('workspace.reportFields.existingListValueError');
             } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 ErrorUtils.addErrorMessage(
@@ -85,7 +85,7 @@ function EditValuePage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title="Edit value"
+                    title={translate('workspace.reportFields.editValue')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider

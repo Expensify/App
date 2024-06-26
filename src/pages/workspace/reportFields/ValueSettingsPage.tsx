@@ -72,12 +72,12 @@ function ValueSettingsPage({
                     shouldSetModalVisibility={false}
                 />
                 <ConfirmModal
-                    title="Delete value"
+                    title={translate('workspace.reportFields.deleteValue')}
                     isVisible={isDeleteTagModalOpen}
                     onConfirm={deleteListValueAndHideModal}
                     onCancel={() => setIsDeleteTagModalOpen(false)}
                     shouldSetModalVisibility={false}
-                    prompt="Are you sure that you want to delete this value?"
+                    prompt={translate('workspace.reportFields.deleteValuePrompt')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
@@ -85,10 +85,10 @@ function ValueSettingsPage({
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>Enable value</Text>
+                            <Text>{translate('workspace.reportFields.enableValue')}</Text>
                             <Switch
                                 isOn={!currentValueDisabled}
-                                accessibilityLabel="Enable value"
+                                accessibilityLabel={translate('workspace.reportFields.enableValue')}
                                 onToggle={updateListValueEnabled}
                             />
                         </View>

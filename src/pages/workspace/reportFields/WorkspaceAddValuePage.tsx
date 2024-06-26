@@ -36,9 +36,9 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
             const valueName = values[INPUT_IDS.VALUE_NAME].trim();
 
             if (!ValidationUtils.isRequiredFulfilled(valueName)) {
-                errors.valueName = 'Required';
+                errors.valueName = translate('workspace.reportFields.listValueRequiredError');
             } else if (formDraft?.[INPUT_IDS.LIST_VALUES]?.some((currentValueName) => currentValueName === valueName)) {
-                errors.valueName = 'Exists';
+                errors.valueName = translate('workspace.reportFields.existingListValueError');
             } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
                 ErrorUtils.addErrorMessage(
