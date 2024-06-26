@@ -24,19 +24,25 @@ const HybridAppMiddlewareContext = React.createContext<HybridAppMiddlewareContex
     showSplashScreenOnNextStart: () => {},
 });
 
+/*
+* HybridAppMiddleware is responsible for handling BootSplash visibility correctly. 
+* It is crucial to make transitions between OldDot and NewDot look smooth.
+*/
 function HybridAppMiddleware(props: HybridAppMiddlewareProps) {
     const {isSplashHidden, setIsSplashHidden} = useSplashScreen();
     const [startedTransition, setStartedTransition] = useState(false);
     const [finishedTransition, setFinishedTransition] = useState(false);
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
+    /*
+    * Handles navigation during transition from OldDot. For ordinary NewDot app it is just pure navigation.
+    */
     const navigateToExitUrl = useCallback((exitUrl: Route) => {
-        // HybridAppMiddleware works only on HybridApp.
         if (NativeModules.HybridAppModule) {
             setStartedTransition(true);
         }
         
-        Log.info("[HybridApp] Started transition", true);
+        Log.info(`[HybridApp] Started transition to ${exitUrl}`, true);
         Navigation.navigate(exitUrl);
     }, []);
 
