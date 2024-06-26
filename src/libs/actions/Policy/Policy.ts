@@ -3007,7 +3007,6 @@ export {
     createDraftWorkspace,
     buildPolicyData,
     createPolicyExpenseChats,
-    clearNetSuiteErrorField,
 };
 
 export type {NewCustomUnit};
