@@ -791,7 +791,7 @@ function MenuItem(
                     </Hoverable>
                     {!!helperText &&
                         (shouldParseHelperText ? (
-                            <View style={[styles.renderHTML, styles.mutedNormalTextLabel, styles.ph5, styles.pb5]}>
+                            <View style={[styles.renderHTML, styles.ph5, styles.pb5]}>
                                 <RenderHTML html={processedHelperText} />
                             </View>
                         ) : (
