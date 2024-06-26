@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -7,50 +8,54 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@navigation/Navigation';
+import type {FullScreenNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspaceCardListHeader from '@pages/workspace/expensifyCard/WorkspaceCardListHeader';
 import WorkspaceCardListRow from '@pages/workspace/expensifyCard/WorkspaceCardListRow';
+import WorkspaceCardsListLabel from '@pages/workspace/expensifyCard/WorkspaceCardsListLabel';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 
-type WorkspaceCardPageFreeProps = {};
+type WorkspaceCardPageFreeProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 const stickyHeaderIndices = [0];
 
-function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+const mockedCards = [
+    {cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''}, description: 'Test 1', limit: 1000, lastFour: '1234'},
+    {cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''}, description: 'Test 2', limit: 2000, lastFour: '5678'},
+    {cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''}, description: 'Test 3', limit: 3000, lastFour: '9108'},
+];
+
+function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const cards = [
-        {cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''}, description: 'Test 1', limit: 1000, lastFour: '1234'},
-        {cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''}, description: 'Test 2', limit: 2000, lastFour: '5678'},
-        {cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''}, description: 'Test 3', limit: 3000, lastFour: '9108'},
-    ];
-
-    const cardsInfo = [
-        {title: 'Current balance', value: 0, description: 'WIP'},
-        {title: 'Current balance', value: 0, description: 'WIP'},
-        {title: 'Current balance', value: 0, description: 'WIP'},
-    ];
+    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
+    const policyID = route.params.policyID;
 
     const renderCardsInfo = () => {
         return (
-            <View style={[styles.flexRow, styles.mv5, styles.mh5]}>
-                {cardsInfo.map((item) => (
-                    <View style={[styles.flex3]}>
-                        <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={styles.mutedNormalTextLabel}>{item.title}</Text>
-                        </View>
-                        <View style={styles.flexRow}>
-                            <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(item.value, 'USD')}</Text>
-                        </View>
-                    </View>
-                ))}
+            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mv5, styles.mh5]}>
+                <View style={[styles.flexRow, styles.flex1]}>
+                    <WorkspaceCardsListLabel
+                        type={'currentBalance'}
+                        value={10000}
+                    />
+                    <WorkspaceCardsListLabel
+                        type={'remainingLimit'}
+                        value={20000}
+                    />
+                </View>
+                <WorkspaceCardsListLabel
+                    type={'cashBack'}
+                    value={30000}
+                    style={isLessThanMediumScreen ? styles.mt3 : undefined}
+                />
             </View>
         );
     };
@@ -89,8 +94,7 @@ function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
                 <PressableWithoutFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel="row"
-                    disabled={item.disabled}
-                    onPress={item.action}
+                    onPress={() => {}} // TODO: open card details
                 >
                     {({hovered}) => (
                         <WorkspaceCardListRow
@@ -107,32 +111,38 @@ function WorkspaceCardPageFree({}: WorkspaceCardPageFreeProps) {
     };
 
     return (
-        <ScreenWrapper
-            shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldEnableMaxHeight
-            testID={WorkspaceCardPageFree.displayName}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            <HeaderWithBackButton
-                icon={Illustrations.HandCard}
-                title={translate('workspace.common.expensifyCard')}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.goBack()}
+            <ScreenWrapper
+                shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldEnableMaxHeight
+                testID={WorkspaceCardPageFree.displayName}
             >
-                {!shouldUseNarrowLayout && getHeaderButtons()}
-            </HeaderWithBackButton>
+                <HeaderWithBackButton
+                    icon={Illustrations.HandCard}
+                    title={translate('workspace.common.expensifyCard')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={() => Navigation.goBack()}
+                >
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                </HeaderWithBackButton>
 
-            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
 
-            {renderCardsInfo()}
+                {renderCardsInfo()}
 
-            <FlatList
-                data={cards}
-                renderItem={renderItem}
-                ListHeaderComponent={WorkspaceCardListHeader}
-                stickyHeaderIndices={stickyHeaderIndices}
-            />
-        </ScreenWrapper>
+                <FlatList
+                    data={mockedCards}
+                    renderItem={renderItem}
+                    ListHeaderComponent={WorkspaceCardListHeader}
+                    stickyHeaderIndices={stickyHeaderIndices}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
