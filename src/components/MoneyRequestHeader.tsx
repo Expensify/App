@@ -20,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
-import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
@@ -51,7 +50,11 @@ type MoneyRequestHeaderProps = {
 
 function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${(parentReportAction as ReportAction & OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? -1}`);
+    const [transaction] = useOnyx(
+        `${ONYXKEYS.COLLECTION.TRANSACTION}${
+            ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? -1 : -1
+        }`,
+    );
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
@@ -78,10 +81,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
     const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
-
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
-            const iouTransactionID = parentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
+            const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
             if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
                 navigateBackToAfterDelete.current = IOU.deleteTrackExpense(parentReport?.reportID ?? '-1', iouTransactionID, parentReportAction, true);
             } else {
@@ -105,7 +107,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrack) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
-        const iouTransactionID = parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? parentReportAction.originalMessage?.IOUTransactionID ?? '-1' : '-1';
+        const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
@@ -126,21 +128,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {title: translate('violations.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
-            return {
-                title: getStatusIcon(Expensicons.Hourglass),
-                description: translate('iou.pendingMatchWithCreditCardDescription'),
-                shouldShowBorderBottom: true,
-            };
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
-            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -243,6 +241,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     )}
                 </HeaderWithBackButton>
@@ -264,16 +265,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     </View>
                 )}
                 {statusBarProps && (
-                    <MoneyRequestHeaderStatusBar
-                        title={statusBarProps.title}
-                        description={statusBarProps.description}
-                        danger={statusBarProps.danger}
-                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
-                    />
+                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                        <MoneyRequestHeaderStatusBar
+                            title={statusBarProps.title}
+                            description={statusBarProps.description}
+                            danger={statusBarProps.danger}
+                        />
+                    </View>
                 )}
             </View>
             <ConfirmModal
@@ -281,12 +286,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
-                onModalHide={() => {
-                    if (!navigateBackToAfterDelete.current) {
-                        return;
-                    }
-                    Navigation.goBack(navigateBackToAfterDelete.current);
-                }}
+                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
