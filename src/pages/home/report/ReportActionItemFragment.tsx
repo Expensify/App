@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {AvatarProps} from '@components/Avatar';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -11,8 +10,9 @@ import convertToLTR from '@libs/convertToLTR';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import type {ActionName, DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+import type {DecisionName, OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 import AttachmentCommentFragment from './comment/AttachmentCommentFragment';
 import TextCommentFragment from './comment/TextCommentFragment';
 
@@ -39,7 +39,7 @@ type ReportActionItemFragmentProps = {
     delegateAccountID?: number;
 
     /** icon */
-    actorIcon?: AvatarProps;
+    actorIcon?: OnyxCommon.Icon;
 
     /** Whether the comment is a thread parent message/the first message in a thread */
     isThreadParentMessage?: boolean;
@@ -60,18 +60,18 @@ type ReportActionItemFragmentProps = {
     pendingAction?: OnyxCommon.PendingAction;
 
     /** The report action name */
-    actionName?: ActionName;
+    actionName?: ReportActionName;
 
     moderationDecision?: DecisionName;
 };
 
 const MUTED_ACTIONS = [
-    ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG),
+    ...Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG),
     CONST.REPORT.ACTIONS.TYPE.IOU,
     CONST.REPORT.ACTIONS.TYPE.APPROVED,
     CONST.REPORT.ACTIONS.TYPE.MOVED,
-    CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST,
-] as ActionName[];
+    CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+] as ReportActionName[];
 
 function ReportActionItemFragment({
     pendingAction,
@@ -83,7 +83,7 @@ function ReportActionItemFragment({
     source = '',
     style = [],
     delegateAccountID = 0,
-    actorIcon = {},
+    actorIcon,
     isThreadParentMessage = false,
     isApprovedOrSubmittedReportAction = false,
     isHoldReportAction = false,

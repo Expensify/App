@@ -110,7 +110,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                 validate={() => {
                     const errors: Errors = {};
                     if (!draftResponse?.trim()) {
-                        errors[INPUT_IDS.RESPONSE] = 'common.error.fieldRequired';
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
                     }
                     return errors;
                 }}
@@ -128,6 +128,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                             accessibilityLabel={translate(`exitSurvey.responsePlaceholder`)}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
+                            maxAutoGrowHeight={responseInputMaxHeight}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el: AnimatedTextInputRef) => {
                                 if (!el) {
@@ -136,7 +137,7 @@ function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyRe
                                 updateMultilineInputRange(el);
                                 inputCallbackRef(el);
                             }}
-                            containerStyles={[baseResponseInputContainerStyle, StyleUtils.getMaximumHeight(responseInputMaxHeight)]}
+                            containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft
                         />
                     </>

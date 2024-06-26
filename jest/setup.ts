@@ -2,9 +2,11 @@ import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import 'setimmediate';
+import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
 setupMockImages();
+mockFSLibrary();
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -19,8 +21,8 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
 // Turn off the console logs for timing events. They are not relevant for unit tests and create a lot of noise
-jest.spyOn(console, 'debug').mockImplementation((...params) => {
-    if (params[0].indexOf('Timing:') === 0) {
+jest.spyOn(console, 'debug').mockImplementation((...params: string[]) => {
+    if (params[0].startsWith('Timing:')) {
         return;
     }
 
@@ -51,3 +53,6 @@ jest.mock('react-native-sound', () => {
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('react-native-keyboard-controller', () => require('react-native-keyboard-controller/jest'));

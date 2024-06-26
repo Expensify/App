@@ -1,5 +1,6 @@
 import React from 'react';
 import useEnvironment from '@hooks/useEnvironment';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Environment from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
@@ -15,7 +16,14 @@ const ENVIRONMENT_SHORT_FORM = {
 
 function EnvironmentBadge() {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {environment, isProduction} = useEnvironment();
+
+    const adhoc = environment === CONST.ENVIRONMENT.ADHOC;
+    const success = environment === CONST.ENVIRONMENT.STAGING;
+    const error = environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC;
+
+    const badgeEnviromentStyle = StyleUtils.getEnvironmentBadgeStyle(success, error, adhoc);
 
     // If we are on production, don't show any badge
     if (isProduction) {
@@ -26,10 +34,10 @@ function EnvironmentBadge() {
 
     return (
         <Badge
-            success={environment === CONST.ENVIRONMENT.STAGING || environment === CONST.ENVIRONMENT.ADHOC}
-            error={environment !== CONST.ENVIRONMENT.STAGING && environment !== CONST.ENVIRONMENT.ADHOC}
+            success={success}
+            error={error}
             text={text}
-            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge]}
+            badgeStyles={[styles.alignSelfStart, styles.headerEnvBadge, styles.environmentBadge, badgeEnviromentStyle]}
             textStyles={[styles.headerEnvBadgeText, {fontWeight: '700'}]}
             environment={environment}
             pressable

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +12,8 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails, Policy, Report, ReportActions} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Policy, Report, ReportActions} from '@src/types/onyx';
+import CaretWrapper from './CaretWrapper';
 import DisplayNames from './DisplayNames';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
@@ -25,7 +26,7 @@ type AvatarWithDisplayNamePropsWithOnyx = {
     parentReportActions: OnyxEntry<ReportActions>;
 
     /** Personal details of all users */
-    personalDetails: OnyxCollection<PersonalDetails>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type AvatarWithDisplayNameProps = AvatarWithDisplayNamePropsWithOnyx & {
@@ -60,17 +61,17 @@ function AvatarWithDisplayName({
     const title = ReportUtils.getReportName(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report);
+    const isMoneyRequestOrReport =
+        ReportUtils.isMoneyRequestReport(report) || ReportUtils.isMoneyRequest(report) || ReportUtils.isTrackExpenseReport(report) || ReportUtils.isInvoiceReport(report);
     const icons = ReportUtils.getIcons(report, personalDetails, null, '', -1, policy);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails) as PersonalDetails[], false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(report);
-    const isExpenseRequest = ReportUtils.isExpenseRequest(report);
     const avatarBorderColor = isAnonymous ? theme.highlightBG : theme.componentBG;
 
     const actorAccountID = useRef<number | null>(null);
     useEffect(() => {
-        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? ''];
+        const parentReportAction = parentReportActions?.[report?.parentReportActionID ?? '-1'];
         actorAccountID.current = parentReportAction?.actorAccountID ?? -1;
     }, [parentReportActions, report]);
 
@@ -128,15 +129,17 @@ function AvatarWithDisplayName({
                             />
                         )}
                     </PressableWithoutFeedback>
-                    <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar && !isExpenseRequest ? styles.ml4 : {}]}>
-                        <DisplayNames
-                            fullTitle={title}
-                            displayNamesWithTooltips={displayNamesWithTooltips}
-                            tooltipEnabled
-                            numberOfLines={1}
-                            textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
-                        />
+                    <View style={[styles.flex1, styles.flexColumn]}>
+                        <CaretWrapper>
+                            <DisplayNames
+                                fullTitle={title}
+                                displayNamesWithTooltips={displayNamesWithTooltips}
+                                tooltipEnabled
+                                numberOfLines={1}
+                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                                shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                            />
+                        </CaretWrapper>
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
@@ -179,7 +182,7 @@ AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default withOnyx<AvatarWithDisplayNameProps, AvatarWithDisplayNamePropsWithOnyx>({
     parentReportActions: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '-1'}`,
         canEvict: false,
     },
     personalDetails: {

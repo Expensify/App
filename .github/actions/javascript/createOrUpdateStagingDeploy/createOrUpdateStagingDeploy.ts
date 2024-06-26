@@ -8,10 +8,14 @@ import GitUtils from '@github/libs/GitUtils';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
+type PackageJSON = {
+    version: string;
+};
+
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
-    const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-    const newVersionTag: string = packageJson.version;
+    const packageJson: PackageJSON = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    const newVersionTag = packageJson.version;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers

@@ -11,11 +11,14 @@ import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type SelectedTagOption = {
     name: string;
     enabled: boolean;
+    isSelected?: boolean;
     accountID: number | undefined;
+    pendingAction?: PendingAction;
 };
 
 type TagPickerOnyxProps = {
@@ -32,7 +35,7 @@ type TagPickerProps = TagPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
 
-    /** The selected tag of the money request */
+    /** The selected tag of the expense */
     selectedTag: string;
 
     /** The name of tag list we are getting tags for */

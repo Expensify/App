@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
@@ -64,6 +66,40 @@ function openOldDotLink(url: string) {
     );
 }
 
+function buildTravelDotURL(spotnanaToken?: string, postLoginPath?: string): Promise<string> {
+    return Promise.all([Environment.getTravelDotEnvironmentURL(), Environment.getSpotnanaEnvironmentTMCID()]).then(([environmentURL, tmcID]) => {
+        const authCode = spotnanaToken ? `authCode=${spotnanaToken}` : '';
+        const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+        const tmcIDParam = `tmcId=${tmcID}`;
+
+        const paramsArray = [authCode, tmcIDParam, redirectURL];
+        const params = paramsArray.filter(Boolean).join('&');
+        const travelDotDomain = Url.addTrailingForwardSlash(environmentURL);
+        return `${travelDotDomain}auth/code?${params}`;
+    });
+}
+
+/**
+ * @param postLoginPath When provided, we will redirect the user to this path post login on travelDot. eg: 'trips/:tripID'
+ */
+function openTravelDotLink(policyID: OnyxEntry<string>, postLoginPath?: string) {
+    if (policyID === null || policyID === undefined) {
+        return;
+    }
+
+    const parameters: GenerateSpotnanaTokenParams = {
+        policyID,
+    };
+
+    asyncOpenURL(
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN, parameters, {})
+            .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken, postLoginPath) : buildTravelDotURL()))
+            .catch(() => buildTravelDotURL()),
+        (travelDotURL) => travelDotURL,
+    );
+}
+
 function getInternalNewExpensifyPath(href: string) {
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
@@ -95,7 +131,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // the reportID is extracted from the URL and then opened as an internal link, taking the user straight to the chat in the same tab.
     if (hasExpensifyOrigin && href.indexOf('newdotreport?reportID=') > -1) {
         const reportID = href.split('newdotreport?reportID=').pop();
-        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID ?? '');
+        const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID ?? '-1');
         Navigation.navigate(reportRoute);
         return;
     }
@@ -121,4 +157,4 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath};
+export {buildOldDotURL, openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL};

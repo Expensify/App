@@ -55,5 +55,14 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         setScreenIndex(bodyContent.length - 1);
     }, [bodyContent]);
 
-    return {componentToRender: bodyContent[screenIndex], isEditing: isEditing.current, screenIndex, prevScreen, nextScreen, moveTo, resetScreenIndex, goToTheLastStep};
+    return {
+        componentToRender: bodyContent[screenIndex],
+        isEditing: isEditing.current,
+        screenIndex,
+        prevScreen,
+        nextScreen,
+        moveTo,
+        resetScreenIndex,
+        goToTheLastStep,
+    };
 }

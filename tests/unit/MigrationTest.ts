@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import Log from '@src/libs/Log';
 import CheckForPreviousReportActionID from '@src/libs/migrations/CheckForPreviousReportActionID';
 import KeyReportActionsDraftByReportActionID from '@src/libs/migrations/KeyReportActionsDraftByReportActionID';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportActionsDraftCollectionDataSet} from '@src/types/onyx/ReportActionsDrafts';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -42,13 +44,13 @@ describe('Migrations', () => {
                         1: {
                             reportActionID: '1',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '1',
                         },
-                        2: {reportActionID: '2', created: '', actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED, reportID: '1'},
+                        2: {reportActionID: '2', created: '', actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, reportID: '1'},
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet(reportActionsCollectionDataSet)
@@ -78,19 +80,19 @@ describe('Migrations', () => {
                             reportActionID: '1',
                             previousReportActionID: '0',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '1',
                         },
                         2: {
                             reportActionID: '2',
                             previousReportActionID: '1',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '1',
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet(reportActionsCollectionDataSet)
@@ -126,18 +128,18 @@ describe('Migrations', () => {
                         1: {
                             reportActionID: '1',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '4',
                         },
                         2: {
                             reportActionID: '2',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '4',
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet({
@@ -175,19 +177,19 @@ describe('Migrations', () => {
                             reportActionID: '1',
                             previousReportActionID: '10',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '4',
                         },
                         2: {
                             reportActionID: '2',
                             previousReportActionID: '23',
                             created: '',
-                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                             reportID: '4',
                         },
                     },
                 ],
-                (item) => item[1].reportID ?? '',
+                (item) => item[1].reportID ?? '-1',
             );
 
             return Onyx.multiSet({
@@ -260,13 +262,10 @@ describe('Migrations', () => {
         it('Should move individual draft to a draft collection of report', () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
-            // @ts-expect-error preset invalid value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = 'a';
-            // @ts-expect-error preset invalid value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`] = 'b';
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = 'a' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`] = 'b' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2`] = {3: 'c'};
-            // @ts-expect-error preset invalid value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`] = 'd';
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}2_4`] = 'd' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
 
             return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
@@ -321,8 +320,7 @@ describe('Migrations', () => {
         it("Shouldn't move empty individual draft to a draft collection of report", () => {
             const setQueries: ReportActionsDraftCollectionDataSet = {};
 
-            // @ts-expect-error preset empty string value
-            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = '';
+            setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`] = '' as unknown as OnyxInputValue<OnyxTypes.ReportActionsDrafts>;
             setQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1`] = {};
 
             return Onyx.multiSet(setQueries)

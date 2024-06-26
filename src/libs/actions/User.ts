@@ -11,6 +11,7 @@ import type {
     GetStatementPDFParams,
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
+    SetNameValuePairParams,
     UpdateChatPriorityModeParams,
     UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
@@ -21,6 +22,7 @@ import type {
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,11 +43,10 @@ import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
-import * as OnyxUpdates from './OnyxUpdates';
 import * as Report from './Report';
 import * as Session from './Session';
 
@@ -67,7 +68,7 @@ Onyx.connect({
             return;
         }
 
-        myPersonalDetails = value[currentUserAccountID];
+        myPersonalDetails = value[currentUserAccountID] ?? {};
     },
 });
 
@@ -155,7 +156,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
                 [contactMethod]: {
                     validateCodeSent: false,
                     errorFields: {
-                        validateCodeSent: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.requestContactMethodValidateCode'),
+                        validateCodeSent: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
                     },
                     pendingFields: {
                         validateCodeSent: null,
@@ -238,7 +239,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
                     ...oldLoginData,
                     errorFields: {
                         ...oldLoginData?.errorFields,
-                        deletedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.deleteContactMethod'),
+                        deletedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.deleteContactMethod'),
                     },
                     pendingFields: {
                         deletedLogin: null,
@@ -325,7 +326,7 @@ function addNewContactMethodAndNavigate(contactMethod: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.addContactMethod'),
+                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
                     },
                     pendingFields: {
                         addedLogin: null,
@@ -398,6 +399,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             key: ONYXKEYS.LOGIN_LIST,
             value: {
                 [contactMethod]: {
+                    validatedDate: DateUtils.getDBTime(),
                     pendingFields: {
                         validateLogin: null,
                     },
@@ -412,6 +414,13 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER,
+            value: {
+                validated: true,
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -421,7 +430,7 @@ function validateSecondaryLogin(contactMethod: string, validateCode: string) {
             value: {
                 [contactMethod]: {
                     errorFields: {
-                        validateLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.validateSecondaryLogin'),
+                        validateLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.validateSecondaryLogin'),
                         validateCodeSent: null,
                     },
                     pendingFields: {
@@ -522,10 +531,14 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                 }
             }
 
-            const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
+            const types = flatten.map((data) => ReportActionsUtils.getOriginalMessage(data)).filter(Boolean);
 
             for (const message of types) {
-                // someone sent money
+                if (!message) {
+                    return;
+                }
+
+                // Pay someone flow
                 if ('IOUDetails' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -545,12 +558,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // request money
+                // Submit expense flow
                 if ('IOUTransactionID' in message) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // Someone completes a money request
+                // Someone reimburses an expense
                 if ('IOUReportID' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -597,7 +610,7 @@ function subscribeToUserEvents() {
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        OnyxUpdates.applyOnyxUpdatesReliably(updates);
+        applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
@@ -850,7 +863,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, policies: On
                         defaultLogin: null,
                     },
                     errorFields: {
-                        defaultLogin: ErrorUtils.getMicroSecondOnyxError('contacts.genericFailureMessages.setDefaultContactMethod'),
+                        defaultLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.setDefaultContactMethod'),
                     },
                 },
             },
@@ -991,10 +1004,30 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
+function dismissTrackTrainingModal() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
+    dismissTrackTrainingModal,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

@@ -50,7 +50,7 @@ function buildCompareEntry(name: string, compare: Stats, baseline: Stats): Entry
 /**
  * Compare results between baseline and current entries and categorize.
  */
-function compareResults(compareEntries: Metric | string, baselineEntries: Metric | string) {
+function compareResults(baselineEntries: Metric | string, compareEntries: Metric | string = baselineEntries) {
     // Unique test scenario names
     const baselineKeys = Object.keys(baselineEntries ?? {});
     const names = Array.from(new Set([...baselineKeys]));
@@ -81,8 +81,8 @@ function compareResults(compareEntries: Metric | string, baselineEntries: Metric
 }
 
 export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all') => {
-    // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
-    const outputData = compareResults(main, main);
+    // IMPORTANT NOTE: make sure you are passing the main/baseline results first, then the delta/compare results:
+    const outputData = compareResults(main, delta);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);

@@ -2,8 +2,10 @@ import Log from './Log';
 import CheckForPreviousReportActionID from './migrations/CheckForPreviousReportActionID';
 import KeyReportActionsDraftByReportActionID from './migrations/KeyReportActionsDraftByReportActionID';
 import NVPMigration from './migrations/NVPMigration';
+import Participants from './migrations/Participants';
 import PronounsMigration from './migrations/PronounsMigration';
 import RemoveEmptyReportActionsDrafts from './migrations/RemoveEmptyReportActionsDrafts';
+import RenameCardIsVirtual from './migrations/RenameCardIsVirtual';
 import RenameReceiptFilename from './migrations/RenameReceiptFilename';
 import TransactionBackupsToCollection from './migrations/TransactionBackupsToCollection';
 
@@ -14,6 +16,7 @@ export default function () {
     return new Promise<void>((resolve) => {
         // Add all migrations to an array so they are executed in order
         const migrationPromises = [
+            RenameCardIsVirtual,
             CheckForPreviousReportActionID,
             RenameReceiptFilename,
             KeyReportActionsDraftByReportActionID,
@@ -21,6 +24,7 @@ export default function () {
             RemoveEmptyReportActionsDrafts,
             NVPMigration,
             PronounsMigration,
+            Participants,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

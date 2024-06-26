@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -14,7 +15,6 @@ function AnimatedEmptyStateBackground() {
     const StyleUtils = useStyleUtils();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
-
     // If window width is greater than the max background width, repeat the background image
     const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
 
@@ -38,18 +38,18 @@ function AnimatedEmptyStateBackground() {
         xOffset.value = clamp(xOffset.value + y * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_X, IMAGE_OFFSET_X);
         yOffset.value = clamp(yOffset.value - x * CONST.ANIMATION_GYROSCOPE_VALUE, -IMAGE_OFFSET_Y, IMAGE_OFFSET_Y);
         return {
-            // On Android, scroll view sub views gets clipped beyond container bounds. Set the top position so that image wouldn't get clipped
-            top: IMAGE_OFFSET_Y,
             transform: [{translateX: withSpring(xOffset.value)}, {translateY: withSpring(yOffset.value, {overshootClamping: true})}, {scale: 1.15}],
         };
     }, [isReducedMotionEnabled]);
 
     return (
-        <Animated.Image
-            source={illustrations.EmptyStateBackgroundImage}
-            style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
-            resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
-        />
+        <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
+            <Animated.Image
+                source={illustrations.EmptyStateBackgroundImage}
+                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(isSmallScreenWidth), animatedStyles]}
+                resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
+            />
+        </View>
     );
 }
 

@@ -10,6 +10,7 @@ const Context = React.createContext<PlaybackContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
+    const [currentlyPlayingURLReportID, setCurrentlyPlayingURLReportID] = useState<string | undefined>();
     const [sharedElement, setSharedElement] = useState<View | HTMLDivElement | null>(null);
     const [originalParent, setOriginalParent] = useState<View | HTMLDivElement | null>(null);
     const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
@@ -21,7 +22,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     }, [currentVideoPlayerRef]);
 
     const stopVideo = useCallback(() => {
-        currentVideoPlayerRef.current?.stopAsync?.();
+        currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0});
     }, [currentVideoPlayerRef]);
 
     const playVideo = useCallback(() => {
@@ -43,18 +44,19 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
+            setCurrentlyPlayingURLReportID(currentReportID);
             setCurrentlyPlayingURL(url);
         },
-        [currentlyPlayingURL, pauseVideo],
+        [currentlyPlayingURL, currentReportID, pauseVideo],
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => {
+        (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, shouldNotAutoPlay: boolean) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
             // Prevents autoplay when uploading the attachment
-            if (!isUploading) {
+            if (!shouldNotAutoPlay) {
                 playVideo();
             }
         },
@@ -91,6 +93,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         () => ({
             updateCurrentlyPlayingURL,
             currentlyPlayingURL,
+            currentlyPlayingURLReportID,
             originalParent,
             sharedElement,
             currentVideoPlayerRef,
@@ -101,7 +104,18 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             checkVideoPlaying,
             videoResumeTryNumber,
         }),
-        [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying, setCurrentlyPlayingURL],
+        [
+            updateCurrentlyPlayingURL,
+            currentlyPlayingURL,
+            currentlyPlayingURLReportID,
+            originalParent,
+            sharedElement,
+            shareVideoPlayerElements,
+            playVideo,
+            pauseVideo,
+            checkVideoPlaying,
+            setCurrentlyPlayingURL,
+        ],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }

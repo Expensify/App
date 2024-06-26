@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import {ExpensiMark} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -16,6 +16,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import * as ReportUtils from '@libs/ReportUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import variables from '@styles/variables';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,9 +45,12 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
+    const skipConfirmation = task?.skipConfirmation && task?.assigneeAccountID && task?.parentReportID;
+    const buttonText = skipConfirmation ? translate('newTaskPage.assignTask') : translate('common.next');
+
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
-        setTaskDescription(parser.htmlToMarkdown(parser.replace(task?.description ?? '')));
+        setTaskDescription(parseHtmlToMarkdown(parser.replace(task?.description ?? '')));
     }, [task]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
@@ -51,12 +58,13 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (values.taskTitle.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', ['common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: values.taskTitle.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
         }
-        if (values.taskDescription.length > CONST.DESCRIPTION_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'taskDescription', ['common.error.characterLimitExceedCounter', {length: values.taskDescription.length, limit: CONST.DESCRIPTION_LIMIT}]);
+        const taskDescriptionLength = ReportUtils.getCommentLength(values.taskDescription);
+        if (taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, 'taskDescription', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
         }
 
         return errors;
@@ -66,7 +74,21 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     // the response
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>) => {
         TaskActions.setDetailsValue(values.taskTitle, values.taskDescription);
-        Navigation.navigate(ROUTES.NEW_TASK);
+
+        if (skipConfirmation) {
+            TaskActions.setShareDestinationValue(task?.parentReportID ?? '-1');
+            playSound(SOUNDS.DONE);
+            TaskActions.createTaskAndNavigate(
+                task?.parentReportID ?? '-1',
+                values.taskTitle,
+                values.taskDescription ?? '',
+                task?.assignee ?? '',
+                task.assigneeAccountID,
+                task.assigneeChatReport,
+            );
+        } else {
+            Navigation.navigate(ROUTES.NEW_TASK);
+        }
     };
 
     return (
@@ -83,7 +105,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
-                submitButtonText={translate('common.next')}
+                submitButtonText={buttonText}
                 style={[styles.mh5, styles.flexGrow1]}
                 validate={validate}
                 onSubmit={onSubmit}
@@ -112,9 +134,9 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         label={translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        containerStyles={styles.autoGrowHeightMultilineInput}
-                        defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
+                        defaultValue={parseHtmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                         isMarkdownEnabled

@@ -77,8 +77,13 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 mixedUAStyles: {...styles.textSupporting, ...styles.textLineThrough},
                 contentModel: HTMLContentModel.textual,
             }),
+            'uploading-attachment': HTMLElementModel.fromCustomModel({
+                tagName: 'uploading-attachment',
+                mixedUAStyles: {...styles.mt4},
+                contentModel: HTMLContentModel.block,
+            }),
         }),
-        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough],
+        [styles.formError, styles.mb0, styles.colorMuted, styles.textLabelSupporting, styles.lh16, styles.textSupporting, styles.textLineThrough, styles.mt4],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
 
@@ -92,6 +97,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             systemFonts={Object.values(FontUtils.fontFamily.single)}
+            htmlParserOptions={{
+                recognizeSelfClosing: true,
+            }}
             domVisitors={{
                 // eslint-disable-next-line no-param-reassign
                 onText: (text) => (text.data = convertToLTR(text.data)),
