@@ -4912,6 +4912,8 @@ const CONST = {
         },
     },
 
+    MAX_LENGTH_256: 256,
+
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
 } as const;
 

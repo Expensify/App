@@ -78,6 +78,7 @@ function CategoryPayrollCodePage({route, policyCategories}: EditCategoryPageProp
                         accessibilityLabel={translate('workspace.categories.payrollCode')}
                         inputID={INPUT_IDS.PAYROLL_CODE}
                         role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>
