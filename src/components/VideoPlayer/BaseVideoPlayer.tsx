@@ -106,17 +106,16 @@ function BaseVideoPlayer({
         }
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
-    const toggleControlStatusState = useCallback(() => {
+    const showControl = useCallback(() => {
         if (!canToggleControlOnTap) {
             return;
         }
         if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
-            setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE);
-        } else {
-            setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-            controlsOpacity.value = 1;
+            return;
         }
-    }, [canToggleControlOnTap, controlStatusState]);
+        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+        controlsOpacity.value = 1;
+    }, [canToggleControlOnTap, controlStatusState, controlsOpacity]);
 
     const hideControlWithDelay = useCallback(() => {
         setTimeout(() => {
@@ -346,7 +345,7 @@ function BaseVideoPlayer({
                                         return;
                                     }
                                     togglePlayCurrentVideo();
-                                    toggleControlStatusState();
+                                    showControl();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
                             >
