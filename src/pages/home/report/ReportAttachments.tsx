@@ -6,7 +6,6 @@ import type {Attachment} from '@components/Attachments/types';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -17,7 +16,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
     const type = route.params.type;
     const accountID = route.params.accountID;
-    const report = ReportUtils.getReport(reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || -1}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource

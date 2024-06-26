@@ -2,8 +2,12 @@ require('dotenv').config();
 
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
+const ReactCompilerConfig = {
+    runtimeModule: 'react-compiler-runtime',
+};
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
-let defaultPlugins = [
+const defaultPlugins = [
+    ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
 
@@ -140,6 +144,12 @@ module.exports = (api) => {
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
+
+    // don't include react-compiler in jest, because otherwise tests will fail
+    if (runningIn !== 'babel-jest') {
+        // must run first!
+        metro.plugins.unshift(['babel-plugin-react-compiler', ReactCompilerConfig]);
+    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

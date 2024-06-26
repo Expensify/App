@@ -1,3 +1,5 @@
+import {useFocusEffect} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
@@ -15,12 +17,14 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -29,22 +33,23 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkSpaceProfilePageOnyxProps = {
+type WorkspaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 
 const parser = new ExpensiMark();
 
-function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
+function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -81,6 +86,20 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || formattedAddress;
+
+    const fetchPolicyData = useCallback(() => {
+        Policy.openPolicyProfilePage(route.params.policyID);
+    }, [route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
+    // as well as in the wide layout when looking at policy settings.
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const DefaultAvatar = useCallback(
         () => (
@@ -279,7 +298,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
-    withOnyx<WorkSpaceProfilePageProps, WorkSpaceProfilePageOnyxProps>({
+    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );

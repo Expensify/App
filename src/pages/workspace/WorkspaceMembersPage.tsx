@@ -555,6 +555,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                             canSelectMultiple={isPolicyAdmin}
                             sections={[{data, isDisabled: false}]}
                             ListItem={TableListItem}
+                            shouldUseUserSkeletonView
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             headerMessage={getHeaderMessage()}
                             headerContent={!isSmallScreenWidth && getHeaderContent()}
