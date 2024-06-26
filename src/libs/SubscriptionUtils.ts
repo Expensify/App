@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, Policy} from '@src/types/onyx';
 import * as PolicyUtils from './PolicyUtils';
 
-let currentUserAccountID: number = -1;
+let currentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
