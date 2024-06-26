@@ -6556,7 +6556,7 @@ function hasHeldExpenses(iouReportID?: string): boolean {
  */
 function hasOnlyHeldExpenses(iouReportID: string, transactions?: OnyxCollection<Transaction>): boolean {
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID, transactions);
-    return !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+    return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
 
 /**
