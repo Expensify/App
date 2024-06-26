@@ -652,6 +652,7 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
+        INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY: 15,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
