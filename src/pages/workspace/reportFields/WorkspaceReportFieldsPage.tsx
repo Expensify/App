@@ -71,7 +71,12 @@ function WorkspaceReportFieldsPage({
             orderWeight: reportField.orderWeight,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
-            rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(reportField.type)} />,
+            rightElement: (
+                <ListItemRightCaretWithLabel
+                    shouldShowCaret={false}
+                    labelText={Str.recapitalize(reportField.type)}
+                />
+            ),
         }));
     }, [filteredPolicyFieldList, policy, selectedReportFields]);
 

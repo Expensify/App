@@ -58,7 +58,10 @@ function WorkspaceListValuesPage({
                 isSelected: selectedValues[value],
                 enabled: formDraft?.disabledListValues?.[index] ?? true,
                 rightElement: (
-                    <ListItemRightCaretWithLabel labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')} />
+                    <ListItemRightCaretWithLabel
+                        shouldShowCaret={false}
+                        labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                    />
                 ),
             })),
         [formDraft?.disabledListValues, formDraft?.listValues, selectedValues, translate],
