@@ -2,6 +2,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type * as OnyxTypes from '@src/types/onyx';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MoneyRequestPreviewOnyxProps = {
     /** All of the personal details for everyone */
@@ -69,6 +70,24 @@ type MoneyRequestPreviewProps = MoneyRequestPreviewOnyxProps & {
 
     /** Whether a message is a whisper */
     isWhisper?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
-export type {MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps};
+type NoPendingProps = {shouldShow: false};
+
+type PendingProps = {
+    /** Whether to show the pending message or not */
+    shouldShow: true;
+
+    /** The icon to be displayed if a request is pending */
+    messageIcon: IconAsset;
+
+    /** The description to be displayed if a request is pending */
+    messageDescription: string;
+};
+
+type PendingMessageProps = PendingProps | NoPendingProps;
+
+export type {MoneyRequestPreviewProps, MoneyRequestPreviewOnyxProps, PendingMessageProps};

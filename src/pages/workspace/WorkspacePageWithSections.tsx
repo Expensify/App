@@ -16,8 +16,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
@@ -103,10 +103,10 @@ function WorkspacePageWithSections({
     headerText,
     policy,
     policyDraft,
-    reimbursementAccount = ReimbursementAccountProps.reimbursementAccountDefaultProps,
+    reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
     route,
     shouldUseScrollView = false,
-    shouldSkipVBBACall = false,
+    shouldSkipVBBACall = true,
     shouldShowBackButton = false,
     user,
     shouldShowLoading = true,
@@ -116,12 +116,12 @@ function WorkspacePageWithSections({
     isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '';
+    const policyID = route.params?.policyID ?? '-1';
     useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state ?? '';
+    const achState = reimbursementAccount?.achData?.state ?? '-1';
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;

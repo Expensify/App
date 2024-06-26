@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -71,7 +72,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
         const errors = ValidationUtils.getFieldRequiredErrors(values, ['phoneOrEmail']);
 
         if (values.phoneOrEmail && userEmailOrPhone && sanitizePhoneOrEmail(userEmailOrPhone) !== sanitizePhoneOrEmail(values.phoneOrEmail)) {
-            errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
+            errors.phoneOrEmail = translate('closeAccountPage.enterYourDefaultContactMethod');
         }
         return errors;
     };
@@ -101,10 +102,11 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.REASON_FOR_LEAVING}
                         autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         label={translate('closeAccountPage.enterMessageHere')}
                         aria-label={translate('closeAccountPage.enterMessageHere')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
+                        containerStyles={[styles.mt5]}
                     />
                     <Text style={[styles.mt5]}>
                         {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>

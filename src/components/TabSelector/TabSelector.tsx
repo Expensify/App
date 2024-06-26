@@ -26,7 +26,7 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
         case CONST.TAB_REQUEST.MANUAL:
             return {icon: Expensicons.Pencil, title: translate('tabSelector.manual')};
         case CONST.TAB_REQUEST.SCAN:
-            return {icon: Expensicons.Receipt, title: translate('tabSelector.scan')};
+            return {icon: Expensicons.ReceiptScan, title: translate('tabSelector.scan')};
         case CONST.TAB.NEW_CHAT:
             return {icon: Expensicons.User, title: translate('tabSelector.chat')};
         case CONST.TAB.NEW_ROOM:
@@ -68,7 +68,7 @@ function TabSelector({state, navigation, onTabPress = () => {}, position}: TabSe
                 return position.interpolate({
                     inputRange,
                     outputRange: inputRange.map((i) => (affectedTabs.includes(tabIndex) && i === tabIndex ? theme.border : theme.appBG)),
-                });
+                }) as unknown as Animated.AnimatedInterpolation<string>;
             }
             return theme.border;
         },

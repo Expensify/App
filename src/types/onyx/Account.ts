@@ -3,8 +3,10 @@ import type CONST from '@src/CONST';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
+/** Two factor authentication steps */
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
+/** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
     isSAMLEnabled?: boolean;
@@ -54,11 +56,32 @@ type Account = {
     /** Whether a sign is loading */
     isLoading?: boolean;
 
+    /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
+
+    /** Authentication success message */
     success?: string;
+
+    /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
+
+    /** Current two factor authentication step */
     twoFactorAuthStep?: TwoFactorAuthStep;
+
+    /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
+
+    /** Indicates whether the user is an approved accountant */
+    isApprovedAccountant?: boolean;
+
+    /** Indicates whether the user is a client of an approved accountant */
+    isApprovedAccountantClient?: boolean;
+
+    /** Indicates whether the user can downgrade current subscription plan */
+    canDowngrade?: boolean;
+
+    /** Indicates whether the user has at least one previous purchase */
+    hasPurchases?: boolean;
 };
 
 export default Account;

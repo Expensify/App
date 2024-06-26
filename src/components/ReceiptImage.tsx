@@ -53,6 +53,9 @@ type ReceiptImageProps = (
     /** Whether we should display the receipt with ThumbnailImage component */
     shouldUseThumbnailImage?: boolean;
 
+    /** Whether we should display the receipt with initial object position */
+    shouldUseInitialObjectPosition?: boolean;
+
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
@@ -70,6 +73,9 @@ type ReceiptImageProps = (
 
     /** The size of the fallback icon */
     fallbackIconSize?: number;
+
+    /** The colod of the fallback icon */
+    fallbackIconColor?: string;
 };
 
 function ReceiptImage({
@@ -85,6 +91,8 @@ function ReceiptImage({
     iconSize,
     fallbackIcon,
     fallbackIconSize,
+    shouldUseInitialObjectPosition = false,
+    fallbackIconColor,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -102,7 +110,7 @@ function ReceiptImage({
         return (
             <View style={style ?? [styles.w100, styles.h100]}>
                 <EReceiptThumbnail
-                    transactionID={transactionID ?? ''}
+                    transactionID={transactionID ?? '-1'}
                     iconSize={iconSize}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
@@ -120,7 +128,8 @@ function ReceiptImage({
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
-                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
+                fallbackIconColor={fallbackIconColor}
+                objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
     }
@@ -128,7 +137,7 @@ function ReceiptImage({
     return (
         <Image
             source={{uri: source}}
-            style={style ?? [styles.w100, styles.h100]}
+            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
         />
     );

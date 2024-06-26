@@ -32,12 +32,12 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as Policy from '@userActions/Policy';
+import * as Member from '@userActions/Policy/Member';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -58,7 +58,7 @@ type WorkspaceMembersPageOnyxProps = {
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
     WorkspaceMembersPageOnyxProps &
-    StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
@@ -72,7 +72,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
 function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
-    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
+    const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
@@ -87,7 +87,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
@@ -100,21 +99,18 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
      * Get filtered personalDetails list with current employeeList
      */
     const filterPersonalDetails = (members: OnyxEntry<PolicyEmployeeList>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
-        Object.keys(members ?? {}).reduce((result, key) => {
+        Object.keys(members ?? {}).reduce((acc, key) => {
             const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
             if (details?.[memberAccountIdKey]) {
-                return {
-                    ...result,
-                    [memberAccountIdKey]: details[memberAccountIdKey],
-                };
+                acc[memberAccountIdKey] = details[memberAccountIdKey];
             }
-            return result;
-        }, {});
+            return acc;
+        }, {} as PersonalDetailsList);
     /**
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList)));
+        Member.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList)));
     }, [route.params.policyID, policy?.employeeList]);
 
     /**
@@ -197,7 +193,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
 
-        Policy.removeMembers(accountIDsToRemove, route.params.policyID);
+        Member.removeMembers(accountIDsToRemove, route.params.policyID);
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
     };
@@ -277,7 +273,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
                 return;
             }
-            Policy.clearWorkspaceOwnerChangeFlow(policyID);
+            Member.clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
         },
         [isPolicyAdmin, policy, policyID, route.params.policyID],
@@ -289,9 +285,9 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const dismissError = useCallback(
         (item: MemberOption) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                Policy.clearDeleteMemberError(route.params.policyID, item.accountID);
+                Member.clearDeleteMemberError(route.params.policyID, item.accountID);
             } else {
-                Policy.clearAddMemberError(route.params.policyID, item.accountID);
+                Member.clearAddMemberError(route.params.policyID, item.accountID);
             }
         },
         [route.params.policyID],
@@ -339,13 +335,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             result.push({
@@ -359,7 +349,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: details.avatar ?? Expensicons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -374,7 +364,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
     }, [
-        StyleUtils,
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
@@ -388,10 +377,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         policyOwner,
         selectedEmployees,
         session?.accountID,
-        styles.activeItemBadge,
-        styles.badgeBordered,
-        styles.justifyContentCenter,
-        styles.textStrong,
         translate,
     ]);
 
@@ -406,7 +391,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
         const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
         selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails, 1500);
-        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
+        Member.setWorkspaceInviteMembersDraft(route.params.policyID, {});
     }, [invitedEmailsToAccountIDsDraft, route.params.policyID, isFocused, accountIDs, prevAccountIDs]);
 
     const getHeaderMessage = () => {
@@ -424,7 +409,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 <MessagesRow
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: 'workspace.people.addedWithPrimary'}}
+                    messages={{0: translate('workspace.people.addedWithPrimary')}}
                     containerStyles={[styles.pb5, styles.ph5]}
                     onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
@@ -459,7 +444,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             return policy?.employeeList?.[email]?.role !== role;
         });
 
-        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
+        Member.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
     };
 
@@ -515,8 +500,8 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
-                        buttonRef={dropdownButtonRef}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        isSplitButton={false}
+                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     />
                 ) : (
                     <Button
@@ -526,7 +511,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         text={translate('workspace.invite.member')}
                         icon={Expensicons.Plus}
                         innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                        style={[isSmallScreenWidth && styles.flexGrow1]}
+                        style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                     />
                 )}
             </View>
@@ -582,19 +567,22 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         canSelectMultiple={isPolicyAdmin}
                         sections={[{data, isDisabled: false}]}
                         ListItem={TableListItem}
+                        shouldUseUserSkeletonView
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
-                        headerContent={getHeaderContent()}
+                        headerContent={!isSmallScreenWidth && getHeaderContent()}
                         onSelectRow={openMemberDetails}
+                        shouldDebounceRowSelect={!isPolicyAdmin}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
                         onDismissError={dismissError}
                         showLoadingPlaceholder={isLoading}
-                        showScrollIndicator
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        listHeaderContent={isSmallScreenWidth ? <View style={[styles.pl5, styles.pr5]}>{getHeaderContent()}</View> : null}
+                        showScrollIndicator={false}
                     />
                 </View>
             </FullPageNotFoundView>

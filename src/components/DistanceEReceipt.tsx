@@ -61,6 +61,7 @@ function DistanceEReceipt({transaction}: DistanceEReceiptProps) {
                             <ReceiptImage
                                 source={thumbnailSource}
                                 shouldUseThumbnailImage
+                                shouldUseInitialObjectPosition
                             />
                         )}
                     </View>
