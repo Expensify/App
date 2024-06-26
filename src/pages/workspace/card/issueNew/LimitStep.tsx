@@ -1,6 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
+import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
 function LimitStep() {
     const {translate} = useLocalize();
@@ -48,8 +51,10 @@ function LimitStep() {
                 onSubmit={submit}
                 style={[styles.mh5, styles.flexGrow1]}
             >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
+                <InputWrapper
+                    InputComponent={AmountForm}
+                    inputID={INPUT_IDS.LIMIT}
+                />
             </FormProvider>
         </ScreenWrapper>
     );
