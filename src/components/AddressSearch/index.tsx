@@ -24,8 +24,8 @@ import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps, PredefinedPlace} from './types';
 import isRowScrollable from './isRowScrollable';
+import type {AddressSearchProps, PredefinedPlace} from './types';
 
 /**
  * Check if the place matches the search by the place name or description.
