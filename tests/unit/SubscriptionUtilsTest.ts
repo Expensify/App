@@ -385,7 +385,7 @@ describe('SubscriptionUtils', () => {
         it('should return RETRY_BILLING_SUCCESS status', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.FUND_LIST]: {},
-                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS]: CONST.SUBSCRIPTION_RETRY_BILLING_STATUS.SUCCESS,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
@@ -397,7 +397,8 @@ describe('SubscriptionUtils', () => {
         it('should return RETRY_BILLING_ERROR status', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.FUND_LIST]: {},
-                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS]: CONST.SUBSCRIPTION_RETRY_BILLING_STATUS.FAILED,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: true,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({

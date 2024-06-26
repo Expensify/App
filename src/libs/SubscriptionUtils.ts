@@ -70,16 +70,29 @@ Onyx.connect({
     },
 });
 
-let retryBillingStatus: OnyxValues[typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS];
+let retryBillingSuccessful: OnyxEntry<boolean>;
 Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS,
+    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
     callback: (value) => {
         if (value === undefined) {
             return;
         }
 
-        retryBillingStatus = value;
+        retryBillingSuccessful = value;
     },
+});
+
+let retryBillingFailed: OnyxEntry<boolean>;
+Onyx.connect({
+    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
+    callback: (value) => {
+        if (value === undefined) {
+            return;
+        }
+
+        retryBillingFailed = value;
+    },
+    initWithStoredValues: false,
 });
 
 let firstDayFreeTrial: OnyxEntry<string>;
@@ -202,14 +215,14 @@ function hasCardExpiringSoon(): boolean {
  * @returns Whether there is a retry billing error.
  */
 function hasRetryBillingError(): boolean {
-    return retryBillingStatus === CONST.SUBSCRIPTION_RETRY_BILLING_STATUS.FAILED;
+    return !!retryBillingFailed ?? false;
 }
 
 /**
  * @returns Whether the retry billing was successful.
  */
 function isRetryBillingSuccessful(): boolean {
-    return retryBillingStatus === CONST.SUBSCRIPTION_RETRY_BILLING_STATUS.SUCCESS;
+    return !!retryBillingSuccessful ?? false;
 }
 
 type SubscriptionStatus = {

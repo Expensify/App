@@ -6,21 +6,21 @@ import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
 /** Types of search data */
-type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
+type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
 /** Model of search result list item */
-type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? typeof TransactionListItem
-    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
-    ? typeof ReportListItem
-    : never;
+    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
+      ? typeof ReportListItem
+      : never;
 
 /** Model of search result section */
-type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION
+type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? TransactionListItemType[]
-    : T extends typeof CONST.SEARCH_DATA_TYPES.REPORT
-    ? ReportListItemType[]
-    : never;
+    : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
+      ? ReportListItemType[]
+      : never;
 
 /** Mapping of search results to list item */
 type SearchTypeToItemMap = {
@@ -147,6 +147,9 @@ type SearchTransaction = {
     receipt?: {
         /** Source of the receipt */
         source?: string;
+
+        /** State of the receipt */
+        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
 
     /** The transaction tag */
@@ -162,7 +165,7 @@ type SearchTransaction = {
     category: string;
 
     /** The type of request */
-    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+    type: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
     /** The type of report the transaction is associated with */
     reportType: string;
@@ -214,10 +217,10 @@ type SearchTransaction = {
 type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
 
 /** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
 
 /** Types of search queries */
-type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
+type SearchQuery = ValueOf<typeof CONST.SEARCH.TAB>;
 
 /** Model of search results */
 type SearchResults = {
