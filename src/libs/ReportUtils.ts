@@ -7031,14 +7031,20 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
+/**
+ * Checks if given field has any violations and returns name of the first encountered one
+ */
 function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolationName | undefined {
     if (!violations || !reportField) {
         return undefined;
     }
 
-    return Object.values(CONST.REPORT_VIOLATIONS).find((v) => !!violations[v] && violations[v][reportField.fieldID]);
+    return Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
 }
 
+/**
+ * Returns translation for given field violation
+ */
 function getFieldViolationTranslation(violation: ReportViolationName | undefined, reportField: PolicyReportField): string {
     if (!violation) {
         return '';
@@ -7052,7 +7058,10 @@ function getFieldViolationTranslation(violation: ReportViolationName | undefined
     }
 }
 
-function getReportViolations(reportID: string) {
+/**
+ * Returns all violations for report
+ */
+function getReportViolations(reportID: string): ReportViolations | undefined {
     if (!allReportsViolations) {
         return undefined;
     }

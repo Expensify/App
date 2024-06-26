@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {EmptyObject, ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
 /**
@@ -7,10 +7,16 @@ import type CONST from '@src/CONST';
  */
 type ReportViolationName = ValueOf<typeof CONST.REPORT_VIOLATIONS>;
 
+
+/**
+ * Keys of this object are IDs of field that has violations
+ */
+type ReportFieldsViolations = Record<string, EmptyObject>;
+
 /**
  * Report Violation model
  */
-type ReportViolations = Record<ReportViolationName, Record<string, Record<string, unknown>>>;
+type ReportViolations = Record<ReportViolationName, ReportFieldsViolations>;
 
-export type {ReportViolationName};
+export type {ReportViolationName, ReportFieldsViolations};
 export default ReportViolations;

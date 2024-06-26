@@ -87,6 +87,7 @@ type OptionRowLHNDataProps = {
     /** Callback to execute when the OptionList lays out */
     onLayout?: (event: LayoutChangeEvent) => void;
 
+    /** Report level fields violations */
     reportViolations?: ReportViolations;
 };
 

@@ -90,6 +90,7 @@ import type {
     RecentlyUsedReportFields,
     ReportAction,
     ReportActionReactions,
+    ReportFieldsViolations,
     ReportMetadata,
     ReportUserIsTyping,
 } from '@src/types/onyx';
@@ -97,6 +98,7 @@ import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import '@src/types/onyx/ReportViolation';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -2055,7 +2057,7 @@ function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const policy = getPolicy(policyReport.policyID);
 
-    const missingFields: Record<string, Record<string, unknown> | null> = {};
+    const missingFields: ReportFieldsViolations = {};
 
     Object.values(policy?.fieldList ?? {}).forEach((field) => {
         missingFields[field.fieldID] = {};
