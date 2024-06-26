@@ -89,7 +89,7 @@ function convertToBackendAmount(amountAsFloat: number): number {
  */
 function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
     const decimals = getCurrencyDecimals(currency);
-    return Number((Math.round(amountAsInt) / 100.0).toFixed(decimals));
+    return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
 /**
