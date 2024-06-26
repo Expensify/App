@@ -17,6 +17,7 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyExpensifyCardsPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
@@ -40,6 +41,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -1984,6 +1986,17 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
+function openPolicyExpensifyCardsPage(policyID: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: OpenPolicyExpensifyCardsPageParams = {
+        policyID,
+        authToken,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -3044,6 +3057,7 @@ export {
     createDraftWorkspace,
     buildPolicyData,
     createPolicyExpenseChats,
+    openPolicyExpensifyCardsPage,
 };
 
 export type {NewCustomUnit};

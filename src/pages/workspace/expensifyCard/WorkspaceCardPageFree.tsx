@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {OnyxEntry} from 'react-native-onyx';
@@ -69,6 +70,13 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
     // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
     const cardsList = mockedCards;
     const cardSettings = mockedSettings;
+
+    const fetchExpensifyCards = useCallback(() => {
+        // TODO: uncomment code below when API call is supported
+        // openPolicyExpensifyCardsPage(policyID);
+    }, [policyID]);
+
+    useFocusEffect(fetchExpensifyCards);
 
     const sortedCards = useMemo(() => {
         return Object.values(cardsList ?? {}).sort((a, b) => {
