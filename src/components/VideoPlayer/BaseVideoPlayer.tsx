@@ -125,9 +125,10 @@ function BaseVideoPlayer({
     const debouncedHideControlWithDelay = useMemo(() => debounce(hideControlWithDelay, 2000, {leading: true}), [hideControlWithDelay]);
 
     useEffect(() => {
-        if (canToggleControlOnTap && !prevIsPlaying && isPlaying && controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
-            debouncedHideControlWithDelay();
+        if (!canToggleControlOnTap || prevIsPlaying || !isPlaying || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            return;
         }
+        debouncedHideControlWithDelay();
     }, [isPlaying, prevIsPlaying, debouncedHideControlWithDelay, controlStatusState, canToggleControlOnTap]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
