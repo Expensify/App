@@ -85,7 +85,7 @@ function ValueSettingsPage({
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>{translate('workspace.tags.enableTag')}</Text>
+                            <Text>Enable value</Text>
                             <Switch
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel="Enable value"
