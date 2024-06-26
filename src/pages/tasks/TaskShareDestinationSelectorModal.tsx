@@ -88,7 +88,11 @@ function TaskShareDestinationSelectorModal() {
         if (debouncedSearchValue.trim() === '') {
             return defaultOptions;
         }
-        const filteredReports = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {excludeLogins: CONST.EXPENSIFY_EMAILS, canInviteUser: false});
+        const filteredReports = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            canInviteUser: false,
+            includeChatRoomsByParticipants: true,
+        });
         const header = OptionsListUtils.getHeaderMessage(filteredReports.recentReports && filteredReports.recentReports.length !== 0, false, debouncedSearchValue);
         return {...filteredReports, header};
     }, [debouncedSearchValue, defaultOptions]);
