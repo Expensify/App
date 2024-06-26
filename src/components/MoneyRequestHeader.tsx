@@ -64,7 +64,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
-    const moneyRequestReport = parentReport;
+    const isSelfDMTrackExpenseReport = ReportUtils.isTrackExpenseReport(report) && ReportUtils.isSelfDM(parentReport);
+    const moneyRequestReport = !isSelfDMTrackExpenseReport ? parentReport : undefined;
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
@@ -80,7 +81,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
     const shouldShowMarkAsCashButton = isDraft && hasAllPendingRTERViolations;
-
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
             const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
@@ -104,7 +104,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
 
     // If the report supports adding transactions to it, then it also supports deleting transactions from it.
-    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(report)) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
 
     const changeMoneyRequestStatus = () => {
         const iouTransactionID = ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? '-1' : '-1';
@@ -128,21 +128,17 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {title: translate('iou.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true, shouldShowBorderBottom: true};
+            return {title: translate('violations.hold'), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold'), danger: true};
         }
 
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
-            return {
-                title: getStatusIcon(Expensicons.Hourglass),
-                description: translate('iou.pendingMatchWithCreditCardDescription'),
-                shouldShowBorderBottom: true,
-            };
+            return {title: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning) {
-            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription'), shouldShowBorderBottom: true};
+            return {title: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -245,6 +241,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.p0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     )}
                 </HeaderWithBackButton>
@@ -266,16 +265,20 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                             medium
                             text={translate('iou.reviewDuplicates')}
                             style={[styles.w100, styles.pr0]}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                            }}
                         />
                     </View>
                 )}
                 {statusBarProps && (
-                    <MoneyRequestHeaderStatusBar
-                        title={statusBarProps.title}
-                        description={statusBarProps.description}
-                        danger={statusBarProps.danger}
-                        shouldShowBorderBottom={statusBarProps.shouldShowBorderBottom}
-                    />
+                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                        <MoneyRequestHeaderStatusBar
+                            title={statusBarProps.title}
+                            description={statusBarProps.description}
+                            danger={statusBarProps.danger}
+                        />
+                    </View>
                 )}
             </View>
             <ConfirmModal
@@ -283,12 +286,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
-                onModalHide={() => {
-                    if (!navigateBackToAfterDelete.current) {
-                        return;
-                    }
-                    Navigation.goBack(navigateBackToAfterDelete.current);
-                }}
+                onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
                 prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}

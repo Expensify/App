@@ -6723,7 +6723,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -11598,15 +11598,25 @@ async function run() {
          *   1. For regular staging deploys, the person who merged the PR.
          *   2. For CPs, the person who committed the cherry-picked commit (not necessarily the author of the commit).
          */
-        const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
-            owner: CONST_1.default.GITHUB_OWNER,
-            repo: CONST_1.default.APP_REPO,
-            pull_number: prNumber,
-        });
-        const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
-        const title = pr.title;
-        const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
-        await commentPR(prNumber, deployMessage);
+        try {
+            const { data: pr } = await GithubUtils_1.default.octokit.pulls.get({
+                owner: CONST_1.default.GITHUB_OWNER,
+                repo: CONST_1.default.APP_REPO,
+                pull_number: prNumber,
+            });
+            const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
+            const title = pr.title;
+            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
+            await commentPR(prNumber, deployMessage);
+        }
+        catch (error) {
+            if (error.status === 404) {
+                console.log(`Unable to comment on PR #${prNumber}. GitHub responded with 404.`);
+            }
+            else {
+                throw error;
+            }
+        }
     }
 }
 if (require.main === require.cache[eval('__filename')]) {
@@ -12208,14 +12218,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12229,6 +12231,14 @@ module.exports = require("assert");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 
