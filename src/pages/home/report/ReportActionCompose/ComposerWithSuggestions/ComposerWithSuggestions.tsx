@@ -59,19 +59,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-type HandleComposerUpdateArgs = {
-    // The full new text you'd like to display in the composer
-    fullNewText: string;
-    // The difference between the new text and the previous text
-    diffText: string;
-    // The position of the end of the newly added text
-    endPositionOfNewAddedText: number;
-    // Whether to debounce the saving of the comment
-    shouldDebounceSaveComment: boolean;
-}
-
-type HandleComposerUpdateCallback = (args: HandleComposerUpdateArgs) => void;
+import type { HandleComposerUpdateCallback } from './types';
 
 type AnimatedRef = ReturnType<typeof useAnimatedRef>;
 
@@ -570,7 +558,6 @@ function ComposerWithSuggestions(
 
     const hideSuggestionMenu = useCallback(
         (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
-            console.log('hideSuggestionMenu');
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
             if (!suggestionsRef.current || isScrollLikelyLayoutTriggered.current) {
                 return;
@@ -809,7 +796,7 @@ function ComposerWithSuggestions(
             <Suggestions
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
-                updateComment={handleComposerUpdate}
+                updateComposer={handleComposerUpdate}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
@@ -860,4 +847,4 @@ export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef
     },
 })(memo(ComposerWithSuggestionsWithRef));
 
-export type {ComposerWithSuggestionsProps, ComposerRef, HandleComposerUpdateArgs, HandleComposerUpdateCallback};
+export type {ComposerWithSuggestionsProps, ComposerRef};

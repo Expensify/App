@@ -57,7 +57,7 @@ type SuggestionPersonalDetailsList = Record<
 >;
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
+    {value, selection, setSelection, updateComposer, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -173,7 +173,7 @@ function SuggestionMention(
                 start: suggestionValues.atSignIndex,
                 end: replaceUntil,
             });
-            updateComment(updateCommentArgs);
+            updateComposer(updateCommentArgs);
 
             const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
@@ -194,7 +194,7 @@ function SuggestionMention(
             suggestionValues.prefixType,
             suggestionValues.mentionPrefix.length,
             getMentionCode,
-            updateComment,
+            updateComposer,
             setSelection,
         ],
     );
