@@ -194,15 +194,18 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
     if (!(originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) && !(message && typeof message === 'object' && 'whisperedTo' in message)) {
         return [];
     }
-    
+
     if (!Array.isArray(message) && typeof message === 'object' && 'whisperedTo' in message) {
         return message?.whisperedTo ?? [];
     }
-    
+
     if (originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) {
         return originalMessage?.whisperedTo ?? [];
     }
-    
+
+    if (typeof originalMessage !== 'object') {
+        Log.info('Original message is not an object for reportAction: ', true, reportAction);
+    }
 
     return [];
 }
