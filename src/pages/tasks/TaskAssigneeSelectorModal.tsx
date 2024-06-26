@@ -68,6 +68,9 @@ function useOptions() {
             {},
             [],
             true,
+            false,
+            false,
+            0,
         );
 
         const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
@@ -89,10 +92,10 @@ function useOptions() {
     }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
 
     const options = useMemo(() => {
-        if (debouncedSearchValue.trim() === '') {
-            return defaultOptions;
-        }
-        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {excludeLogins: CONST.EXPENSIFY_EMAILS});
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        });
         const headerMessage = OptionsListUtils.getHeaderMessage(
             (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
             !!filteredOptions.userToInvite,
