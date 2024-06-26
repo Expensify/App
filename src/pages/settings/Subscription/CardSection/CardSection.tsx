@@ -17,6 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
+import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
@@ -37,7 +38,16 @@ function CardSection() {
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
-    const BillingBanner = SubscriptionUtils.isUserOnFreeTrial() ? <TrialStartedBillingBanner /> : <PreTrialBillingBanner />;
+
+    let BillingBanner = <PreTrialBillingBanner />;
+
+    if (SubscriptionUtils.isUserOnFreeTrial()) {
+        BillingBanner = <TrialStartedBillingBanner />;
+    }
+
+    if (SubscriptionUtils.hasUserFreeTrialEnded()) {
+        BillingBanner = <TrialEndedBillingBanner />;
+    }
 
     return (
         <Section

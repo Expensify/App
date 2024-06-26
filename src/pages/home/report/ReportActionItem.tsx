@@ -50,6 +50,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
+import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
@@ -396,6 +397,20 @@ function ReportActionItem({
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || ReportActionsUtils.getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
+        }
+
+        if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
+            return [
+                {
+                    text: 'subscription.cardSection.addCardButton',
+                    key: `${action.reportActionID}-actionableAddPaymentCard-submit`,
+                    onPress: () => {
+                        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
+                    },
+                    isMediumSized: true,
+                    isPrimary: true,
+                },
+            ];
         }
 
         if (ReportActionsUtils.isActionableTrackExpense(action)) {

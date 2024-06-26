@@ -1367,6 +1367,10 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
     return action;
 }
 
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessage<'ACTIONABLEADDPAYMENTCARD'> {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1451,6 +1455,7 @@ export {
     getTextFromHtml,
     isTripPreview,
     getIOUActionForReportID,
+    isActionableAddPaymentCard,
 };
 
 export type {LastVisibleMessage};
