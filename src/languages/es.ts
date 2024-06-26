@@ -3688,7 +3688,6 @@ export default {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (formattedLimit || category) {
                 message += ' para importes sobre';
-
                 if (formattedLimit) {
                     message += ` ${formattedLimit}`;
                 }
