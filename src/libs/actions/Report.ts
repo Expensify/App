@@ -2328,9 +2328,10 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
 
     Log.info('[LocalNotification] Creating notification');
 
-    const report = ReportConnection.getAllReports()?.[reportID] ?? null;
+    const localReportID = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+    const report = ReportConnection.getAllReports()?.[localReportID] ?? null;
     if (!report) {
-        Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {reportID, reportActionID: reportAction.reportActionID});
+        Log.hmmm("[LocalNotification] couldn't show report action notification because the report wasn't found", {localReportID, reportActionID: reportAction.reportActionID});
         return;
     }
 
