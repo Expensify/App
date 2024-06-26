@@ -1,8 +1,9 @@
 /* eslint-disable no-underscore-dangle */
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
+import {debounce} from 'lodash';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -17,6 +18,7 @@ import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoP
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -69,6 +71,7 @@ function BaseVideoPlayer({
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const prevIsPlaying = usePrevious(isPlaying);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
@@ -112,11 +115,21 @@ function BaseVideoPlayer({
         } else {
             setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
             controlsOpacity.value = 1;
-            setTimeout(() => {
-                controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
-            }, 2000);
         }
-    }, [canToggleControlOnTap, controlStatusState, controlsOpacity]);
+    }, [canToggleControlOnTap, controlStatusState]);
+
+    const hideControlWithDelay = useCallback(() => {
+        setTimeout(() => {
+            controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
+        }, 2000);
+    }, [controlsOpacity]);
+    const debouncedHideControlWithDelay = useMemo(() => debounce(hideControlWithDelay, 2000, {leading: true}), [hideControlWithDelay]);
+
+    useEffect(() => {
+        if (!prevIsPlaying && isPlaying && controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            debouncedHideControlWithDelay();
+        }
+    }, [isPlaying, prevIsPlaying, debouncedHideControlWithDelay, controlStatusState]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
