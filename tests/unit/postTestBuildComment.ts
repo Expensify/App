@@ -16,13 +16,17 @@ jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue({
     },
 } as RestEndpointMethods);
 
-// @ts-expect-error -- it's a static getter
-jest.spyOn(GithubUtils, 'paginate', 'get').mockReturnValue(<T, TData>(endpoint: (params: Record<string, T>) => Promise<{data: TData}>, params: Record<string, T>) =>
-    endpoint(params).then((response) => response.data),
-);
+function mockImplementation<T, TData>(endpoint: (params: Record<string, T>) => Promise<{data: TData}>, params: Record<string, T>) {
+    return endpoint(params).then((response) => response.data);
+}
 
-// @ts-expect-error -- it's a static getter
-jest.spyOn(GithubUtils, 'graphql', 'get').mockReturnValue(mockGraphql);
+Object.defineProperty(GithubUtils, 'paginate', {
+    get: () => mockImplementation,
+});
+
+Object.defineProperty(GithubUtils, 'graphql', {
+    get: () => mockGraphql,
+});
 
 jest.mock('@actions/github', () => ({
     context: {

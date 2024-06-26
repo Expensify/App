@@ -135,15 +135,15 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             const hour = parseInt(hourStr, 10);
             if (hour === 0) {
                 setError(true);
-                setErrorMessage('common.error.invalidTimeRange');
+                setErrorMessage(translate('common.error.invalidTimeRange'));
                 return false;
             }
             const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
             setError(!isValid);
-            setErrorMessage('common.error.invalidTimeShouldBeFuture');
+            setErrorMessage(translate('common.error.invalidTimeShouldBeFuture'));
             return isValid;
         },
-        [hours, minutes, amPmValue, defaultValue],
+        [hours, minutes, amPmValue, defaultValue, translate],
     );
 
     const resetHours = () => {

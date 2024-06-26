@@ -18,7 +18,6 @@ import type StateSelector from '@components/StateSelector';
 import type TextInput from '@components/TextInput';
 import type TextPicker from '@components/TextPicker';
 import type ValuePicker from '@components/ValuePicker';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/BusinessInfo/substeps/TypeBusiness/BusinessTypePicker';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
@@ -139,7 +138,7 @@ type FormRef<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
 type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
-type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, MaybePhraseKey>>;
+type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
 export type {
     FormProps,
