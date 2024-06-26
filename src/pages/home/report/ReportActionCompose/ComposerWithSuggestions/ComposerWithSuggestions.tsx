@@ -519,8 +519,7 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            // This method is called to notify you that, within "fullNewText", the "count" characters
-            // beginning at "start" have just replaced old text that had length "before".
+            // Within "nativeText", the "count" characters beginning at "start" have just replaced old text (valueRef.current) that had length "before".
             const endPosition = start + count;
             const diffText = nativeText.substring(start, endPosition);
             // Replace newText in the original text:
