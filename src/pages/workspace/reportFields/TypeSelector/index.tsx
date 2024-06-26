@@ -4,9 +4,9 @@ import React, {forwardRef, useState} from 'react';
 import {View} from 'react-native';
 import type {MenuItemBaseProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import type {ReportFieldItemType} from '@components/ReportFieldTypePicker';
 import useLocalize from '@hooks/useLocalize';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
+import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import TypeSelectorModal from './TypeSelectorModal';
 

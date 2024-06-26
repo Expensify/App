@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import {getReportFieldAlternativeTextTranslationKey, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
 
 type ReportFieldItemType = {
     value: PolicyReportFieldType;

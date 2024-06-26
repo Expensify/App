@@ -2,12 +2,12 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
-import type {ReportFieldItemType} from '@components/ReportFieldTypePicker';
-import ReportFieldTypePicker from '@components/ReportFieldTypePicker';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
+import ReportFieldTypePicker from '@pages/workspace/reportFields/ReportFieldTypePicker';
 import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
