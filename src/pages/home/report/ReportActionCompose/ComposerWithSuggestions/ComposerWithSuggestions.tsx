@@ -794,9 +794,11 @@ function ComposerWithSuggestions(
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
-                    updateComment={updateComment}
-                    // TODO: we might be able to get rid of that state?
                     isCommentPendingSaved={isCommentPendingSaved}
+                    // Update comment is called for example when the comment value has changed from another tab.
+                    // In this case we only want to update the text displayed for this active composer instance,
+                    // thus we just directly update the state:
+                    updateComment={setValue}
                 />
             )}
 
