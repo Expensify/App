@@ -1147,9 +1147,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
-        /** The accountID of manager who the employee submits their expenses to on paid policies */
-        submitsTo?: number;
-
         /** The employee list of the policy */
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
