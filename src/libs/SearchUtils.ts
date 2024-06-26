@@ -26,7 +26,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'type' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment.comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
@@ -242,6 +242,10 @@ function getQueryHash(query: string, policyID?: string, sortBy?: string, sortOrd
     return UserUtils.hashText(textToHash, 2 ** 32);
 }
 
+const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+};
+
 function getSortedTransactionData(data: TransactionListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
     if (!sortBy || !sortOrder) {
         return data;
@@ -254,8 +258,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = a[sortingProperty];
-        const bValue = b[sortingProperty];
+        const aValue = getNestedValue(a, sortingProperty);
+        const bValue = getNestedValue(b, sortingProperty);
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
