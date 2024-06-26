@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseProvTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
+import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -160,7 +160,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: config?.pendingFields?.provincialTaxPostingAccount,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT),
-            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvTaxNetSuite(selectedSubsidiary?.country),
+            shouldHide: !!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country),
         },
         {
             type: 'menuitem',

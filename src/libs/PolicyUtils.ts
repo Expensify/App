@@ -526,7 +526,7 @@ function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: s
     return !!canUseNetSuiteUSATax || CONST.NETSUITE_TAX_COUNTRIES.includes(subsidiaryCountry ?? '');
 }
 
-function canUseProvTaxNetSuite(subsidiaryCountry?: string) {
+function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
 }
 
@@ -618,7 +618,7 @@ export {
     getXeroBankAccountsWithDefaultSelect,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
-    canUseProvTaxNetSuite,
+    canUseProvincialTaxNetSuite,
     getNetSuitePayableAccountOptions,
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
