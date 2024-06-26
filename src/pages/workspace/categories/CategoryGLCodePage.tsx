@@ -78,6 +78,7 @@ function CategoryGLCodePage({route, policyCategories}: EditCategoryPageProps) {
                         accessibilityLabel={translate('workspace.categories.glCode')}
                         inputID={INPUT_IDS.GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
+                        maxLength={CONST.MAX_LENGTH_256}
                     />
                 </FormProvider>
             </ScreenWrapper>
