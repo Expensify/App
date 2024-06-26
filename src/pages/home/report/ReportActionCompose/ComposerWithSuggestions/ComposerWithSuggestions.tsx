@@ -320,6 +320,7 @@ function ComposerWithSuggestions(
      * API is not called too often.
      */
     const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
+        // TODO: this function isn't even debounced if you look closely...
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
         insertedEmojisRef.current = [];
     }, []);
