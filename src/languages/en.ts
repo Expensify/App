@@ -3186,7 +3186,6 @@ export default {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (formattedLimit || category) {
                 message += ' over';
-
                 if (formattedLimit) {
                     message += ` ${formattedLimit}`;
                 }
