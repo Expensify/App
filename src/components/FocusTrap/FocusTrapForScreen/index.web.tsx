@@ -17,7 +17,7 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
     const route = useRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isAuthenticated] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => !!session?.authToken});
-    const screensWithAutofocus = useMemo(() => getScreenWithAutofocus(isAuthenticated), [isAuthenticated]);
+    const screensWithAutofocus = useMemo(() => getScreenWithAutofocus(!!isAuthenticated), [isAuthenticated]);
 
     const isActive = useMemo(() => {
         // Focus trap can't be active on bottom tab screens because it would block access to the tab bar.
