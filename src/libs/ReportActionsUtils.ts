@@ -204,7 +204,7 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
     }
 
     if (typeof originalMessage !== 'object') {
-        Log.info('Original message is not an object for reportAction: ', true, reportAction);
+        Log.info('Original message is not an object for reportAction: ', true, {reportActionID: reportAction?.reportActionID, actionName: reportAction?.actionName});
     }
 
     return [];
