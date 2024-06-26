@@ -30,9 +30,9 @@ To approve an expense,
 Admins can modify an expense, if needed.
 {% include end-info.html %}
 
-![The approve button in an expense]({{site.url}}/assets/images/ExpensExpensifyHelp_ApproveExpense_1.png){:width="100%"}
+![The approve button in an expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_1.png){:width="100%"}
 
-![The approve button when you click into the expense]({{site.url}}/assets/images/ExpensExpensifyHelp_ApproveExpense_1.png){:width="100%"}
+![The approve button when you click into the expense]({{site.url}}/assets/images/ExpensifyHelp_ApproveExpense_2.png){:width="100%"}
 
 You’re now ready to pay the expense. 
 
