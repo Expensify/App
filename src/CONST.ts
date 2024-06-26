@@ -363,6 +363,7 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
+        WORKSPACE_FEEDS: 'workspaceFeeds',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1330,6 +1331,10 @@ const CONST = {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
         },
+    },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
