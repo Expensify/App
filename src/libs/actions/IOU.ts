@@ -5,6 +5,8 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
+import * as NumberUtils from '@libs/NumberUtils';
+
 import type {
     ApproveMoneyRequestParams,
     CompleteSplitBillParams,
@@ -1754,9 +1756,9 @@ function getSendInvoiceInformation(
         isNewChatReport = true;
         chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID, currentUserAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE, senderWorkspaceID);
     }
-
+    const IOUReportActionID = NumberUtils.rand64()
     // STEP 2: Create a new optimistic invoice report.
-    const optimisticInvoiceReport = ReportUtils.buildOptimisticInvoiceReport(chatReport.reportID, senderWorkspaceID, receiverAccountID, receiver.displayName ?? '', amount, currency);
+    const optimisticInvoiceReport = ReportUtils.buildOptimisticInvoiceReport(chatReport.reportID, senderWorkspaceID, receiverAccountID, receiver.displayName ?? '', amount, currency, IOUReportActionID);
 
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};

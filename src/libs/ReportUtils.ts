@@ -3844,7 +3844,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 }
 
 /** Builds an optimistic invoice report with a randomly generated reportID */
-function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
+function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string, parentReportActionID: string): OptimisticExpenseReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
 
     return {
@@ -3863,6 +3863,7 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportID: chatReportID,
         lastVisibleActionCreated: DateUtils.getDBTime(),
+        parentReportActionID,
     };
 }
 
@@ -4623,9 +4624,9 @@ function buildOptimisticGroupChatReport(participantAccountIDs: number[], reportN
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime()): OptimisticCreatedReportAction {
+function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime(), reportActionID?: string): OptimisticCreatedReportAction {
     return {
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: reportActionID || NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
@@ -5135,7 +5136,7 @@ function buildOptimisticMoneyRequestEntities(
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
     const iouActionCreationTime = DateUtils.getDBTime();
-    const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
+    const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1), iouReport.parentReportActionID);
 
     const iouAction = buildOptimisticIOUReportAction(
         type,
