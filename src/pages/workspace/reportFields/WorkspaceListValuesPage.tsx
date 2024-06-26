@@ -3,6 +3,9 @@ import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -14,9 +17,11 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {deleteReportFieldsListValue, setReportFieldsListValueEnabled} from '@libs/actions/WorkspaceReportFields';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -26,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ValueListItem = ListItem & {
     value: string;
@@ -44,9 +50,11 @@ function WorkspaceListValuesPage({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
+    const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
 
     const valueList = useMemo(
         () =>
@@ -68,6 +76,7 @@ function WorkspaceListValuesPage({
     );
 
     const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
+    const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
 
     const toggleValue = (valueItem: ValueListItem) => {
         setSelectedValues((prev) => ({
@@ -83,12 +92,120 @@ function WorkspaceListValuesPage({
         setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
+    const handleDeleteValues = () => {
+        setSelectedValues({});
+
+        const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
+            const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+
+            if (index !== -1) {
+                acc.push(index);
+            }
+
+            return acc;
+        }, []);
+
+        deleteReportFieldsListValue(valuesToDelete);
+        setDeleteValuesConfirmModalVisible(false);
+    };
+
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
     );
+
+    const getHeaderButtons = () => {
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES>>> = [];
+
+        if (selectedValuesArray.length > 0) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: selectedValuesArray.length === 1 ? 'Delete value' : 'Delete values',
+                value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DELETE,
+                onSelected: () => setDeleteValuesConfirmModalVisible(true),
+            });
+
+            const enabledValues = selectedValuesArray.filter((valueName) => {
+                const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+                return !formDraft?.disabledListValues?.[index];
+            });
+
+            if (enabledValues.length > 0) {
+                const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
+                    const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+                    if (!formDraft?.disabledListValues?.[index] && index !== -1) {
+                        acc.push(index);
+                    }
+
+                    return acc;
+                }, []);
+
+                options.push({
+                    icon: Expensicons.DocumentSlash,
+                    text: enabledValues.length === 1 ? 'Disable value' : 'Disable values',
+                    value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DISABLE,
+                    onSelected: () => {
+                        setSelectedValues({});
+                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                    },
+                });
+            }
+
+            const disabledValues = selectedValuesArray.filter((valueName) => {
+                const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+                return formDraft?.disabledListValues?.[index];
+            });
+
+            if (disabledValues.length > 0) {
+                const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
+                    const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+                    if (formDraft?.disabledListValues?.[index] && index !== -1) {
+                        acc.push(index);
+                    }
+
+                    return acc;
+                }, []);
+
+                options.push({
+                    icon: Expensicons.Document,
+                    text: disabledValues.length === 1 ? 'Enable value' : 'Enable values',
+                    value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.ENABLE,
+                    onSelected: () => {
+                        setSelectedValues({});
+                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                    },
+                });
+            }
+
+            return (
+                <ButtonWithDropdownMenu
+                    onPress={() => null}
+                    shouldAlwaysShowDropdownMenu
+                    pressOnEnter
+                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {selectedNumber: selectedValuesArray.length})}
+                    options={options}
+                    isSplitButton={false}
+                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                />
+            );
+        }
+
+        return (
+            <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
+                <Button
+                    style={[isSmallScreenWidth && styles.flex1]}
+                    medium
+                    success
+                    icon={Expensicons.Plus}
+                    text={translate('common.addValue')}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
+                />
+            </View>
+        );
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -106,16 +223,7 @@ function WorkspaceListValuesPage({
                     title={translate('common.listValues')}
                     onBackButtonPress={Navigation.goBack}
                 >
-                    <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-                        <Button
-                            style={[isSmallScreenWidth && styles.flex1]}
-                            medium
-                            success
-                            icon={Expensicons.Plus}
-                            text={translate('common.addValue')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
-                        />
-                    </View>
+                    {getHeaderButtons()}
                 </HeaderWithBackButton>
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText])}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
@@ -143,6 +251,16 @@ function WorkspaceListValuesPage({
                         showScrollIndicator={false}
                     />
                 )}
+                <ConfirmModal
+                    isVisible={deleteValuesConfirmModalVisible}
+                    onConfirm={handleDeleteValues}
+                    onCancel={() => setDeleteValuesConfirmModalVisible(false)}
+                    title={selectedValuesArray.length === 1 ? 'Delete value' : 'Delete values'}
+                    prompt={selectedValuesArray.length === 1 ? 'Are you sure you want to delete this value?' : 'Are you sure you want to delete these values?'}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

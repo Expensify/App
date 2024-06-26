@@ -43,13 +43,13 @@ function ValueSettingsPage({
     }
 
     const deleteListValueAndHideModal = () => {
-        deleteReportFieldsListValue(valueIndex);
+        deleteReportFieldsListValue([valueIndex]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateListValueEnabled = (value: boolean) => {
-        setReportFieldsListValueEnabled(valueIndex, value);
+        setReportFieldsListValueEnabled([valueIndex], value);
     };
 
     const navigateToEditValue = () => {

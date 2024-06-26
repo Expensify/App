@@ -50,9 +50,12 @@ function renameReportFieldsListValue(valueIndex: number, newValueName: string) {
 /**
  * Sets the enabled state of a list value in the workspace report fields form.
  */
-function setReportFieldsListValueEnabled(valueIndex: number, enabled: boolean) {
+function setReportFieldsListValueEnabled(valueIndexes: number[], enabled: boolean) {
     const disabledListValuesCopy = [...disabledListValues];
-    disabledListValuesCopy[valueIndex] = !enabled;
+
+    valueIndexes.forEach((valueIndex) => {
+        disabledListValuesCopy[valueIndex] = !enabled;
+    });
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.DISABLED_LIST_VALUES]: disabledListValuesCopy,
@@ -62,12 +65,16 @@ function setReportFieldsListValueEnabled(valueIndex: number, enabled: boolean) {
 /**
  * Deletes a list value from the workspace report fields form.
  */
-function deleteReportFieldsListValue(valueIndex: number) {
+function deleteReportFieldsListValue(valueIndexes: number[]) {
     const listValuesCopy = [...listValues];
     const disabledListValuesCopy = [...disabledListValues];
 
-    listValuesCopy.splice(valueIndex, 1);
-    disabledListValuesCopy.splice(valueIndex, 1);
+    valueIndexes
+        .sort((a, b) => b - a)
+        .forEach((valueIndex) => {
+            listValuesCopy.splice(valueIndex, 1);
+            disabledListValuesCopy.splice(valueIndex, 1);
+        });
 
     Onyx.merge(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
         [INPUT_IDS.LIST_VALUES]: listValuesCopy,
