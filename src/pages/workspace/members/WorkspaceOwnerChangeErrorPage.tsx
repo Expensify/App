@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+import * as MemberActions from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,11 +25,11 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const accountID = Number(route.params.accountID) ?? 0;
+    const accountID = Number(route.params.accountID) ?? -1;
     const policyID = route.params.policyID;
 
     const closePage = useCallback(() => {
-        PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+        MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
         Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     }, [accountID, policyID]);

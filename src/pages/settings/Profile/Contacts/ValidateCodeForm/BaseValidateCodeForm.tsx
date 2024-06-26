@@ -206,7 +206,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
                             type="success"
                             style={[styles.mt6, styles.flex0]}
                             // eslint-disable-next-line @typescript-eslint/naming-convention
-                            messages={{0: 'resendValidationForm.linkHasBeenResent'}}
+                            messages={{0: translate('resendValidationForm.linkHasBeenResent')}}
                         />
                     )}
                 </View>

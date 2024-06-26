@@ -13,7 +13,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -59,7 +58,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         shouldInitialize: isScreenTransitionEnd,
     });
 
-    const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [, debouncedSearchValueInServer, setSearchValueInServer] = useDebouncedState('', 500);
@@ -95,7 +94,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
         const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
-        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), '');
+        const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, !!optionList.userToInvite, '');
         return {...optionList, headerMessage: header};
     }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
@@ -109,7 +108,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {betas, preferChatroomsOverThreads: true});
+        const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true, betas, preferChatroomsOverThreads: true});
         const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
@@ -193,6 +192,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={!!isSearchingForReports}
+                shouldDelayFocus={false}
             />
         </ScreenWrapper>
     );

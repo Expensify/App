@@ -1,12 +1,11 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -34,21 +33,16 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
 function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
-    const participantAccountIDs = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat));
+    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions
         .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
