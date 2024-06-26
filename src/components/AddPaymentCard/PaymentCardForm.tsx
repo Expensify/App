@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useRef} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -140,6 +140,8 @@ function PaymentCardForm({
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
 
+    const [cardNumber, setCardNumber] = useState('');
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
         const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
 
@@ -174,6 +176,23 @@ function PaymentCardForm({
         return errors;
     };
 
+    const onChangeCardNumber = useCallback((newValue: string) => {
+        // replace all characters that are not spaces or digits
+        let validCardNumber = newValue.replace(/[^\d ]/g, '');
+
+        // gets only the first 16 digits if the inputted number have more digits than that
+        validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
+
+        // add the spacing between every 4 digits
+        validCardNumber =
+            validCardNumber
+                .replace(/ /g, '')
+                .match(/.{1,4}/g)
+                ?.join(' ') ?? '';
+
+        setCardNumber(validCardNumber);
+    }, []);
+
     if (!shouldShowPaymentCardForm) {
         return null;
     }
@@ -198,6 +217,8 @@ function PaymentCardForm({
                     role={CONST.ROLE.PRESENTATION}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
+                    onChangeText={onChangeCardNumber}
+                    value={cardNumber}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
