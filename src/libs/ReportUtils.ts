@@ -5523,7 +5523,7 @@ function getSystemChat(): OnyxEntry<Report> {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
-function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports, shouldIncludeGroupChats = false): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
@@ -5536,7 +5536,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
             isMoneyRequestReport(report) ||
             isChatRoom(report) ||
             isPolicyExpenseChat(report) ||
-            isGroupChat(report)
+            (isGroupChat(report) && !shouldIncludeGroupChats)
         ) {
             return false;
         }
@@ -6556,7 +6556,7 @@ function hasHeldExpenses(iouReportID?: string): boolean {
  */
 function hasOnlyHeldExpenses(iouReportID: string, transactions?: OnyxCollection<Transaction>): boolean {
     const reportTransactions = TransactionUtils.getAllReportTransactions(iouReportID, transactions);
-    return !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
+    return reportTransactions.length > 0 && !reportTransactions.some((transaction) => !TransactionUtils.isOnHold(transaction));
 }
 
 /**

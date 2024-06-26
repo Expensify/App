@@ -97,6 +97,7 @@ export type {default as UpdateRoomVisibilityParams} from './UpdateRoomVisibility
 export type {default as UpdateReportWriteCapabilityParams} from './UpdateReportWriteCapabilityParams';
 export type {default as AddWorkspaceRoomParams} from './AddWorkspaceRoomParams';
 export type {default as UpdatePolicyRoomNameParams} from './UpdatePolicyRoomNameParams';
+export type {default as UpdateBillingCurrencyParams} from './UpdateBillingCurrencyParams';
 export type {default as AddEmojiReactionParams} from './AddEmojiReactionParams';
 export type {default as RemoveEmojiReactionParams} from './RemoveEmojiReactionParams';
 export type {default as LeaveRoomParams} from './LeaveRoomParams';
