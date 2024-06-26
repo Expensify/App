@@ -1,4 +1,4 @@
-import type {RequireExactlyOne, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
@@ -709,13 +709,13 @@ type NetSuiteJournalPostingPreferences = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNA
 /** The custom form selection options for transactions (any one will be used at most) */
 type NetSuiteCustomFormIDOptions = {
     /** If the option is expense report */
-    expenseReport: string;
+    expenseReport?: string;
 
     /** If the option is vendor bill */
-    vendorBill: string;
+    vendorBill?: string;
 
     /** If the option is journal entry */
-    journalEntry: string;
+    journalEntry?: string;
 };
 
 /** User configuration for the NetSuite accounting integration. */
@@ -882,10 +882,10 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configurations for customer to set custom forms for which reimbursable and non-reimbursable transactions will export to in NetSuite */
     customFormIDOptions?: {
         /** The custom form selections for reimbursable transactions */
-        reimbursable: RequireExactlyOne<NetSuiteCustomFormIDOptions, 'expenseReport' | 'journalEntry' | 'vendorBill'>;
+        reimbursable: NetSuiteCustomFormIDOptions;
 
         /** The custom form selections for non-reimbursable transactions */
-        nonReimbursable: RequireExactlyOne<NetSuiteCustomFormIDOptions, 'expenseReport' | 'journalEntry' | 'vendorBill'>;
+        nonReimbursable: NetSuiteCustomFormIDOptions;
 
         /** Whether we'll use the custom form selections upon export to NetSuite */
         enabled: boolean;
