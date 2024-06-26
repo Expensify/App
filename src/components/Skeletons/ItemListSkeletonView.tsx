@@ -21,7 +21,6 @@ const getVerticalMargin = (style: StyleProp<ViewStyle>): number => {
     }
 
     const flattenStyle = StyleSheet.flatten(style);
-
     const marginVertical = Number(flattenStyle?.marginVertical ?? 0);
     const marginTop = Number(flattenStyle?.marginTop ?? 0);
     const marginBottom = Number(flattenStyle?.marginBottom ?? 0);
@@ -51,7 +50,6 @@ function ItemListSkeletonView({
             }
 
             const totalHeight = event.nativeEvent.layout.height;
-
             const newNumItems = Math.ceil(totalHeight / totalItemHeight);
             if (newNumItems !== numItems) {
                 setNumItems(newNumItems);

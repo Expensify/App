@@ -16,7 +16,6 @@ const VIDEO_ASPECT_RATIO = 400 / 225;
 function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, buttonText, buttonAction, title, subtitle, headerStyles, headerContentStyles}: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
-
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
