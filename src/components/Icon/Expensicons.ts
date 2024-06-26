@@ -18,7 +18,7 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
-import Backwards from '@assets/images/backwards.svg';
+import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
 import Bank from '@assets/images/bank.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
@@ -200,7 +200,7 @@ export {
     Wrench,
     BackArrow,
     Bank,
-    Backwards,
+    CircularArrowBackwards,
     Bill,
     Bell,
     BellSlash,

@@ -366,7 +366,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         if (canUnapproveRequest) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
-                icon: Expensicons.Backwards,
+                icon: Expensicons.CircularArrowBackwards,
                 translationKey: 'iou.unapprove',
                 isAnonymousAction: false,
                 action: () => unapproveExpenseReportOrShowModal(),
