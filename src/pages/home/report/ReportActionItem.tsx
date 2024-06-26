@@ -46,6 +46,7 @@ import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -62,7 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -107,7 +108,7 @@ type ReportActionItemProps = {
     report: OnyxTypes.Report;
 
     /** The transaction thread report associated with the report for this action, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
 
     /** Array of report actions for the report for this action */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -152,6 +153,9 @@ type ReportActionItemProps = {
 
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
+
+    /** Whether context menu should be displayed */
+    shouldDisplayContextMenu?: boolean;
 } & ReportActionItemOnyxProps;
 
 function ReportActionItem({
@@ -174,6 +178,7 @@ function ReportActionItem({
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
     linkedTransactionRouteError,
+    shouldDisplayContextMenu = true,
     parentReportActionForTransactionThread,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
@@ -327,7 +332,7 @@ function ReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyObject(action.errors)) {
+            if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
                 return;
             }
 
@@ -353,7 +358,7 @@ function ReportActionItem({
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenu],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -513,6 +518,7 @@ function ReportActionItem({
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (ReportActionsUtils.isTripPreview(action)) {
@@ -618,8 +624,13 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
+            const message = `${translate('roomChangeLog.updateRoomDescription')} ${(originalMessage as OriginalMessageChangeLog)?.description}`;
+            children = <ReportActionItemBasicMessage message={message} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
+            children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
@@ -671,6 +682,7 @@ function ReportActionItem({
                                 shouldDisableEmojiPicker={
                                     (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)
                                 }
+                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
                             />
                         )}
                     </AttachmentContext.Provider>
@@ -740,6 +752,7 @@ function ReportActionItem({
      * @param hasErrors whether the report action has any errors
      * @returns report action item
      */
+
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
@@ -870,20 +883,22 @@ function ReportActionItem({
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        <MiniReportActionContextMenu
-                            reportID={report.reportID}
-                            reportActionID={action.reportActionID}
-                            anchor={popoverAnchorRef}
-                            originalReportID={originalReportID ?? '-1'}
-                            isArchivedRoom={ReportUtils.isArchivedRoom(report)}
-                            displayAsGroup={displayAsGroup}
-                            disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
-                            isVisible={hovered && draftMessage === undefined && !hasErrors}
-                            draftMessage={draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
-                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                            setIsEmojiPickerActive={setIsEmojiPickerActive}
-                        />
+                        {shouldDisplayContextMenu && (
+                            <MiniReportActionContextMenu
+                                reportID={report.reportID}
+                                reportActionID={action.reportActionID}
+                                anchor={popoverAnchorRef}
+                                originalReportID={originalReportID ?? '-1'}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(report)}
+                                displayAsGroup={displayAsGroup}
+                                disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
+                                isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                draftMessage={draftMessage}
+                                isChronosReport={ReportUtils.chatIncludesChronosWithID(originalReportID)}
+                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                                setIsEmojiPickerActive={setIsEmojiPickerActive}
+                            />
+                        )}
                         <View
                             style={StyleUtils.getReportActionItemStyle(
                                 hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined,
