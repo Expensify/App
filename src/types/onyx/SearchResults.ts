@@ -12,15 +12,15 @@ type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? typeof TransactionListItem
     : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
-      ? typeof ReportListItem
-      : never;
+    ? typeof ReportListItem
+    : never;
 
 /** Model of search result section */
 type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH.DATA_TYPES.TRANSACTION
     ? TransactionListItemType[]
     : T extends typeof CONST.SEARCH.DATA_TYPES.REPORT
-      ? ReportListItemType[]
-      : never;
+    ? ReportListItemType[]
+    : never;
 
 /** Mapping of search results to list item */
 type SearchTypeToItemMap = {

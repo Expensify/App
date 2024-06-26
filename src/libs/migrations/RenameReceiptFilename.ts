@@ -30,20 +30,17 @@ export default function () {
                     return resolve();
                 }
                 Log.info('[Migrate Onyx] Running  RenameReceiptFilename migration');
-                const dataToSave = transactionsWithReceipt?.reduce(
-                    (acc, transaction) => {
-                        if (!transaction) {
-                            return acc;
-                        }
-                        Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction.receiptFilename} to filename`);
-                        acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-                            filename: transaction.receiptFilename,
-                            receiptFilename: null,
-                        };
+                const dataToSave = transactionsWithReceipt?.reduce((acc, transaction) => {
+                    if (!transaction) {
                         return acc;
-                    },
-                    {} as Record<TransactionKey, NullishDeep<OldTransaction>>,
-                );
+                    }
+                    Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction.receiptFilename} to filename`);
+                    acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                        filename: transaction.receiptFilename,
+                        receiptFilename: null,
+                    };
+                    return acc;
+                }, {} as Record<TransactionKey, NullishDeep<OldTransaction>>);
 
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, dataToSave).then(() => {

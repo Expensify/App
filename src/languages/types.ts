@@ -261,22 +261,22 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
     [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          TObject[TKey] extends any[]
-          ? `${TPrefix}${TKey & string}`
-          : // eslint-disable-next-line @typescript-eslint/ban-types
-            TObject[TKey] extends object
-            ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
-            : `${TPrefix}${TKey & string}`;
+        TObject[TKey] extends any[]
+        ? `${TPrefix}${TKey & string}`
+        : // eslint-disable-next-line @typescript-eslint/ban-types
+        TObject[TKey] extends object
+        ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
+        : `${TPrefix}${TKey & string}`;
 }[keyof TObject];
 
 // Retrieves a type for a given key path (calculated from the type above)
 type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
     ? TObject[TPath]
     : TPath extends `${infer TKey}.${infer TRest}`
-      ? TKey extends keyof TObject
-          ? TranslateType<TObject[TKey], TRest>
-          : never
-      : never;
+    ? TKey extends keyof TObject
+        ? TranslateType<TObject[TKey], TRest>
+        : never
+    : never;
 
 type EnglishTranslation = typeof en;
 

@@ -27,7 +27,7 @@ jest.mock(
         ({
             ...jest.requireActual('react-native-reanimated/mock'),
             useAnimatedRef: jest.fn(),
-        }) as typeof Animated,
+        } as typeof Animated),
 );
 
 jest.mock('@react-navigation/native', () => {

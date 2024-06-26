@@ -1191,7 +1191,9 @@ function findLastAccessedReport(
         // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
         // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
         // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-        sortedReports = sortedReports.filter((report) => !isDomainRoom(report) || hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number)));
+        sortedReports = sortedReports.filter(
+            (report) => !isDomainRoom(report) || hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number)),
+        );
     }
 
     if (isFirstTimeNewExpensifyUser) {
