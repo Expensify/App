@@ -7,10 +7,6 @@ function getValidAccount(credentialLogin = ''): Account {
         primaryLogin: credentialLogin,
         isLoading: false,
         requiresTwoFactorAuth: false,
-        travelSettings: {
-            accountIDs: {},
-            hasAcceptedTerms: false,
-        },
     };
 }
 
