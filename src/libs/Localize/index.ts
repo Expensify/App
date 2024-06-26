@@ -47,7 +47,7 @@ function init() {
 
 type PluralFormPhrase = Record<string, string>;
 type TranslationPhraseArgType = number | Record<string, string | number | undefined>;
-type TranslationPhraseFunction = (...args: any[]) => string;
+type TranslationPhraseFunction = (...args: never[]) => string;
 type PluralTranslationPhraseFunction = (args: TranslationPhraseArgType) => string;
 
 type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [TranslationPhraseArgType] : T extends TranslationPhraseFunction ? Parameters<T> : never[];
