@@ -47,6 +47,9 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** Array of report actions for the current report */
     reportActions: OnyxTypes.ReportAction[];
 
+    /** Linked report action ID */
+    reportActionIDFromRoute?: string | undefined;
+
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -142,6 +145,7 @@ function ReportActionsList({
     report,
     transactionThreadReport,
     reportActions = [],
+    reportActionIDFromRoute: linkedReportActionID = undefined,
     parentReportAction,
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
@@ -167,6 +171,7 @@ function ReportActionsList({
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
     const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
+
     const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);
@@ -218,7 +223,6 @@ function ReportActionsList({
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const linkedReportActionID = route.params?.reportActionID ?? '-1';
 
     // This state is used to force a re-render when the user manually marks a message as unread
     // by using a timestamp you can force re-renders without having to worry about if another message was marked as unread before

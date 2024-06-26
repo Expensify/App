@@ -1,5 +1,4 @@
-import type {RouteProp} from '@react-navigation/native';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
@@ -12,7 +11,6 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
@@ -26,7 +24,6 @@ import * as Report from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
@@ -51,6 +48,9 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
 
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
+
+    /** Linked report action ID */
+    reportActionIDFromRoute?: string | undefined;
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -89,6 +89,7 @@ function ReportActionsView({
     session,
     parentReportAction,
     reportActions: allReportActions = [],
+    reportActionIDFromRoute: reportActionID = undefined,
     transactionThreadReportActions = [],
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
@@ -99,8 +100,6 @@ function ReportActionsView({
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
     const reactionListRef = useContext(ReactionListContext);
-    const route = useRoute<RouteProp<AuthScreensParamList, typeof SCREENS.REPORT>>();
-    const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
     const didLoadOlderChats = useRef(false);
     const didLoadNewerChats = useRef(false);
@@ -139,7 +138,7 @@ function ReportActionsView({
 
     useLayoutEffect(() => {
         setCurrentReportActionID('');
-    }, [route]);
+    }, [reportActionID]);
 
     // Change the list ID only for comment linking to get the positioning right
     const listID = useMemo(() => {
@@ -152,7 +151,7 @@ function ReportActionsView({
         listOldID = newID;
         return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, isLoadingInitialReportActions, reportActionID]);
+    }, [isLoadingInitialReportActions, reportActionID]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -352,7 +351,7 @@ function ReportActionsView({
 
             didLoadNewerChats.current = true;
 
-            if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
+            if ((!!reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
                 handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
             }
         },
@@ -513,6 +512,7 @@ function ReportActionsView({
     if (!reportActions.length) {
         return null;
     }
+
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
     return (
@@ -521,6 +521,7 @@ function ReportActionsView({
                 report={report}
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
+                reportActionIDFromRoute={reportActionID}
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}

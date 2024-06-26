@@ -392,14 +392,16 @@ function ReportScreen({
 
     const isInitialPageReady = isOffline
         ? reportActions.length > 0
-        : reportActions.length > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || isPendingActionExist || doesCreatedActionExists();
+        : reportActions.length > CONST.REPORT.INITIAL_REPORT_ACTION_COUNT_TO_DISPLAY || isPendingActionExist || (doesCreatedActionExists() && reportActions.length > 0);
     const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty());
+
     const shouldShowSkeleton =
         (isLinkingToMessage && !isLinkedMessagePageReady) ||
-        !isCurrentReportLoadedFromOnyx ||
-        (!isLinkingToMessage && !isInitialPageReady) ||
+        !isInitialPageReady ||
         isLoadingReportOnyx ||
+        !isCurrentReportLoadedFromOnyx ||
         isLoading ||
+        (!!reportActionIDFromRoute && !!reportMetadata?.isLoadingInitialReportActions) ||
         !reportIDFromRoute;
 
     const currentReportIDFormRoute = route.params?.reportID;
@@ -781,6 +783,7 @@ function ReportScreen({
                                     <ReportActionsView
                                         reportActions={reportActions}
                                         report={report}
+                                        reportActionIDFromRoute={reportActionIDFromRoute}
                                         parentReportAction={parentReportAction}
                                         isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                         isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
