@@ -506,6 +506,22 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
     /** */
     [CONST.REPORT.ACTIONS.TYPE.TRIPPREVIEW]: OriginalMessageTripRoomPreview;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.DONATION]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
+    /** */
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessageChangeLog;
     } & {

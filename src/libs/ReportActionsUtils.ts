@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry} from '@src/types/onyx';
-import type OldDotAction from '@src/types/onyx/OldDotAction';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
@@ -1219,7 +1218,7 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
 /**
  * Helper method to format message of OldDot Actions.
  */
-function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotAction): string {
+function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldDotReportAction): string {
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
