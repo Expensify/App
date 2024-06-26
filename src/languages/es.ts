@@ -3683,9 +3683,24 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) =>
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Recibo obligatorio';
+
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            `Recibo obligatorio${formattedLimit || category ? ` para importes sobre${formattedLimit ? ` ${formattedLimit}` : ''}${category ? ' el límite de la categoría' : ''}` : ''}`,
+            if (formattedLimit || category) {
+                message += ' para importes sobre';
+
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+
+                if (category) {
+                    message += ' el límite de la categoría';
+                }
+            }
+
+            return message;
+        },
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {

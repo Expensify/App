@@ -3181,9 +3181,23 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) =>
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Receipt required';
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            `Receipt required${formattedLimit || category ? ` over${formattedLimit ? ` ${formattedLimit}` : ''}${category ? ` ${category} category limit` : ''}` : ''}`,
+            if (formattedLimit || category) {
+                message += ' over';
+
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+
+                if (category) {
+                    message += ` category limit`;
+                }
+            }
+
+            return message;
+        },
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
