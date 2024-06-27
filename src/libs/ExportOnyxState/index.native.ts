@@ -10,7 +10,7 @@ const readFromOnyxDatabase = () =>
         const query = `SELECT * FROM ${CONST.DEFAULT_TABLE_NAME}`;
 
         db.executeAsync(query, []).then(({rows}) => {
-            // eslint-disable-next-line no-underscore-dangle
+            // eslint-disable-next-line no-underscore-dangle, @typescript-eslint/no-unsafe-member-access
             const result = rows?._array.map((row) => ({[row.record_key]: JSON.parse(row.valueJSON as string)}));
 
             resolve(result);
