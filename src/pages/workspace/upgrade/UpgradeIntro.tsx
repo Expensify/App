@@ -4,20 +4,20 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicon from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
     title: string;
     description: string;
-    icon: IconAsset;
+    icon: keyof typeof Illustrations;
     onUpgrade: () => void;
 };
 
@@ -31,7 +31,7 @@ function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, load
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
-                        src={icon}
+                        src={Illustrations[icon]}
                         width={variables.iconSizeExtraLarge}
                         height={variables.iconSizeExtraLarge}
                     />
