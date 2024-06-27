@@ -14,7 +14,11 @@ import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import usePageScrollHandler from './usePageScrollHandler';
 
 const WrappedPagerView = createNativeWrapper(PagerView) as React.ForwardRefExoticComponent<
-    PagerViewProps & NativeViewGestureHandlerProps & React.RefAttributes<React.Component<PagerViewProps>>
+    PagerViewProps &
+        NativeViewGestureHandlerProps &
+        React.RefAttributes<React.Component<PagerViewProps>> & {
+            useNext: boolean;
+        }
 >;
 const AnimatedPagerView = Animated.createAnimatedComponent(WrappedPagerView);
 
@@ -175,6 +179,7 @@ function AttachmentCarouselPager(
                 onPageSelected={onPageSelected}
                 style={styles.flex1}
                 initialPage={initialPage}
+                useNext
                 animatedProps={animatedProps}
                 ref={pagerRef}
             >
