@@ -181,12 +181,14 @@ const runTests = async (): Promise<void> => {
                         attachTestResult({
                             name: `${test.name} (CPU/JS)`,
                             branch,
-                            duration: metrics.jsThread,
+                            metric: metrics.jsThread,
+                            unit: '%',
                         });
                         attachTestResult({
                             name: `${test.name} (CPU/UI)`,
                             branch,
-                            duration: metrics.uiThread,
+                            metric: metrics.uiThread,
+                            unit: '%',
                         });
                     }
                     removeListener();
