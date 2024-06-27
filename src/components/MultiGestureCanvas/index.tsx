@@ -249,7 +249,7 @@ function MultiGestureCanvas({
                 >
                     <Animated.View
                         collapsable={false}
-                        style={[animatedStyles, styles.canvasBackground]}
+                        style={[animatedStyles, styles.appBG]}
                     >
                         {children}
                     </Animated.View>
