@@ -81,7 +81,7 @@ function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTrans
 
 function ConnectionLayout({
     displayName,
-    onBackButtonPressFallbackRoute,
+    onBackButtonPressRoute,
     headerTitle,
     children,
     title,
