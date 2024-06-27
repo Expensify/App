@@ -1,5 +1,5 @@
 import * as RNLocalize from 'react-native-localize';
-import Onyx, { OnyxEntry } from 'react-native-onyx';
+import Onyx, { type OnyxEntry } from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
