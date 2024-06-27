@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -28,7 +27,6 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     const {translate} = useLocalize();
     const policyID: string = route.params.policyID;
 
-    const [sageIntacctCredentialsDraft] = useOnyx(ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT);
     const confirmCredentials = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             connectToSageIntacct(policyID, values);
@@ -84,7 +82,6 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
                             label={translate(`common.${formItem}`)}
                             aria-label={translate(`common.${formItem}`)}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={sageIntacctCredentialsDraft?.[formItem]}
                             spellCheck={false}
                             secureTextEntry={formItem === INPUT_IDS.PASSWORD}
                         />
