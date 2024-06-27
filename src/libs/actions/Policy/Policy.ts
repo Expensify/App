@@ -2946,12 +2946,22 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
 }
 
 function upgradeToCorporate(policyID: string, featureName: string) {
+    const policy = getPolicy(policyID);
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `policy_${policyID}`,
             value: {
                 isPendingUpgrade: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+                maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                glCodes: true,
+                ...(PolicyUtils.isInstantSubmitEnabled(policy) && {
+                    autoReporting: true,
+                    autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL,
+                })
             },
         },
     ];
