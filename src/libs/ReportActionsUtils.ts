@@ -379,11 +379,6 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  */
 function getFilteredForOneTransactionView(reportActions: ReportAction[], isSelfDM = false): ReportAction[] {
     const filteredReportActions = reportActions.filter((action) => {
-        // const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
-        // if (isSelfDM) {
-        //     return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
-        // }
-        // return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
         if (!isMoneyRequestAction(action)) {
             return true;
         }
@@ -416,7 +411,7 @@ function getCombinedReportActions(
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = getFilteredForOneTransactionView([...reportActions, ...filteredTransactionThreadReportActions]);
+    const filteredReportActions = getFilteredForOneTransactionView([...reportActions, ...filteredTransactionThreadReportActions], isSelfDM);
 
     return getSortedReportActions(filteredReportActions, true);
 }
