@@ -1,5 +1,5 @@
 import * as RNLocalize from 'react-native-localize';
-import Onyx from 'react-native-onyx';
+import Onyx, { OnyxEntry } from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Locale} from '@src/types/onyx';
+import type {Locale, ReportAction} from '@src/types/onyx';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -46,7 +46,8 @@ function init() {
 }
 
 type PluralFormPhrase = Record<string, string>;
-type TranslationPhraseArg = number | Record<string, string | number | undefined>;
+type TranslationPhraseRecord = Record<string, string | number | boolean | null | OnyxEntry<ReportAction> | undefined>;
+type TranslationPhraseArg = number | string | undefined | TranslationPhraseRecord;
 type TranslationPhraseFunction = (...args: TranslationPhraseArg[]) => string;
 type PluralTranslationPhraseFunction = (args: TranslationPhraseArg) => string;
 
