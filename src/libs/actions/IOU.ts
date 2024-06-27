@@ -3107,7 +3107,7 @@ function updateMoneyRequestDescription(
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
-        comment,
+        comment: ReportUtils.getParsedComment(comment),
     };
     const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
