@@ -78,7 +78,7 @@ function IOURequestStepDistanceRate({
     function selectDistanceRate(customUnitRateID: string) {
         if (shouldShowTax) {
             const policyCustomUnitRate = getCustomUnitRate(policy, customUnitRateID);
-            const taxRateExternalID = policyCustomUnitRate.attributes?.taxRateExternalID ?? '-1';
+            const taxRateExternalID = policyCustomUnitRate?.attributes?.taxRateExternalID ?? '-1';
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, TransactionUtils.getDistance(transaction));
             const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, taxRateExternalID) ?? '';
             const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, taxableAmount));
