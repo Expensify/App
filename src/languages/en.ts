@@ -1413,6 +1413,12 @@ export default {
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
     onboarding: {
+        welcome: 'Welcome!',
+        explanationModal: {
+            title: 'Welcome to Expensify',
+            description: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
+            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
+        },
         welcomeVideo: {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',

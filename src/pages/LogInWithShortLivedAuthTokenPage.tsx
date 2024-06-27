@@ -16,6 +16,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -66,6 +67,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             Navigation.isNavigationReady().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
                 Navigation.navigate(url);
+                Welcome.handleHybridAppOnboarding();
             });
         }
         // The only dependencies of the effect are based on props.route
