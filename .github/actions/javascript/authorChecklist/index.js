@@ -17707,7 +17707,7 @@ exports["default"] = _default;
 var _highlight = __nccwpck_require__(7654);
 var _picocolors = _interopRequireWildcard(__nccwpck_require__(7023), true);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const colors = typeof process === "object" && (process.env.FORCE_COLOR === "0" || process.env.FORCE_COLOR === "false") ? (0, _picocolors.createColors)(false) : _picocolors.default;
 const compose = (f, g) => v => f(g(v));
 let pcWithForcedColor = undefined;
@@ -20496,20 +20496,21 @@ function TaggedTemplateExpression(node) {
   this.print(node.typeParameters, node);
   this.print(node.quasi, node);
 }
-function TemplateElement(node, parent) {
-  const isFirst = parent.quasis[0] === node;
-  const isLast = parent.quasis[parent.quasis.length - 1] === node;
-  const value = (isFirst ? "`" : "}") + node.value.raw + (isLast ? "`" : "${");
-  this.token(value, true);
+function TemplateElement() {
+  throw new Error("TemplateElement printing is handled in TemplateLiteral");
 }
 function TemplateLiteral(node) {
   const quasis = node.quasis;
+  let partRaw = "`";
   for (let i = 0; i < quasis.length; i++) {
-    this.print(quasis[i], node);
+    partRaw += quasis[i].value.raw;
     if (i + 1 < quasis.length) {
+      this.token(partRaw + "${", true);
       this.print(node.expressions[i], node);
+      partRaw = "}";
     }
   }
+  this.token(partRaw + "`", true);
 }
 
 //# sourceMappingURL=template-literals.js.map
@@ -20624,14 +20625,16 @@ function RecordExpression(node) {
   const props = node.properties;
   let startToken;
   let endToken;
-  if (this.format.recordAndTupleSyntaxType === "bar") {
-    startToken = "{|";
-    endToken = "|}";
-  } else if (this.format.recordAndTupleSyntaxType !== "hash" && this.format.recordAndTupleSyntaxType != null) {
-    throw new Error(`The "recordAndTupleSyntaxType" generator option must be "bar" or "hash" (${JSON.stringify(this.format.recordAndTupleSyntaxType)} received).`);
-  } else {
-    startToken = "#{";
-    endToken = "}";
+  {
+    if (this.format.recordAndTupleSyntaxType === "bar") {
+      startToken = "{|";
+      endToken = "|}";
+    } else if (this.format.recordAndTupleSyntaxType !== "hash" && this.format.recordAndTupleSyntaxType != null) {
+      throw new Error(`The "recordAndTupleSyntaxType" generator option must be "bar" or "hash" (${JSON.stringify(this.format.recordAndTupleSyntaxType)} received).`);
+    } else {
+      startToken = "#{";
+      endToken = "}";
+    }
   }
   this.token(startToken);
   if (props.length) {
@@ -20649,14 +20652,16 @@ function TupleExpression(node) {
   const len = elems.length;
   let startToken;
   let endToken;
-  if (this.format.recordAndTupleSyntaxType === "bar") {
-    startToken = "[|";
-    endToken = "|]";
-  } else if (this.format.recordAndTupleSyntaxType === "hash") {
-    startToken = "#[";
-    endToken = "]";
-  } else {
-    throw new Error(`${this.format.recordAndTupleSyntaxType} is not a valid recordAndTuple syntax type`);
+  {
+    if (this.format.recordAndTupleSyntaxType === "bar") {
+      startToken = "[|";
+      endToken = "|]";
+    } else if (this.format.recordAndTupleSyntaxType === "hash") {
+      startToken = "#[";
+      endToken = "]";
+    } else {
+      throw new Error(`${this.format.recordAndTupleSyntaxType} is not a valid recordAndTuple syntax type`);
+    }
   }
   this.token(startToken);
   for (let i = 0; i < elems.length; i++) {
@@ -21457,7 +21462,6 @@ exports["default"] = generate;
 var _sourceMap = __nccwpck_require__(6280);
 var _printer = __nccwpck_require__(5637);
 function normalizeOptions(code, opts) {
-  var _opts$recordAndTupleS;
   const format = {
     auxiliaryCommentBefore: opts.auxiliaryCommentBefore,
     auxiliaryCommentAfter: opts.auxiliaryCommentAfter,
@@ -21477,13 +21481,14 @@ function normalizeOptions(code, opts) {
       wrap: true,
       minimal: false
     }, opts.jsescOption),
-    recordAndTupleSyntaxType: (_opts$recordAndTupleS = opts.recordAndTupleSyntaxType) != null ? _opts$recordAndTupleS : "hash",
     topicToken: opts.topicToken,
     importAttributesKeyword: opts.importAttributesKeyword
   };
   {
+    var _opts$recordAndTupleS;
     format.decoratorsBeforeExport = opts.decoratorsBeforeExport;
     format.jsescOption.json = opts.jsonCompatibleStrings;
+    format.recordAndTupleSyntaxType = (_opts$recordAndTupleS = opts.recordAndTupleSyntaxType) != null ? _opts$recordAndTupleS : "hash";
   }
   if (format.minified) {
     format.compact = true;
@@ -22848,8 +22853,7 @@ const visitor = {
     requeueComputedKeyAndDecorators(path);
   }
 };
-var _default = visitor;
-exports["default"] = _default;
+var _default = exports["default"] = visitor;
 
 //# sourceMappingURL=index.js.map
 
@@ -23663,7 +23667,7 @@ var _jsTokens = __nccwpck_require__(1531);
 var _helperValidatorIdentifier = __nccwpck_require__(2738);
 var _picocolors = _interopRequireWildcard(__nccwpck_require__(7023), true);
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
-function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && Object.prototype.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
 const colors = typeof process === "object" && (process.env.FORCE_COLOR === "0" || process.env.FORCE_COLOR === "false") ? (0, _picocolors.createColors)(false) : _picocolors.default;
 const compose = (f, g) => v => f(g(v));
 const sometimesKeywords = new Set(["as", "async", "from", "get", "of", "set"]);
@@ -23690,7 +23694,7 @@ let tokenize;
       if ((0, _helperValidatorIdentifier.isKeyword)(token.value) || (0, _helperValidatorIdentifier.isStrictReservedWord)(token.value, true) || sometimesKeywords.has(token.value)) {
         return "keyword";
       }
-      if (JSX_TAG.test(token.value) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) == "</")) {
+      if (JSX_TAG.test(token.value) && (text[offset - 1] === "<" || text.slice(offset - 2, offset) === "</")) {
         return "jsxIdentifier";
       }
       if (token.value[0] !== token.value[0].toLowerCase()) {
@@ -25644,12 +25648,8 @@ class State {
   get strict() {
     return (this.flags & 1) > 0;
   }
-  set strict(value) {
-    if (value) {
-      this.flags |= 1;
-    } else {
-      this.flags &= ~1;
-    }
+  set strict(v) {
+    if (v) this.flags |= 1;else this.flags &= -2;
   }
   init({
     strictMode,
@@ -25665,112 +25665,68 @@ class State {
   get maybeInArrowParameters() {
     return (this.flags & 2) > 0;
   }
-  set maybeInArrowParameters(value) {
-    if (value) {
-      this.flags |= 2;
-    } else {
-      this.flags &= ~2;
-    }
+  set maybeInArrowParameters(v) {
+    if (v) this.flags |= 2;else this.flags &= -3;
   }
   get inType() {
     return (this.flags & 4) > 0;
   }
-  set inType(value) {
-    if (value) {
-      this.flags |= 4;
-    } else {
-      this.flags &= ~4;
-    }
+  set inType(v) {
+    if (v) this.flags |= 4;else this.flags &= -5;
   }
   get noAnonFunctionType() {
     return (this.flags & 8) > 0;
   }
-  set noAnonFunctionType(value) {
-    if (value) {
-      this.flags |= 8;
-    } else {
-      this.flags &= ~8;
-    }
+  set noAnonFunctionType(v) {
+    if (v) this.flags |= 8;else this.flags &= -9;
   }
   get hasFlowComment() {
     return (this.flags & 16) > 0;
   }
-  set hasFlowComment(value) {
-    if (value) {
-      this.flags |= 16;
-    } else {
-      this.flags &= ~16;
-    }
+  set hasFlowComment(v) {
+    if (v) this.flags |= 16;else this.flags &= -17;
   }
   get isAmbientContext() {
     return (this.flags & 32) > 0;
   }
-  set isAmbientContext(value) {
-    if (value) {
-      this.flags |= 32;
-    } else {
-      this.flags &= ~32;
-    }
+  set isAmbientContext(v) {
+    if (v) this.flags |= 32;else this.flags &= -33;
   }
   get inAbstractClass() {
     return (this.flags & 64) > 0;
   }
-  set inAbstractClass(value) {
-    if (value) {
-      this.flags |= 64;
-    } else {
-      this.flags &= ~64;
-    }
+  set inAbstractClass(v) {
+    if (v) this.flags |= 64;else this.flags &= -65;
   }
   get inDisallowConditionalTypesContext() {
     return (this.flags & 128) > 0;
   }
-  set inDisallowConditionalTypesContext(value) {
-    if (value) {
-      this.flags |= 128;
-    } else {
-      this.flags &= ~128;
-    }
+  set inDisallowConditionalTypesContext(v) {
+    if (v) this.flags |= 128;else this.flags &= -129;
   }
   get soloAwait() {
     return (this.flags & 256) > 0;
   }
-  set soloAwait(value) {
-    if (value) {
-      this.flags |= 256;
-    } else {
-      this.flags &= ~256;
-    }
+  set soloAwait(v) {
+    if (v) this.flags |= 256;else this.flags &= -257;
   }
   get inFSharpPipelineDirectBody() {
     return (this.flags & 512) > 0;
   }
-  set inFSharpPipelineDirectBody(value) {
-    if (value) {
-      this.flags |= 512;
-    } else {
-      this.flags &= ~512;
-    }
+  set inFSharpPipelineDirectBody(v) {
+    if (v) this.flags |= 512;else this.flags &= -513;
   }
   get canStartJSXElement() {
     return (this.flags & 1024) > 0;
   }
-  set canStartJSXElement(value) {
-    if (value) {
-      this.flags |= 1024;
-    } else {
-      this.flags &= ~1024;
-    }
+  set canStartJSXElement(v) {
+    if (v) this.flags |= 1024;else this.flags &= -1025;
   }
   get containsEsc() {
     return (this.flags & 2048) > 0;
   }
-  set containsEsc(value) {
-    if (value) {
-      this.flags |= 2048;
-    } else {
-      this.flags &= ~2048;
-    }
+  set containsEsc(v) {
+    if (v) this.flags |= 2048;else this.flags &= -2049;
   }
   curPosition() {
     return new Position(this.curLine, this.pos - this.lineStart, this.pos);
@@ -33347,6 +33303,7 @@ var typescript = superClass => class TypeScriptParserMixin extends superClass {
       TSTypeCastExpression: true,
       TSParameterProperty: "parameter",
       TSNonNullExpression: "expression",
+      TSInstantiationExpression: "expression",
       TSAsExpression: (binding !== 64 || !isUnparenthesizedInAssign) && ["expression", true],
       TSSatisfiesExpression: (binding !== 64 || !isUnparenthesizedInAssign) && ["expression", true],
       TSTypeAssertion: (binding !== 64 || !isUnparenthesizedInAssign) && ["expression", true]
@@ -33928,7 +33885,6 @@ function getPluginOption(plugins, name, option) {
 }
 const PIPELINE_PROPOSALS = ["minimal", "fsharp", "hack", "smart"];
 const TOPIC_TOKENS = ["^^", "@@", "^", "%", "#"];
-const RECORD_AND_TUPLE_SYNTAX_TYPES = ["hash", "bar"];
 function validatePlugins(plugins) {
   if (hasPlugin(plugins, "decorators")) {
     if (hasPlugin(plugins, "decorators-legacy")) {
@@ -33955,9 +33911,10 @@ function validatePlugins(plugins) {
       const proposalList = PIPELINE_PROPOSALS.map(p => `"${p}"`).join(", ");
       throw new Error(`"pipelineOperator" requires "proposal" option whose value must be one of: ${proposalList}.`);
     }
-    const tupleSyntaxIsHash = hasPlugin(plugins, ["recordAndTuple", {
+    const recordAndTupleConfigItem = ["recordAndTuple", {
       syntaxType: "hash"
-    }]);
+    }];
+    const tupleSyntaxIsHash = hasPlugin(plugins, recordAndTupleConfigItem);
     if (proposal === "hack") {
       if (hasPlugin(plugins, "placeholders")) {
         throw new Error("Cannot combine placeholders plugin and Hack-style pipes.");
@@ -33971,10 +33928,10 @@ function validatePlugins(plugins) {
         throw new Error(`"pipelineOperator" in "proposal": "hack" mode also requires a "topicToken" option whose value must be one of: ${tokenList}.`);
       }
       if (topicToken === "#" && tupleSyntaxIsHash) {
-        throw new Error('Plugin conflict between `["pipelineOperator", { proposal: "hack", topicToken: "#" }]` and `["recordAndtuple", { syntaxType: "hash"}]`.');
+        throw new Error(`Plugin conflict between \`["pipelineOperator", { proposal: "hack", topicToken: "#" }]\` and \`${JSON.stringify(recordAndTupleConfigItem)}\`.`);
       }
     } else if (proposal === "smart" && tupleSyntaxIsHash) {
-      throw new Error('Plugin conflict between `["pipelineOperator", { proposal: "smart" }]` and `["recordAndtuple", { syntaxType: "hash"}]`.');
+      throw new Error(`Plugin conflict between \`["pipelineOperator", { proposal: "smart" }]\` and \`${JSON.stringify(recordAndTupleConfigItem)}\`.`);
     }
   }
   if (hasPlugin(plugins, "moduleAttributes")) {
@@ -33991,8 +33948,16 @@ function validatePlugins(plugins) {
   if (hasPlugin(plugins, "importAssertions") && hasPlugin(plugins, "importAttributes")) {
     throw new Error("Cannot combine importAssertions and importAttributes plugins.");
   }
-  if (hasPlugin(plugins, "recordAndTuple") && getPluginOption(plugins, "recordAndTuple", "syntaxType") != null && !RECORD_AND_TUPLE_SYNTAX_TYPES.includes(getPluginOption(plugins, "recordAndTuple", "syntaxType"))) {
-    throw new Error("The 'syntaxType' option of the 'recordAndTuple' plugin must be one of: " + RECORD_AND_TUPLE_SYNTAX_TYPES.map(p => `'${p}'`).join(", "));
+  if (hasPlugin(plugins, "recordAndTuple")) {
+    const syntaxType = getPluginOption(plugins, "recordAndTuple", "syntaxType");
+    if (syntaxType != null) {
+      {
+        const RECORD_AND_TUPLE_SYNTAX_TYPES = ["hash", "bar"];
+        if (!RECORD_AND_TUPLE_SYNTAX_TYPES.includes(syntaxType)) {
+          throw new Error("The 'syntaxType' option of the 'recordAndTuple' plugin must be one of: " + RECORD_AND_TUPLE_SYNTAX_TYPES.map(p => `'${p}'`).join(", "));
+        }
+      }
+    }
   }
   if (hasPlugin(plugins, "asyncDoExpressions") && !hasPlugin(plugins, "doExpressions")) {
     const error = new Error("'asyncDoExpressions' requires 'doExpressions', please add 'doExpressions' to parser plugins.");
@@ -35157,8 +35122,10 @@ class ExpressionParser extends LValParser {
       if (isRecord && !this.isObjectProperty(prop) && prop.type !== "SpreadElement") {
         this.raise(Errors.InvalidRecordProperty, prop);
       }
-      if (prop.shorthand) {
-        this.addExtra(prop, "shorthand", true);
+      {
+        if (prop.shorthand) {
+          this.addExtra(prop, "shorthand", true);
+        }
       }
       node.properties.push(prop);
     }
@@ -49359,9 +49326,10 @@ exports["default"] = gatherSequenceExpressions;
 var _getBindingIdentifiers = __nccwpck_require__(3331);
 var _index = __nccwpck_require__(2605);
 var _index2 = __nccwpck_require__(9380);
+var _productions = __nccwpck_require__(4157);
 var _cloneNode = __nccwpck_require__(5823);
 ;
-function gatherSequenceExpressions(nodes, scope, declars) {
+function gatherSequenceExpressions(nodes, declars) {
   const exprs = [];
   let ensureLastUndefined = true;
   for (const node of nodes) {
@@ -49388,12 +49356,12 @@ function gatherSequenceExpressions(nodes, scope, declars) {
       }
       ensureLastUndefined = true;
     } else if ((0, _index.isIfStatement)(node)) {
-      const consequent = node.consequent ? gatherSequenceExpressions([node.consequent], scope, declars) : scope.buildUndefinedNode();
-      const alternate = node.alternate ? gatherSequenceExpressions([node.alternate], scope, declars) : scope.buildUndefinedNode();
+      const consequent = node.consequent ? gatherSequenceExpressions([node.consequent], declars) : (0, _productions.buildUndefinedNode)();
+      const alternate = node.alternate ? gatherSequenceExpressions([node.alternate], declars) : (0, _productions.buildUndefinedNode)();
       if (!consequent || !alternate) return;
       exprs.push((0, _index2.conditionalExpression)(node.test, consequent, alternate));
     } else if ((0, _index.isBlockStatement)(node)) {
-      const body = gatherSequenceExpressions(node.body, scope, declars);
+      const body = gatherSequenceExpressions(node.body, declars);
       if (!body) return;
       exprs.push(body);
     } else if ((0, _index.isEmptyStatement)(node)) {
@@ -49405,7 +49373,7 @@ function gatherSequenceExpressions(nodes, scope, declars) {
     }
   }
   if (ensureLastUndefined) {
-    exprs.push(scope.buildUndefinedNode());
+    exprs.push((0, _productions.buildUndefinedNode)());
   }
   if (exprs.length === 1) {
     return exprs[0];
@@ -49630,7 +49598,7 @@ var _gatherSequenceExpressions = __nccwpck_require__(1022);
 function toSequenceExpression(nodes, scope) {
   if (!(nodes != null && nodes.length)) return;
   const declars = [];
-  const result = (0, _gatherSequenceExpressions.default)(nodes, scope, declars);
+  const result = (0, _gatherSequenceExpressions.default)(nodes, declars);
   if (!result) return;
   for (const declar of declars) {
     scope.push(declar);
@@ -54140,10 +54108,9 @@ function getBindingIdentifiers(node, duplicates, outerOnly, newBindingsOnly) {
   while (search.length) {
     const id = search.shift();
     if (!id) continue;
-    if (newBindingsOnly && ((0, _index.isAssignmentExpression)(id) || (0, _index.isUnaryExpression)(id))) {
+    if (newBindingsOnly && ((0, _index.isAssignmentExpression)(id) || (0, _index.isUnaryExpression)(id) || (0, _index.isUpdateExpression)(id))) {
       continue;
     }
-    const keys = getBindingIdentifiers.keys[id.type];
     if ((0, _index.isIdentifier)(id)) {
       if (duplicates) {
         const _ids = ids[id.name] = ids[id.name] || [];
@@ -54168,6 +54135,7 @@ function getBindingIdentifiers(node, duplicates, outerOnly, newBindingsOnly) {
         continue;
       }
     }
+    const keys = getBindingIdentifiers.keys[id.type];
     if (keys) {
       for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
