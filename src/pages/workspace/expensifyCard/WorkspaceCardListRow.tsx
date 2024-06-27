@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
-import {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 
 type WorkspacesListRowProps = {
     /** Additional styles applied to the row */
@@ -17,7 +17,7 @@ type WorkspacesListRowProps = {
     /** The last four digits of the card */
     lastFourPAN: string;
 
-    /** Card description */
+    /** Card name */
     name: string;
 
     /** Cardholder personal details */

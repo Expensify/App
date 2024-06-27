@@ -1,6 +1,3 @@
-import type ExpensifyCard from '@src/types/onyx/ExpensifyCard';
-import type {ExpensifyCardsList} from '@src/types/onyx/ExpensifyCard';
-import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type Account from './Account';
 import type AccountData from './AccountData';
 import type {BankAccountList} from './BankAccount';
@@ -17,6 +14,9 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type ExpensifyCard from './ExpensifyCard';
+import type {ExpensifyCardsList} from './ExpensifyCard';
+import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';

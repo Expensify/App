@@ -1,6 +1,16 @@
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type * as OnyxCommon from './OnyxCommon';
 
 // TODO: specify correct type when API is updated
-type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<Record<string, unknown>>;
+/** Model of an Expensify card settings */
+type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** Cards current balance */
+    currentBalance: number;
+
+    /** Cards remaining limit */
+    remainingLimit: number;
+
+    /** Cards cash back */
+    cashBack: number;
+}>;
 
 export default ExpensifyCardSettings;
