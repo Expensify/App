@@ -3,14 +3,12 @@ import React, {useMemo, useRef} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -48,16 +46,7 @@ function OptionRowLHNData({
 
     const optionItemRef = useRef<OptionData>();
 
-    let shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
-    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(reportID, reportActions);
-    const isOneTransactionReport = oneTransactionThreadReportID !== null;
-    if (isOneTransactionReport && oneTransactionThreadReportID) {
-        const transactionReport = allReports?.[oneTransactionThreadReportID];
-        const parentTransactionAction = ReportActionsUtils.getParentReportAction(transactionReport);
-        if (transactionReport && !isEmptyObject(parentTransactionAction)) {
-            shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(transactionReport, transactionViolations, parentTransactionAction);
-        }
-    }
+    const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
