@@ -2440,7 +2440,9 @@ export default {
             },
             connectTitle: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'accounting integration';
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        : 'accounting integration';
                 return `Connect ${integrationName}`;
             },
 
@@ -2472,12 +2474,16 @@ export default {
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'this integration';
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'this accounting integration';
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        : 'this accounting integration';
                 return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },
             enterCredentials: 'Enter your credentials',

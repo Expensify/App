@@ -2443,7 +2443,9 @@ export default {
             },
             connectTitle: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'accounting integration';
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        : 'accounting integration';
                 return `Conectar ${integrationName}`;
             },
             syncError: (integration?: ConnectionName): string => {
@@ -2473,12 +2475,15 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName = currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'integración';
+                const integrationName =
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'integración';
                 return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
             },
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'esta integración contable';
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                        : 'esta integración contable';
                 return `¿Estás seguro de que quieres conectar a ${integrationName}? Esto eliminará cualquier conexión contable existente.`;
             },
             enterCredentials: 'Ingresa tus credenciales',
