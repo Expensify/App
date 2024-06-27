@@ -50,7 +50,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
             });
             return errors;
         },
-        [formItems],
+        [formItems, translate],
     );
     return (
         <ScreenWrapper
