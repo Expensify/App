@@ -278,8 +278,8 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
     const [value, setValueInternal] = useState(() => {
+        const draftComment = getDraftComment(reportID) ?? '';
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
@@ -387,13 +387,14 @@ function ComposerWithSuggestions(
         isCommentPendingSaved.current = false;
 
         setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
-        // inputRef.current?.clear(); // I think there is no use doing that here, if JS lags behind this will have no effect anyway
         setValue('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
             Report.setIsComposerFullSize(reportID, false);
         }
         setIsFullComposerAvailable(false);
+        Report.saveReportDraftComment(reportID, '');
+
         return trimmedComment;
     }, [reportID, debouncedSaveReportComment, setValue, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable]);
 
@@ -810,7 +811,7 @@ function ComposerWithSuggestions(
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {ReportUtils.isValidReportIDFromPath(reportID) && (
+            {/* {ReportUtils.isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
@@ -820,7 +821,7 @@ function ComposerWithSuggestions(
                     // thus we just directly update the state:
                     updateComment={setValue}
                 />
-            )}
+            )} */}
 
             {/* Only used for testing so far */}
             {children}
