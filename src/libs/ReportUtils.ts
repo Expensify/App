@@ -604,6 +604,15 @@ function isDraftReport(reportID: string | undefined): boolean {
 }
 
 /**
+ * Check if a report exists with a report ID
+ * @param reportID
+ */
+function doesReportExist(reportID: string | undefined): boolean {
+    const report = getReportOrDraftReport(reportID);
+    return isEmptyObject(report?.reportID) ? false : true;
+}
+
+/**
  * Returns the parentReport if the given report is a thread
  */
 function getParentReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
@@ -7304,6 +7313,7 @@ export {
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
     isDraftReport,
+    doesReportExist,
     changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
