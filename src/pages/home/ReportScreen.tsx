@@ -40,6 +40,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
@@ -169,8 +170,8 @@ function ReportScreen({
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {
             const reportActionID = route?.params?.reportActionID;
-            const regexValidReportActionID = new RegExp(/^\d*$/);
-            if (reportActionID && !regexValidReportActionID.test(reportActionID)) {
+            const isValidReportActionID = ValidationUtils.isNumeric(reportActionID);
+            if (reportActionID && !isValidReportActionID) {
                 navigation.setParams({reportActionID: ''});
             }
             return;
