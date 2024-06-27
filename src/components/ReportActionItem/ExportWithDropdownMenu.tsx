@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -7,7 +7,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ReportActions from '@libs/actions/Report';
 import * as ReportUtils from '@libs/ReportUtils';
+import type {ModalStatus} from '@pages/home/report/ReportDetailsExportPage';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
@@ -18,9 +20,11 @@ type ExportWithDropdownMenuProps = {
 };
 
 function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMenuProps) {
+    const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(integrationName);
     const canBeExported = ReportUtils.canBeExported(report);
@@ -32,16 +36,42 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                 text: translate('common.export'),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
+                onSelected: () => {
+                    if (ReportUtils.isExported(report)) {
+                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                    } else if (reportID) {
+                        ReportActions.exportToIntegration(reportID, integrationName);
+                    }
+                },
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 text: translate('workspace.common.markAsExported'),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
+                onSelected: () => {
+                    if (ReportUtils.isExported(report)) {
+                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                    } else if (reportID) {
+                        ReportActions.exportToIntegration(reportID, integrationName);
+                    }
+                },
             },
         ],
-        [canBeExported, iconToDisplay, translate],
+        [canBeExported, iconToDisplay, integrationName, report, reportID, translate],
     );
+
+    const confirmExport = useCallback(() => {
+        setModalStatus(null);
+        if (!reportID) {
+            return;
+        }
+        if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            ReportActions.exportToIntegration(reportID, integrationName);
+        } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            ReportActions.markAsManuallyExported(reportID);
+        }
+    }, [integrationName, modalStatus, reportID]);
 
     return (
         <>
@@ -62,10 +92,17 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
-            <ConfirmModal
-                onConfirm={() => {}}
-                isVisible={false}
-            />
+            {!!modalStatus && (
+                <ConfirmModal
+                    title={translate('workspace.exportAgainModal.title')}
+                    onConfirm={confirmExport}
+                    onCancel={() => setModalStatus(null)}
+                    prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
+                    confirmText={translate('workspace.exportAgainModal.confirmText')}
+                    cancelText={translate('workspace.exportAgainModal.cancelText')}
+                    isVisible
+                />
+            )}
         </>
     );
 }

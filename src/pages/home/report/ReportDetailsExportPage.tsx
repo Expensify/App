@@ -1,6 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,7 +11,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
-import * as Report from '@libs/actions/Report';
+import * as ReportActions from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -21,12 +22,14 @@ import type SCREENS from '@src/SCREENS';
 
 type ReportDetailsExportPageProps = StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.EXPORT>;
 
+type ModalStatus = ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | null;
+
 function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const reportID = route.params.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
     const {translate} = useLocalize();
-    const [shouldShowModal, setShouldShowModal] = useState(false);
+    const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
     const integrationName = route?.params?.integrationName;
     const iconToDisplay = ReportUtils.getIntegrationIcon(integrationName);
     const canBeExported = ReportUtils.canBeExported(report);
@@ -46,9 +49,9 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 isDisabled: !canBeExported,
                 onPress: () => {
                     if (ReportUtils.isExported(report)) {
-                        setShouldShowModal(true);
+                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     } else {
-                        Report.exportToIntegration(reportID, integrationName);
+                        ReportActions.exportToIntegration(reportID, integrationName);
                     }
                 },
             },
@@ -64,15 +67,24 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 isDisabled: !canBeExported,
                 onPress: () => {
                     if (ReportUtils.isExported(report)) {
-                        setShouldShowModal(true);
+                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                     } else {
-                        Report.markAsManuallyExported(reportID);
+                        ReportActions.markAsManuallyExported(reportID);
                     }
                 },
             },
         ],
         [canBeExported, iconToDisplay, integrationName, integrationText, report, reportID, translate],
     );
+
+    const confirmExport = useCallback(() => {
+        if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            ReportActions.exportToIntegration(reportID, integrationName);
+        } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            ReportActions.markAsManuallyExported(reportID);
+        }
+        setModalStatus(null);
+    }, [integrationName, modalStatus, reportID]);
 
     if (!canBeExported) {
         return (
@@ -107,11 +119,11 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     option.onPress?.();
                 }}
             />
-            {shouldShowModal && (
+            {!!modalStatus && (
                 <ConfirmModal
                     title={translate('workspace.exportAgainModal.title')}
-                    onConfirm={() => setShouldShowModal(false)}
-                    onCancel={() => setShouldShowModal(false)}
+                    onConfirm={confirmExport}
+                    onCancel={() => setModalStatus(null)}
                     prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
                     confirmText={translate('workspace.exportAgainModal.confirmText')}
                     cancelText={translate('workspace.exportAgainModal.cancelText')}
@@ -125,3 +137,4 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 ReportDetailsExportPage.displayName = 'ReportDetailsExportPage';
 
 export default ReportDetailsExportPage;
+export type {ModalStatus};
