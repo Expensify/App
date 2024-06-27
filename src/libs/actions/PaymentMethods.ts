@@ -5,15 +5,23 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {AddPaymentCardParams, DeletePaymentCardParams, MakeDefaultPaymentMethodParams, PaymentCardParams, TransferWalletBalanceParams} from '@libs/API/parameters';
+import type {
+    AddPaymentCardParams,
+    DeletePaymentCardParams,
+    MakeDefaultPaymentMethodParams,
+    PaymentCardParams,
+    TransferWalletBalanceParams,
+    UpdateBillingCurrencyParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/AddDebitCardForm';
+import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
@@ -64,15 +72,11 @@ function openWalletPage() {
         },
     ];
 
-    return API.read(
-        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        {},
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    return API.read(READ_COMMANDS.OPEN_PAYMENTS_PAGE, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function getMakeDefaultPaymentOnyxData(
@@ -171,7 +175,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: true},
         },
     ];
@@ -179,7 +183,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -187,7 +191,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -228,7 +232,7 @@ function addSubscriptionPaymentCard(cardData: {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: true},
         },
     ];
@@ -236,7 +240,7 @@ function addSubscriptionPaymentCard(cardData: {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
@@ -244,75 +248,48 @@ function addSubscriptionPaymentCard(cardData: {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+            key: ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM,
             value: {isLoading: false},
         },
     ];
 
-    // TODO integrate API for subscription card as a follow up
-    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    if (currency === CONST.CURRENCY.GBP) {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
+            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+
+            Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
+        });
+    } else {
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls
+        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+        Navigation.goBack();
+    }
 }
 
 /**
- * Calls the API to add a new card for GBP currency with 3ds.
- *
+ * Resets the values for the add payment card form back to their initial states
  */
-function addPaymentCardGBP(cardData: {
-    cardNumber: string;
-    cardYear: string;
-    cardMonth: string;
-    cardCVV: string;
-    addressName: string;
-    addressZip: string;
-    currency: ValueOf<typeof CONST.CURRENCY>;
-}) {
-    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
-
-    const parameters: AddPaymentCardParams = {
-        cardNumber,
-        cardYear,
-        cardMonth,
-        cardCVV,
-        addressName,
-        addressZip,
-        currency,
-        isP2PDebitCard: false,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBP, parameters, {optimisticData, successData, failureData}).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
+function clearPaymentCardFormErrorAndSubmit() {
+    Onyx.set(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+        isLoading: false,
+        errors: undefined,
+        [INPUT_IDS.SETUP_COMPLETE]: false,
+        [INPUT_IDS.NAME_ON_CARD]: '',
+        [INPUT_IDS.CARD_NUMBER]: '',
+        [INPUT_IDS.EXPIRATION_DATE]: '',
+        [INPUT_IDS.SECURITY_CODE]: '',
+        [INPUT_IDS.ADDRESS_STREET]: '',
+        [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
+        [INPUT_IDS.ADDRESS_STATE]: '',
+        [INPUT_IDS.ACCEPT_TERMS]: '',
+        [INPUT_IDS.CURRENCY]: CONST.CURRENCY.USD,
     });
 }
 
@@ -325,21 +302,12 @@ function clearPaymentCard3dsVerification() {
 }
 
 /**
- * Resets the values for the add debit card form back to their initial states
+ * Set currency for payments
+ *
  */
-function clearDebitCardFormErrorAndSubmit() {
-    Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
-        isLoading: false,
-        errors: undefined,
-        [INPUT_IDS.SETUP_COMPLETE]: false,
-        [INPUT_IDS.NAME_ON_CARD]: '',
-        [INPUT_IDS.CARD_NUMBER]: '',
-        [INPUT_IDS.EXPIRATION_DATE]: '',
-        [INPUT_IDS.SECURITY_CODE]: '',
-        [INPUT_IDS.ADDRESS_STREET]: '',
-        [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
-        [INPUT_IDS.ADDRESS_STATE]: '',
-        [INPUT_IDS.ACCEPT_TERMS]: '',
+function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.CURRENCY>) {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+        [INPUT_IDS.CURRENCY]: currency,
     });
 }
 
@@ -492,6 +460,69 @@ function deletePaymentCard(fundID: number) {
     });
 }
 
+/**
+ * Call the API to change billing currency.
+ *
+ */
+function updateBillingCurrency(currency: ValueOf<typeof CONST.CURRENCY>, cardCVV: string) {
+    const parameters: UpdateBillingCurrencyParams = {
+        cardCVV,
+        currency,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_BILLING_CARD_CURRENCY, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ * Set payment card form with API data
+ *
+ */
+function setPaymentCardForm(values: AccountData) {
+    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
+        [INPUT_IDS.CARD_NUMBER]: values.cardNumber,
+        [INPUT_IDS.EXPIRATION_DATE]: `${values.cardMonth}${values.cardYear?.toString()?.substring(2)}`,
+        [INPUT_IDS.ADDRESS_STREET]: values.addressStreet,
+        [INPUT_IDS.ADDRESS_ZIP_CODE]: values.addressZip?.toString(),
+        [INPUT_IDS.ADDRESS_STATE]: values.addressState,
+        [INPUT_IDS.CURRENCY]: values.currency,
+    });
+}
+
 export {
     deletePaymentCard,
     addPaymentCard,
@@ -500,17 +531,19 @@ export {
     kycWallRef,
     continueSetup,
     addSubscriptionPaymentCard,
-    addPaymentCardGBP,
-    clearDebitCardFormErrorAndSubmit,
+    clearPaymentCardFormErrorAndSubmit,
     dismissSuccessfulTransferBalancePage,
     transferWalletBalance,
     resetWalletTransferData,
     saveWalletTransferAccountTypeAndID,
     saveWalletTransferMethodType,
     hasPaymentMethodError,
+    updateBillingCurrency,
     clearDeletePaymentMethodError,
     clearAddPaymentMethodError,
     clearWalletError,
-    clearWalletTermsError,
+    setPaymentMethodCurrency,
     clearPaymentCard3dsVerification,
+    clearWalletTermsError,
+    setPaymentCardForm,
 };
