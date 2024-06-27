@@ -2916,8 +2916,8 @@ const styles = (theme: ThemeColors) =>
             height: 1,
             backgroundColor: theme.border,
             flexGrow: 1,
-            marginHorizontal: 20,
-            marginVertical: 12,
+            ...spacing.mh5,
+            ...spacing.mv3,
         },
 
         unreadIndicatorText: {

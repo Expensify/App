@@ -137,7 +137,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 testID={NetSuiteExportExpensesPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={isReimbursable ? translate('workspace.netsuite.exportReimbursable') : translate('workspace.netsuite.exportNonReimbursable')}
+                    title={translate(`workspace.netsuite.${isReimbursable? 'exportReimbursable': 'exportNonReimbursable'}`)}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
                 />
                 {menuItems
