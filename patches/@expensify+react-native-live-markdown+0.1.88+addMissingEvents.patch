@@ -1,0 +1,61 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+index 7be4e5c..87d53f5 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+@@ -218,6 +218,7 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+     const newSelection = predefinedSelection || CursorUtils.getCurrentCursorPosition(divRef.current);
+     if (newSelection && (!contentSelection.current || contentSelection.current.start !== newSelection.start || contentSelection.current.end !== newSelection.end)) {
+       updateRefSelectionVariables(newSelection);
++      console.log('updateSelection', newSelection);
+       contentSelection.current = newSelection;
+       if (e) {
+         handleSelectionChange(e);
+@@ -245,6 +246,8 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+       });
+     }
+   }, [multiline, onContentSizeChange]);
++
++  const prevTextRef = useRef('');
+   const handleOnChangeText = useCallback(e => {
+     if (!divRef.current || !(e.target instanceof HTMLElement)) {
+       return;
+@@ -255,6 +258,7 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+       compositionRef.current = false;
+       return;
+     }
++    
+     let text = '';
+     const nativeEvent = e.nativeEvent;
+     switch (nativeEvent.inputType) {
+@@ -275,6 +279,8 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+       default:
+         text = parseText(divRef.current, changedText, processedMarkdownStyle).text;
+     }
++    const normalizedText = normalizeValue(text);
++
+     if (pasteRef !== null && pasteRef !== void 0 && pasteRef.current) {
+       pasteRef.current = false;
+       updateSelection(e);
+@@ -283,10 +289,21 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+     if (onChange) {
+       const event = e;
+       setEventProps(event);
++
++      const prevText = prevTextRef.current;
++      prevTextRef.current = normalizedText;
++  
++      const start = contentSelection.current ? contentSelection.current.start : 0;
++      const before = contentSelection.current.end - contentSelection.current.start;
++      const count = normalizedText.length - prevText.length;
++
++      event.nativeEvent.start = start;
++      event.nativeEvent.before = before;
++      event.nativeEvent.count = count;
++      event.nativeEvent.text = normalizedText;
+       onChange(event);
+     }
+     if (onChangeText) {
+-      const normalizedText = normalizeValue(text);
+       onChangeText(normalizedText);
+     }
+     handleContentSizeChange();
