@@ -1,5 +1,4 @@
-import type {EventJSON} from '@kie/act-js/build/src/action-event/action-event.types';
-import type {StepIdentifier} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {EventJSON, StepIdentifier} from '@kie/act-js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'yaml';
@@ -11,6 +10,18 @@ type StepAssertion = {
     name: string;
     status: number;
     output: string;
+};
+
+type Jobs = Record<
+    string,
+    {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'runs-on': string;
+    }
+>;
+
+type Workflow = {
+    jobs: Jobs;
 };
 
 function setUpActParams(
@@ -159,7 +170,7 @@ function setJobRunners(act: ExtendedAct, jobs: Record<string, string>, workflowP
         return act;
     }
 
-    const workflow = yaml.parse(fs.readFileSync(workflowPath, 'utf8'));
+    const workflow: Workflow = yaml.parse(fs.readFileSync(workflowPath, 'utf8'));
     Object.entries(jobs).forEach(([jobId, runner]) => {
         const job = workflow.jobs[jobId];
         job['runs-on'] = runner;

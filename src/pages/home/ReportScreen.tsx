@@ -38,7 +38,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
 import * as Report from '@userActions/Report';
@@ -80,7 +80,7 @@ type OnyxHOCProps = {
     markReadyForHydration?: () => void;
 };
 
-type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
 type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
 
@@ -352,11 +352,11 @@ function ReportScreen({
     }
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route.params.reportActionID) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
-    }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
+    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID]);
 
     if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
@@ -550,7 +550,8 @@ function ReportScreen({
             isClosedTopLevelPolicyRoom
         ) {
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
-            if (!isFocused) {
+            // Prevent auto navigation for report in RHP
+            if (!isFocused || isReportOpenInRHP) {
                 return;
             }
             Navigation.dismissModal();
@@ -581,6 +582,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         route,
         report,
@@ -682,6 +684,14 @@ function ReportScreen({
             Navigation.setParams({reportActionID: ''});
         });
     }, [isInaccessibleWhisper]);
+
+    useEffect(() => {
+        if (!!report.lastReadTime || !ReportUtils.isTaskReport(report)) {
+            return;
+        }
+        // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
+        Report.readNewestAction(report.reportID);
+    }, [report]);
 
     if ((!isInaccessibleWhisper && isLinkedReportActionDeleted) ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
         return (
