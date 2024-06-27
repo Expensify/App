@@ -21,7 +21,7 @@ async function run() {
                 status: 'completed',
                 event: isProductionDeploy ? 'release' : 'push',
             })
-        ).data.workflow_runs;
+        ).data.workflow_runs.filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
 
         const priorTag = completedDeploys[0].head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
