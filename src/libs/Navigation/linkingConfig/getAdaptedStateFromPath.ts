@@ -1,5 +1,6 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import pick from 'lodash/pick';
 import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -8,6 +9,7 @@ import isCentralPaneName from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config from './config';
@@ -92,6 +94,14 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
     };
 }
 
+function getParamsFromRoute(routeName: string): string[] {
+    const routeConfig = ROUTES[routeName.toUpperCase() as keyof typeof ROUTES];
+
+    const route = typeof routeConfig === 'string' ? routeConfig : routeConfig.route;
+
+    return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
+}
+
 // This function will return CentralPaneNavigator route or FullScreenNavigator route.
 function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): NavigationPartialRoute<CentralPaneName | typeof NAVIGATORS.FULL_SCREEN_NAVIGATOR> | undefined {
     // Check for backTo param. One screen with different backTo value may need diferent screens visible under the overlay.
@@ -125,18 +135,18 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
     // Check for CentralPaneNavigator
     for (const [centralPaneName, RHPNames] of Object.entries(CENTRAL_PANE_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            const params = {...route.params};
-            if (centralPaneName === SCREENS.SEARCH.CENTRAL_PANE) {
-                delete (params as Record<string, string | undefined>)?.reportID;
-            }
-            return {name: centralPaneName as CentralPaneName, params};
+            const paramsFromRoute = getParamsFromRoute(centralPaneName);
+
+            return {name: centralPaneName as CentralPaneName, params: pick(route.params, paramsFromRoute)};
         }
     }
 
     // Check for FullScreenNavigator
     for (const [fullScreenName, RHPNames] of Object.entries(FULL_SCREEN_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
+            const paramsFromRoute = getParamsFromRoute(fullScreenName);
+
+            return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: pick(route.params, paramsFromRoute)});
         }
     }
 }
