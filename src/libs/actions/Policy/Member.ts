@@ -258,7 +258,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         if (employee?.submitsTo && emailList.includes(employee?.submitsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
-                submitsTo: policy.owner,
+                submitsTo: policy?.owner,
             };
             failureMembersState[employeeEmail] = {
                 ...failureMembersState[employeeEmail],
@@ -268,7 +268,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         if (employee?.forwardsTo && emailList.includes(employee?.forwardsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
-                forwardsTo: policy.owner,
+                forwardsTo: policy?.owner,
             };
             failureMembersState[employeeEmail] = {
                 ...failureMembersState[employeeEmail],
@@ -278,7 +278,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         if (employee?.overLimitForwardsTo && emailList.includes(employee?.overLimitForwardsTo)) {
             optimisticMembersState[employeeEmail] = {
                 ...optimisticMembersState[employeeEmail],
-                overLimitForwardsTo: policy.owner,
+                overLimitForwardsTo: policy?.owner,
             };
             failureMembersState[employeeEmail] = {
                 ...failureMembersState[employeeEmail],
