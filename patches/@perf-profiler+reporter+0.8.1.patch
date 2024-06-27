@@ -1,0 +1,25 @@
+diff --git a/node_modules/@perf-profiler/reporter/dist/src/index.d.ts b/node_modules/@perf-profiler/reporter/dist/src/index.d.ts
+index 2f84d84..14ae688 100644
+--- a/node_modules/@perf-profiler/reporter/dist/src/index.d.ts
++++ b/node_modules/@perf-profiler/reporter/dist/src/index.d.ts
+@@ -4,4 +4,6 @@ export * from "./reporting/Report";
+ export * from "./utils/sanitizeProcessName";
+ export * from "./utils/round";
+ export * from "./reporting/cpu";
++export * from "./reporting/ram";
++export * from "./reporting/fps";
+ export { canComputeHighCpuUsage } from "./reporting/highCpu";
+diff --git a/node_modules/@perf-profiler/reporter/dist/src/index.js b/node_modules/@perf-profiler/reporter/dist/src/index.js
+index 4b50e3a..780963a 100644
+--- a/node_modules/@perf-profiler/reporter/dist/src/index.js
++++ b/node_modules/@perf-profiler/reporter/dist/src/index.js
+@@ -21,6 +21,8 @@ __exportStar(require("./reporting/Report"), exports);
+ __exportStar(require("./utils/sanitizeProcessName"), exports);
+ __exportStar(require("./utils/round"), exports);
+ __exportStar(require("./reporting/cpu"), exports);
++__exportStar(require("./reporting/fps"), exports);
++__exportStar(require("./reporting/ram"), exports);
+ var highCpu_1 = require("./reporting/highCpu");
+ Object.defineProperty(exports, "canComputeHighCpuUsage", { enumerable: true, get: function () { return highCpu_1.canComputeHighCpuUsage; } });
+ //# sourceMappingURL=index.js.map
+\ No newline at end of file
