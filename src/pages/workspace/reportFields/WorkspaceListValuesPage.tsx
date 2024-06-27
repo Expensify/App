@@ -230,7 +230,7 @@ function WorkspaceListValuesPage({
                 </View>
                 {shouldShowEmptyState && (
                     <WorkspaceEmptyStateSection
-                        containerStyle={styles.bgTransparent}
+                        containerStyle={[styles.bgTransparent, styles.mtAuto, styles.mbAuto]}
                         title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
