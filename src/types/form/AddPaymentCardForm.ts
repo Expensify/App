@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -11,11 +12,12 @@ const INPUT_IDS = {
     ADDRESS_ZIP_CODE: 'addressZipCode',
     ADDRESS_STATE: 'addressState',
     ACCEPT_TERMS: 'acceptTerms',
+    CURRENCY: 'currency',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
 
-type AddDebitCardForm = Form<
+type AddPaymentCardForm = Form<
     InputID,
     {
         /** Whether the form has been submitted */
@@ -28,8 +30,9 @@ type AddDebitCardForm = Form<
         [INPUT_IDS.ADDRESS_ZIP_CODE]: string;
         [INPUT_IDS.ADDRESS_STATE]: string;
         [INPUT_IDS.ACCEPT_TERMS]: string;
+        [INPUT_IDS.CURRENCY]: ValueOf<typeof CONST.CURRENCY>;
     }
 >;
 
-export type {AddDebitCardForm};
+export type {AddPaymentCardForm};
 export default INPUT_IDS;

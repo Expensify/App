@@ -103,7 +103,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('iou.holdExpense')}
-                onBackButtonPress={navigateBack}
+                onBackButtonPress={() => Navigation.goBack(backTo)}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"

@@ -13,7 +13,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {AuthScreensParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -35,7 +35,7 @@ type SearchProps = {
     sortOrder?: SortOrder;
 };
 
-const sortableSearchTabs: SearchQuery[] = [CONST.TAB_SEARCH.ALL];
+const sortableSearchTabs: SearchQuery[] = [CONST.SEARCH.TAB.ALL];
 const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
@@ -50,7 +50,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
-    const navigation = useNavigation<StackNavigationProp<CentralPaneNavigatorParamList>>();
+    const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
 
     const getItemHeight = useCallback(
@@ -125,7 +125,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             return;
         }
         const currentOffset = searchResults?.search?.offset ?? 0;
-        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE, sortBy, sortOrder});
+        SearchActions.search({hash, query, offset: currentOffset + CONST.SEARCH.RESULTS_PAGE_SIZE, sortBy, sortOrder});
     };
 
     const type = SearchUtils.getSearchType(searchResults?.search);

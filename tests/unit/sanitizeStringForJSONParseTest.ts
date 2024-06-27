@@ -1,5 +1,9 @@
 import sanitizeStringForJSONParse from '../../.github/libs/sanitizeStringForJSONParse';
 
+type ParsedJSON = {
+    key?: string;
+};
+
 // Bad inputs should cause an error to be thrown
 const badInputs: Array<null | undefined | number | boolean> = [null, undefined, 42, true];
 
@@ -39,14 +43,14 @@ describe('santizeStringForJSONParse', () => {
             const badJSON = `{"key": "${input}"}`;
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- it's supposed to throw an error
             expect(() => JSON.parse(badJSON)).toThrow();
-            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
+            const goodJSON: ParsedJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
             expect(goodJSON.key).toStrictEqual(expectedOutput);
         });
     });
 
     describe.each(validJSONData)('canHandleValidJSON', (input, expectedOutput) => {
         test('sanitizeStringForJSONParse', () => {
-            const goodJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
+            const goodJSON: ParsedJSON = JSON.parse(`{"key": "${sanitizeStringForJSONParse(input)}"}`);
             expect(goodJSON.key).toStrictEqual(expectedOutput);
         });
     });

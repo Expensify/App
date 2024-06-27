@@ -34,8 +34,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Callback to add participants in MoneyRequestModal */
     onParticipantsAdded: (value: Participant[]) => void;
+
     /** Selected participants from MoneyRequestModal with login */
-    participants?: Participant[];
+    participants?: Participant[] | typeof CONST.EMPTY_ARRAY;
 
     /** The type of IOU report, i.e. split, request, send, track */
     iouType: IOUType;
@@ -47,7 +48,7 @@ type MoneyRequestParticipantsSelectorProps = {
     action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({participants = [], onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -94,7 +95,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             options.personalDetails,
             betas,
             '',
-            participants,
+            participants as Participant[],
             CONST.EXPENSIFY_EMAILS,
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
@@ -153,7 +154,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
 
         const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
             betas,
-            selectedOptions: participants,
+            selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
@@ -378,6 +379,17 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
         onFinish,
     ]);
 
+    const onSelectRow = useCallback(
+        (item: Participant) => {
+            if (isIOUSplit) {
+                addParticipantToSelection(item);
+                return;
+            }
+            addSingleParticipant(item);
+        },
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant],
+    );
+
     return (
         <SelectionList
             onConfirm={handleConfirmSelection}
@@ -388,7 +400,7 @@ function MoneyRequestParticipantsSelector({participants = [], onFinish, onPartic
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
+            onSelectRow={onSelectRow}
             shouldDebounceRowSelect
             footerContent={footerContent}
             headerMessage={header}

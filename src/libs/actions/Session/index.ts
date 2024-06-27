@@ -901,7 +901,7 @@ function toggleTwoFactorAuth(enable: boolean) {
         },
     ];
 
-    API.write(enable ? WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH : WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, {}, {optimisticData, successData, failureData});
+    API.write(enable ? WRITE_COMMANDS.ENABLE_TWO_FACTOR_AUTH : WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, null, {optimisticData, successData, failureData});
 }
 
 function validateTwoFactorAuth(twoFactorAuthCode: string) {

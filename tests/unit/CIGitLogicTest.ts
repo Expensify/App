@@ -9,6 +9,7 @@ import {execSync} from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import type {PackageJson} from 'type-fest';
 import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
 import CONST from '@github/libs/CONST';
 import GitUtils from '@github/libs/GitUtils';
@@ -49,8 +50,14 @@ function setupGitAsOSBotify() {
     exec('git config --local user.email infra+osbotify@expensify.com');
 }
 
-function getVersion() {
-    return JSON.parse(fs.readFileSync('package.json', {encoding: 'utf-8'})).version as string;
+function getVersion(): string {
+    const packageJson = JSON.parse(fs.readFileSync('package.json', {encoding: 'utf-8'})) as PackageJson;
+
+    if (!packageJson.version) {
+        throw new Error('package.json does not contain a version field');
+    }
+
+    return packageJson.version;
 }
 
 function initGitServer() {

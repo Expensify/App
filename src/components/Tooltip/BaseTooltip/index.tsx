@@ -7,6 +7,10 @@ import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
+type MouseEvents = {
+    onMouseEnter: (e: MouseEvent) => void | undefined;
+};
+
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
 /**
@@ -76,7 +80,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
         (e: MouseEvent) => {
             updateTargetAndMousePosition(e);
             if (React.isValidElement(children)) {
-                const onMouseEnter: (e: MouseEvent) => void | undefined = children.props.onMouseEnter;
+                const onMouseEnter = (children.props as MouseEvents).onMouseEnter;
                 onMouseEnter?.(e);
             }
         },

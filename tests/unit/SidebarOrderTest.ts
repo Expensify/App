@@ -860,8 +860,6 @@ describe('Sidebar', () => {
 
     describe('in #focus mode', () => {
         it('alphabetizes chats', () => {
-            LHNTestUtils.getDefaultRenderedSidebarLinks();
-
             const report1 = {...LHNTestUtils.getFakeReport([1, 2], 3, true), lastMessageText: 'test'};
             const report2 = {...LHNTestUtils.getFakeReport([3, 4], 2, true), lastMessageText: 'test'};
             const report3 = {...LHNTestUtils.getFakeReport([5, 6], 1, true), lastMessageText: 'test'};
@@ -875,7 +873,7 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
-                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks())
+                    .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // Given the sidebar is rendered in #focus mode (hides read chats)
                     // with all reports having unread comments
                     .then(() =>

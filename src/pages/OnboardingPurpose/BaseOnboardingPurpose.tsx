@@ -100,6 +100,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
             rightComponent: selectedCheckboxIcon,
             shouldShowRightComponent: isSelected,
+            numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 setErrorMessage('');

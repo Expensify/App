@@ -1,8 +1,8 @@
-import type {View as RNView} from 'react-native';
+import type ReactNative from 'react-native';
 
 jest.mock('react-native-webview', () => {
-    const {View} = require('react-native');
+    const {View} = require<typeof ReactNative>('react-native');
     return {
-        WebView: () => View as RNView,
+        WebView: () => View,
     };
 });

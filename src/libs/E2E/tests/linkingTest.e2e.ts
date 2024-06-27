@@ -12,6 +12,12 @@ import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+type ViewableItem = {
+    reportActionID?: string;
+};
+
+type ViewableItemResponse = Array<{item?: ViewableItem}>;
+
 const test = (config: NativeConfig) => {
     console.debug('[E2E] Logging in for comment linking');
 
@@ -36,10 +42,10 @@ const test = (config: NativeConfig) => {
                 console.debug('[E2E] Error while submitting test results:', err);
             });
 
-        const subscription = DeviceEventEmitter.addListener('onViewableItemsChanged', (res) => {
+        const subscription = DeviceEventEmitter.addListener('onViewableItemsChanged', (res: ViewableItemResponse) => {
             console.debug('[E2E] Viewable items retrieved, verifying correct message…', res);
 
-            if (!!res && res[0]?.item?.reportActionID === linkedReportActionID) {
+            if (!!res && res?.[0]?.item?.reportActionID === linkedReportActionID) {
                 appearMessageResolve();
                 subscription.remove();
             } else {

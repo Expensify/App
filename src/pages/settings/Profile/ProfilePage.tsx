@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -21,12 +21,11 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -100,10 +99,6 @@ function ProfilePage({
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
         },
     ];
-
-    useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
-    }, [currentUserPersonalDetails]);
 
     const privateOptions = [
         {

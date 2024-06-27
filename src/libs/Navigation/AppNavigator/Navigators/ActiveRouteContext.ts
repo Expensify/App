@@ -1,6 +1,6 @@
 import React from 'react';
-import type {CentralPaneNavigatorParamList, NavigationPartialRoute} from '@libs/Navigation/types';
+import type {AuthScreensParamList, NavigationPartialRoute} from '@libs/Navigation/types';
 
-const ActiveRouteContext = React.createContext<NavigationPartialRoute<keyof CentralPaneNavigatorParamList> | undefined>(undefined);
+const ActiveRouteContext = React.createContext<NavigationPartialRoute<keyof AuthScreensParamList> | undefined>(undefined);
 
 export default ActiveRouteContext;

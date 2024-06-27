@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {CentralPaneScreensParamList} from '@libs/Navigation/types';
 import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -16,13 +16,13 @@ import SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import SearchFilters from './SearchFilters';
 
-type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = StackScreenProps<CentralPaneScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 const defaultSearchProps = {
     query: '' as SearchQuery,
     policyIDs: undefined,
-    sortBy: CONST.SEARCH_TABLE_COLUMNS.DATE,
-    sortOrder: CONST.SORT_ORDER.DESC,
+    sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
 };
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
@@ -44,9 +44,9 @@ function SearchPageBottomTab() {
 
     const query = rawQuery as SearchQuery;
 
-    const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
+    const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL));
 
     return (
         <ScreenWrapper

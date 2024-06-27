@@ -126,6 +126,39 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
         ],
     };
 
+    if (!enabled) {
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        const customUnitID = Object.keys(policy?.customUnits ?? {})[0];
+        const customUnit = customUnitID ? policy?.customUnits?.[customUnitID] : undefined;
+
+        const rateEntries = Object.entries(customUnit?.rates ?? {});
+        // find the rate to be enabled after disabling the distance rate feature
+        const rateEntryToBeEnabled = rateEntries[0];
+
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: Object.fromEntries(
+                            rateEntries.map((rateEntry) => {
+                                const [rateID, rate] = rateEntry;
+                                return [
+                                    rateID,
+                                    {
+                                        ...rate,
+                                        enabled: rateID === rateEntryToBeEnabled[0],
+                                    },
+                                ];
+                            }),
+                        ),
+                    },
+                },
+            },
+        });
+    }
+
     const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);

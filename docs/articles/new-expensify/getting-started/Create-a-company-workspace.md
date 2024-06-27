@@ -30,6 +30,12 @@ You can get support any time by locating your chat with Concierge in your chat i
    <li>Click <b>Default Currency</b> to set the currency for all expenses submitted under the workspace. Expensify automatically converts all other currencies to your default currency.</li>
 </ol>
 
+![Click your profile image or icon]({{site.url}}/assets/images/ExpensifyHelp_R1_CreateWorkspace_1.png){:width="100%"}
+
+![Click Workspaces in the left menu and New Worksapce]({{site.url}}/assets/images/ExpensifyHelp_R1_CreateWorkspace_2.png){:width="100%"}
+
+![Options to make changes like a custom workspace name]({{site.url}}/assets/images/ExpensifyHelp_R1_CreateWorkspace_3.png){:width="100%"}
+
 # 3. Invite members
 
 <ol type="a">
@@ -45,6 +51,12 @@ Once the invite is accepted, the new members will appear in your members list.
 {% include info.html %}
 You can also invite members on the workspace’s Profile page by clicking **Share** to share the workspace’s URL or QR code.
 {% include end-info.html %}
+
+![Click Members on the left and click Invite member]({{site.url}}/assets/images/ExpensifyHelp_R1_InviteMembers_1.png){:width="100%"}
+
+![Use the search field to find the individual by name, email, or phone number]({{site.url}}/assets/images/ExpensifyHelp_R1_InviteMembers_2.png){:width="100%"}
+
+![Enter a custom message into the Message field]({{site.url}}/assets/images/ExpensifyHelp_R1_InviteMembers_3.png){:width="100%"}
 
 # 4. Set admins
 

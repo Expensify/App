@@ -23,7 +23,7 @@ type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'cu
     accountIDs: number[];
 };
 
-function ReactionTooltipContent({accountIDs, currentUserPersonalDetails = {}, emojiCodes, emojiName}: ReactionTooltipContentProps) {
+function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCodes, emojiName}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const users = useMemo(() => PersonalDetailsUtils.getPersonalDetailsByIDs(accountIDs, currentUserPersonalDetails.accountID, true), [currentUserPersonalDetails.accountID, accountIDs]);

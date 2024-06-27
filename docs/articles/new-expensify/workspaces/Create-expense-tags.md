@@ -8,6 +8,8 @@ In Expensify, tags refer to **classes, projects, cost centers, locations, custom
 
 An admin can manually create tags for a workspace, or they will be automatically imported if your workspace is connected to an accounting system, like QuickBooks Online or Xero. These imported tags can be enabled or disabled to use as tags for expenses added to Expensify. Additionally, Expensify will learn how you apply tags to specific merchants over time and apply them automatically.
 
+![The Tags tab]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_2.png){:width="100%"}
+
 # Manually add or delete tags
 
 {% include selector.html values="desktop, mobile" %}
@@ -23,6 +25,8 @@ To manually add a tag,
 6. Click **Tags** in the left menu.
 7. Click **Add Tag** in the top right. 
 8. Enter a name for the tag and click **Save**.
+
+![The toggle to enable Tags]({{site.url}}/assets/images/ExpensifyHelp_R4_Tags_1.png){:width="100%"}
 
 To delete a tag, 
 

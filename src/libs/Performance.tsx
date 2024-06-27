@@ -86,7 +86,7 @@ const Performance: PerformanceModule = {
 };
 
 if (Metrics.canCapturePerformanceMetrics()) {
-    const perfModule: ReactNativePerformance = require('react-native-performance');
+    const perfModule = require<ReactNativePerformance>('react-native-performance');
     perfModule.setResourceLoggingEnabled(true);
     rnPerformance = perfModule.default;
 

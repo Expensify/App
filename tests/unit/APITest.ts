@@ -538,7 +538,7 @@ describe('APITests', () => {
 
                 // WHEN we make a request that should be retried, one that should not, and another that should
                 API.write('MockCommandOne' as WriteCommand, {});
-                API.read('MockCommandTwo' as ReadCommand, {});
+                API.read('MockCommandTwo' as ReadCommand, null);
                 API.write('MockCommandThree' as WriteCommand, {});
 
                 // THEN the retryable requests should immediately be added to the persisted requests
