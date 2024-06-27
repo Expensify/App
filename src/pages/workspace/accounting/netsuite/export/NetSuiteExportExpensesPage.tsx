@@ -1,15 +1,12 @@
 import {useRoute} from '@react-navigation/native';
-import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -45,8 +42,6 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
         () => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount),
         [payableList, config?.reimbursablePayableAccount],
     );
-
-    const isConnectedToNetSuite = isEmpty(policy?.connections?.netsuite);
 
     const menuItems: MenuItemWithoutType[] = [
         {
@@ -103,44 +98,40 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     ];
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
+        <ConnectionLayout
+            displayName={NetSuiteExportExpensesPage.displayName}
+            backButtonRoute={ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)}
+            headerTitle={`workspace.netsuite.${isReimbursable ? 'exportReimbursable' : 'exportNonReimbursable'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={isConnectedToNetSuite}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={NetSuiteExportExpensesPage.displayName}
-            >
-                <HeaderWithBackButton
-                    title={translate(`workspace.netsuite.${isReimbursable ? 'exportReimbursable' : 'exportNonReimbursable'}`)}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
-                />
-                {menuItems
-                    .filter((item) => !item.shouldHide)
-                    .map((item) => (
-                        <OfflineWithFeedback
-                            key={item.description}
-                            pendingAction={item.pendingAction}
-                            errors={item.errors}
-                            onClose={item.onCloseError}
-                            errorRowStyles={[styles.ph5]}
-                        >
-                            <MenuItemWithTopDescription
-                                title={item.title}
-                                description={item.description}
-                                shouldShowRightIcon
-                                onPress={item?.onPress}
-                                brickRoadIndicator={item?.brickRoadIndicator}
-                                helperText={item?.helperText}
-                                errorText={item?.errorText}
-                                shouldParseHelperText={item.shouldParseHelperText ?? false}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            {menuItems
+                .filter((item) => !item.shouldHide)
+                .map((item) => (
+                    <OfflineWithFeedback
+                        key={item.description}
+                        pendingAction={item.pendingAction}
+                        errors={item.errors}
+                        onClose={item.onCloseError}
+                        errorRowStyles={[styles.ph5]}
+                    >
+                        <MenuItemWithTopDescription
+                            title={item.title}
+                            description={item.description}
+                            shouldShowRightIcon
+                            onPress={item?.onPress}
+                            brickRoadIndicator={item?.brickRoadIndicator}
+                            helperText={item?.helperText}
+                            errorText={item?.errorText}
+                            shouldParseHelperText={item.shouldParseHelperText ?? false}
+                        />
+                    </OfflineWithFeedback>
+                ))}
+        </ConnectionLayout>
     );
 }
 
