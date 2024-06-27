@@ -511,15 +511,17 @@ function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemI
     }));
 }
 
-function getNetSuiteTaxAccountOptions(policy: Policy | undefined, selectedAccountId: string | undefined): SelectorType[] {
+function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCountry?: string, selectedAccountId?: string): SelectorType[] {
     const taxAccounts = policy?.connections?.netsuite.options.data.taxAccountsList ?? [];
 
-    return (taxAccounts ?? []).map(({externalID, name}) => ({
-        value: externalID,
-        text: name,
-        keyForList: externalID,
-        isSelected: selectedAccountId === externalID,
-    }));
+    return (taxAccounts ?? [])
+        .filter(({country}) => country === subsidiaryCountry)
+        .map(({externalID, name}) => ({
+            value: externalID,
+            text: name,
+            keyForList: externalID,
+            isSelected: selectedAccountId === externalID,
+        }));
 }
 
 function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {

@@ -22,18 +22,15 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
     const policyID = policy?.id ?? '-1';
 
     const config = policy?.connections?.netsuite.options.config;
+    const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
+    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
+
     const netsuiteTaxAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteTaxAccountOptions(policy ?? undefined, config?.provincialTaxPostingAccount),
-        [config?.provincialTaxPostingAccount, policy],
+        () => getNetSuiteTaxAccountOptions(policy ?? undefined, selectedSubsidiary?.country, config?.provincialTaxPostingAccount),
+        [config?.provincialTaxPostingAccount, policy, selectedSubsidiary?.country],
     );
 
     const initiallyFocusedOptionKey = useMemo(() => netsuiteTaxAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteTaxAccountOptions]);
-
-    const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => {
-        const selectedSub = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
-        return selectedSub;
-    }, [subsidiaryList, config?.subsidiaryID]);
 
     const updateTaxAccount = useCallback(
         ({value}: SelectorType) => {
