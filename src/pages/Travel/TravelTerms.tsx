@@ -23,7 +23,7 @@ function TravelTerms() {
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [error, setError] = useState(false);
 
-    const errorMessage = error ? 'travel.termsAndConditions.error' : '';
+    const errorMessage = error ? translate('travel.termsAndConditions.error') : '';
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
@@ -92,7 +92,7 @@ function TravelTerms() {
 
                                     Travel.acceptSpotnanaTerms();
                                     setError(false);
-                                    Navigation.resetToHome();
+                                    Navigation.goBack();
                                 }}
                                 message={errorMessage}
                                 isAlertVisible={error || !!errorMessage}

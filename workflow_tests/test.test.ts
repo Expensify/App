@@ -1,4 +1,4 @@
-import type {MockStep} from '@kie/act-js/build/src/step-mocker/step-mocker.types';
+import type {MockStep} from '@kie/act-js';
 import {MockGithub} from '@kie/mock-github';
 import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';
@@ -59,7 +59,6 @@ describe('test workflow test', () => {
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
-                shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
             };
             const result = await act.runEvent(event, {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
@@ -69,7 +68,6 @@ describe('test workflow test', () => {
             });
 
             assertions.assertJestJobExecuted(result);
-            assertions.assertShellTestsJobExecuted(result);
         });
         describe('actor is OSBotify', () => {
             it('does not run tests', async () => {
@@ -79,7 +77,6 @@ describe('test workflow test', () => {
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
-                    shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
@@ -89,7 +86,6 @@ describe('test workflow test', () => {
                 });
 
                 assertions.assertJestJobExecuted(result, false);
-                assertions.assertShellTestsJobExecuted(result, false);
             });
         });
     });
@@ -106,7 +102,6 @@ describe('test workflow test', () => {
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
-                shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
             };
             const result = await act.runEvent(event, {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
@@ -116,7 +111,6 @@ describe('test workflow test', () => {
             });
 
             assertions.assertJestJobExecuted(result);
-            assertions.assertShellTestsJobExecuted(result);
         });
         describe('actor is OSBotify', () => {
             it('does not run tests', async () => {
@@ -126,7 +120,6 @@ describe('test workflow test', () => {
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
-                    shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
@@ -136,7 +129,6 @@ describe('test workflow test', () => {
                 });
 
                 assertions.assertJestJobExecuted(result, false);
-                assertions.assertShellTestsJobExecuted(result, false);
             });
         });
     });
@@ -151,7 +143,6 @@ describe('test workflow test', () => {
             act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
             const testMockSteps: MockStep = {
                 jest: mocks.TEST__JEST__STEP_MOCKS,
-                shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
             };
             const result = await act.runEvent(event, {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
@@ -161,7 +152,6 @@ describe('test workflow test', () => {
             });
 
             assertions.assertJestJobExecuted(result);
-            assertions.assertShellTestsJobExecuted(result);
         });
         describe('actor is OSBotify', () => {
             it('runs all tests normally', async () => {
@@ -171,7 +161,6 @@ describe('test workflow test', () => {
                 act = utils.setUpActParams(act, event, eventOptions, {}, githubToken);
                 const testMockSteps: MockStep = {
                     jest: mocks.TEST__JEST__STEP_MOCKS,
-                    shellTests: mocks.TEST__SHELLTESTS__STEP_MOCKS,
                 };
                 const result = await act.runEvent(event, {
                     workflowFile: path.join(repoPath, '.github', 'workflows', 'test.yml'),
@@ -181,7 +170,6 @@ describe('test workflow test', () => {
                 });
 
                 assertions.assertJestJobExecuted(result);
-                assertions.assertShellTestsJobExecuted(result);
             });
         });
     });
