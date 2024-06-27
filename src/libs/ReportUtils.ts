@@ -5227,7 +5227,7 @@ function isUnread(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    if (isEmptyReport(report)) {
+    if (isEmptyReport(report) && !isSelfDM(report)) {
         return false;
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
@@ -5523,7 +5523,7 @@ function getSystemChat(): OnyxEntry<Report> {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, expense, room, and policy expense chat.
  */
-function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
+function getChatByParticipants(newParticipantList: number[], reports: OnyxCollection<Report> = allReports, shouldIncludeGroupChats = false): OnyxEntry<Report> {
     const sortedNewParticipantList = newParticipantList.sort();
     return Object.values(reports ?? {}).find((report) => {
         const participantAccountIDs = Object.keys(report?.participants ?? {});
@@ -5536,7 +5536,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
             isMoneyRequestReport(report) ||
             isChatRoom(report) ||
             isPolicyExpenseChat(report) ||
-            isGroupChat(report)
+            (isGroupChat(report) && !shouldIncludeGroupChats)
         ) {
             return false;
         }
@@ -6960,6 +6960,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         currency,
         comment,
         merchant,
+        modifiedMerchant: '',
         mccGroup,
     } as Transaction);
 

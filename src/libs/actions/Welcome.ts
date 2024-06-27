@@ -182,7 +182,6 @@ function completeHybridAppOnboarding() {
 
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value === undefined) {
             return;
