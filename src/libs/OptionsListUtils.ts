@@ -175,6 +175,7 @@ type GetOptionsConfig = {
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
+    includeDomainEmail?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1782,6 +1783,7 @@ function getOptions(
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
+        includeDomainEmail = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1913,6 +1915,10 @@ function getOptions(
             return;
         }
 
+        if (Str.isDomainEmail(option.login ?? '') && !includeDomainEmail) {
+            return;
+        }
+
         if (isThread && !includeThreads) {
             return;
         }
@@ -1937,7 +1943,9 @@ function getOptions(
         return option;
     });
 
-    const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
+    const havingLoginPersonalDetails = includeP2P
+        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
+        : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -2186,6 +2194,7 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includeInvoiceRooms = false,
+    includeDomainEmail = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2213,6 +2222,7 @@ function getFilteredOptions(
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
+            includeDomainEmail,
         },
     );
 }
