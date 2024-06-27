@@ -112,6 +112,7 @@ function subscribeToNetInfo(): () => void {
             reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID || 'unknown'}`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
+                hasPendingNetworkCheck = false;
                 if (!response.ok) {
                     return Promise.resolve(false);
                 }
@@ -123,6 +124,13 @@ function subscribeToNetInfo(): () => void {
 
             // If a check is taking longer than this time we're considered offline
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
+            reachabilityShouldRun: () => {
+                if (!hasPendingNetworkCheck) {
+                    hasPendingNetworkCheck = true;
+                    return true;
+                }
+                return false;
+            },
         });
     }
 
