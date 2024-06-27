@@ -48,6 +48,7 @@ import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
+import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
@@ -415,6 +416,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.DESKTOP_SIGN_IN_REDIRECT}
                         options={screenOptions.fullScreen}
                         component={DesktopSignInRedirectPage}
+                    />
+                    <RootStack.Screen
+                        name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
+                        options={onboardingModalScreenOptions}
+                        component={ExplanationModalNavigator}
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
