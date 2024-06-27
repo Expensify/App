@@ -2490,6 +2490,8 @@ export default {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
                         case 'quickbooksOnlineImportEmployees':
+                        case 'netSuiteSyncImportEmployees':
+                        case 'intacctImportEmployees':
                             return 'Importing employees';
                         case 'quickbooksOnlineImportAccounts':
                             return 'Importing accounts';
@@ -2500,6 +2502,7 @@ export default {
                         case 'quickbooksOnlineImportProcessing':
                             return 'Processing imported data';
                         case 'quickbooksOnlineSyncBillPayments':
+                        case 'intacctImportSyncBillPayments':
                             return 'Syncing reimbursed reports and bill payments';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importing tax codes';
@@ -2514,6 +2517,8 @@ export default {
                         case 'quickbooksOnlineSyncTitle':
                             return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':
+                        case 'xeroSyncStep':
+                        case 'intacctImportData':
                             return 'Loading data';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Updating categories';
@@ -2543,8 +2548,6 @@ export default {
                             return 'Checking Xero connection';
                         case 'xeroSyncTitle':
                             return 'Syncing Xero data';
-                        case 'xeroSyncStep':
-                            return 'Loading data';
                         case 'netSuiteSyncConnection':
                             return 'Initializing connection to NetSuite';
                         case 'netSuiteSyncCustomers':
@@ -2563,8 +2566,6 @@ export default {
                             return 'Syncing currencies';
                         case 'netSuiteSyncCategories':
                             return 'Syncing categories';
-                        case 'netSuiteSyncImportEmployees':
-                            return 'Importing employees';
                         case 'netSuiteSyncReportFields':
                             return 'Importing data as Expensify report fields';
                         case 'netSuiteSyncTags':
@@ -2575,6 +2576,10 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'intacctCheckConnection':
+                            return 'Checking Sage Intacct connection';
+                        case 'intacctImportDimensions':
+                            return 'Importing dimensions';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
