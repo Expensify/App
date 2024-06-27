@@ -95,6 +95,10 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
 
     useEffect(() => {
+        if (!areOptionsInitialized) {
+            return;
+        }
+
         const newUsersToInviteDict: Record<number, OptionData> = {};
         const newPersonalDetailsDict: Record<number, OptionData> = {};
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
@@ -154,7 +158,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers]);
+    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers, areOptionsInitialized]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];

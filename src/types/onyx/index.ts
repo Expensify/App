@@ -55,7 +55,7 @@ import type RecentlyUsedTags from './RecentlyUsedTags';
 import type RecentWaypoint from './RecentWaypoint';
 import type ReimbursementAccount from './ReimbursementAccount';
 import type Report from './Report';
-import type {ReportActionBase, ReportActions} from './ReportAction';
+import type {ReportActions} from './ReportAction';
 import type ReportAction from './ReportAction';
 import type ReportActionReactions from './ReportActionReactions';
 import type ReportActionsDraft from './ReportActionsDraft';
@@ -66,6 +66,7 @@ import type ReportNextStep from './ReportNextStep';
 import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
+import type ReviewDuplicates from './ReviewDuplicates';
 import type ScreenShareRequest from './ScreenShareRequest';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
@@ -75,6 +76,7 @@ import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
+import type {TravelSettings} from './TravelSettings';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
@@ -161,6 +163,7 @@ export type {
     Transaction,
     TransactionViolation,
     TransactionViolations,
+    TravelSettings,
     User,
     UserLocation,
     UserMetadata,
@@ -178,7 +181,6 @@ export type {
     RecentlyUsedReportFields,
     DecisionName,
     OriginalMessageIOU,
-    ReportActionBase,
     LastPaymentMethod,
     LastSelectedDistanceRates,
     InvitedEmailsToAccountIDs,
@@ -187,6 +189,7 @@ export type {
     PolicyJoinMember,
     CapturedLogs,
     SearchResults,
+    ReviewDuplicates,
     PrivateSubscription,
     BillingGraceEndPeriod,
 };

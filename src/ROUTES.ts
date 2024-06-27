@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
-import type {CentralPaneNavigatorParamList} from './libs/Navigation/types';
+import type {AuthScreensParamList} from './libs/Navigation/types';
 import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -37,7 +37,7 @@ const ROUTES = {
 
     SEARCH: {
         route: '/search/:query',
-        getRoute: (searchQuery: SearchQuery, queryParams?: CentralPaneNavigatorParamList['Search_Central_Pane']) => {
+        getRoute: (searchQuery: SearchQuery, queryParams?: AuthScreensParamList['Search_Central_Pane']) => {
             const {sortBy, sortOrder} = queryParams ?? {};
 
             if (!sortBy && !sortOrder) {
@@ -95,6 +95,7 @@ const ROUTES = {
     WORKSPACE_SWITCHER: 'workspace-switcher',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
@@ -107,6 +108,8 @@ const ROUTES = {
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize}` as const,
     },
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
+    SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
+    SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
@@ -776,6 +779,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
         getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
+    WORKSPACE_REPORT_FIELDS: {
+        route: 'settings/workspaces/:policyID/reportFields',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
+    },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -823,6 +830,11 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
+    TRANSACTION_DUPLICATE_REVIEW_PAGE: {
+        route: 'r/:threadReportID/duplicates/review',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
+    },
+
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
@@ -907,6 +919,14 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/net-suite/subsidiary-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary-selector` as const,
+    },
+    RESTRICTED_ACTION: {
+        route: 'restricted-action/workspace/:policyID',
+        getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
 } as const;
 

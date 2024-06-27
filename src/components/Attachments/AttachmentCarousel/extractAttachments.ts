@@ -94,9 +94,9 @@ function extractAttachments(
             return;
         }
 
-        const decision = action?.message?.[0]?.moderationDecision?.decision;
+        const decision = ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = (action?.message?.[0]?.html ?? '').replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
+        const html = ReportActionsUtils.getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
         htmlParser.write(html);
     });
     htmlParser.end();

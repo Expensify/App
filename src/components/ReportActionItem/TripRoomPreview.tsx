@@ -18,6 +18,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportActionText} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TripReservationUtils from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -123,7 +124,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmountValue = '';
-        const actionMessage = action.message?.[0]?.text ?? '';
+        const actionMessage = getReportActionText(action) ?? '';
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {
@@ -135,7 +136,7 @@ function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnch
         });
 
         return displayAmountValue;
-    }, [action.message, iouReport?.currency, totalDisplaySpend]);
+    }, [action, iouReport?.currency, totalDisplaySpend]);
 
     return (
         <OfflineWithFeedback
