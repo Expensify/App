@@ -33,7 +33,7 @@ function TravelDetails({transactionID}: TravelDetailsProps) {
         to: 'San Francisco (SFO)',
         confirmationNo: 'ESKDK',
         type: CONST.RESERVATION_TYPE.FLIGHT,
-    }
+    };
 
     const reservationIcon = TripReservationUtils.getTripReservationIcon(CONST.RESERVATION_TYPE.FLIGHT);
 
