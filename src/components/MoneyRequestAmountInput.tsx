@@ -88,7 +88,6 @@ type MoneyRequestAmountInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
-
     shouldResetAmount?: boolean;
 
     onResetAmount?: (resetValue: boolean) => void;
@@ -210,7 +209,6 @@ function MoneyRequestAmountInput(
     useEffect(() => {
         const shouldExitEarly = (!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput;
         const frontendAmount = onFormatAmount(amount, currency);
-
         if (shouldResetAmount) {
             setCurrentAmount(frontendAmount);
             setSelection({
@@ -238,7 +236,7 @@ function MoneyRequestAmountInput(
 
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount, shouldKeepUserInput]);
+    }, [amount, shouldKeepUserInput, shouldResetAmount]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
