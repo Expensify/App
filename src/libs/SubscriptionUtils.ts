@@ -197,7 +197,7 @@ function getCardForSubscriptionBilling(): Fund | undefined {
  * @returns Whether the card is due to expire soon.
  */
 function hasCardExpiringSoon(): boolean {
-    if (!isEmptyObject(billingStatus ?? {})) {
+    if (!isEmptyObject(billingStatus)) {
         return false;
     }
 
@@ -207,7 +207,15 @@ function hasCardExpiringSoon(): boolean {
         return false;
     }
 
-    return card?.accountData?.cardYear === new Date().getFullYear() && card?.accountData?.cardMonth === new Date().getMonth() + 1;
+    const cardYear = card?.accountData?.cardYear;
+    const cardMonth = card?.accountData?.cardMonth;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+
+    const isExpiringThisMonth = cardYear === currentYear && cardMonth === currentMonth;
+    const isExpiringNextMonth = cardYear === (currentMonth === 12 ? currentYear + 1 : currentYear) && cardMonth === (currentMonth === 12 ? 1 : currentMonth + 1);
+
+    return isExpiringThisMonth || isExpiringNextMonth;
 }
 
 /**

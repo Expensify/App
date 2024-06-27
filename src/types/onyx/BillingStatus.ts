@@ -3,10 +3,10 @@ type BillingStatus = {
     /** Status action */
     action: string;
 
-    /** Billing's period month */
+    /** Billing period month */
     periodMonth: string;
 
-    /** Billing's period year */
+    /** Billing period year */
     periodYear: string;
 
     /** Decline reason */

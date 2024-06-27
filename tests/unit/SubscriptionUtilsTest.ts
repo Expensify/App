@@ -276,10 +276,6 @@ describe('SubscriptionUtils', () => {
     });
 
     describe('getSubscriptionStatus', () => {
-        afterEach(() => {
-            // Onyx.clear();
-        });
-
         it('should return undefined by default', () => {
             expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
         });

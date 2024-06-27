@@ -1,4 +1,4 @@
-/** Model of stripe customer */
+/** Model of Stripe customer */
 type StripeCustomerID = {
     /** Payment method's ID */
     paymentMethodID: string;
