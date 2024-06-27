@@ -304,7 +304,7 @@ describe('Pagination', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // We now have 10 messages. 5 from the initial OpenReport and 3 from GetOlderActions.
+        // We now have 8 messages. 5 from the initial OpenReport and 3 from GetOlderActions.
         // GetOlderActions only returns 3 actions since it reaches id '1', which is the created action.
         expect(getReportActions()).toHaveLength(8);
     });
