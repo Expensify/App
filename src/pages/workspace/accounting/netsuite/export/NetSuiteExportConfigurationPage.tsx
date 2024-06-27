@@ -183,6 +183,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                         case 'divider':
                             return <View style={styles.dividerLine} />;
                         case 'toggle':
+                            // eslint-disable-next-line no-case-declarations
                             const {type, shouldHide, ...rest} = item;
                             return (
                                 <ToggleSettingOptionRow
