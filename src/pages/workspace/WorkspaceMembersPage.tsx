@@ -98,12 +98,12 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const policyID = route.params.policyID;
 
     const confirmModalPrompt = useMemo(() => {
-        const approvalAccountID = selectedEmployees.find((selectedEmployee) => Member.isApproval(policy, selectedEmployee));
-        if (!approvalAccountID) {
+        const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
+        if (!approverAccountID) {
             return translate('workspace.people.removeMembersPrompt');
         }
         return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant(approvalAccountID),
+            memberName: getDisplayNameForParticipant(approverAccountID),
             ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
         });
     }, [selectedEmployees, policy, translate]);

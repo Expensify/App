@@ -101,7 +101,8 @@ Onyx.connect({
     },
 });
 
-function isApproval(policy: OnyxEntry<Policy>, employeeAccountID: number) {
+/** Check if the passed employee is an approver in the policy's employeeList */
+function isApprover(policy: OnyxEntry<Policy>, employeeAccountID: number) {
     const employeeLogin = allPersonalDetails?.[employeeAccountID]?.login;
     return Object.values(policy?.employeeList ?? {}).some(
         (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
@@ -844,7 +845,7 @@ export {
     inviteMemberToWorkspace,
     acceptJoinRequest,
     declineJoinRequest,
-    isApproval,
+    isApprover,
 };
 
 export type {NewCustomUnit};
