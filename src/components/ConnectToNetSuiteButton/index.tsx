@@ -1,21 +1,18 @@
 import React, {useState} from 'react';
 import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import Button from '@components/Button';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
-import * as Link from '@userActions/Link';
-import * as PolicyAction from '@userActions/Policy/Policy';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import type {ConnectToQuickbooksOnlineButtonProps} from './types';
+import ROUTES from '@src/ROUTES';
+import type {ConnectToNetSuiteButtonProps} from './types';
 
-function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineButtonProps) {
+function ConnectToNetSuiteButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToNetSuiteButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -28,23 +25,25 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                         setIsDisconnectModalOpen(true);
                         return;
                     }
-                    // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-                    PolicyAction.enablePolicyTaxes(policyID, false);
-                    Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
+
+                    // TODO: Will be updated to new token input page
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
                 }}
-                isDisabled={isOffline}
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
+                isDisabled={isOffline}
             />
-            {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
+            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
-                        Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
+
+                        // TODO: Will be updated to new token input page
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
                         setIsDisconnectModalOpen(false);
                     }}
-                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.QBO}
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
                     onCancel={() => setIsDisconnectModalOpen(false)}
                 />
             )}
@@ -52,6 +51,4 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     );
 }
 
-ConnectToQuickbooksOnlineButton.displayName = 'ConnectToQuickbooksOnlineButton';
-
-export default ConnectToQuickbooksOnlineButton;
+export default ConnectToNetSuiteButton;
