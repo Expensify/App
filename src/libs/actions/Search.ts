@@ -109,10 +109,4 @@ function unholdMoneyRequestOnSearch(searchHash: number, transactionIDList: strin
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, commandPayload, {optimisticData, finallyData});
 }
 
-// These actions will be implemented at a later point
-// function payMoneyRequest() {}
-// function approveMoneyRequest() {}
-// function holdMoneyRequest() {}
-// function submitMoneyRequest() {}
-
 export {search, createTransactionThread, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};

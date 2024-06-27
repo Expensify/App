@@ -289,7 +289,7 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
 }
 
 function getTransactionActionCommand(
-    action: Omit<SearchTransactionAction, 'view' | 'done' | 'paid'>,
+    action: Omit<SearchTransactionAction, typeof CONST.SEARCH.ACTION_TYPES.VIEW | typeof CONST.SEARCH.ACTION_TYPES.DONE | typeof CONST.SEARCH.ACTION_TYPES.PAID>,
 ): ((searchHash: number, transactionIDList: string[], comment?: string) => void) | undefined {
     if (action === 'hold') {
         return SearchActions.holdMoneyRequestOnSearch;
