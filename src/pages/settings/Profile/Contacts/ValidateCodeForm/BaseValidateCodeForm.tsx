@@ -73,6 +73,7 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isInitialCodeSent = useRef<boolean>(false);
 
     useImperativeHandle(innerRef, () => ({
         focus() {
@@ -120,6 +121,16 @@ function BaseValidateCodeForm({account = {}, contactMethod, hasMagicCodeBeenSent
         // contactMethod is not added as a dependency since it does not change between renders
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // when user first time opens validate code form we need to trigger API to send a code.
+    // otherwise user will need to click on re-send code button
+    useEffect(() => {
+        if (isInitialCodeSent.current || hasMagicCodeBeenSent || (!hasMagicCodeBeenSent && loginData?.pendingFields?.validateCodeSent)) {
+            return;
+        }
+        isInitialCodeSent.current = true;
+        User.requestContactMethodValidateCode(contactMethod);
+    }, [contactMethod, hasMagicCodeBeenSent, loginData?.pendingFields?.validateCodeSent]);
 
     useEffect(() => {
         if (!hasMagicCodeBeenSent) {
