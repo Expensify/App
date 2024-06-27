@@ -38,6 +38,15 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
      * */
     icon?: IconAsset;
 
+    /** Icon Width */
+    iconWidth?: number;
+
+    /** Icon Height */
+    iconHeight?: number;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
