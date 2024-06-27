@@ -1,19 +1,24 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {StyleProp, View, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import variables from '@styles/variables';
+import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type WorkspaceCardsListLabelProps = {
     /** Label type */
@@ -29,11 +34,15 @@ type WorkspaceCardsListLabelProps = {
 function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isVisible, setVisible] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({top: 0, left: 0});
     const anchorRef = useRef(null);
+
+    const isConnectedWithPlaid = useMemo(() => !!Object.values(bankAccountList ?? {})[0]?.accountData?.additionalData?.plaidAccountID, [bankAccountList]);
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -48,6 +57,13 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             left: position.left,
         });
     }, [isVisible, windowWidth]);
+
+    const requestLimitIncrease = () => {
+        // TODO: uncomment code below when API call is supported
+        // Policy.requestExpensifyCardLimitIncrease(settlementBankAccountID);
+        setVisible(false);
+        Report.navigateToConciergeChat();
+    };
 
     return (
         <View style={styles.flex1}>
@@ -75,7 +91,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             <Popover
                 onClose={() => setVisible(false)}
                 isVisible={isVisible}
-                innerContainerStyle={{maxWidth: variables.modalContentMaxWidth}}
+                outerStyle={!shouldUseNarrowLayout ? styles.pr5 : undefined}
+                innerContainerStyle={!shouldUseNarrowLayout ? {maxWidth: variables.modalContentMaxWidth} : undefined}
                 anchorRef={anchorRef}
                 anchorPosition={anchorPosition}
             >
@@ -87,6 +104,17 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         {translate(`workspace.expensifyCard.${type}`)}
                     </Text>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate(`workspace.expensifyCard.${type}Description`)}</Text>
+
+                    {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
+                        <View style={[styles.flexRow, styles.mt2]}>
+                            <Button
+                                medium
+                                onPress={requestLimitIncrease}
+                                text={translate('workspace.expensifyCard.requestLimitIncrease')}
+                                style={shouldUseNarrowLayout && styles.flex1}
+                            />
+                        </View>
+                    )}
                 </View>
             </Popover>
         </View>

@@ -73,7 +73,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
 
     const fetchExpensifyCards = useCallback(() => {
         // TODO: uncomment code below when API call is supported
-        // openPolicyExpensifyCardsPage(policyID);
+        // Policy.openPolicyExpensifyCardsPage(policyID);
     }, [policyID]);
 
     useFocusEffect(fetchExpensifyCards);
