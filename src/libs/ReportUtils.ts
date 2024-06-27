@@ -6960,6 +6960,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         currency,
         comment,
         merchant,
+        modifiedMerchant: '',
         mccGroup,
     } as Transaction);
 
