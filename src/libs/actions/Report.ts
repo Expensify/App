@@ -1,3 +1,4 @@
+import {findFocusedRoute} from '@react-navigation/native';
 import {format as timezoneFormat, utcToZonedTime} from 'date-fns-tz';
 import {ExpensiMark, Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
@@ -58,7 +59,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isOnboardingFlowName} from '@libs/NavigationUtils';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
@@ -2545,7 +2547,13 @@ function openReportFromDeepLink(url: string, shouldNavigate = true) {
                     return;
                 }
 
+                const state = navigationRef.getRootState();
+                const currentFocusedRoute = findFocusedRoute(state);
                 if (shouldSkipDeepLinkNavigation(route)) {
+                    return;
+                }
+
+                if (isOnboardingFlowName(currentFocusedRoute?.name)) {
                     return;
                 }
 
@@ -2553,7 +2561,7 @@ function openReportFromDeepLink(url: string, shouldNavigate = true) {
                     return;
                 }
 
-                // Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
     });
