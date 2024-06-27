@@ -7,7 +7,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import useIsEligibleForRefund from '@hooks/useIsEligibleForRefund';
 import useLocalize from '@hooks/useLocalize';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -31,9 +30,9 @@ function CardSection() {
     const theme = useTheme();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const subscriptionPlan = useSubscriptionPlan();
-    const isEligibleForRefund = useIsEligibleForRefund();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.isDefault), [fundList]);
 
@@ -91,24 +90,25 @@ function CardSection() {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.viewPaymentHistory')}
                         titleStyle={styles.textStrong}
+                        style={styles.mt5}
                         onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
-                {!!(subscriptionPlan && isEligibleForRefund) && (
+                {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
                         icon={Expensicons.Bill}
                         wrapperStyle={styles.sectionMenuItemTopDescription}
-                        style={styles.mt5}
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
+                        disabled={network?.isOffline}
                         onPress={() => setIsRequestRefundModalVisible(true)}
                     />
                 )}
             </Section>
 
-            {isEligibleForRefund && (
+            {account?.isEligibleForRefund && (
                 <ConfirmModal
                     title={translate('subscription.cardSection.requestRefund')}
                     isVisible={isRequestRefundModalVisible}
