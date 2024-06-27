@@ -88,7 +88,10 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAcce
     }
 
     if (screenName === SCREENS.REPORT) {
-        return {openOnAdminRoom: shouldOpenOnAdminRoom(), reportID: lastAccessedReportID};
+        return {
+            openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
+            reportID: lastAccessedReportID,
+        };
     }
 
     return undefined;
