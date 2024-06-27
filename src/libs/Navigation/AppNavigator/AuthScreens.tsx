@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -76,16 +77,21 @@ const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/Rep
 const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
+function shouldOpenOnAdminRoom() {
     const url = getCurrentUrl();
-    const openOnAdminRoom = url ? new URL(url).searchParams.get('openOnAdminRoom') : undefined;
+    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
+}
 
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAccessedReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
     }
 
-    if (screenName === SCREENS.REPORT && openOnAdminRoom === 'true') {
-        return {openOnAdminRoom: true};
+    if (screenName === SCREENS.REPORT) {
+        return {
+            openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
+            reportID: lastAccessedReportID,
+        };
     }
 
     return undefined;
@@ -191,6 +197,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const lastAccessedReportID = useLastAccessedReportID(shouldOpenOnAdminRoom());
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
     const onboardingScreenOptions = useMemo(
@@ -461,7 +468,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, lastAccessedReportID)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
                             />
