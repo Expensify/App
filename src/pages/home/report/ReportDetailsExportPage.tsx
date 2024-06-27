@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
@@ -32,44 +32,47 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const canBeExported = ReportUtils.canBeExported(report);
     const integrationText = ReportUtils.getIntegrationDisplayName(integrationName);
 
-    const exportSelectorOptions: SelectorType[] = [
-        {
-            value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-            text: integrationText,
-            icons: [
-                {
-                    source: iconToDisplay ?? '',
-                    type: 'avatar',
+    const exportSelectorOptions: SelectorType[] = useMemo(
+        () => [
+            {
+                value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
+                text: integrationText,
+                icons: [
+                    {
+                        source: iconToDisplay ?? '',
+                        type: 'avatar',
+                    },
+                ],
+                isDisabled: !canBeExported,
+                onPress: () => {
+                    if (ReportUtils.isExported(report)) {
+                        setShouldShowModal(true);
+                    } else {
+                        Report.exportToIntegration(reportID, integrationName);
+                    }
                 },
-            ],
-            isDisabled: !canBeExported,
-            onPress: () => {
-                if (ReportUtils.isExported(report)) {
-                    setShouldShowModal(true);
-                } else {
-                    Report.exportToIntegration(reportID, integrationName);
-                }
             },
-        },
-        {
-            value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-            text: translate('workspace.common.markAsExported'),
-            icons: [
-                {
-                    source: iconToDisplay ?? '',
-                    type: 'avatar',
+            {
+                value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
+                text: translate('workspace.common.markAsExported'),
+                icons: [
+                    {
+                        source: iconToDisplay ?? '',
+                        type: 'avatar',
+                    },
+                ],
+                isDisabled: !canBeExported,
+                onPress: () => {
+                    if (ReportUtils.isExported(report)) {
+                        setShouldShowModal(true);
+                    } else {
+                        Report.markAsManuallyExported(reportID);
+                    }
                 },
-            ],
-            isDisabled: !canBeExported,
-            onPress: () => {
-                if (ReportUtils.isExported(report)) {
-                    setShouldShowModal(true);
-                } else {
-                    Report.markAsManuallyExported(reportID);
-                }
             },
-        },
-    ];
+        ],
+        [canBeExported, iconToDisplay, integrationName, integrationText, report, reportID, translate],
+    );
 
     if (!canBeExported) {
         return (

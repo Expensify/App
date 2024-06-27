@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
@@ -8,12 +9,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Report} from '@src/types/onyx';
 
 type ExportWithDropdownMenuProps = {
-    report: OnyxTypes.Report;
-
-    policy: OnyxTypes.Policy;
+    report: OnyxEntry<Report>;
 
     integrationName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 };

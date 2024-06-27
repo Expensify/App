@@ -441,7 +441,6 @@ function ReportPreview({
                                 )}
                                 {shouldShowExportIntegrationButton && (
                                     <ExportWithDropdownMenu
-                                        policy={policy}
                                         report={iouReport}
                                         integrationName={connectedIntegration}
                                     />
