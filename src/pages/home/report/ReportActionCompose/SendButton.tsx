@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import { runOnJS } from 'react-native-reanimated';
 
 type SendButtonProps = {
     /** Whether the button is disabled */
@@ -25,7 +26,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const Tap = Gesture.Tap().onEnd(() => {
-        handleSendMessage();
+        runOnJS(handleSendMessage)();
     });
 
     return (

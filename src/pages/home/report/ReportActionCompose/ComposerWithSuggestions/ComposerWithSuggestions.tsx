@@ -279,14 +279,17 @@ function ComposerWithSuggestions(
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const draftComment = getDraftComment(reportID) ?? '';
-    const [value, setValue] = useState(() => {
+    const [value, setValueInternal] = useState(() => {
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
         return draftComment;
     });
     const valueRef = useRef(value);
-    valueRef.current = value;
+    const setValue = useCallback((newValue: string) => {
+        valueRef.current = newValue;
+        setValueInternal(newValue);
+    }, []);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -384,6 +387,7 @@ function ComposerWithSuggestions(
         isCommentPendingSaved.current = false;
 
         setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
+        // inputRef.current?.clear(); // I think there is no use doing that here, if JS lags behind this will have no effect anyway
         setValue('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
@@ -391,7 +395,7 @@ function ComposerWithSuggestions(
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
+    }, [reportID, debouncedSaveReportComment, setValue, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable]);
 
     const triggerHotkeyActions = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
@@ -493,7 +497,7 @@ function ComposerWithSuggestions(
         if (newCommentConverted) {
             debouncedBroadcastUserIsTyping(reportID);
         }
-    }, [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, raiseIsScrollLikelyLayoutTriggered, reportID, selection.end, suggestionsRef])
+    }, [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, raiseIsScrollLikelyLayoutTriggered, reportID, selection.end, setValue, suggestionsRef])
 
     // This contains the previous value that we receive directly from the native text input (not our formatted value)
     const prevNativeTextRef = useRef(value);
