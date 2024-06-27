@@ -2479,7 +2479,7 @@ export default {
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
                     integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'esta integración contable';
-                return `¿Estás seguro de que quieres conectar a${integrationName}? Esto eliminará cualquier conexión contable existente.`;
+                return `¿Estás seguro de que quieres conectar a ${integrationName}? Esto eliminará cualquier conexión contable existente.`;
             },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
