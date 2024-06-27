@@ -1,6 +1,6 @@
 import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import type {FullScreenNavigatorParamList} from '@navigation/types';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy/Policy';
 import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -96,6 +97,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const activeRoute = useNavigationState(getTopmostRouteName);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const wasRendered = useRef(false);
 
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const policyFeatureStates = useMemo(
@@ -341,9 +343,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         if (!shouldShowNotFoundPage && canAccessRoute) {
             return;
         }
+        if (CONFIG.USE_REACT_STRICT_MODE && wasRendered.current) {
+            return;
+        }
+        wasRendered.current = true;
         // We are dismissing any modals that are open when the NotFound view is shown
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissRHP();
+            Navigation.closeRHPFlow();
         });
     }, [canAccessRoute, shouldShowNotFoundPage]);
 
