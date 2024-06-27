@@ -98,10 +98,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // Only the requestor can delete the request, admins can only edit it.
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
+    const canDeleteRequest = isActionOwner && ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) && !isDeletedParentAction;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
-    const canDeleteRequest =
-        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
@@ -249,14 +248,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
         const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(moneyRequestReport);
         const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
+        const isInvoiceReport = ReportUtils.isInvoiceReport(moneyRequestReport);
+        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus)) && !isInvoiceReport) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdExpense'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning && !isInvoiceReport) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.hold'),
