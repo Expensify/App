@@ -15,48 +15,110 @@ import usePermissions from './usePermissions';
  * So we have a custom implementation in this file that leverages useSyncExternalStore to connect to a "store" of multiple Onyx values, and re-render only when the one derived value changes.
  */
 
+const subscribers: Array<() => void> = [];
+
 let reports: OnyxCollection<Report> = {};
 let reportMetadata: OnyxCollection<ReportMetadata> = {};
 let policies: OnyxCollection<Policy> = {};
 let accountID: number | undefined;
 let isFirstTimeNewExpensifyUser = false;
 
+let reportsConnection: number;
+let reportMetadataConnection: number;
+let policiesConnection: number;
+let accountIDConnection: number;
+let isFirstTimeNewExpensifyUserConnection: number;
+
+function notifySubscribers() {
+    subscribers.forEach((subscriber) => subscriber());
+}
+
 function subscribeToOnyxData() {
     // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-    const reportsConnection = Onyx.connect({
+    reportsConnection = Onyx.connect({
         key: ONYXKEYS.COLLECTION.REPORT,
         waitForCollectionCallback: true,
-        callback: (value) => (reports = value),
+        callback: (value) => {
+            reports = value;
+            notifySubscribers();
+        },
     });
     // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-    const reportMetadataConnection = Onyx.connect({
+    reportMetadataConnection = Onyx.connect({
         key: ONYXKEYS.COLLECTION.REPORT_METADATA,
         waitForCollectionCallback: true,
-        callback: (value) => (reportMetadata = value),
+        callback: (value) => {
+            reportMetadata = value;
+            notifySubscribers();
+        },
     });
     // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-    const policiesConnection = Onyx.connect({
+    policiesConnection = Onyx.connect({
         key: ONYXKEYS.COLLECTION.POLICY,
         waitForCollectionCallback: true,
-        callback: (value) => (policies = value),
+        callback: (value) => {
+            policies = value;
+            notifySubscribers();
+        },
     });
     // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-    const isFirstTimeNewExpensifyUserConnection = Onyx.connect({
-        key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-        callback: (value) => (isFirstTimeNewExpensifyUser = !!value),
-    });
-    // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
-    const accountIDConnection = Onyx.connect({
+    accountIDConnection = Onyx.connect({
         key: ONYXKEYS.SESSION,
-        callback: (value) => (accountID = value?.accountID),
+        callback: (value) => {
+            accountID = value?.accountID;
+            notifySubscribers();
+        },
     });
-    return () => {
+    // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+    isFirstTimeNewExpensifyUserConnection = Onyx.connect({
+        key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+        callback: (value) => {
+            isFirstTimeNewExpensifyUser = !!value;
+            notifySubscribers();
+        },
+    });
+}
+
+function unsubscribeFromOnyxData() {
+    if (reportsConnection) {
         Onyx.disconnect(reportsConnection);
+        reportsConnection = 0;
+    }
+    if (reportMetadataConnection) {
         Onyx.disconnect(reportMetadataConnection);
+        reportMetadataConnection = 0;
+    }
+    if (policiesConnection) {
         Onyx.disconnect(policiesConnection);
-        Onyx.disconnect(isFirstTimeNewExpensifyUserConnection);
+        policiesConnection = 0;
+    }
+    if (accountIDConnection) {
         Onyx.disconnect(accountIDConnection);
-    };
+        accountIDConnection = 0;
+    }
+    if (isFirstTimeNewExpensifyUserConnection) {
+        Onyx.disconnect(isFirstTimeNewExpensifyUserConnection);
+        isFirstTimeNewExpensifyUserConnection = 0;
+    }
+}
+
+function removeSubscriber(subscriber: () => void) {
+    const subscriberIndex = subscribers.indexOf(subscriber);
+    if (subscriberIndex < 0) {
+        return;
+    }
+    subscribers.splice(subscriberIndex, 1);
+    if (subscribers.length === 0) {
+        unsubscribeFromOnyxData();
+    }
+}
+
+function addSubscriber(subscriber: () => void) {
+    subscribers.push(subscriber);
+    if (!reportsConnection) {
+        subscribeToOnyxData();
+    }
+    return () => removeSubscriber(subscriber);
 }
 
 /**
@@ -82,5 +144,5 @@ export default function useLastAccessedReportID(shouldOpenOnAdminRoom: boolean) 
 
     // We need access to all the data from these useOnyx calls, but we don't want to re-render the consuming component
     // unless the derived value (lastAccessedReportID) changes. To address these, we'll wrap everything with
-    return useSyncExternalStore(subscribeToOnyxData, getSnapshot);
+    return useSyncExternalStore(addSubscriber, getSnapshot);
 }
