@@ -8,13 +8,16 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Email of the user */
     email?: string;
 
-    /** Email of the user this user forwards all approved reports to */
+    /** Determines if this employee should approve a report. If report total > approvalLimit, next approver will be 'overLimitForwardsTo', otherwise 'forwardsTo' */
+    approvalLimit?: number;
+
+    /** Email of the user this user forwards all approved reports to (when report total under 'approvalLimit' or when 'overLimitForwardsTo' is not set) */
     forwardsTo?: string;
 
     /** Email of the user this user submits all reports to */
     submitsTo?: string;
 
-    /** Email of the user this user forwards all reports when the amount of the report is over limited */
+    /** Email of the user this user forwards all reports to when the report total is over the 'approvalLimit' */
     overLimitForwardsTo?: string;
 
     /**
