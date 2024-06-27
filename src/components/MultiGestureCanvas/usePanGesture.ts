@@ -47,8 +47,8 @@ const usePanGesture = ({
     onSwipeDown,
 }: UsePanGestureProps): PanGesture => {
     // The content size after fitting it to the canvas and zooming
-    const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width, totalScale.value]);
-    const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height, totalScale.value]);
+    const zoomedContentWidth = useDerivedValue(() => contentSize.width * totalScale.value, [contentSize.width]);
+    const zoomedContentHeight = useDerivedValue(() => contentSize.height * totalScale.value, [contentSize.height]);
 
     // Used to track previous touch position for the "swipe down to close" gesture
     const previousTouch = useSharedValue<{x: number; y: number} | null>(null);
