@@ -18,7 +18,6 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
-import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
 import Bank from '@assets/images/bank.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
@@ -43,6 +42,7 @@ import ChatBubbles from '@assets/images/chatbubbles.svg';
 import CheckCircle from '@assets/images/check-circle.svg';
 import CheckmarkCircle from '@assets/images/checkmark-circle.svg';
 import Checkmark from '@assets/images/checkmark.svg';
+import CircularArrowBackwards from '@assets/images/circular-arrow-backwards.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
