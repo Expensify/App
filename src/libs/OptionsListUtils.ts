@@ -176,7 +176,6 @@ type GetOptionsConfig = {
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
-    isSearchingForReports?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1789,7 +1788,6 @@ function getOptions(
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
-        isSearchingForReports = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1851,6 +1849,8 @@ function getOptions(
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
     const topmostReportId = Navigation.getTopmostReportId() ?? '-1';
+
+    const isSearchingForReports = !!searchInputValue.length;
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
@@ -2517,7 +2517,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             // - Policy rooms
             // - Invoice rooms
             // - Trip rooms
-            if (item.isSearchableViaParticipants) {
+            if (ReportUtils.isSearchableViaParticipants({
+                reportID: item.reportID,
+                type: item.type,
+                chatType: item.chatType
+            })) {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
