@@ -36,29 +36,15 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                 text: translate('common.export'),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
-                onSelected: () => {
-                    if (ReportUtils.isExported(report)) {
-                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-                    } else if (reportID) {
-                        ReportActions.exportToIntegration(reportID, integrationName);
-                    }
-                },
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 text: translate('workspace.common.markAsExported'),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
-                onSelected: () => {
-                    if (ReportUtils.isExported(report)) {
-                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-                    } else if (reportID) {
-                        ReportActions.exportToIntegration(reportID, integrationName);
-                    }
-                },
             },
         ],
-        [canBeExported, iconToDisplay, integrationName, report, reportID, translate],
+        [canBeExported, iconToDisplay, translate],
     );
 
     const confirmExport = useCallback(() => {
@@ -83,10 +69,21 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
-                onPress={() => {}}
-                onOptionSelected={() => {
-                    // do logic with API calls depending on the option, "export" or "markAsExported"
+                onPress={(_, value) => {
+                    if (ReportUtils.isExported(report)) {
+                        setModalStatus(value);
+                        return;
+                    }
+                    if (!reportID) {
+                        return;
+                    }
+                    if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+                        ReportActions.exportToIntegration(reportID, integrationName);
+                    } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+                        ReportActions.markAsManuallyExported(reportID);
+                    }
                 }}
+                onOptionSelected={() => {}}
                 options={dropdownOptions}
                 customText={translate('workspace.common.exportIntegrationSelected', {integrationName})}
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
