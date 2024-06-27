@@ -1993,6 +1993,7 @@ export default {
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
+            expensifyCard: 'Tarjeta Expensify',
             members: 'Miembros',
             accounting: 'Contabilidad',
             plan: 'Plan',
@@ -2277,6 +2278,10 @@ export default {
             integrateSection: {
                 title: 'Integrar',
                 subtitle: 'Conecta Expensify a otros productos financieros populares.',
+            },
+            expensifyCard: {
+                title: 'Tarjeta Expensify',
+                subtitle: 'Obtén información y control sobre tus gastos',
             },
             distanceRates: {
                 title: 'Tasas de distancia',

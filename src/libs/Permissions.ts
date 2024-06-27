@@ -4,7 +4,7 @@ import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+    return true;
 }
 
 function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
@@ -48,6 +48,10 @@ function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
 }
 
+function canUseExpensifyCardFeature(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.EXPENSIFY_CARD_FEATURE) || canUseAllBetas(betas);
+}
+
 function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
@@ -71,5 +75,6 @@ export default {
     canUseSpotnanaTravel,
     canUseNetSuiteIntegration,
     canUseReportFieldsFeature,
+    canUseExpensifyCardFeature,
     canUseWorkspaceFeeds,
 };

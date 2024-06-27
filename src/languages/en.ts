@@ -1994,6 +1994,7 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
+            expensifyCard: 'Expensify Card',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
@@ -2246,6 +2247,10 @@ export default {
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                subtitle: 'Gain insights and control over spend',
             },
             workflows: {
                 title: 'Workflows',

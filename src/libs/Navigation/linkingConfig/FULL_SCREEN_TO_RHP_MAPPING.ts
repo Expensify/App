@@ -86,6 +86,7 @@ const FULL_SCREEN_TO_RHP_MAPPING: Partial<Record<FullScreenName, string[]>> = {
         SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS,
     ],
     [SCREENS.WORKSPACE.REPORT_FIELDS]: [],
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: [],
 };
 
 export default FULL_SCREEN_TO_RHP_MAPPING;

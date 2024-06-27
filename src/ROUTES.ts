@@ -787,6 +787,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD: {
+        route: 'settings/workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'settings/workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
