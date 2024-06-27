@@ -28,7 +28,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         return {
             title: policy.name,
             key: policy.id,
-            icon: policy.avatarURL ?? ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+            icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
             onPress: () => {
