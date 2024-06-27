@@ -2163,7 +2163,7 @@ export default {
                 values: {
                     [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
-                        description: 'The date of the most recent expense on the report',
+                        description: 'Date of the most recent expense on the report.',
                     },
                     [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
