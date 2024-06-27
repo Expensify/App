@@ -20,8 +20,8 @@ type ConnectionLayoutProps = {
     /** Used to set the testID for tests */
     displayName: string;
 
-    /* The fallback route to go back to */
-    onBackButtonPressFallbackRoute?: Route;
+    /* The route on back button press */
+    onBackButtonPressRoute?: Route;
 
     /** Header title to be translated for the connection component */
     headerTitle?: TranslationPaths;
@@ -130,7 +130,7 @@ function ConnectionLayout({
                 <HeaderWithBackButton
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle) : '')}
                     subtitle={headerSubtitle}
-                    onBackButtonPress={() => Navigation.goBack(onBackButtonPressFallbackRoute)}
+                    onBackButtonPress={() => Navigation.goBack(onBackButtonPressRoute)}
                 />
                 {shouldUseScrollView ? (
                     <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
