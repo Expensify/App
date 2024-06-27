@@ -19,11 +19,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportActionMessage} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
@@ -108,16 +110,41 @@ function ReportActionItemSingle({
     }
 
     // If this is a report preview, display names and avatars of both people involved
-    const secondaryAvatar = ReportUtils.getSecondaryAvatar(report, iouReport, displayAllActors, isWorkspaceActor, actorAccountID);
+    let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-        const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
-        const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+        if (ReportUtils.isInvoiceRoom(report) && !ReportUtils.isIndividualInvoiceRoom(report)) {
+            const secondaryPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : '-1';
+            const secondaryPolicy = PolicyUtils.getPolicy(secondaryPolicyID);
+            const secondaryPolicyAvatar = secondaryPolicy?.avatarURL ?? ReportUtils.getDefaultWorkspaceAvatar(secondaryPolicy?.name);
 
-        if (!isInvoiceReport) {
-            displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
+            secondaryAvatar = {
+                source: secondaryPolicyAvatar,
+                type: CONST.ICON_TYPE_WORKSPACE,
+                name: secondaryPolicy?.name,
+                id: secondaryPolicyID,
+            };
+        } else {
+            // The ownerAccountID and actorAccountID can be the same if a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+            const secondaryAccountId = ownerAccountID === actorAccountID || isInvoiceReport ? actorAccountID : ownerAccountID;
+            const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
+            const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
+
+            secondaryAvatar = {
+                source: secondaryUserAvatar,
+                type: CONST.ICON_TYPE_AVATAR,
+                name: secondaryDisplayName ?? '',
+                id: secondaryAccountId,
+            };
         }
+    } else if (!isWorkspaceActor) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const avatarIconIndex = report.isOwnPolicyExpenseChat || ReportUtils.isPolicyExpenseChat(report) ? 0 : 1;
+        const reportIcons = ReportUtils.getIcons(report, {});
+
+        secondaryAvatar = reportIcons[avatarIconIndex];
+    } else {
+        secondaryAvatar = {name: '', source: '', type: 'avatar'};
     }
     const icon = {
         source: avatarSource ?? FallbackAvatar,

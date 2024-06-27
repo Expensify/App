@@ -1859,46 +1859,6 @@ function getDisplayNameForParticipant(accountID?: number, shouldUseShortForm = f
     return shouldUseShortForm ? shortName : longName;
 }
 
-function getSecondaryAvatar(chatReport: OnyxEntry<Report>, iouReport: OnyxEntry<Report>, displayAllActors: boolean, isWorkspaceActor: boolean, actorAccountID?: number): Icon {
-    let secondaryAvatar: Icon;
-
-    if (displayAllActors) {
-        if (isInvoiceRoom(chatReport) && !isIndividualInvoiceRoom(chatReport)) {
-            const secondaryPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : '-1';
-            const secondaryPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${secondaryPolicyID}`];
-            const secondaryPolicyAvatar = secondaryPolicy?.avatarURL ?? getDefaultWorkspaceAvatar(secondaryPolicy?.name);
-
-            secondaryAvatar = {
-                source: secondaryPolicyAvatar,
-                type: CONST.ICON_TYPE_WORKSPACE,
-                name: secondaryPolicy?.name,
-                id: secondaryPolicyID,
-            };
-        } else {
-            // The ownerAccountID and actorAccountID can be the same if the user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-            const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport(iouReport) ? iouReport?.managerID : iouReport?.ownerAccountID;
-            const secondaryUserAvatar = allPersonalDetails?.[secondaryAccountId ?? -1]?.avatar ?? FallbackAvatar;
-            const secondaryDisplayName = getDisplayNameForParticipant(secondaryAccountId);
-
-            secondaryAvatar = {
-                source: secondaryUserAvatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: secondaryDisplayName ?? '',
-                id: secondaryAccountId,
-            };
-        }
-    } else if (!isWorkspaceActor) {
-        const avatarIconIndex = !!chatReport?.isOwnPolicyExpenseChat || isPolicyExpenseChat(chatReport) ? 0 : 1;
-        const reportIcons = getIcons(chatReport, {});
-
-        secondaryAvatar = reportIcons[avatarIconIndex];
-    } else {
-        secondaryAvatar = {name: '', source: '', type: 'avatar'};
-    }
-
-    return secondaryAvatar;
-}
-
 function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false): number[] {
     let participantsEntries = Object.entries(report?.participants ?? {});
 
@@ -2609,7 +2569,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
     if (isExpenseReport(report)) {
         payerOrApproverName = getPolicyName(report, false, policy);
     } else if (isInvoiceReport(report)) {
-        const chatReport = getReport(report?.chatReportID);
+        const chatReport = getReportOrDraftReport(report?.chatReportID);
         payerOrApproverName = getInvoicePayerName(chatReport);
     } else {
         payerOrApproverName = getDisplayNameForParticipant(report?.managerID) ?? '';
@@ -7379,7 +7339,6 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     isIndividualInvoiceRoom,
-    getSecondaryAvatar,
 };
 
 export type {
