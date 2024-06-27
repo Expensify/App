@@ -58,7 +58,7 @@ const usePanGesture = ({
     const panVelocityX = useSharedValue(0);
     const panVelocityY = useSharedValue(0);
 
-    const isMobile = Browser.isMobile();
+    const isMobileBrowser = Browser.isMobile();
 
     // Disable "swipe down to close" gesture when content is bigger than the canvas
     const enableSwipeDownToClose = useDerivedValue(() => canvasSize.height < zoomedContentHeight.value, [canvasSize.height]);
@@ -209,7 +209,7 @@ const usePanGesture = ({
             panVelocityX.value = evt.velocityX;
             panVelocityY.value = evt.velocityY;
 
-            if (!isSwipingDownToClose.value && !isMobile) {
+            if (!isSwipingDownToClose.value && !isMobileBrowser) {
                 panTranslateX.value += evt.changeX;
             }
 
