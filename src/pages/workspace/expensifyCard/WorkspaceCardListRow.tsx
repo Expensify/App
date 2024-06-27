@@ -4,6 +4,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Text from '@components/Text';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
@@ -28,6 +29,7 @@ type WorkspacesListRowProps = {
 };
 
 function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: WorkspacesListRowProps) {
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     const cardholderName = useMemo(() => PersonalDetailsUtils.getDisplayNameOrDefault(cardholder), [cardholder]);
@@ -56,7 +58,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: Wor
                     </Text>
                 </View>
             </View>
-            <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.alignItemsCenter, styles.justifyContentEnd]}>
                 <Text
                     numberOfLines={1}
                     style={[styles.textLabelSupporting, styles.lh16]}
@@ -64,7 +66,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: Wor
                     {lastFourPAN}
                 </Text>
             </View>
-            <View style={[styles.flexRow, styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                 <Badge text={limit} />
             </View>
         </View>

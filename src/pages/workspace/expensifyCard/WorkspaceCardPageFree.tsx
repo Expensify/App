@@ -51,25 +51,16 @@ const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     },
 };
 
-const mockedSettings = {
-    currentBalance: 5000,
-    remainingLimit: 3000,
-    cashBack: 2000,
-};
-
 function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
-    const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
     const policyID = route.params.policyID;
 
     // TODO: uncomment code below to use data from Onyx when it's supported
     // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${policyID}_Expensify Card`);
-    // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
     const cardsList = mockedCards;
-    const cardSettings = mockedSettings;
 
     const fetchExpensifyCards = useCallback(() => {
         // TODO: uncomment code below when API call is supported
@@ -86,26 +77,6 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
                 return localeCompare(aName, bName);
             }),
         [cardsList],
-    );
-
-    const renderCardsInfo = () => (
-        <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mv5, styles.mh5]}>
-            <View style={[styles.flexRow, styles.flex1]}>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE]}
-                />
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                    value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT]}
-                />
-            </View>
-            <WorkspaceCardsListLabel
-                type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
-                value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK]}
-                style={isLessThanMediumScreen ? styles.mt3 : undefined}
-            />
-        </View>
     );
 
     const getHeaderButtons = () => (
@@ -176,8 +147,6 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
                 </HeaderWithBackButton>
 
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-
-                {renderCardsInfo()}
 
                 <FlatList
                     data={sortedCards}

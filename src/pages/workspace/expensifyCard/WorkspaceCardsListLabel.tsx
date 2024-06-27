@@ -107,7 +107,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate(`workspace.expensifyCard.${type}Description`)}</Text>
 
                     {!isConnectedWithPlaid && type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT && (
-                        <View style={[styles.flexRow, styles.mt2]}>
+                        <View style={[styles.flexRow, styles.mt3]}>
                             <Button
                                 medium
                                 onPress={requestLimitIncrease}
