@@ -348,9 +348,6 @@ const ONYXKEYS = {
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
-    /** Stores iframe link to verify 3DS flow for subscription */
-    VERIFY_3DS_SUBSCRIPTION: 'verify3dsSubscription',
-
     /** Stores info during review duplicates flow */
     REVIEW_DUPLICATES: 'reviewDuplicates',
 

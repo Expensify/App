@@ -16,7 +16,6 @@ import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import Navigation from '@navigation/Navigation';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
