@@ -2444,7 +2444,7 @@ export default {
             connectTitle: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
                     integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'accounting integration';
-                return `Configurar ${integrationName}`;
+                return `Conectar ${integrationName}`;
             },
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
@@ -2478,8 +2478,8 @@ export default {
             },
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
-                return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'esta integración contable';
+                return `¿Estás seguro de que quieres conectar a${integrationName}? Esto eliminará cualquier conexión contable existente.`;
             },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
