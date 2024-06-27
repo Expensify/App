@@ -16967,7 +16967,7 @@ async function detectReactComponentInFile(filename) {
         owner: CONST_1.default.GITHUB_OWNER,
         repo: CONST_1.default.APP_REPO,
         path: filename,
-        ref: github.context.payload.pull_request?.head.ref,
+        ref: github.context.payload?.pull_request?.head.ref,
     };
     try {
         const { data } = await GithubUtils_1.default.octokit.repos.getContent(params);
