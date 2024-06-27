@@ -18,7 +18,7 @@ import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoP
 import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -71,7 +71,6 @@ function BaseVideoPlayer({
     const [duration, setDuration] = useState(videoDuration * 1000);
     const [position, setPosition] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
-    const prevIsPlaying = usePrevious(isPlaying);
     const [isLoading, setIsLoading] = useState(true);
     const [isBuffering, setIsBuffering] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first milisecond of the video and always be able to show proper video preview when video is paused at the beginning
@@ -94,6 +93,7 @@ function BaseVideoPlayer({
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
     const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -117,19 +117,23 @@ function BaseVideoPlayer({
         controlsOpacity.value = 1;
     }, [canToggleControlOnTap, controlStatusState, controlsOpacity]);
 
-    const hideControlWithDelay = useCallback(() => {
-        setTimeout(() => {
-            controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE));
-        }, 2000);
-    }, [controlsOpacity]);
-    const debouncedHideControlWithDelay = useMemo(() => debounce(hideControlWithDelay, 2000, {leading: true}), [hideControlWithDelay]);
+    const hideControl = useCallback(
+        () => (controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE))),
+        [controlsOpacity],
+    );
+    const debouncedHideControl = useMemo(() => debounce(hideControl, 2000), [hideControl]);
 
     useEffect(() => {
-        if (!canToggleControlOnTap || prevIsPlaying || !isPlaying || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+        if (!canToggleControlOnTap || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
-        debouncedHideControlWithDelay();
-    }, [isPlaying, prevIsPlaying, debouncedHideControlWithDelay, controlStatusState, canToggleControlOnTap]);
+        if (!isPlaying) {
+            debouncedHideControl.cancel();
+            return;
+        }
+
+        debouncedHideControl();
+    }, [isPlaying, debouncedHideControl, controlStatusState, canToggleControlOnTap]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
@@ -345,7 +349,9 @@ function BaseVideoPlayer({
                                     if (isFullScreenRef.current) {
                                         return;
                                     }
-                                    togglePlayCurrentVideo();
+                                    if (!isSmallScreenWidth) {
+                                        togglePlayCurrentVideo();
+                                    }
                                     showControl();
                                 }}
                                 style={[styles.flex1, styles.noSelect]}
