@@ -1513,7 +1513,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         canvasContainer: {
-            backgroundColor: theme.appBG,
             borderWidth: 1,
             borderColor: theme.appBG,
         },
