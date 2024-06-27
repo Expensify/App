@@ -380,10 +380,11 @@ function AddressSearch(
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
-                                <View>
+                                // ScrollView is used here to allow whole screen scrolling, when the user grabs a row, on web
+                                <ScrollView scrollEnabled={isRowScrollable}>
                                     {!!title && <Text style={styles.googleSearchText}>{title}</Text>}
                                     <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
-                                </View>
+                                </ScrollView>
                             );
                         }}
                         onPress={(data, details) => {
@@ -452,7 +453,7 @@ function AddressSearch(
                             container: [styles.mh100],
                         }}
                         numberOfLines={2}
-                        isRowScrollable={isRowScrollable}
+                        isRowScrollable={false}
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event: LayoutChangeEvent) => {
