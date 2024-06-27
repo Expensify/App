@@ -45,7 +45,6 @@ export default function addUtilsToWindow() {
         window.setSupportToken = Session.setSupportAuthToken;
 
         // Workaround to give employees the ability to mark reports as read via the JS console
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (window as any).markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
+        window.markAllPolicyReportsAsRead = markAllPolicyReportsAsRead;
     });
 }
