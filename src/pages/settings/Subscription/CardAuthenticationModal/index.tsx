@@ -61,7 +61,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
                         height="100%"
                         width="100%"
                         seamless
-                        frameBorder="0"
+                        style={{border: 'none'}}
                         onLoad={() => {
                             setIsLoading(false);
                         }}
