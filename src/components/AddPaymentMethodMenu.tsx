@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
 import type {Report, Session} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import * as Expensicons from './Icon/Expensicons';
 import type {PaymentMethod} from './KYCWall/types';
 import PopoverMenu from './PopoverMenu';
@@ -32,7 +31,7 @@ type AddPaymentMethodMenuProps = AddPaymentMethodMenuOnyxProps & {
     onItemSelected: (paymentMethod: PaymentMethod) => void;
 
     /** The IOU/Expense report we are paying */
-    iouReport?: OnyxEntry<Report> | EmptyObject;
+    iouReport?: OnyxEntry<Report>;
 
     /** Anchor position for the AddPaymentMenu. */
     anchorPosition: AnchorPosition;
@@ -65,9 +64,9 @@ function AddPaymentMethodMenu({
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-    const isIOUReport = ReportUtils.isIOUReport(iouReport ?? {});
+    const isIOUReport = ReportUtils.isIOUReport(iouReport);
     const canUseBusinessBankAccount =
-        ReportUtils.isExpenseReport(iouReport ?? {}) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
+        ReportUtils.isExpenseReport(iouReport) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
 
     const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
 

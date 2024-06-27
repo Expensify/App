@@ -39,7 +39,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
@@ -47,7 +46,8 @@ type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREE
 /**
  * Gets the phone number to display for SMS logins
  */
-const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyObject): string | undefined => {
+const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
+    const {login = '', displayName = ''} = details ?? {};
     // If the user hasn't set a displayName, it is set to their phone number
     const parsedPhoneNumber = parsePhoneNumber(displayName);
 
@@ -99,14 +99,14 @@ function ProfilePage({route}: ProfilePageProps) {
     const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
-    const details = useMemo((): PersonalDetails | EmptyObject => {
+    const details = useMemo((): OnyxEntry<PersonalDetails> => {
         // Check if we have the personal details already in Onyx
         if (personalDetails?.[accountID]) {
-            return personalDetails?.[accountID] ?? {};
+            return personalDetails?.[accountID] ?? undefined;
         }
         // Check if we have the login param
         if (!loginParams) {
-            return isValidAccountID ? {} : {accountID: 0};
+            return isValidAccountID ? undefined : {accountID: 0};
         }
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
@@ -139,7 +139,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
-    const hasAvatar = !!details.avatar;
+    const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
     const shouldShowBlockingView = (!isValidAccountID && !isLoading) || CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID);
 
@@ -196,7 +196,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     <Avatar
                                         containerStyles={[styles.avatarXLarge]}
                                         imageStyles={[styles.avatarXLarge]}
-                                        source={details.avatar}
+                                        source={details?.avatar}
                                         avatarID={accountID}
                                         type={CONST.ICON_TYPE_AVATAR}
                                         size={CONST.AVATAR_SIZE.XLARGE}
@@ -238,7 +238,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                                     </Text>
                                     <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details.accountID}>
+                                        <UserDetailsTooltip accountID={details?.accountID ?? -1}>
                                             <Text numberOfLines={1}>{isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}</Text>
                                         </UserDetailsTooltip>
                                     </CommunicationsLink>
