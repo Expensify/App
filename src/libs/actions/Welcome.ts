@@ -28,7 +28,7 @@ function onServerDataReady(): Promise<void> {
 }
 
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
-    isOnboardingFlowStatusKnownPromise.then(() => {
+    isOnboardingFlowStatusKnownPromise.then((onboarding) => {
         if (Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow === undefined) {
             return;
         }
@@ -39,17 +39,6 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
             onNotCompleted?.();
         }
     });
-}
-
-/**
- * Check if onboarding data is ready in order to check if the user has completed onboarding or not
- */
-function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
-        return;
-    }
-
-    resolveOnboardingFlowStatus?.();
 }
 
 /**
@@ -77,7 +66,6 @@ function setOnboardingPolicyID(policyID?: string) {
 
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value === undefined) {
             return;
@@ -85,7 +73,7 @@ Onyx.connect({
 
         onboarding = value;
 
-        checkOnboardingDataReady();
+        resolveOnboardingFlowStatus(onboarding);
     },
 });
 
