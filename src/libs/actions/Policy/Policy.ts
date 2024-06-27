@@ -2203,6 +2203,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): string | u
             },
         },
     ];
+    successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
     successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
