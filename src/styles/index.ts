@@ -1512,6 +1512,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        canvasContainer: {
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderColor: theme.appBG,
+        },
+
         sidebarHeaderContainer: {
             flexDirection: 'row',
             paddingHorizontal: 20,
