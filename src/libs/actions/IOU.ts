@@ -5927,7 +5927,7 @@ function getSendMoneyParams(
 }
 
 function getPayMoneyRequestParams(
-    chatReport: OnyxTypes.Report,
+    initialChatReport: OnyxTypes.Report,
     iouReport: OnyxTypes.Report,
     recipient: Participant,
     paymentMethodType: PaymentMethodType,
@@ -5935,6 +5935,14 @@ function getPayMoneyRequestParams(
     payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
+    let chatReport = initialChatReport;
+
+    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
+        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', primaryPolicyID);
+        if (existingB2BInvoiceRoom) {
+            chatReport = existingB2BInvoiceRoom;
+        }
+    }
 
     let total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
     if (ReportUtils.hasHeldExpenses(iouReport.reportID) && !full && !!iouReport.unheldTotal) {
