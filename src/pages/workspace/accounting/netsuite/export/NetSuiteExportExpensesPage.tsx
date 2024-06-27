@@ -49,7 +49,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
         return (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount);
     }, [payableList, config?.reimbursablePayableAccount]);
 
-    const isConnectionEmpty = isEmpty(policy?.connections?.netsuite);
+    const isConnectedToNetSuite = isEmpty(policy?.connections?.netsuite);
 
     const menuItems: MenuItemWithoutType[] = [
         {
@@ -110,7 +110,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            shouldBeBlocked={isConnectionEmpty}
+            shouldBeBlocked={isConnectedToNetSuite}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
