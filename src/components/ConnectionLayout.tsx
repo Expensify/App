@@ -60,6 +60,9 @@ type ConnectionLayoutProps = {
 
     /** Name of the current connection */
     connectionName: ConnectionName;
+
+    /** Allow without connection */
+    allowWithoutConnection?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -91,6 +94,7 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
+    allowWithoutConnection = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -115,7 +119,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={isConnectionEmpty}
+            shouldBeBlocked={allowWithoutConnection !== true && isConnectionEmpty}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
