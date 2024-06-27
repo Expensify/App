@@ -21,8 +21,8 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -64,7 +64,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
     const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
@@ -241,7 +241,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
                 style={[styles.mh5, styles.mb5]}
             />
-            {isSmallScreenWidth && <OfflineIndicator />}
+            {shouldUseNarrowLayout && <OfflineIndicator />}
         </>
     );
 
@@ -334,7 +334,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                                 />
                             </View>
                         </FormProvider>
-                        {isSmallScreenWidth && <OfflineIndicator />}
+                        {shouldUseNarrowLayout && <OfflineIndicator />}
                     </KeyboardAvoidingView>
                 )
             }

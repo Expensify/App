@@ -2,9 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
@@ -27,7 +27,7 @@ type SearchMenuFilterItem = {
 
 function SearchFilters({query}: SearchFiltersProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
 
@@ -59,7 +59,7 @@ function SearchFilters({query}: SearchFiltersProps) {
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.query === query);
 
-    if (isSmallScreenWidth) {
+    if (shouldUseNarrowLayout) {
         return (
             <SearchFiltersNarrow
                 filterItems={filterItems}

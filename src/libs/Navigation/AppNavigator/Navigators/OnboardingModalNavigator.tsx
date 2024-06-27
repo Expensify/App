@@ -24,7 +24,7 @@ const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {isMediumScreenWidth} = useOnboardingLayout();
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: (onboarding) => {
             // onboarding is an array for old accounts and accounts created from olddot
@@ -69,7 +69,7 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(shouldUseNarrowLayout)}
+                        style={styles.OnboardingNavigatorInnerView(isMediumScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={OnboardingModalNavigatorScreenOptions()}>
                             <Stack.Screen
