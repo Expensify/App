@@ -2324,6 +2324,7 @@ export default {
             reportFieldNameRequiredError: 'Report field name is required',
             reportFieldTypeRequiredError: 'Report field type is required',
             reportFieldInitialValueRequiredError: 'Report field initial value is required',
+            genericFailureMessage: 'An error occurred while updating the report field, please try again.',
         },
         tags: {
             tagName: 'Tag name',

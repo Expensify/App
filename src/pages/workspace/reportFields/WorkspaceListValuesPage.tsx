@@ -21,7 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {deleteReportFieldsListValue, setReportFieldsListValueEnabled} from '@libs/actions/WorkspaceReportFields';
+import * as ReportFields from '@libs/actions/Policy/ReportFields';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -105,7 +105,7 @@ function WorkspaceListValuesPage({
             return acc;
         }, []);
 
-        deleteReportFieldsListValue(valuesToDelete);
+        ReportFields.deleteReportFieldsListValue(valuesToDelete);
         setDeleteValuesConfirmModalVisible(false);
     };
 
@@ -148,7 +148,7 @@ function WorkspaceListValuesPage({
                     value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedValues({});
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        ReportFields.setReportFieldsListValueEnabled(valuesToDisable, false);
                     },
                 });
             }
@@ -174,7 +174,7 @@ function WorkspaceListValuesPage({
                     value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedValues({});
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        ReportFields.setReportFieldsListValueEnabled(valuesToEnable, true);
                     },
                 });
             }

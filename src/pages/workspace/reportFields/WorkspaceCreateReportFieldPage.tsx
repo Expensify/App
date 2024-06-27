@@ -11,7 +11,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createReportField, setInitialCreateReportFieldsForm} from '@libs/actions/WorkspaceReportFields';
+import * as ReportFields from '@libs/actions/Policy/ReportFields';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -47,7 +47,7 @@ function WorkspaceCreateReportFieldPage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            createReportField(policyID, {
+            ReportFields.createReportField(policyID, {
                 name: values[INPUT_IDS.NAME],
                 type: values[INPUT_IDS.TYPE],
                 initialValue: values[INPUT_IDS.INITIAL_VALUE],
@@ -89,7 +89,7 @@ function WorkspaceCreateReportFieldPage({
     );
 
     useEffect(() => {
-        setInitialCreateReportFieldsForm();
+        ReportFields.setInitialCreateReportFieldsForm();
     }, []);
 
     return (

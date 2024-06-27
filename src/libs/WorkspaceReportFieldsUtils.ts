@@ -61,4 +61,8 @@ function validateReportFieldListValueName(
     return errors;
 }
 
-export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey, validateReportFieldListValueName};
+function generateFieldID(name: string) {
+    return `field_id_${name.replace(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
+}
+
+export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey, validateReportFieldListValueName, generateFieldID};

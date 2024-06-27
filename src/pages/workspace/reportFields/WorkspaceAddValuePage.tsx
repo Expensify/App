@@ -11,7 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createReportFieldsListValue} from '@libs/actions/WorkspaceReportFields';
+import * as ReportFields from '@libs/actions/Policy/ReportFields';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -36,7 +36,7 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
     );
 
     const createValue = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-        createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+        ReportFields.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
         Keyboard.dismiss();
         Navigation.goBack();
     }, []);
