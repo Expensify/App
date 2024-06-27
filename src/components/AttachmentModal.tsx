@@ -65,6 +65,8 @@ type ImagePickerResponse = {
 
 type FileObject = Partial<File | ImagePickerResponse>;
 
+// type FileObject = Partial<File | ImagePickerResponse> & Partial <ImagePickerResponse>;
+
 type ChildrenProps = {
     displayFileInModal: (data: FileObject) => void;
     show: () => void;
@@ -238,6 +240,7 @@ function AttachmentModal({
      */
     const downloadAttachment = useCallback(() => {
         let sourceURL = sourceState;
+        console.log('[wildebug] sourceURL', sourceURL)
         if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
@@ -530,6 +533,7 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
+                                            downloadAttachment={() => downloadAttachment()}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )

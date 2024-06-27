@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Text from '@components/Text';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
@@ -26,9 +27,24 @@ import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
+import getImageResolution from '@libs/fileDownload/getImageResolution';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ThumbnailImage from '@components/ThumbnailImage';
+import TextLink from '@components/TextLink';
+import Hoverable from '@components/Hoverable';
+import CONST from '@src/CONST';
+import fileDownload from '@libs/fileDownload';
+import * as Download from '@userActions/Download';
+import { ImageSource } from '@rnmapbox/maps';
+import type {Download as OnyxDownload} from '@src/types/onyx';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
+
+
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
+    /** If a file download is happening */
+    download: OnyxEntry<OnyxDownload>;
 };
 
 type AttachmentViewProps = AttachmentViewOnyxProps &
@@ -70,6 +86,8 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         /** Whether the attachment is used as a chat attachment */
         isUsedAsChatAttachment?: boolean;
+
+        downloadAttachment?: () => void;
     };
 
 function AttachmentView({
@@ -92,6 +110,8 @@ function AttachmentView({
     isHovered,
     duration,
     isUsedAsChatAttachment,
+    downloadAttachment,
+    download,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -99,8 +119,11 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
+    const [isResolutionValid, setIsResolutionValid] = useState<boolean>(false);
+    const [isCalculatingDimension, setIsCalculatingDimension] = useState(true);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
+    const { isOffline } = useNetwork();
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -112,6 +135,47 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
+
+    const isFileHaveDimension = (file: FileObject | undefined): Promise<boolean> => {
+        if(!file) {
+            return Promise.resolve(false);
+        }
+
+        if ('width' in file && 'height' in file) {
+            return Promise.resolve(true);
+        } else {
+            return getImageResolution(file)
+                .then(({ width, height }) => {
+                    file.width = width;
+                    file.height = height;
+                     return Promise.resolve(true);
+
+                    return true;
+                })
+                .catch(error => {
+                    console.error('Failed to get image resolution:', error);
+                    return Promise.resolve(false);
+
+                    return false;
+                });
+        }
+    };
+
+
+    useEffect(() => {
+        setIsCalculatingDimension(true);
+        isFileHaveDimension(file)
+            .then(isDimensionAvailable => {
+                const isValid = file && isDimensionAvailable && (file?.height ?? 0) <= 8000 && (file?.width ?? 0) <= 8000;
+                setIsResolutionValid(isValid ?? false);
+                setIsCalculatingDimension(false);
+            })
+            .catch(error => {
+                console.error('Failed to get image resolution:', error);
+                setIsCalculatingDimension(false);
+            });
+    }, [file]);
+    
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -196,21 +260,65 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    if (isImage || (file?.name && Str.isImage(file.name))) {
-        if (imageError) {
-            // AttachmentViewImage can't handle icon fallbacks, so we need to handle it here
-            if (typeof fallbackSource === 'number' || typeof fallbackSource === 'function') {
-                return (
-                    <Icon
-                        src={fallbackSource}
-                        height={variables.defaultAvatarPreviewSize}
-                        width={variables.defaultAvatarPreviewSize}
-                        additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
-                        fill={theme.border}
-                    />
-                );
-            }
+
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+    const isFileNameImage = file?.name && Str.isImage(file.name);
+    const isFileImage = isSourceImage || isFileNameImage;
+
+    const isFileNameVideo = file?.name && Str.isVideo(file.name);
+    const isFileVideo = isVideo || isFileNameVideo;
+
+    if (isFileImage && isCalculatingDimension) {
+        return <FullScreenLoadingIndicator />
+    }
+
+    if (isFileImage) {
+        if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
+            return (
+                <Icon
+                    src={fallbackSource}
+                    height={variables.defaultAvatarPreviewSize}
+                    width={variables.defaultAvatarPreviewSize}
+                    additionalStyles={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}
+                    fill={theme.border}
+                />
+            );
+        }
+        const imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string)
+
+        if (!isResolutionValid) {
+            const isLocalFile = FileUtils.isLocalFile(imageSource);
+            const sourceURLWithAuth = isLocalFile ? imageSource : addEncryptedAuthTokenToURL(imageSource);
+            const sourceID = (imageSource.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+            const styles = useThemeStyles();
+        
+            const isDownloading = download?.isDownloading ?? false;
+        
+            return (<View style={[styles.alignItemsCenter]}>
+                <ThumbnailImage
+                    previewSourceURL={sourceURLWithAuth}
+                    style={styles.webViewStyles.tagStyles.img}
+                    isAuthTokenRequired={isAuthTokenRequired ?? false}
+                    // fallbackIcon={fallbackIcon}
+                    imageWidth={file?.width}
+                    imageHeight={file?.height}
+                />
+
+                <Text style={styles.p5}>This image has been resized for previewing.
+                    <TextLink
+                        onPress={() => {
+                            // if (isOffline) {
+                            if (isDownloading || isOffline) {
+                                return;
+                            }
+    
+                            Download.setDownload(sourceID, true);
+                            fileDownload(sourceURLWithAuth, file?.name, '').then(() => Download.setDownload(sourceID, false));
+                        }}
+                    > Download </TextLink>
+                    for full resolution.
+                </Text>
+            </View>)
         }
 
         return (
@@ -219,7 +327,7 @@ function AttachmentView({
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}
-                isImage={isImage}
+                isImage={isFileImage}
                 onPress={onPress}
                 onError={() => {
                     setImageError(true);
@@ -255,6 +363,12 @@ export default memo(
     withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        },
+        download: {
+            key: ({source}) => {
+                const sourceID = (source?.toString().match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+                return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
+            },
         },
     })(AttachmentView),
 );
