@@ -11,7 +11,6 @@ import ROUTES from '@src/ROUTES';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
 let onboarding: Onboarding | [] | undefined;
 let isLoadingReportData = true;
@@ -183,7 +182,6 @@ function completeHybridAppOnboarding() {
 
 Onyx.connect({
     key: ONYXKEYS.NVP_ONBOARDING,
-    initWithStoredValues: false,
     callback: (value) => {
         if (value === undefined) {
             return;
@@ -204,7 +202,7 @@ Onyx.connect({
     },
 });
 
-const allPolicies: OnyxCollection<OnyxPolicy> | EmptyObject = {};
+const allPolicies: OnyxCollection<OnyxPolicy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
