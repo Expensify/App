@@ -10,12 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuiteVendorOptions} from '@libs/PolicyUtils';
+import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import {ExpenseRouteParams} from '../types';
 
 function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();

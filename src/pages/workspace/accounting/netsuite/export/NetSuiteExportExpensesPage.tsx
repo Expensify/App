@@ -10,12 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {ExpenseRouteParams, MenuItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {ExpenseRouteParams, MenuItem} from '../types';
 
 type MenuItemWithoutType = Omit<MenuItem, 'type'>;
 
@@ -37,17 +37,14 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
-    const defaultVendor = useMemo(() => {
-        return (vendors ?? []).find((vendor) => vendor.id === config?.defaultVendor);
-    }, [vendors, config?.defaultVendor]);
+    const defaultVendor = useMemo(() => (vendors ?? []).find((vendor) => vendor.id === config?.defaultVendor), [vendors, config?.defaultVendor]);
 
-    const selectedPayableAccount = useMemo(() => {
-        return (payableList ?? []).find((payableAccount) => payableAccount.id === config?.payableAcct);
-    }, [payableList, config?.payableAcct]);
+    const selectedPayableAccount = useMemo(() => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.payableAcct), [payableList, config?.payableAcct]);
 
-    const selectedReimbursablePayableAccount = useMemo(() => {
-        return (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount);
-    }, [payableList, config?.reimbursablePayableAccount]);
+    const selectedReimbursablePayableAccount = useMemo(
+        () => (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount),
+        [payableList, config?.reimbursablePayableAccount],
+    );
 
     const isConnectedToNetSuite = isEmpty(policy?.connections?.netsuite);
 

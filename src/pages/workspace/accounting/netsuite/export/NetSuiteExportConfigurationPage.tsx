@@ -10,13 +10,13 @@ import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
+import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {DividerLineItem, MenuItem, ToggleItem} from '../types';
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -28,21 +28,19 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.netsuite?.options.config;
 
     const {subsidiaryList, receivableList, taxAccountsList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => {
-        return (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
-    }, [subsidiaryList, config?.subsidiaryID]);
+    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
-    const selectedReceivable = useMemo(() => {
-        return (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount);
-    }, [receivableList, config?.receivableAccount]);
+    const selectedReceivable = useMemo(() => (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount), [receivableList, config?.receivableAccount]);
 
-    const selectedTaxPostingAccount = useMemo(() => {
-        return (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount);
-    }, [taxAccountsList, config?.taxPostingAccount]);
+    const selectedTaxPostingAccount = useMemo(
+        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount),
+        [taxAccountsList, config?.taxPostingAccount],
+    );
 
-    const selectedProvTaxPostingAccount = useMemo(() => {
-        return (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount);
-    }, [taxAccountsList, config?.provincialTaxPostingAccount]);
+    const selectedProvTaxPostingAccount = useMemo(
+        () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount),
+        [taxAccountsList, config?.provincialTaxPostingAccount],
+    );
 
     const menuItems: Array<MenuItem | ToggleItem | DividerLineItem> = [
         {

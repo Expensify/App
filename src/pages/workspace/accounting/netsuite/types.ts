@@ -1,8 +1,8 @@
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
