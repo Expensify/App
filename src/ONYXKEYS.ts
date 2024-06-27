@@ -115,6 +115,9 @@ const ONYXKEYS = {
     /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
+    /** This NVP contains data associated with HybridApp */
+    NVP_TRYNEWDOT: 'nvp_tryNewDot',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -154,6 +157,8 @@ const ONYXKEYS = {
     /** Whether the user has dismissed the hold educational interstitial */
     NVP_DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
 
+    /** Whether the user has seen HybridApp explanation modal */
+    NVP_SEEN_NEW_USER_MODAL: 'nvp_seen_new_user_modal',
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
@@ -631,6 +636,9 @@ type OnyxValuesMapping = {
     // NVP_ONBOARDING is an array for old users.
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
 
+    // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
+    [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
+
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -673,6 +681,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
+    [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;

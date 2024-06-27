@@ -2918,7 +2918,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
     }
     if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
-        return Localize.translateLocal('iou.threadPaySomeoneReportName', {formattedAmount, comment});
+        return getIOUReportActionDisplayMessage(reportAction as ReportAction, transaction);
     }
     return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
@@ -3318,9 +3318,9 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
 /**
  * Get the title for a report.
  */
-function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): string {
+function getReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, parentReportActionParam?: OnyxInputOrEntry<ReportAction>): string {
     let formattedName: string | undefined;
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+    const parentReportAction = parentReportActionParam ?? ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && ReportActionsUtils.isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName(parentReportAction);
@@ -5227,7 +5227,7 @@ function isUnread(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
-    if (isEmptyReport(report)) {
+    if (isEmptyReport(report) && !isSelfDM(report)) {
         return false;
     }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
@@ -6647,7 +6647,11 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
         const parentReport = getReportOrDraftReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '-1');
 
-        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)) {
+        if (
+            !parentReportAction ||
+            (ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isSentMoneyReportAction(parentReportAction)) ||
+            ReportActionsUtils.isReportPreviewAction(parentReportAction)
+        ) {
             break;
         }
 
@@ -6693,7 +6697,9 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
 
         if (
             !parentReportAction ||
-            (!includeTransactionThread && (ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction)))
+            (!includeTransactionThread &&
+                ((ReportActionsUtils.isTransactionThread(parentReportAction) && !ReportActionsUtils.isSentMoneyReportAction(parentReportAction)) ||
+                    ReportActionsUtils.isReportPreviewAction(parentReportAction)))
         ) {
             break;
         }

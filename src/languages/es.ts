@@ -49,6 +49,7 @@ import type {
     PaySomeoneParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
+    RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
@@ -1414,6 +1415,12 @@ export default {
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     onboarding: {
+        welcome: '¡Bienvenido!',
+        explanationModal: {
+            title: 'Bienvenido a Expensify',
+            description: 'Recibir pagos es tan fácil como mandar un mensaje',
+            secondaryDescription: 'Para volver a Expensify Classic, simplemente haz click en tu foto de perfil > Ir a Expensify Classic.',
+        },
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
@@ -2111,8 +2118,8 @@ export default {
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks Online indicadas a continuación.',
                 qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
                 qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
-                accountSelectDescription: 'Elige una cuenta bancaria para los reembolsos y crearemos el pago en QuickBooks Online.',
-                invoiceAccountSelectorDescription: 'Una vez que una factura se marca como pagada en Expensify y se exporta a QuickBooks Online, aparecerá contra la cuenta a continuación.',
+                accountSelectDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en QuickBooks Online.',
+                invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en QuickBooks Online.',
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
@@ -2190,8 +2197,8 @@ export default {
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
                 xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
-                invoiceAccountSelectorDescription: 'Una vez que una factura se marca como pagada en Expensify y se exporta a Xero, aparecerá contra la cuenta a continuación.',
-                xeroBillPaymentAccountDescription: 'Elige una cuenta bancaria para los reembolsos y crearemos el pago en Xero.',
+                xeroBillPaymentAccountDescription: 'Elige desde dónde pagar las facturas y crearemos el pago en Xero.',
+                invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en Xero.',
             },
             exportDate: {
                 label: 'Fecha de exportación',
@@ -2404,6 +2411,8 @@ export default {
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
             removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
+            removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
+                `${memberName} es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobación por el propietario del espacio de trabajo, ${ownerName}`,
             removeMembersTitle: 'Eliminar miembros',
             removeMemberButtonTitle: 'Quitar del espacio de trabajo',
             removeMemberGroupButtonTitle: 'Quitar del grupo',
