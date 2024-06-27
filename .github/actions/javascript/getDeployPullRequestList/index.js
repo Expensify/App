@@ -11515,7 +11515,10 @@ async function run() {
             workflow_id: 'platformDeploy.yml',
             status: 'completed',
             event: isProductionDeploy ? 'release' : 'push',
-        })).data.workflow_runs.filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
+        })).data.workflow_runs
+            // Note: we filter out cancelled runs instead of looking only for success runs
+            // because if a build fails on even one platform, then it will have the status 'failure'
+            .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
         const priorTag = completedDeploys[0].head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
