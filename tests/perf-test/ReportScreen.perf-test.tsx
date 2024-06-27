@@ -2,13 +2,14 @@ import type {StackNavigationProp, StackScreenProps} from '@react-navigation/stac
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
+import type ReactNative from 'react-native';
 import {Dimensions, InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import {measurePerformance} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import ComposeProviders from '@src/components/ComposeProviders';
 import DragAndDropProvider from '@src/components/DragAndDrop/Provider';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
@@ -33,7 +34,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-type ReportScreenWrapperProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenWrapperProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT>;
 
 jest.mock('@src/libs/API', () => ({
     write: jest.fn(),
@@ -50,7 +51,7 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
 }));
 
 jest.mock('react-native', () => {
-    const actualReactNative = jest.requireActual('react-native');
+    const actualReactNative = jest.requireActual<typeof ReactNative>('react-native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actualReactNative,
@@ -208,7 +209,7 @@ function ReportScreenWrapper(props: ReportScreenWrapperProps) {
 }
 
 const report = {...createRandomReport(1), policyID: '1'};
-const reportActions = ReportTestUtils.getMockedReportActionsMap(10);
+const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', async () => {
@@ -217,7 +218,7 @@ test('[ReportScreen] should render ReportScreen', async () => {
         await screen.findByTestId('ReportScreen');
     };
 
-    const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
 
     await waitForBatchedUpdates();
     const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -251,7 +252,7 @@ test('[ReportScreen] should render composer', async () => {
         await screen.findByTestId('composer');
     };
 
-    const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
 
     await waitForBatchedUpdates();
 
@@ -286,7 +287,7 @@ test('[ReportScreen] should render report list', async () => {
         await screen.findByTestId('report-actions-list');
     };
 
-    const navigation = {addListener} as unknown as StackNavigationProp<CentralPaneNavigatorParamList, 'Report', undefined>;
+    const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
 
     await waitForBatchedUpdates();
 
@@ -304,6 +305,10 @@ test('[ReportScreen] should render report list', async () => {
         [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
         [`${ONYXKEYS.COLLECTION.POLICY}`]: policies,
         [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
+        [ONYXKEYS.IS_LOADING_APP]: false,
+        [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockRoute.params.reportID}`]: {
+            isLoadingInitialReportActions: false,
+        },
         ...reportCollectionDataSet,
         ...reportActionsCollectionDataSet,
     });
