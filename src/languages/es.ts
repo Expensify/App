@@ -784,12 +784,12 @@ export default {
         changed: 'cambió',
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Selecciona una tasa de reembolso por ${unit} del espacio de trabajo`,
         unapprove: 'Desaprobar',
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
         unapproveWithIntegrationWarning: (accountingIntegration: string) =>
             `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
-        chooseARate: ({unit}: ReimbursementRateParams) => `Selecciona una tasa de reembolso por ${unit} del espacio de trabajo`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
