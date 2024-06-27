@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -16,10 +15,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-type RouteParams = {
-    expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
-};
+import {ExpenseRouteParams} from '../types';
 
 function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -28,27 +24,27 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
     const policyID = policy?.id ?? '-1';
 
     const route = useRoute();
-    const params = route.params as RouteParams;
+    const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite.options.config;
-    const currentValue = isReimbursable ? config?.reimbursablePayableAccount : config?.payableAcct;
-    const netsuitePayableAccountOptions = useMemo<SelectorType[]>(() => getNetSuitePayableAccountOptions(policy ?? undefined, currentValue), [currentValue, policy]);
+    const currentPayableAccountID = isReimbursable ? config?.reimbursablePayableAccount : config?.payableAcct;
+    const netsuitePayableAccountOptions = useMemo<SelectorType[]>(() => getNetSuitePayableAccountOptions(policy ?? undefined, currentPayableAccountID), [currentPayableAccountID, policy]);
 
     const initiallyFocusedOptionKey = useMemo(() => netsuitePayableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuitePayableAccountOptions]);
 
     const updatePayableAccount = useCallback(
         ({value}: SelectorType) => {
-            if (currentValue !== value) {
+            if (currentPayableAccountID !== value) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentValue ?? '');
+                    Connections.updateNetSuiteReimbursablePayableAccount(policyID, value, currentPayableAccountID ?? '');
                 } else {
-                    Connections.updateNetSuitePayableAcct(policyID, value, currentValue ?? '');
+                    Connections.updateNetSuitePayableAcct(policyID, value, currentPayableAccountID ?? '');
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
-        [currentValue, policyID, params.expenseType, isReimbursable],
+        [currentPayableAccountID, policyID, params.expenseType, isReimbursable],
     );
 
     const listEmptyContent = useMemo(

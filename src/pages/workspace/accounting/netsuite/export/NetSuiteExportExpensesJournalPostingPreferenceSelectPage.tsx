@@ -12,13 +12,10 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {ExpenseRouteParams} from '../types';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>;
-};
-
-type RouteParams = {
-    expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
 };
 
 function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: WithPolicyConnectionsProps) {
@@ -27,7 +24,7 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
     const config = policy?.connections?.netsuite.options.config;
 
     const route = useRoute();
-    const params = route.params as RouteParams;
+    const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE).map((postingPreference) => ({

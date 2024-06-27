@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -16,10 +15,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-type RouteParams = {
-    expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
-};
+import {ExpenseRouteParams} from '../types';
 
 function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -28,7 +24,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const policyID = policy?.id ?? '-1';
 
     const route = useRoute();
-    const params = route.params as RouteParams;
+    const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite.options.config;

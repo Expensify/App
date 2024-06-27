@@ -58,7 +58,9 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const headerContent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate(`workspace.netsuite.invoiceItem.values.${config?.invoiceItemPreference ?? 'create'}.description`)}</Text>
+                <Text style={[styles.pb2, styles.textNormal]}>
+                    {translate(`workspace.netsuite.invoiceItem.values.${config?.invoiceItemPreference ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE}.description`)}
+                </Text>
             </View>
         ),
         [styles.pb2, styles.ph5, styles.textNormal, translate, config?.invoiceItemPreference],

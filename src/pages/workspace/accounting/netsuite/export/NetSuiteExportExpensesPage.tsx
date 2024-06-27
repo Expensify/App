@@ -1,12 +1,9 @@
 import {useRoute} from '@react-navigation/native';
 import {isEmpty} from 'lodash';
 import React, {useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,30 +15,16 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ExpenseRouteParams, MenuItem} from '../types';
 
-type MenuItem = MenuItemProps & {
-    pendingAction?: OfflineWithFeedbackProps['pendingAction'];
-
-    shouldHide?: boolean;
-
-    /** Any error message to show */
-    errors?: Errors;
-
-    /** Callback to close the error messages */
-    onCloseError?: () => void;
-};
-
-type RouteParams = {
-    expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
-};
+type MenuItemWithoutType = Omit<MenuItem, 'type'>;
 
 function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const route = useRoute();
-    const params = route.params as RouteParams;
+    const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite?.options.config;
@@ -55,23 +38,20 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
     const defaultVendor = useMemo(() => {
-        const selectedVendor = (vendors ?? []).find((vendor) => vendor.id === config?.defaultVendor);
-        return selectedVendor;
+        return (vendors ?? []).find((vendor) => vendor.id === config?.defaultVendor);
     }, [vendors, config?.defaultVendor]);
 
     const selectedPayableAccount = useMemo(() => {
-        const selectedPayableAcc = (payableList ?? []).find((payableAccount) => payableAccount.id === config?.payableAcct);
-        return selectedPayableAcc;
+        return (payableList ?? []).find((payableAccount) => payableAccount.id === config?.payableAcct);
     }, [payableList, config?.payableAcct]);
 
     const selectedReimbursablePayableAccount = useMemo(() => {
-        const selectedPayableAcc = (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount);
-        return selectedPayableAcc;
+        return (payableList ?? []).find((payableAccount) => payableAccount.id === config?.reimbursablePayableAccount);
     }, [payableList, config?.reimbursablePayableAccount]);
 
     const isConnectionEmpty = isEmpty(policy?.connections?.netsuite);
 
-    const menuItems: MenuItem[] = [
+    const menuItems: MenuItemWithoutType[] = [
         {
             description: translate('workspace.accounting.exportAs'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT.getRoute(policyID, params.expenseType)),
@@ -137,7 +117,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                 testID={NetSuiteExportExpensesPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate(`workspace.netsuite.${isReimbursable? 'exportReimbursable': 'exportNonReimbursable'}`)}
+                    title={translate(`workspace.netsuite.${isReimbursable ? 'exportReimbursable' : 'exportNonReimbursable'}`)}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
                 />
                 {menuItems
@@ -152,9 +132,8 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
                         >
                             <MenuItemWithTopDescription
                                 title={item.title}
-                                interactive={item?.interactive ?? true}
                                 description={item.description}
-                                shouldShowRightIcon={item?.shouldShowRightIcon ?? true}
+                                shouldShowRightIcon
                                 onPress={item?.onPress}
                                 brickRoadIndicator={item?.brickRoadIndicator}
                                 helperText={item?.helperText}

@@ -1,10 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,38 +12,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canUseProvincialTaxNetSuite, canUseTaxNetSuite} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
-
-type MenuItem = MenuItemProps & {
-    pendingAction?: OfflineWithFeedbackProps['pendingAction'];
-
-    shouldHide?: boolean;
-
-    /** Any error message to show */
-    errors?: Errors;
-
-    /** Callback to close the error messages */
-    onCloseError?: () => void;
-
-    type: 'menuitem';
-};
-
-type DividerLineItem = {
-    type: 'divider';
-
-    shouldHide?: boolean;
-};
-
-type ToggleItem = ToggleSettingOptionRowProps & {
-    type: 'toggle';
-
-    shouldHide?: boolean;
-};
+import type {DividerLineItem, MenuItem, ToggleItem} from '../types';
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -58,23 +29,19 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const {subsidiaryList, receivableList, taxAccountsList} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => {
-        const selectedSub = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
-        return selectedSub;
+        return (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
     }, [subsidiaryList, config?.subsidiaryID]);
 
     const selectedReceivable = useMemo(() => {
-        const selectedRec = (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount);
-        return selectedRec;
+        return (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount);
     }, [receivableList, config?.receivableAccount]);
 
     const selectedTaxPostingAccount = useMemo(() => {
-        const selectedTaxAcc = (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount);
-        return selectedTaxAcc;
+        return (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount);
     }, [taxAccountsList, config?.taxPostingAccount]);
 
     const selectedProvTaxPostingAccount = useMemo(() => {
-        const selectedTaxAcc = (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount);
-        return selectedTaxAcc;
+        return (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.provincialTaxPostingAccount);
     }, [taxAccountsList, config?.provincialTaxPostingAccount]);
 
     const menuItems: Array<MenuItem | ToggleItem | DividerLineItem> = [
@@ -214,40 +181,40 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             {menuItems
                 .filter((item) => !item.shouldHide)
                 .map((item) => {
-                    if (item.type === 'divider') {
-                        return <View style={styles.dividerLine} />;
+                    switch (item.type) {
+                        case 'divider':
+                            return <View style={styles.dividerLine} />;
+                        case 'toggle':
+                            const {type, shouldHide, ...rest} = item;
+                            return (
+                                <ToggleSettingOptionRow
+                                    key={rest.title}
+                                    // eslint-disable-next-line react/jsx-props-no-spreading
+                                    {...rest}
+                                    wrapperStyle={[styles.mv3, styles.ph5]}
+                                />
+                            );
+                        default:
+                            return (
+                                <OfflineWithFeedback
+                                    key={item.description}
+                                    pendingAction={item.pendingAction}
+                                    errors={item.errors}
+                                    errorRowStyles={[styles.ph5]}
+                                    onClose={item.onCloseError}
+                                >
+                                    <MenuItemWithTopDescription
+                                        title={item.title}
+                                        description={item.description}
+                                        shouldShowRightIcon
+                                        onPress={item?.onPress}
+                                        brickRoadIndicator={item?.brickRoadIndicator}
+                                        helperText={item?.helperText}
+                                        errorText={item?.errorText}
+                                    />
+                                </OfflineWithFeedback>
+                            );
                     }
-                    if (item.type === 'toggle') {
-                        const {type, shouldHide, ...rest} = item;
-                        return (
-                            <ToggleSettingOptionRow
-                                key={rest.title}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                {...rest}
-                                wrapperStyle={[styles.mv3, styles.ph5]}
-                            />
-                        );
-                    }
-                    return (
-                        <OfflineWithFeedback
-                            key={item.description}
-                            pendingAction={item.pendingAction}
-                            errors={item.errors}
-                            errorRowStyles={[styles.ph5]}
-                            onClose={item.onCloseError}
-                        >
-                            <MenuItemWithTopDescription
-                                title={item.title}
-                                interactive={item?.interactive ?? true}
-                                description={item.description}
-                                shouldShowRightIcon={item?.shouldShowRightIcon ?? true}
-                                onPress={item?.onPress}
-                                brickRoadIndicator={item?.brickRoadIndicator}
-                                helperText={item?.helperText}
-                                errorText={item?.errorText}
-                            />
-                        </OfflineWithFeedback>
-                    );
                 })}
         </ConnectionLayout>
     );

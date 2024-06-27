@@ -12,13 +12,10 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {ExpenseRouteParams} from '../types';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>;
-};
-
-type RouteParams = {
-    expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
 };
 
 function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
@@ -27,30 +24,30 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     const config = policy?.connections?.netsuite.options.config;
 
     const route = useRoute();
-    const params = route.params as RouteParams;
+    const params = route.params as ExpenseRouteParams;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
-    const currentValue = isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination;
+    const currentDestination = isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination;
 
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_EXPORT_DESTINATION).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.netsuite.exportDestination.values.${dateType}.label`),
         keyForList: dateType,
-        isSelected: currentValue === dateType,
+        isSelected: currentDestination === dateType,
     }));
 
     const selectDestination = useCallback(
         (row: MenuListItem) => {
-            if (row.value !== currentValue) {
+            if (row.value !== currentDestination) {
                 if (isReimbursable) {
-                    Connections.updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentValue ?? 'EXPENSE_REPORT');
+                    Connections.updateNetSuiteReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
                 } else {
-                    Connections.updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentValue ?? 'VENDOR_BILL');
+                    Connections.updateNetSuiteNonReimbursableExpensesExportDestination(policyID, row.value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
                 }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, params.expenseType));
         },
-        [currentValue, isReimbursable, params.expenseType, policyID],
+        [currentDestination, isReimbursable, params.expenseType, policyID],
     );
 
     return (
