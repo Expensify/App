@@ -145,7 +145,7 @@ function SettlementButton({
     const {isOffline} = useNetwork();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID) ?? null, [activePolicyID]);
+    const primaryPolicy = useMemo(() => PolicyActions.getPrimaryPolicy(activePolicyID), [activePolicyID]);
 
     const session = useSession();
     // The app would crash due to subscribing to the entire report collection if chatReportID is an empty string. So we should have a fallback ID here.
