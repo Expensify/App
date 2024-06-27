@@ -41,6 +41,7 @@ const SCREENS = {
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
+        ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
@@ -104,6 +105,8 @@ const SCREENS = {
             SIZE: 'Settings_Subscription_Size',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
         },
     },
     SAVE_THE_WORLD: {
@@ -142,6 +145,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        RESTRICTED_ACTION: 'RestrictedAction',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -268,6 +272,7 @@ const SCREENS = {
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
+            NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Net_Suite_Subsidiary_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
@@ -288,6 +293,7 @@ const SCREENS = {
         TAGS_EDIT: 'Tags_Edit',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
+        REPORT_FIELDS: 'Workspace_ReportFields',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
@@ -356,6 +362,10 @@ const SCREENS = {
         ROOT: 'Welcome_Video_Root',
     },
 
+    EXPLANATION_MODAL: {
+        ROOT: 'Explanation_Modal_Root',
+    },
+
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
     INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
@@ -383,6 +393,7 @@ const SCREENS = {
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
+    RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

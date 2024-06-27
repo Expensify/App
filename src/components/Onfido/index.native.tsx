@@ -1,5 +1,4 @@
 import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
-import type {ErrorType} from 'onfido-sdk-ui/types/Types';
 import React, {useEffect} from 'react';
 import {Alert, Linking} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -9,7 +8,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnfidoProps} from './types';
+import type {OnfidoError, OnfidoProps} from './types';
 
 function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
     const {translate} = useLocalize();
@@ -30,7 +29,7 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
             },
         })
             .then(onSuccess)
-            .catch((error: ErrorType) => {
+            .catch((error: OnfidoError) => {
                 const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
                 const errorType = error.type;
 
