@@ -1708,19 +1708,19 @@ function getDeleteTrackExpenseInformation(
 
     if (actionableWhisperReportActionID) {
         const actionableWhisperReportAction = ReportActionsUtils.getReportAction(chatReportID, actionableWhisperReportActionID);
-        if (ReportActionsUtils.isActionableTrackExpense(actionableWhisperReportAction)) {
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-                value: {
-                    [actionableWhisperReportActionID]: {
-                        originalMessage: {
-                            resolution: ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction)?.resolution ?? null,
-                        },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [actionableWhisperReportActionID]: {
+                    originalMessage: {
+                        resolution: ReportActionsUtils.isActionableTrackExpense(actionableWhisperReportAction)
+                            ? ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction)?.resolution ?? null
+                            : null,
                     },
                 },
-            });
-        }
+            },
+        });
     }
     failureData.push(
         {
