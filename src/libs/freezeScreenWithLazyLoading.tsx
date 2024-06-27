@@ -1,7 +1,7 @@
 import React from 'react';
 import FreezeWrapper from './Navigation/FreezeWrapper';
 
-function frozenScreen<TProps extends React.JSX.IntrinsicAttributes>(WrappedComponent: React.ComponentType<TProps>) {
+function FrozenScreen<TProps extends React.JSX.IntrinsicAttributes>(WrappedComponent: React.ComponentType<TProps>) {
     return (props: TProps) => (
         <FreezeWrapper>
             <WrappedComponent
@@ -15,6 +15,6 @@ function frozenScreen<TProps extends React.JSX.IntrinsicAttributes>(WrappedCompo
 export default function freezeScreenWithLazyLoading(lazyComponent: () => React.ComponentType) {
     return () => {
         const Component = lazyComponent();
-        return frozenScreen(Component);
+        return FrozenScreen(Component);
     };
 }
