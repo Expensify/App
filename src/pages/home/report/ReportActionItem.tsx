@@ -202,6 +202,7 @@ function ReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
+
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || -1}`);
