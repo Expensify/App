@@ -142,7 +142,7 @@ export default function useLastAccessedReportID(shouldOpenOnAdminRoom: boolean) 
         )?.reportID;
     }, [activeWorkspaceID, canUseDefaultRooms, shouldOpenOnAdminRoom]);
 
-    // We need access to all the data from these useOnyx calls, but we don't want to re-render the consuming component
-    // unless the derived value (lastAccessedReportID) changes. To address these, we'll wrap everything with
+    // We need access to all the data from these Onyx.connect calls, but we don't want to re-render the consuming component
+    // unless the derived value (lastAccessedReportID) changes. To address these, we'll wrap everything with useSyncExternalStore
     return useSyncExternalStore(addSubscriber, getSnapshot);
 }
