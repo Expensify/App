@@ -606,6 +606,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                     [newName]: null,
                     [oldName]: {
                         ...oldPolicyTags,
+                        pendingAction: null,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
                     },
                 },
