@@ -2938,6 +2938,15 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
         });
+
+        it('should not return any user to invite if email exists on the personal details list', () => {
+            const searchText = 'natasharomanoff@expensify.com';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+            expect(filteredOptions.personalDetails.length).toBe(1);
+            expect(filteredOptions.userToInvite).toBe(null);
+        });
     });
 
     describe('canCreateOptimisticPersonalDetailOption', () => {

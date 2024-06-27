@@ -1,4 +1,4 @@
-import {ExpensiMark, fastMerge} from 'expensify-common';
+import {fastMerge} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -13,7 +13,6 @@ import type Report from '@src/types/onyx/Report';
 import type {Message, OriginalMessage, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
@@ -21,6 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
+import {parseHtmlToText} from './OnyxAwareParser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -121,7 +121,7 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
     return (getReportActionMessage(reportAction)?.isReversedTransaction ?? false) && ((reportAction as ReportAction)?.childVisibleActionCount ?? 0) > 0;
 }
 
-function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): boolean {
+function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (isEmptyObject(reportAction)) {
         return false;
     }
@@ -189,9 +189,9 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
         return [];
     }
     const originalMessage = getOriginalMessage(reportAction);
-    const message = reportAction?.message;
+    const message = getReportActionMessage(reportAction);
 
-    if (!(originalMessage && 'whisperedTo' in originalMessage) && !(message && 'whisperedTo' in message)) {
+    if (!(originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) && !(message && typeof message === 'object' && 'whisperedTo' in message)) {
         return [];
     }
 
@@ -199,8 +199,12 @@ function getWhisperedTo(reportAction: OnyxInputOrEntry<ReportAction>): number[] 
         return message?.whisperedTo ?? [];
     }
 
-    if (originalMessage && 'whisperedTo' in originalMessage) {
+    if (originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) {
         return originalMessage?.whisperedTo ?? [];
+    }
+
+    if (typeof originalMessage !== 'object') {
+        Log.info('Original message is not an object for reportAction: ', true, {reportActionID: reportAction?.reportActionID, actionName: reportAction?.actionName});
     }
 
     return [];
@@ -276,11 +280,11 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxInputOrEntry<Report> | EmptyObject): ReportAction | EmptyObject {
+function getParentReportAction(report: OnyxInputOrEntry<Report>): OnyxEntry<ReportAction> {
     if (!report?.parentReportID || !report.parentReportActionID) {
-        return {};
+        return undefined;
     }
-    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
 /**
@@ -298,7 +302,7 @@ function isSentMoneyReportAction(reportAction: OnyxEntry<ReportAction | Optimist
  * Returns whether the thread is a transaction thread, which is any thread with IOU parent
  * report action from requesting money (type - create) or from sending money (type - pay with IOUDetails field)
  */
-function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction> | EmptyObject): boolean {
+function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>): boolean {
     if (isEmptyObject(parentReportAction) || !isMoneyRequestAction(parentReportAction)) {
         return false;
     }
@@ -373,17 +377,21 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
-function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[], reportID?: string): ReportAction[] {
+function getCombinedReportActions(
+    reportActions: ReportAction[],
+    transactionThreadReportID: string | null,
+    transactionThreadReportActions: ReportAction[],
+    reportID?: string,
+): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
-    if (isEmptyObject(transactionThreadReportActions) || isSentMoneyReport) {
+    if (_.isEmpty(transactionThreadReportID) || isSentMoneyReport) {
         return reportActions;
     }
 
     // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
@@ -1130,14 +1138,15 @@ function getReportActionHtml(reportAction: PartialReportAction): string {
 }
 
 function getReportActionText(reportAction: PartialReportAction): string {
-    const html = getReportActionHtml(reportAction);
-    const parser = new ExpensiMark();
-    return html ? parser.htmlToText(html) : '';
+    const message = getReportActionMessage(reportAction);
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const text = (message?.html || message?.text) ?? '';
+    return text ? parseHtmlToText(text) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    const parser = new ExpensiMark();
-    return html ? parser.htmlToText(html) : '';
+    return html ? parseHtmlToText(html) : '';
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {
@@ -1203,7 +1212,9 @@ function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): 
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
-    return reportAction?.message?.map((element) => getTextFromHtml(element?.html)).join('') ?? '';
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return reportAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -1287,9 +1298,9 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
  * Check whether the current report action of the report is unread or not
  *
  */
-function isCurrentActionUnread(report: Report | EmptyObject, reportAction: ReportAction): boolean {
-    const lastReadTime = report.lastReadTime ?? '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report.reportID)));
+function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction): boolean {
+    const lastReadTime = report?.lastReadTime ?? '';
+    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report?.reportID ?? '-1')));
     const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
     if (currentActionIndex === -1) {
         return false;
@@ -1318,18 +1329,20 @@ function isActionableJoinRequestPending(reportID: string): boolean {
     return !!findPendingRequest;
 }
 
-function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | EmptyObject) {
+function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
     return [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED].some((type) => type === action?.actionName);
 }
 
 /**
  * Gets the text version of the message in a report action
  */
-function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | EmptyObject): string {
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): string {
     if (!Array.isArray(reportAction?.message)) {
         return getReportActionText(reportAction);
     }
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html)}`, '') ?? '';
+    // Sometime html can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
 }
 
 function getDismissedViolationMessageText(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION>['originalMessage']): string {
