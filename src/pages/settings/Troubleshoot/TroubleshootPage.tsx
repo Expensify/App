@@ -13,7 +13,9 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
+import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -53,14 +55,22 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
+    const [shouldMaskOnyxState, setShouldMaskOnyxState] = useState(true);
 
     const exportOnyxState = useCallback(() => {
         ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
-            const maskedData = ExportOnyxState.maskFragileData(value);
+            let dataToShare = value;
+            if (shouldMaskOnyxState) {
+                dataToShare = ExportOnyxState.maskFragileData(value);
+            }
 
-            ExportOnyxState.shareAsFile(JSON.stringify(maskedData));
+            ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
         });
-    }, []);
+    }, [shouldMaskOnyxState]);
+
+    const toggleOnyxStateMasking = useCallback(() => {
+        setShouldMaskOnyxState(!shouldMaskOnyxState);
+    }, [shouldMaskOnyxState]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
@@ -136,6 +146,13 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
                                 <ClientSideLoggingToolMenu />
+                                <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
+                                    <Switch
+                                        accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                        isOn={shouldMaskOnyxState}
+                                        onToggle={toggleOnyxStateMasking}
+                                    />
+                                </TestToolRow>
                             </View>
                             <MenuItemList
                                 menuItems={menuItems}
