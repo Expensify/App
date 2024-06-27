@@ -40,9 +40,9 @@ function HybridAppMiddleware(props: HybridAppMiddlewareProps) {
     const navigateToExitUrl = useCallback((exitUrl: Route) => {
         if (NativeModules.HybridAppModule) {
             setStartedTransition(true);
+            Log.info(`[HybridApp] Started transition to ${exitUrl}`, true);
         }
 
-        Log.info(`[HybridApp] Started transition to ${exitUrl}`, true);
         Navigation.navigate(exitUrl);
     }, []);
 
