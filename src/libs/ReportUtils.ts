@@ -5563,6 +5563,7 @@ function getChatByParticipants(newParticipantList: number[], reports: OnyxCollec
             isChatThread(report) ||
             isTaskReport(report) ||
             isMoneyRequestReport(report) ||
+            isInvoiceReport(report) ||
             isChatRoom(report) ||
             isPolicyExpenseChat(report) ||
             (isGroupChat(report) && !shouldIncludeGroupChats)
