@@ -4,7 +4,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
