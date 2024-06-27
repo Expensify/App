@@ -374,6 +374,30 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
 }
 
 /**
+ * Returns filtered list for one transaction view
+ * Separated it from getCombinedReportActions, so it can be reused
+ */
+function getFilteredForOneTransactionView(reportActions: ReportAction[], isSelfDM = false): ReportAction[] {
+    const filteredReportActions = reportActions.filter((action) => {
+        // const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
+        // if (isSelfDM) {
+        //     return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+        // }
+        // return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+        if (!isMoneyRequestAction(action)) {
+            return true;
+        }
+        const actionType = getOriginalMessage(action)?.type ?? '';
+        if (isSelfDM) {
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
+        }
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+    });
+
+    return filteredReportActions;
+}
+
+/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -392,16 +416,7 @@ function getCombinedReportActions(
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-        if (!isMoneyRequestAction(action)) {
-            return true;
-        }
-        const actionType = getOriginalMessage(action)?.type ?? '';
-        if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
-        }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
-    });
+    const filteredReportActions = getFilteredForOneTransactionView([...reportActions, ...filteredTransactionThreadReportActions]);
 
     return getSortedReportActions(filteredReportActions, true);
 }
@@ -1459,6 +1474,7 @@ export {
     getTextFromHtml,
     isTripPreview,
     getIOUActionForReportID,
+    getFilteredForOneTransactionView,
 };
 
 export type {LastVisibleMessage};
