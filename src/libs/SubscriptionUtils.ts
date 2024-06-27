@@ -154,6 +154,9 @@ function getAmountOwed(): number {
     return amountOwed ?? 0;
 }
 
+/**
+ * @returns Whether there is an amount owed by the workspace owner.
+ */
 function hasAmountOwed(): boolean {
     return !!amountOwed;
 }
@@ -244,7 +247,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
-            if (hasGracePeriodOverdue() === false) {
+            if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
@@ -266,7 +269,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue() === false) {
+            if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 };
