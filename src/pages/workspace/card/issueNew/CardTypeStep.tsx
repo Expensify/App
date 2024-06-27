@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 function CardTypeStep() {
     const {translate} = useLocalize();
@@ -53,6 +50,9 @@ function CardTypeStep() {
                     title={translate('workspace.card.issueNewCard.physicalCard')}
                     description={translate('workspace.card.issueNewCard.physicalCardDescription')}
                     shouldShowRightIcon
+                    onPress={submit}
+                    displayInDefaultIconColor
+                    iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
                     iconHeight={variables.menuIconSize}
                     wrapperStyle={[styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected]}
@@ -62,6 +62,9 @@ function CardTypeStep() {
                     title={translate('workspace.card.issueNewCard.virtualCard')}
                     description={translate('workspace.card.issueNewCard.virtualCardDescription')}
                     shouldShowRightIcon
+                    onPress={submit}
+                    displayInDefaultIconColor
+                    iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
                     iconHeight={variables.menuIconSize}
                     wrapperStyle={[styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected]}
