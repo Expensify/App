@@ -11519,6 +11519,17 @@ async function run() {
             // Note: we filter out cancelled runs instead of looking only for success runs
             // because if a build fails on even one platform, then it will have the status 'failure'
             .filter((workflowRun) => workflowRun.conclusion !== 'cancelled');
+        // Find the most recent deploy workflow for which at least one of the build jobs finished successfully.
+        let lastSuccessfulDeploy = completedDeploys.shift();
+        while (lastSuccessfulDeploy &&
+            !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                run_id: lastSuccessfulDeploy.id,
+                filter: 'latest',
+            })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')) {
+            lastSuccessfulDeploy = completedDeploys.shift();
+        }
         const priorTag = completedDeploys[0].head_branch;
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
         const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
