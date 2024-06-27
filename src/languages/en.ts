@@ -2438,13 +2438,8 @@ export default {
                 const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
                 return `Disconnect ${integrationName}`;
             },
-            connectTitle: (integrationToConnect?: ConnectionName): string => {
-                const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
-                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
-                        : 'accounting integration';
-                return `Connect ${integrationName}`;
-            },
+            connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                    ?? 'accounting integration'}`,
 
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
@@ -2479,13 +2474,8 @@ export default {
                         : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
-            connectPrompt: (integrationToConnect?: ConnectionName): string => {
-                const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
-                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
-                        : 'this accounting integration';
-                return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
-            },
+            connectPrompt: (integrationToConnect: ConnectionName): string => `Are you sure you want to connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect]
+                    ?? 'this accounting integration'}? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
