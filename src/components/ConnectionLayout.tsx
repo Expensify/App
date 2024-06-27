@@ -21,7 +21,7 @@ type ConnectionLayoutProps = {
     displayName: string;
 
     /* The fallback route to go back to */
-    backButtonRoute?: Route;
+    onBackButtonPressFallbackRoute?: Route;
 
     /** Header title to be translated for the connection component */
     headerTitle?: TranslationPaths;
@@ -81,7 +81,7 @@ function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTrans
 
 function ConnectionLayout({
     displayName,
-    backButtonRoute,
+    onBackButtonPressFallbackRoute,
     headerTitle,
     children,
     title,
@@ -130,7 +130,7 @@ function ConnectionLayout({
                 <HeaderWithBackButton
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle) : '')}
                     subtitle={headerSubtitle}
-                    onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
+                    onBackButtonPress={() => Navigation.goBack(onBackButtonPressFallbackRoute)}
                 />
                 {shouldUseScrollView ? (
                     <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
