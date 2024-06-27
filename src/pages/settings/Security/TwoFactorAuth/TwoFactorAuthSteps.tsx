@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {AnimationDirection} from '@components/AnimatedStep/AnimatedStepContext';
 import useAnimatedStepContext from '@components/AnimatedStep/useAnimatedStepContext';
