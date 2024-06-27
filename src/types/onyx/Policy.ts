@@ -1267,16 +1267,15 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Max expense age for a Policy violation */
         maxExpenseAge?: number;
-        
+
         /** Max expense amount for a policy violation */
-        maxExpenseAmount?: number;  
-        
+        maxExpenseAmount?: number;
+
         /** Max amount for an expense with no receipt violation */
         maxExpenseAmountNoReceipt?: number;
 
         /** Whether GL codes are enabled */
         glCodes?: boolean;
-
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
