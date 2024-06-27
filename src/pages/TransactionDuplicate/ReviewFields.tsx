@@ -85,5 +85,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
     );
 }
 
+ReviewFields.displayName = 'ReviewFields';
+
 export default ReviewFields;
 export type {FieldItemType};
