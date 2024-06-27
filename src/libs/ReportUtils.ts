@@ -609,7 +609,7 @@ function isDraftReport(reportID: string | undefined): boolean {
  */
 function doesReportExist(reportID: string | undefined): boolean {
     const report = getReportOrDraftReport(reportID);
-    return isEmptyObject(report?.reportID) ? false : true;
+    return !isEmptyObject(report?.reportID);
 }
 
 /**
