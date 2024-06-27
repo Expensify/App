@@ -3540,7 +3540,10 @@ function navigateBackAfterDeleteTransaction(backRoute: Route | undefined) {
         Navigation.dismissModal();
         return;
     }
-    Navigation.goBack(backRoute);
+    Navigation.dismissModal();
+    Navigation.isNavigationReady().then(() => {
+        Navigation.goBack(backRoute);
+    });
 }
 
 /**
