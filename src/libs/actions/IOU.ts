@@ -24,7 +24,7 @@ import type {
     StartSplitBillParams,
     SubmitReportParams,
     TrackExpenseParams,
-    UnapproveMoneyRequestParams,
+    UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -6420,12 +6420,12 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
         },
     ];
 
-    const parameters: UnapproveMoneyRequestParams = {
+    const parameters: UnapproveExpenseReportParams = {
         reportID: expenseReport.reportID,
         reportActionID: optimisticUnapprovedReportAction.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.UNAPPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
 function submitReport(expenseReport: OnyxTypes.Report) {
