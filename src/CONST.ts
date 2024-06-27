@@ -4890,10 +4890,6 @@ const CONST = {
     },
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
-    SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
-        COLLECT_PLAN: 10,
-        CONTROL_PLAN: 18,
-    },
     FEEDBACK_SURVEY_OPTIONS: {
         TOO_LIMITED: {
             ID: 'tooLimited',
