@@ -174,7 +174,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction);
 
-    const moneyRequestReport = useMemo(() => {
+    const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
         if (caseID === CASES.MONEY_REQUEST) {
             return parentReport;
         }
@@ -229,7 +229,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // TODO: show modal if report is exported to accounting
         // setIsUnapproveModalVisible(true);
 
-        IOU.unapproveExpenseReport(moneyRequestReport ?? {});
+        IOU.unapproveExpenseReport(moneyRequestReport);
     }, [moneyRequestReport]);
 
     const shouldShowLeaveButton =
@@ -678,7 +678,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     onConfirm={() => {
                         setIsUnapproveModalVisible(false);
                         Navigation.dismissModal();
-                        IOU.unapproveExpenseReport(moneyRequestReport ?? {});
+                        IOU.unapproveExpenseReport(moneyRequestReport);
                     }}
                     cancelText={translate('common.cancel')}
                     onCancel={() => setIsUnapproveModalVisible(false)}
