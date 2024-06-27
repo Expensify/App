@@ -99,6 +99,6 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
     );
 }
 
-IntacctPrerequisitesPage.displayName = 'IntacctPrerequisitesPage';
+IntacctPrerequisitesPage.displayName = 'PolicyIntacctPrerequisitesPage';
 
 export default IntacctPrerequisitesPage;

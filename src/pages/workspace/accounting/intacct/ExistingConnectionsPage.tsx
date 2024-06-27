@@ -59,6 +59,6 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     );
 }
 
-ExistingConnectionsPage.displayName = 'ExistingConnectionsPage';
+ExistingConnectionsPage.displayName = 'PolicyExistingConnectionsPage';
 
 export default ExistingConnectionsPage;
