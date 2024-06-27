@@ -2161,11 +2161,15 @@ export default {
                 label: 'Purchase bill date',
                 description: 'Use this date when exporting reports to Xero.',
                 values: {
-                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
                         description: 'Date the report was exported to Xero.',
                     },
-                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
                         description: 'Date the report was submitted for approval.',
                     },
