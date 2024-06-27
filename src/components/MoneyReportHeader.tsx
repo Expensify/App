@@ -248,14 +248,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, moneyRequestReport?.reportID) && isRequestIOU;
         const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(moneyRequestReport);
         const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
+        const isInvoiceReport = ReportUtils.isInvoiceReport(moneyRequestReport);
+        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus)) && !isInvoiceReport) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdExpense'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning && !isInvoiceReport) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.hold'),
