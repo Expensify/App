@@ -1,23 +1,12 @@
 import {deepEqual} from 'fast-equals';
 import React, {useMemo, useRef} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
 
 /*
  * This component gets the data from onyx for the actual
