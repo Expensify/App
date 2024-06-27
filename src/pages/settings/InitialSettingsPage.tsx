@@ -92,6 +92,7 @@ type MenuData = {
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
     badgeText?: string;
+    badgeStyle?: ViewStyle;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -212,6 +213,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 iconRight: Expensicons.NewWindow,
                 link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
                 badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
+                badgeStyle: styles.badgeSuccess,
             });
         }
 
@@ -220,7 +222,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, styles.workspaceSettingsSectionContainer, translate]);
+    }, [policies, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, translate]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -319,6 +321,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 })}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
+                                badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 floatRightAvatars={item.floatRightAvatars}
