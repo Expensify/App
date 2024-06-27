@@ -1,6 +1,5 @@
 import React from 'react';
 import * as Illustrations from '@components/Icon/Illustrations';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import BillingBanner from './BillingBanner';
@@ -11,7 +10,7 @@ function TrialStartedBillingBanner() {
     return (
         <BillingBanner
             title={translate('subscription.billingBanner.trialStarted.title', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
-            subtitle={<Text>{translate('subscription.billingBanner.trialStarted.subtitle')}</Text>}
+            subtitle={translate('subscription.billingBanner.trialStarted.subtitle')}
             icon={Illustrations.TreasureChest}
         />
     );

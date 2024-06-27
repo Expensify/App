@@ -92,7 +92,6 @@ type MenuData = {
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
     badgeText?: string;
-    badgeStyle?: ViewStyle;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -212,7 +211,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
-                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : '',
+                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
             });
         }
 
@@ -320,7 +319,6 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 })}
                                 iconStyles={item.iconStyles}
                                 badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
-                                badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 floatRightAvatars={item.floatRightAvatars}

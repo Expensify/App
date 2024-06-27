@@ -16,7 +16,6 @@ const WRITE_COMMANDS = {
     UPDATE_PREFERRED_LOCALE: 'UpdatePreferredLocale',
     OPEN_APP: 'OpenApp',
     RECONNECT_APP: 'ReconnectApp',
-    OPEN_PROFILE: 'OpenProfile',
     HANDLE_RESTRICTED_EVENT: 'HandleRestrictedEvent',
     OPEN_REPORT: 'OpenReport',
     DELETE_PAYMENT_BANK_ACCOUNT: 'DeletePaymentBankAccount',
@@ -158,6 +157,7 @@ const WRITE_COMMANDS = {
     UPDATE_MONEY_REQUEST_DESCRIPTION: 'UpdateMoneyRequestDescription',
     UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY: 'UpdateMoneyRequestAmountAndCurrency',
     HOLD_MONEY_REQUEST: 'HoldRequest',
+    UPDATE_BILLING_CARD_CURRENCY: 'UpdateBillingCardCurrency',
     UNHOLD_MONEY_REQUEST: 'UnHoldRequest',
     UPDATE_DISTANCE_REQUEST: 'UpdateDistanceRequest',
     REQUEST_MONEY: 'RequestMoney',
@@ -236,7 +236,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE]: Parameters.UpdatePreferredLocaleParams;
     [WRITE_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [WRITE_COMMANDS.OPEN_APP]: Parameters.OpenAppParams;
-    [WRITE_COMMANDS.OPEN_PROFILE]: Parameters.OpenProfileParams;
     [WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT]: Parameters.HandleRestrictedEventParams;
     [WRITE_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT]: Parameters.DeletePaymentBankAccountParams;
@@ -440,6 +439,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
     [WRITE_COMMANDS.DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER]: Parameters.DismissTrackExpenseActionableWhisperParams;
+    [WRITE_COMMANDS.UPDATE_BILLING_CARD_CURRENCY]: Parameters.UpdateBillingCurrencyParams;
     [WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST]: Parameters.ConvertTrackedExpenseToRequestParams;
     [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE]: Parameters.CategorizeTrackedExpenseParams;
     [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE]: Parameters.ShareTrackedExpenseParams;
@@ -567,6 +567,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
     OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
+    ADD_PAYMENT_CARD_GBR: 'AddPaymentCardGBP',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
 } as const;
@@ -582,6 +583,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBR]: Parameters.AddPaymentCardParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: null;
 };
 
