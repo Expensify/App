@@ -57,6 +57,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'divider',
+            key: 'divider1',
         },
         {
             type: 'menuitem',
@@ -92,6 +93,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'divider',
+            key: 'divider2',
         },
         {
             type: 'menuitem',
@@ -115,6 +117,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'divider',
+            key: 'divider3',
         },
         {
             type: 'menuitem',
@@ -181,7 +184,12 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 .map((item) => {
                     switch (item.type) {
                         case 'divider':
-                            return <View style={styles.dividerLine} />;
+                            return (
+                                <View
+                                    key={item.key}
+                                    style={styles.dividerLine}
+                                />
+                            );
                         case 'toggle':
                             // eslint-disable-next-line no-case-declarations
                             const {type, shouldHide, ...rest} = item;

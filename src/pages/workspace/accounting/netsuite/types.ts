@@ -25,6 +25,9 @@ type DividerLineItem = {
     /** Type of the item */
     type: 'divider';
 
+    /** Unique key for the item */
+    key: string;
+
     /** Whether the item should be hidden */
     shouldHide?: boolean;
 };
