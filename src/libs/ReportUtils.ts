@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {
     Beta,
     OnyxInputOrEntry,
@@ -79,7 +80,7 @@ import * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
-type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
+type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string};
 
 type SpendBreakdown = {
     nonReimbursableSpend: number;
@@ -1607,6 +1608,80 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     }
 
     return welcomeMessage;
+}
+
+function getWelcomMessage(report: OnyxEntry<Report>): WelcomeMessage {
+    const welcomeMessage: WelcomeMessage = {showReportName: true};
+    if (isChatRoom(report)) {
+        return getRoomWelcomeMessage(report);
+    }
+
+    if (isPolicyExpenseChat(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
+        welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
+        return welcomeMessage;
+    }
+
+    if (isSelfDM(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
+        return welcomeMessage;
+    }
+
+    if (isSystemChat(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
+        return welcomeMessage;
+    }
+
+    welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistory');
+    return welcomeMessage;
+}
+
+function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string {
+    if (isThread(report)) {
+        return Localize.translateLocal('report.noActivityYet');
+    }
+
+    const welcomeMessage = getWelcomMessage(report);
+    if (isPolicyExpenseChat(report)) {
+        if (report?.description) {
+            return parseHtmlToText(report.description);
+        }
+        return `${welcomeMessage.phrase1} ${getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${getPolicyName(report)} ${welcomeMessage.phrase3}`;
+    }
+
+    if (isChatRoom(report)) {
+        if (report?.description) {
+            return parseHtmlToText(report.description);
+        }
+        return `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
+    }
+
+    if (isSelfDM(report) || isSystemChat(report)) {
+        return `${welcomeMessage.phrase1}`;
+    }
+
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const isMultipleParticipant = participantAccountIDs.length > 1;
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
+    const displayNamesWithTooltipsText = displayNamesWithTooltips
+        .map(({displayName, pronouns}, index) => {
+            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
+
+            if (index === displayNamesWithTooltips.length - 1) {
+                return `${formattedText}.`;
+            }
+            if (index === displayNamesWithTooltips.length - 2) {
+                return `${formattedText} ${Localize.translateLocal('common.and')}`;
+            }
+            if (index < displayNamesWithTooltips.length - 2) {
+                return `${formattedText},`;
+            }
+
+            return '';
+        })
+        .join(' ');
+    return `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
 }
 
 /**
@@ -7144,6 +7219,7 @@ export {
     getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
+    getReportBeginningOfChatHistoryMessage,
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,

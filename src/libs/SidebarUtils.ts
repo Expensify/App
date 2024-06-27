@@ -367,7 +367,7 @@ function getOptionData({
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
-                result.alternateText = Localize.translate(preferredLocale, 'report.noActivityYet');
+                result.alternateText = ReportUtils.formatReportLastMessageText(ReportUtils.getReportBeginningOfChatHistoryMessage(report)) || Localize.translate(preferredLocale, 'report.noActivityYet');;
             }
         }
     } else {
