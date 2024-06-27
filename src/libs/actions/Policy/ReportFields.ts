@@ -182,4 +182,6 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
 }
 
+export type {CreateReportFieldArguments};
+
 export {setInitialCreateReportFieldsForm, createReportFieldsListValue, renameReportFieldsListValue, setReportFieldsListValueEnabled, deleteReportFieldsListValue, createReportField};
