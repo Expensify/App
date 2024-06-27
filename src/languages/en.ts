@@ -2435,12 +2435,12 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_MAP[integration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integration] : 'integration';
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
                 return `Disconnect ${integrationName}`;
             },
             connectTitle: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'accounting integration';
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'accounting integration';
                 return `Connect ${integrationName}`;
             },
 
@@ -2451,7 +2451,7 @@ export default {
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return "Can't connect to Xero.";
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return "Can't connec to NetSuite";
+                        return "Can't connect to NetSuite.";
                     default: {
                         return "Can't connect to integration.";
                     }
@@ -2472,12 +2472,12 @@ export default {
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_MAP[currentIntegration] : 'this integration';
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'this integration';
                 return `Are you sure you want to disconnect ${integrationName}?`;
             },
             connectPrompt: (integrationToConnect?: ConnectionName): string => {
                 const integrationName =
-                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_MAP[integrationToConnect] : 'this accounting integration';
+                    integrationToConnect && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] : 'this accounting integration';
                 return `Are you sure you want to connect ${integrationName}? This will remove any existing acounting connections.`;
             },
             enterCredentials: 'Enter your credentials',

@@ -1794,7 +1794,7 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
             },
-            NAME_MAP: {
+            NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
                 xero: 'Xero',
