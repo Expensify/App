@@ -225,18 +225,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
-    const unapproveAndClose = useCallback(() => {
-        setIsUnapproveModalVisible(false);
-        Navigation.dismissModal();
-        IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [moneyRequestReport]);
-
     const unapproveExpenseReportOrShowModal = useCallback(() => {
         // TODO: show modal if report is exported to accounting
         // setIsUnapproveModalVisible(true);
 
-        unapproveAndClose();
-    }, [unapproveAndClose]);
+        setIsUnapproveModalVisible(false);
+        Navigation.dismissModal();
+        IOU.unapproveExpenseReport(moneyRequestReport);
+    }, [moneyRequestReport]);
 
     const shouldShowLeaveButton =
         !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
@@ -681,7 +677,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isUnapproveModalVisible}
                     danger
                     confirmText={translate('iou.unapproveReport')}
-                    onConfirm={unapproveAndClose}
+                    onConfirm={unapproveExpenseReportOrShowModal}
                     cancelText={translate('common.cancel')}
                     onCancel={() => setIsUnapproveModalVisible(false)}
                     prompt={unapproveWarningText}
