@@ -376,7 +376,7 @@ function ReportScreen({
 
     const isLoading = isLoadingApp ?? (!reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty());
     const shouldShowSkeleton =
-        !!linkedAction &&
+        !linkedAction &&
         (isLinkingToMessage ||
             !isCurrentReportLoadedFromOnyx ||
             (reportActions.length === 0 && !!reportMetadata?.isLoadingInitialReportActions) ||
