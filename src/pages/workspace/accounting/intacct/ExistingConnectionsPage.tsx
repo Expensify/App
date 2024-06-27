@@ -1,19 +1,16 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import connectToSageIntacct from '@libs/actions/connections/SageIntacct';
+import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPoliciesConnectedToSageIntacct} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -22,8 +19,7 @@ type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList,
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct(policies);
+    const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct();
     const policyID: string = route.params.policyID;
 
     const menuItems = policiesConnectedToSageIntacct.map((policy) => {
@@ -32,7 +28,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
         return {
             title: policy.name,
             key: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+            icon: policy.avatarURL ?? ReportUtils.getDefaultWorkspaceAvatar(policy.name),
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
             description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
             onPress: () => {

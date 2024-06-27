@@ -319,10 +319,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/advanced/XeroBillPaymentAccountSelectorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/NetSuiteSubsidiarySelector').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: () => require('../../../../pages/workspace/accounting/intacct/IntacctPrerequisitesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/IntacctPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: () =>
-        require('../../../../pages/workspace/accounting/intacct/EnterSageIntacctCredentialsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: () => require('../../../../pages/workspace/accounting/intacct/ExistingConnectionsPage').default as React.ComponentType,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/EnterSageIntacctCredentialsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/ExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default,
     [SCREENS.WORKSPACE.TAX_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceEditTaxPage').default,

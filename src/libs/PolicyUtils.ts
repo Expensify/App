@@ -471,11 +471,6 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
-function getPoliciesConnectedToSageIntacct(policies: OnyxCollection<Policy>): Policy[] {
-    return Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
-}
-
-// eslint-disable-next-line rulesdir/prefer-early-return
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
     if (!connection) {
         return undefined;
@@ -572,7 +567,6 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
-    getPoliciesConnectedToSageIntacct,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,

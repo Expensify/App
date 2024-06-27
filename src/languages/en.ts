@@ -2197,7 +2197,7 @@ export default {
             followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
             enterCredentials: 'Enter your Sage Intacct credentials',
             createNewConnection: 'Create new connection',
-            reuseExitingConnection: 'Reuse existing connection',
+            reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
         },

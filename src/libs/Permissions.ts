@@ -41,7 +41,7 @@ function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+    return true;
 }
 
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {

@@ -2233,7 +2233,7 @@ export default {
             followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
             enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
             createNewConnection: 'Crear una nueva conexión',
-            reuseExitingConnection: 'Reutilizar la conexión existente',
+            reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Última sincronización ${formattedDate}`,
         },

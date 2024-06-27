@@ -40,7 +40,7 @@ function IntacctPrerequisitesPage({route}: IntacctPrerequisitesPageProps) {
                 iconRight: Expensicons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    fileDownload('https://www.expensify.com/tools/integrations/downloadPackage', 'ExpensifyPackageForSageIntacct');
+                    fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, popoverAnchor.current),

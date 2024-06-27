@@ -1,6 +1,5 @@
 import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -10,11 +9,10 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
+import {getPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPoliciesConnectedToSageIntacct} from '@libs/PolicyUtils';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
@@ -33,8 +31,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct(policies).length;
+    const hasPoliciesConnectedToSageIntacct = !!getPoliciesConnectedToSageIntacct().length;
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isReuseConnectionsPopoverOpen, setIsReuseConnectionsPopoverOpen] = useState(false);
     const [reuseConnectionPopoverPosition, setReuseConnectionPopoverPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -50,7 +47,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
         },
         {
             icon: Expensicons.Copy,
-            text: translate('workspace.intacct.reuseExitingConnection'),
+            text: translate('workspace.intacct.reuseExistingConnection'),
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);

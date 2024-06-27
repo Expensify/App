@@ -31,29 +31,27 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     const [sageIntacctCredentialsDraft] = useOnyx(ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM_DRAFT);
     const confirmCredentials = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
-            connectToSageIntacct(policyID, values[INPUT_IDS.COMPANY_ID], values[INPUT_IDS.USER_ID], values[INPUT_IDS.PASSWORD]);
+            connectToSageIntacct(policyID, values);
             Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
         },
         [policyID],
     );
 
     const formItems = Object.values(INPUT_IDS);
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM> = {};
 
-        if (!values.companyID) {
-            ErrorUtils.addErrorMessage(errors, 'companyID', 'common.error.fieldRequired');
-        }
-
-        if (!values.userID) {
-            ErrorUtils.addErrorMessage(errors, 'userID', 'common.error.fieldRequired');
-        }
-
-        if (!values.password) {
-            ErrorUtils.addErrorMessage(errors, 'password', 'common.error.fieldRequired');
-        }
-        return errors;
-    }, []);
+            formItems.forEach((formItem) => {
+                if (values[formItem]) {
+                    return;
+                }
+                ErrorUtils.addErrorMessage(errors, formItem, translate('common.error.fieldRequired'));
+            });
+            return errors;
+        },
+        [formItems],
+    );
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}

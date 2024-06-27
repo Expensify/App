@@ -227,6 +227,7 @@ const WRITE_COMMANDS = {
     UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY: 'UpdateSubscriptionAddNewUsersAutomatically',
     UPDATE_SUBSCRIPTION_SIZE: 'UpdateSubscriptionSize',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
+    CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
