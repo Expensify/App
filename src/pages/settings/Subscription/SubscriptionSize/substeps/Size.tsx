@@ -39,16 +39,16 @@ function Size({onNext}: SizeProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM> => {
             const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SUBSCRIPTION_SIZE]);
             if (values[INPUT_IDS.SUBSCRIPTION_SIZE] && !ValidationUtils.isValidSubscriptionSize(values[INPUT_IDS.SUBSCRIPTION_SIZE])) {
-                errors.subscriptionSize = 'subscription.subscriptionSize.error.size';
+                errors.subscriptionSize = translate('subscription.subscriptionSize.error.size');
             }
 
             if (Number(values[INPUT_IDS.SUBSCRIPTION_SIZE]) === privateSubscription?.userCount) {
-                errors.subscriptionSize = 'subscription.subscriptionSize.error.sameSize';
+                errors.subscriptionSize = translate('subscription.subscriptionSize.error.sameSize');
             }
 
             return errors;
         },
-        [privateSubscription?.userCount],
+        [privateSubscription?.userCount, translate],
     );
 
     return (

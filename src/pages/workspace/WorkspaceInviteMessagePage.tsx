@@ -127,7 +127,7 @@ function WorkspaceInviteMessagePage({
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
         if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
+            errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
     };

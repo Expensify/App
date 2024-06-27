@@ -25,4 +25,8 @@ type OnfidoProps = {
     onError: (error?: string) => void;
 };
 
-export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID};
+type OnfidoError = Error & {
+    type?: string;
+};
+
+export type {OnfidoProps, OnfidoElement, OnfidoData, OnfidoDataWithApplicantID, OnfidoError};

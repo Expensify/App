@@ -38,20 +38,23 @@ function WorkspaceNamePage({policy}: Props) {
         [policy],
     );
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
-        const name = values.name.trim();
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM> = {};
+            const name = values.name.trim();
 
-        if (!ValidationUtils.isRequiredFulfilled(name)) {
-            errors.name = 'workspace.editor.nameIsRequiredError';
-        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-            // code units.
-            ErrorUtils.addErrorMessage(errors, 'name', ['common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
-        }
+            if (!ValidationUtils.isRequiredFulfilled(name)) {
+                errors.name = translate('workspace.editor.nameIsRequiredError');
+            } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+                // code units.
+                ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: [...name].length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+            }
 
-        return errors;
-    }, []);
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper

@@ -47,7 +47,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
             }
             if (ReportUtils.isMoneyRequestReport(report)) {
                 // generate subtitle from participants
-                return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID)
+                return ReportUtils.getParticipantsAccountIDsForDisplay(report, true)
                     .map((accountID) => ReportUtils.getDisplayNameForParticipant(accountID))
                     .join(' & ');
             }
@@ -68,7 +68,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
         <ScreenWrapper testID={ShareCodePage.displayName}>
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID) : undefined)}
+                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID) : undefined)}
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
