@@ -291,16 +291,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    // TODO: replace with a check of enabled feature:  if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
-    if (true) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.expensifyCard',
-            icon: Expensicons.CreditCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
-        });
-    }
-
     protectedCollectPolicyMenuItems.push({
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,

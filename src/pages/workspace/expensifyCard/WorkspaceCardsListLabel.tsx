@@ -60,7 +60,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     }, [isVisible, windowWidth]);
 
     const requestLimitIncrease = () => {
-        // TODO: uncomment code below when API call is supported
+        // TODO: uncomment when RequestExpensifyCardLimitIncrease API call is supported
         // Policy.requestExpensifyCardLimitIncrease(settlementBankAccountID);
         setVisible(false);
         Report.navigateToConciergeChat();

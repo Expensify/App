@@ -24,12 +24,12 @@ import type SCREENS from '@src/SCREENS';
 import type {ExpensifyCard, ExpensifyCardsList} from '@src/types/onyx';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
-import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardPageFreeProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 const stickyHeaderIndices = [0];
 
+// TODO: remove when Onyx data is available
 const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     test1: {
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
@@ -58,12 +58,12 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
 
     const policyID = route.params.policyID;
 
-    // TODO: uncomment code below to use data from Onyx when it's supported
+    // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
     // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${policyID}_Expensify Card`);
     const cardsList = mockedCards;
 
     const fetchExpensifyCards = useCallback(() => {
-        // TODO: uncomment code below when API call is supported
+        // TODO: uncomment when OpenPolicyExpensifyCardsPage API call is supported
         // Policy.openPolicyExpensifyCardsPage(policyID);
     }, [policyID]);
 
@@ -84,14 +84,14 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
             <Button
                 medium
                 success
-                onPress={() => {}} // TODO: add action when card issue is implemented
+                onPress={() => {}} // TODO: add navigation action when card issue flow is implemented (https://github.com/Expensify/App/issues/44309)
                 icon={Expensicons.Plus}
                 text={translate('workspace.expensifyCard.issueCard')}
                 style={shouldUseNarrowLayout && styles.flex1}
             />
             <Button
                 medium
-                onPress={() => {}} // TODO: add navigation action when settings screen is implemented
+                onPress={() => {}} // TODO: add navigation action when settings screen is implemented (https://github.com/Expensify/App/issues/44311)
                 icon={Expensicons.Gear}
                 text={translate('common.settings')}
                 style={shouldUseNarrowLayout && styles.flex1}
@@ -109,7 +109,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
             <PressableWithoutFeedback
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
-                onPress={() => {}} // TODO: open card details
+                onPress={() => {}} // TODO: add navigation action when card details screen is implemented (https://github.com/Expensify/App/issues/44325)
             >
                 {({hovered}) => (
                     <WorkspaceCardListRow
@@ -128,7 +128,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            // TODO: uncomment when feature support is implemented
+            // TODO: uncomment when feature support is implemented (https://github.com/Expensify/App/issues/44301)
             // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper

@@ -1,7 +1,7 @@
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
-// TODO: specify correct type when API is updated
+// TODO: specify correct type when Onyx value is known
 /** Model of an Expensify card */
 type ExpensifyCard = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Cardholder personal details */

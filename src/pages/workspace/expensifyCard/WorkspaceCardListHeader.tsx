@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
+// TODO: remove when Onyx data is available
 const mockedSettings = {
     currentBalance: 5000,
     remainingLimit: 3000,
@@ -20,7 +21,7 @@ function WorkspaceCardListHeader() {
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
-    // TODO: uncomment code below to use data from Onyx when it's supported
+    // TODO: uncomment the code line below to use cardSettings data from Onyx when it's supported
     // const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS}${policyID}`);
     const cardSettings = mockedSettings;
 
