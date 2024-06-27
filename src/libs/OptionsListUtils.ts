@@ -1939,19 +1939,17 @@ function getOptions(
             return;
         }
 
+        // Rooms that aren't searchable via participant won't have any participants returned with SearchForReports
+        // so we don't need to check if their participants exist in order for them to qualify as a valid option.
+        if (isSearchingForReports && !ReportUtils.isSearchableViaParticipants(report)) {
+            return option;
+        }
+
         if (!accountIDs || accountIDs.length === 0) {
             if (!isSearchingForReports) {
                 if (!isChatRoom) {
                     return;
                 }
-            }
-
-            // Rooms that aren't searchable via participant won't have any participants returned with SearchForReports
-            // so we have to let their options pass through this check.
-            // Rooms that are searchable via participant should always have participants returned with SearchForReports,
-            // so we block any that don't have participants with this check.
-            if (ReportUtils.isSearchableViaParticipants(report)) {
-                return;
             }
         }
 
