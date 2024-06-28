@@ -1243,7 +1243,13 @@ PODS:
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
-    - React-Core
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
@@ -2552,7 +2558,7 @@ SPEC CHECKSUMS:
   react-native-airship: 38e2596999242b68c933959d6145512e77937ac0
   react-native-blob-util: 1ddace5234c62e3e6e4e154d305ad07ef686599b
   react-native-cameraroll: f373bebbe9f6b7c3fd2a6f97c5171cda574cf957
-  react-native-config: 5330c8258265c1e5fdb8c009d2cabd6badd96727
+  react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440

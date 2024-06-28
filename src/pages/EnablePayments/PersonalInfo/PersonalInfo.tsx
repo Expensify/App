@@ -10,6 +10,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import * as Wallet from '@userActions/Wallet';
@@ -102,11 +103,18 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
                     stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            {walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0 ? (
+                <IdologyQuestions
+                    questions={walletAdditionalDetails.questions}
+                    idNumber={walletAdditionalDetails.idNumber ?? ''}
+                />
+            ) : (
+                <SubStep
+                    isEditing={isEditing}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                />
+            )}
         </ScreenWrapper>
     );
 }
