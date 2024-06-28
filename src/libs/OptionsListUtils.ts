@@ -808,9 +808,6 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
-        result.isTripRoom = ReportUtils.isTripRoom(report);
-        result.policyName = ReportUtils.getPolicyName(report);
-        result.isSearchableViaParticipants = ReportUtils.isSearchableViaParticipants(report);
 
         const visibleParticipantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
