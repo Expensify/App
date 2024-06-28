@@ -377,19 +377,8 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
  * Returns filtered list for one transaction view
  * Separated it from getCombinedReportActions, so it can be reused
  */
-function getFilteredForOneTransactionView(reportActions: ReportAction[], isSelfDM = false): ReportAction[] {
-    const filteredReportActions = reportActions.filter((action) => {
-        if (!isMoneyRequestAction(action)) {
-            return true;
-        }
-        const actionType = getOriginalMessage(action)?.type ?? '';
-        if (isSelfDM) {
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && !isSentMoneyReportAction(action);
-        }
-        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
-    });
-
-    return filteredReportActions;
+function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
+    return reportActions.filter((action) => !isSentMoneyReportAction(action));
 }
 
 /**
@@ -414,7 +403,16 @@ function getCombinedReportActions(
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = getFilteredForOneTransactionView([...reportActions, ...filteredTransactionThreadReportActions], isSelfDM);
+    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+        if (!isMoneyRequestAction(action)) {
+            return true;
+        }
+        const actionType = getOriginalMessage(action)?.type ?? '';
+        if (isSelfDM) {
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE;
+        }
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+    });
 
     return getSortedReportActions(filteredReportActions, true);
 }
