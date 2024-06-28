@@ -38,7 +38,6 @@ function ButtonWithDropdownMenu<IValueType>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedItemIndex, setSelectedItemIndex] = useState(0);
-    console.log({selectedItemIndex});
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
