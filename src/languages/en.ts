@@ -2992,7 +2992,6 @@ export default {
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
-                // verify errorMessage
                 integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `failed to export this report to ${label}. ${errorMessage}`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed the receipt`,
