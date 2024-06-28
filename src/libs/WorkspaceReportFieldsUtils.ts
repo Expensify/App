@@ -9,7 +9,7 @@ import * as Localize from './Localize';
 import * as ValidationUtils from './ValidationUtils';
 
 /**
- * Gets the translation key for the report field type
+ * Gets the translation key for the report field type.
  */
 function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
     const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
@@ -22,7 +22,7 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
 }
 
 /**
- * Gets the translation key for the alternative text for the report field
+ * Gets the translation key for the alternative text for the report field.
  */
 function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyReportFieldType): TranslationPaths {
     const typeTranslationKeysStrategy: Record<string, TranslationPaths> = {
@@ -35,7 +35,7 @@ function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyRepo
 }
 
 /**
- * Validates the list value name
+ * Validates the list value name.
  */
 function validateReportFieldListValueName(
     valueName: string,
@@ -60,7 +60,9 @@ function validateReportFieldListValueName(
 
     return errors;
 }
-
+/**
+ * Generates a field ID based on the field name.
+ */
 function generateFieldID(name: string) {
     return `field_id_${name.replace(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }

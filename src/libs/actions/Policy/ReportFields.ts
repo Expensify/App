@@ -101,6 +101,9 @@ function deleteReportFieldsListValue(valueIndexes: number[]) {
 
 type CreateReportFieldArguments = Pick<WorkspaceReportFieldsForm, 'name' | 'type' | 'initialValue'>;
 
+/**
+ * Creates a new report field.
+ */
 function createReportField(policyID: string, {name, type, initialValue}: CreateReportFieldArguments) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = generateFieldID(name);
