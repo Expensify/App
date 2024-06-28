@@ -1,9 +1,11 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
 import type {RootStackParamList} from '@navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
+import type {RouteConfig} from './createNormalizedConfigs';
+import createNormalizedConfigs from './createNormalizedConfigs';
 
 // Moved to a separate file to avoid cyclic dependencies.
 const config: LinkingOptions<RootStackParamList>['config'] = {
@@ -826,4 +828,28 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
     },
 };
 
+const normalizedConfigs = Object.keys(config.screens)
+    .map((key) =>
+        createNormalizedConfigs(
+            key,
+            config.screens,
+            [],
+            config.initialRouteName
+                ? [
+                      {
+                          initialRouteName: config.initialRouteName,
+                          parentScreens: [],
+                      },
+                  ]
+                : [],
+            [],
+        ),
+    )
+    .flat()
+    .reduce((acc, route) => {
+        acc[route.screen as Screen] = route;
+        return acc;
+    }, {} as Record<Screen, RouteConfig>);
+
+export {normalizedConfigs};
 export default config;

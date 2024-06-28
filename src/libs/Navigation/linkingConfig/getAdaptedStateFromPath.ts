@@ -9,10 +9,10 @@ import isCentralPaneName from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ROUTES from '@src/ROUTES';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
-import config from './config';
+import config, {normalizedConfigs} from './config';
 import extractPolicyIDsFromState from './extractPolicyIDsFromState';
 import FULL_SCREEN_TO_RHP_MAPPING from './FULL_SCREEN_TO_RHP_MAPPING';
 import getMatchingBottomTabRouteForState from './getMatchingBottomTabRouteForState';
@@ -94,10 +94,10 @@ function createFullScreenNavigator(route?: NavigationPartialRoute<FullScreenName
     };
 }
 
-function getParamsFromRoute(routeName: string): string[] {
-    const routeConfig = ROUTES[routeName.toUpperCase() as keyof typeof ROUTES];
+function getParamsFromRoute(screenName: string): string[] {
+    const routeConfig = normalizedConfigs[screenName as Screen];
 
-    const route = typeof routeConfig === 'string' ? routeConfig : routeConfig.route;
+    const route = routeConfig.pattern;
 
     return route.match(/(?<=[:?&])(\w+)(?=[/=?&]|$)/g) ?? [];
 }
