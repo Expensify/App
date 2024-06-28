@@ -976,7 +976,7 @@ function isChatRoom(report: OnyxEntry<Report>): boolean {
  * Whether the provided report is searchable via participant
  */
 function isSearchableViaParticipants(report: OnyxEntry<Report>): boolean {
-    return !isChatReport(report) || isDM(report) || isGroupChat(report) || isPolicyExpenseChat(report) || isSystemChat(report) || isSelfDM(report);
+    return !isChatReport(report) || !isChatRoom(report);
 }
 
 /**
