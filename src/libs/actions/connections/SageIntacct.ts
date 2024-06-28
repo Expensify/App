@@ -5,23 +5,18 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
+import type {Connections} from '@src/types/onyx/Policy';
 
-function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
-    policyID: string,
-    connectionName: TConnectionName,
-    settingName: TSettingName,
-    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
-) {
+function prepareOnyxData(policyID: string, settingName: keyof Connections['intacct']['config'], settingValue: string | boolean | null) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [connectionName]: {
+                    intacct: {
                         config: {
-                            [settingName]: settingValue ?? null,
+                            [settingName]: settingValue,
                             pendingFields: {
                                 [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -41,9 +36,9 @@ function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName ex
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [connectionName]: {
+                    intacct: {
                         config: {
-                            [settingName]: settingValue ?? null,
+                            [settingName]: settingValue,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -63,9 +58,9 @@ function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName ex
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    [connectionName]: {
+                    intacct: {
                         config: {
-                            [settingName]: settingValue ?? null,
+                            [settingName]: settingValue,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -83,21 +78,20 @@ function prepareOnyxData<TConnectionName extends ConnectionName, TSettingName ex
 }
 
 function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
-    const autoSyncSettingValue = {enabled};
-    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC, autoSyncSettingValue);
+    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.IS_AUTO_SYNC_ENABLED, enabled);
     const parameters = {
         policyID,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        settingName: CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC,
-        settingValue: JSON.stringify(autoSyncSettingValue),
-        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC,
+        settingName: CONST.SAGE_INTACCT_CONFIG.IS_AUTO_SYNC_ENABLED,
+        settingValue: JSON.stringify(enabled),
+        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.IS_AUTO_SYNC_ENABLED,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
 function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
-    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, enabled);
+    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.IMPORT_EMPLOYEES, enabled);
     const parameters = {
         policyID,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
@@ -111,12 +105,7 @@ function updateSageIntacctImportEmployees(policyID: string, enabled: boolean) {
 
 function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     const approvalModeSettingValue = enabled ? CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL : null;
-    const {optimisticData, failureData, successData} = prepareOnyxData(
-        policyID,
-        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE,
-        approvalModeSettingValue,
-    );
+    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.APPROVAL_MODE, approvalModeSettingValue);
     const parameters = {
         policyID,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,

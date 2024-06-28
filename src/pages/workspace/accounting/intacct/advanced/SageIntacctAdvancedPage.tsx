@@ -24,7 +24,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
 
     const {syncReimbursedReports, reimbursementAccountID} = policy?.connections?.intacct?.config?.sync ?? {};
-    const {autoSync, pendingFields, errorFields, credentials} = policy?.connections?.intacct?.config ?? {};
+    const {isAutoSyncEnabled, pendingFields, errorFields, credentials} = policy?.connections?.intacct?.config ?? {};
     const {data} = policy?.connections?.intacct ?? {};
 
     const currentSageIntacctOrganizationName = credentials?.companyID;
@@ -33,19 +33,17 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
         () => [
             {
                 label: translate('workspace.sageIntacct.autoSync'),
-                value: !!autoSync,
                 onToggle: (enabled: boolean) => {
                     updateSageIntacctAutoSync(policyID, enabled);
-                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'isAutoSyncEnabled', enabled);
+                    // Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'autoSync', enabled);
                 },
-                pendingAction: pendingFields?.autoSync,
-                error: errorFields?.autoSync,
+                pendingAction: pendingFields?.isAutoSyncEnabled,
+                error: errorFields?.isAutoSyncEnabled,
                 description: translate('workspace.sageIntacct.autoSyncDescription'),
-                isActive: policy?.connections?.intacct?.config?.autoSync?.enabled ?? false,
+                isActive: isAutoSyncEnabled ?? false,
             },
             {
                 label: translate('workspace.sageIntacct.inviteEmployees'),
-                value: !!pendingFields?.importEmployees,
                 onToggle: (enabled: boolean) => {
                     updateSageIntacctImportEmployees(policyID, enabled);
                     updateSageIntacctApprovalMode(policyID, enabled);
@@ -57,7 +55,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             },
             {
                 label: translate('workspace.sageIntacct.syncReimbursedReports'),
-                value: !!syncReimbursedReports,
                 onToggle: (enabled: boolean) => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, 'sync', {syncReimbursedReports: enabled}),
                 pendingAction: pendingFields?.sync,
                 error: errorFields?.sync?.syncReimbursedReports,
@@ -66,18 +63,17 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             },
         ],
         [
-            autoSync,
-            errorFields?.autoSync,
-            errorFields?.importEmployees,
-            errorFields?.sync?.syncReimbursedReports,
-            pendingFields?.autoSync,
+            translate,
+            pendingFields?.isAutoSyncEnabled,
             pendingFields?.importEmployees,
             pendingFields?.sync,
-            policy?.connections?.intacct?.config?.autoSync?.enabled,
+            errorFields?.isAutoSyncEnabled,
+            errorFields?.importEmployees,
+            errorFields?.sync?.syncReimbursedReports,
+            isAutoSyncEnabled,
             policy?.connections?.intacct?.config?.importEmployees,
-            policyID,
             syncReimbursedReports,
-            translate,
+            policyID,
         ],
     );
 
