@@ -12,10 +12,7 @@ import type Middleware from './types';
 
 type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
 
-type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = {
-    initialCommand: ApiCommand;
-    previousCommand: ApiCommand;
-    nextCommand: ApiCommand;
+type PaginationCommonConfig<TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = {
     resourceCollectionKey: TResourceKey;
     pageCollectionKey: TPageKey;
     sortItems: (items: OnyxValues[TResourceKey]) => Array<PagedResource<TResourceKey>>;
@@ -23,7 +20,13 @@ type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends O
     isLastItem: (item: PagedResource<TResourceKey>) => boolean;
 };
 
-type PaginationConfigMapValue = Omit<PaginationConfig<OnyxCollectionKey, OnyxPagesKey>, 'initialCommand' | 'previousCommand' | 'nextCommand'> & {
+type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = PaginationCommonConfig<TResourceKey, TPageKey> & {
+    initialCommand: ApiCommand;
+    previousCommand: ApiCommand;
+    nextCommand: ApiCommand;
+};
+
+type PaginationConfigMapValue = PaginationCommonConfig & {
     type: 'initial' | 'next' | 'previous';
 };
 
