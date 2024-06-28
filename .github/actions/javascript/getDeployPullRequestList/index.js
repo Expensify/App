@@ -11525,6 +11525,7 @@ async function run() {
             !(await GithubUtils_1.default.octokit.actions.listJobsForWorkflowRun({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 run_id: lastSuccessfulDeploy.id,
                 filter: 'latest',
             })).data.jobs.some((job) => job.name.startsWith('Build and deploy') && job.conclusion === 'success')) {
