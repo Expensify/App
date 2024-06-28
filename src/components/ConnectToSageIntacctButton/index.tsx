@@ -1,7 +1,7 @@
 import React, {useRef, useState} from 'react';
 import type {View} from 'react-native';
+import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
@@ -26,8 +26,6 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const currentIntegration = translate('workspace.accounting.integrationName', integrationToDisconnect);
-    const integrationToConnect = translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -101,9 +99,7 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
                 anchorRef={threeDotsMenuContainerRef}
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', currentIntegration)}
-                    isVisible
+                <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         setIsDisconnectModalOpen(false);
@@ -121,11 +117,8 @@ function ConnectToSageIntacctButton({policyID, shouldDisconnectIntegrationBefore
                         }
                         setIsReuseConnectionsPopoverOpen(true);
                     }}
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', currentIntegration, integrationToConnect)}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             )}
         </>

@@ -2449,18 +2449,6 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            integrationName: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                        return 'Sage Intacct';
-                    default:
-                        return 'Integration';
-                }
-            },
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',

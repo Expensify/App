@@ -2452,18 +2452,6 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            integrationName: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Quickbooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Xero';
-                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-                        return 'Sage Intacct';
-                    default:
-                        return 'Integration';
-                }
-            },
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
@@ -2609,6 +2597,8 @@ export default {
                             return 'Comprobando la conexión a Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Importando dimensiones';
+                        case 'intacctImportTitle':
+                            return 'Importando datos desde Sage Intacct';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }

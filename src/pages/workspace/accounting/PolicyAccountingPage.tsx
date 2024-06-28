@@ -132,21 +132,6 @@ function accountingIntegrationData(
                 onExportPagePress: () => {},
                 onAdvancedPagePress: () => {},
             };
-        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-            return {
-                title: translate('workspace.accounting.intacct'),
-                icon: Expensicons.IntacctSquare,
-                setupConnectionButton: (
-                    <ConnectToSageIntacctButton
-                        policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
-                    />
-                ),
-                onImportPagePress: () => {},
-                onExportPagePress: () => {},
-                onAdvancedPagePress: () => {},
-            };
         default:
             return undefined;
     }
@@ -450,7 +435,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', translate('workspace.accounting.integrationName', connectedIntegration))}
+                    title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
                         if (connectedIntegration) {

@@ -16,8 +16,6 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
-    const currentIntegration = translate('workspace.accounting.integrationName', integrationToDisconnect);
-    const integrationToConnect = translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.XERO);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 

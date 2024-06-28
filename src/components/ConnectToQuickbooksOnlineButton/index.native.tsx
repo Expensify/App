@@ -36,8 +36,6 @@ function ConnectToQuickbooksOnlineButton({
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
     const {isOffline} = useNetwork();
-    const currentIntegration = translate('workspace.accounting.integrationName', integrationToDisconnect);
-    const integrationToConnect = translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.QBO);
 
     const authToken = session?.authToken ?? null;
 

@@ -17,8 +17,6 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
-    const currentIntegration = translate('workspace.accounting.integrationName', integrationToDisconnect);
-    const integrationToConnect = translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.QBO);
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
