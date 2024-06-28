@@ -2251,6 +2251,9 @@ export default {
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Gain insights and control over spend',
+                disableCardTitle: 'Disable Expensify Card',
+                disableCardPrompt: 'You can’t disable the Expensify Card because it’s already in use. Reach out to Concierge for next steps.',
+                disableCardButton: 'Chat with Concierge',
             },
             workflows: {
                 title: 'Workflows',
