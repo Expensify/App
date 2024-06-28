@@ -199,7 +199,7 @@ function AttachmentModal({
     const {isOffline} = useNetwork();
 
     const isDimensionAvailable = file && 'width' in file && 'height' in file;
-    const isHiResImage = isDimensionAvailable && (file.height ?? 0) > 5000 && (file.width ?? 0) > 5000;
+    const isHiResImage = file && isDimensionAvailable && ((file.height ?? 0) > 5000 || (file.width ?? 0) > 5000);
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
