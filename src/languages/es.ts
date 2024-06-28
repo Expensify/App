@@ -2436,7 +2436,7 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             setup: 'Configurar',
-            lastSync: 'Recién sincronizado',
+            lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
