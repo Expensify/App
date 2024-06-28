@@ -221,8 +221,9 @@ function WorkspaceListValuesPage({
                     title={translate('workspace.reportFields.listValues')}
                     onBackButtonPress={Navigation.goBack}
                 >
-                    {getHeaderButtons()}
+                    {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
