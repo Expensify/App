@@ -96,10 +96,10 @@ type MoneyRequestAmountInputProps = {
 
     /**
      * Callback function triggered when the amount is reset.
-     * 
+     *
      * @param resetValue - A boolean indicating whether the amount should be reset.
      */
-    onResetAmount?: (resetValue: boolean) => void;   
+    onResetAmount?: (resetValue: boolean) => void;
 };
 
 type Selection = {
@@ -244,7 +244,7 @@ function MoneyRequestAmountInput(
 
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount, shouldKeepUserInput,shouldResetAmount]);
+    }, [amount, shouldKeepUserInput, shouldResetAmount]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
