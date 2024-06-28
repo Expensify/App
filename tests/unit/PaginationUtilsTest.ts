@@ -155,7 +155,7 @@ describe('PaginationUtils', () => {
             expect(result).toStrictEqual(expectedResult);
         });
 
-        it('given an empty input ID and the report only contains pending actions, it will return an empty array', () => {
+        it('given an input ID and the report only contains pending actions, it will return an empty array', () => {
             const input = createItems([
                 // Given these sortedItems
                 '7',
@@ -215,7 +215,7 @@ describe('PaginationUtils', () => {
             expect(result).toStrictEqual(expectedResult);
         });
 
-        it('given a page with null firstItemID include actions from the start', () => {
+        it('given a page with an empty firstItemID include actions until the start', () => {
             const input = createItems([
                 // Given these sortedItems
                 '17',
