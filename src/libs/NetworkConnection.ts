@@ -204,8 +204,7 @@ function recheckNetworkConnection() {
     }
 
     Log.info('[NetworkConnection] recheck NetInfo');
-    hasPendingNetworkCheck = true;
-    NetInfo.refresh().finally(() => (hasPendingNetworkCheck = false));
+    NetInfo.refresh();
 }
 
 export default {
