@@ -323,6 +323,10 @@ type UnshareParams = {to: string};
 type StripePaidParams = {amount: string; currency: string};
 
 type UnapprovedParams = {amount: string; currency: string};
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
 
 export type {
     AddressLineParams,
@@ -441,4 +445,5 @@ export type {
     UnshareParams,
     StripePaidParams,
     UnapprovedParams,
+    RemoveMembersWarningPrompt,
 };
