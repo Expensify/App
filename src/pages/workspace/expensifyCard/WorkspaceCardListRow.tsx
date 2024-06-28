@@ -6,6 +6,7 @@ import Badge from '@components/Badge';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -25,7 +26,7 @@ type WorkspacesListRowProps = {
     cardholder: PersonalDetails;
 
     /** Card limit */
-    limit: string;
+    limit: number;
 };
 
 function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: WorkspacesListRowProps) {
@@ -46,7 +47,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: Wor
                 <View style={styles.flex1}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre]}
+                        style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
                     >
                         {cardholderName}
                     </Text>
@@ -67,7 +68,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: Wor
                 </Text>
             </View>
             <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                <Badge text={limit} />
+                <Badge text={CurrencyUtils.convertToDisplayString(limit, 'USD')} />
             </View>
         </View>
     );

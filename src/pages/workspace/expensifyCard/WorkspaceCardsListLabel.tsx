@@ -80,8 +80,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 >
                     <Icon
                         src={Expensicons.Info}
-                        width={variables.fontSizeLabel}
-                        height={variables.fontSizeLabel}
+                        width={variables.iconSizeExtraSmall}
+                        height={variables.iconSizeExtraSmall}
                         fill={theme.icon}
                     />
                 </PressableWithFeedback>
@@ -100,7 +100,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                 <View style={styles.p4}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.mb2]}
+                        style={[styles.optionDisplayName, styles.textStrong, styles.mb2]}
                     >
                         {translate(`workspace.expensifyCard.${type}`)}
                     </Text>

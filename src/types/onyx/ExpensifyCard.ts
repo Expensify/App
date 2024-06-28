@@ -17,7 +17,7 @@ type ExpensifyCard = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name: string;
 
     /** Card limit */
-    limit: string;
+    limit: number;
 }>;
 
 /** List of Expensify cards */

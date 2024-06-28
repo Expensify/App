@@ -34,19 +34,19 @@ const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     test1: {
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
         name: 'Test 1',
-        limit: '1000',
+        limit: 1000,
         lastFourPAN: '1234',
     },
     test2: {
         cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
         name: 'Test 2',
-        limit: '2000',
+        limit: 2000,
         lastFourPAN: '1234',
     },
     test3: {
         cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
         name: 'Test 3',
-        limit: '3000',
+        limit: 3000,
         lastFourPAN: '1234',
     },
 };
