@@ -24,24 +24,24 @@ type ReportFieldTypePickerProps = {
 function ReportFieldTypePicker({defaultValue, onOptionSelected}: ReportFieldTypePickerProps) {
     const {translate} = useLocalize();
 
-    const reportFieldOptions = useMemo(
-        () =>
-            Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
-                keyForList: reportFieldType,
-                value: reportFieldType,
-                isSelected: defaultValue === reportFieldType,
-                text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
-                alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
-            })),
-        [defaultValue, translate],
-    );
+    const typeSections = useMemo(() => {
+        const data = Object.values(CONST.REPORT_FIELD_TYPES).map((reportFieldType) => ({
+            keyForList: reportFieldType,
+            value: reportFieldType,
+            isSelected: defaultValue === reportFieldType,
+            text: translate(getReportFieldTypeTranslationKey(reportFieldType)),
+            alternateText: translate(getReportFieldAlternativeTextTranslationKey(reportFieldType)),
+        }));
+
+        return [{data}];
+    }, [defaultValue, translate]);
 
     return (
         <SelectionList
-            sections={[{data: reportFieldOptions}]}
+            sections={typeSections}
             ListItem={RadioListItem}
             onSelectRow={onOptionSelected}
-            initiallyFocusedOptionKey={reportFieldOptions.find((reportField) => reportField.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={typeSections[0].data.find((reportField) => reportField.isSelected)?.keyForList}
         />
     );
 }

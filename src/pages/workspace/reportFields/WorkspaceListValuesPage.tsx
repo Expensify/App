@@ -54,24 +54,24 @@ function WorkspaceListValuesPage({
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
 
-    const valueList = useMemo(
-        () =>
-            Object.values(formDraft?.listValues ?? {}).map((value, index) => ({
-                value,
-                index,
-                text: value,
-                keyForList: value,
-                isSelected: selectedValues[value],
-                enabled: formDraft?.disabledListValues?.[index] ?? true,
-                rightElement: (
-                    <ListItemRightCaretWithLabel
-                        shouldShowCaret={false}
-                        labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
-                    />
-                ),
-            })),
-        [formDraft?.disabledListValues, formDraft?.listValues, selectedValues, translate],
-    );
+    const listValuesSections = useMemo(() => {
+        const data = Object.values(formDraft?.listValues ?? {}).map((value, index) => ({
+            value,
+            index,
+            text: value,
+            keyForList: value,
+            isSelected: selectedValues[value],
+            enabled: formDraft?.disabledListValues?.[index] ?? true,
+            rightElement: (
+                <ListItemRightCaretWithLabel
+                    shouldShowCaret={false}
+                    labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                />
+            ),
+        }));
+
+        return [{data, isDisabled: false}];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -237,7 +237,7 @@ function WorkspaceListValuesPage({
                 {!shouldShowEmptyState && (
                     <SelectionList
                         canSelectMultiple
-                        sections={[{data: valueList, isDisabled: false}]}
+                        sections={listValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={(item) => item.index !== undefined && Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.index))}
                         shouldDebounceRowSelect={false}
