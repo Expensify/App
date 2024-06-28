@@ -811,7 +811,7 @@ function ComposerWithSuggestions(
                 resetKeyboardInput={resetKeyboardInput}
             />
 
-            {/* {ReportUtils.isValidReportIDFromPath(reportID) && (
+            {ReportUtils.isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
@@ -821,7 +821,7 @@ function ComposerWithSuggestions(
                     // thus we just directly update the state:
                     updateComment={setValue}
                 />
-            )} */}
+            )}
 
             {/* Only used for testing so far */}
             {children}
