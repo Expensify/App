@@ -77,7 +77,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
 
     const onToggleTrackTax = (isOn: boolean) => {
         const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
-        Policy.enableDistanceRequestTax(policyID, customUnit.name, customUnitID, attributes);
+        Policy.enableDistanceRequestTax(policyID, customUnit?.name, customUnitID, attributes);
     };
     return (
         <AccessOrNotFoundWrapper
