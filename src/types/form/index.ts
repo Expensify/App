@@ -9,6 +9,7 @@ export type {GetPhysicalCardForm} from './GetPhysicalCardForm';
 export type {HomeAddressForm} from './HomeAddressForm';
 export type {IKnowTeacherForm} from './IKnowTeacherForm';
 export type {IntroSchoolPrincipalForm} from './IntroSchoolPrincipalForm';
+export type {IssueNewExpensifyCardForm} from './IssueNewExpensifyCardForm';
 export type {LegalNameForm} from './LegalNameForm';
 export type {MoneyRequestAmountForm} from './MoneyRequestAmountForm';
 export type {MoneyRequestDateForm} from './MoneyRequestDateForm';
