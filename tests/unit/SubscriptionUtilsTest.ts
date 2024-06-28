@@ -13,7 +13,9 @@ const billingGraceEndPeriod: BillingGraceEndPeriod = {
     value: 0,
 };
 
-const GRACE_PERIOD_DATE = 1750819200100;
+const GRACE_PERIOD_DATE = new Date().getTime() + 1000;
+const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
+
 const AMOUNT_OWED = 100;
 const STRIPE_CUSTOMER_ID: StripeCustomerID = {
     paymentMethodID: '1',
@@ -282,7 +284,7 @@ describe('SubscriptionUtils', () => {
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: 1,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
             });
 
@@ -294,7 +296,7 @@ describe('SubscriptionUtils', () => {
 
         it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE status', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
@@ -302,23 +304,23 @@ describe('SubscriptionUtils', () => {
             });
         });
 
-        it('should return OWNER_OF_POLICY_UNDER_INVOICING status', async () => {
+        it('should return OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE status', async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
-                status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
             });
         });
 
-        it('should return OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE status', async () => {
+        it('should return OWNER_OF_POLICY_UNDER_INVOICING status', async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: 1,
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
             });
 
             expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
-                status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
             });
         });
 

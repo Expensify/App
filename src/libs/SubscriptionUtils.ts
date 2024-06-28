@@ -144,7 +144,7 @@ function hasOverdueGracePeriod(): boolean {
  * @returns Whether the workspace owner's grace period is overdue.
  */
 function hasGracePeriodOverdue(): boolean {
-    return !!ownerBillingGraceEndPeriod && Date.now() < new Date(ownerBillingGraceEndPeriod).getTime();
+    return !!ownerBillingGraceEndPeriod && Date.now() > new Date(ownerBillingGraceEndPeriod).getTime();
 }
 
 /**
@@ -262,14 +262,14 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (hasGracePeriodOverdue()) {
+            if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 };
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (!hasGracePeriodOverdue()) {
+            if (hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 };

@@ -40,7 +40,7 @@ function CardSection() {
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
 
     let BillingBanner: React.ReactNode | undefined;
-    if (!CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (billingStatus) {
         BillingBanner = (
