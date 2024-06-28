@@ -15,6 +15,9 @@ import * as UserUtils from './UserUtils';
 
 type SortOrder = ValueOf<typeof CONST.SEARCH.SORT_ORDER>;
 type SearchColumnType = ValueOf<typeof CONST.SEARCH.TABLE_COLUMNS>;
+type SearchDataContext = {
+    searchHash: number;
+};
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -112,7 +115,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     return false;
 }
 
-function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): TransactionListItemType[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], context: SearchDataContext): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -138,6 +141,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                searchHash: context.searchHash,
                 shouldShowCategory: metadata?.columnsToShow.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow.shouldShowTaxColumn,
@@ -147,7 +151,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         });
 }
 
-function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search']): ReportListItemType[] {
+function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: OnyxTypes.SearchResults['search'], context: SearchDataContext): ReportListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
 
     const doesDataContainAPastYearTransaction = shouldShowYear(data);
@@ -185,6 +189,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
+                searchHash: context.searchHash,
                 shouldShowCategory: metadata?.columnsToShow.shouldShowCategoryColumn,
                 shouldShowTag: metadata?.columnsToShow.shouldShowTagColumn,
                 shouldShowTax: metadata?.columnsToShow.shouldShowTaxColumn,
@@ -224,8 +229,9 @@ function getSections<K extends keyof SearchTypeToItemMap>(
     data: OnyxTypes.SearchResults['data'],
     metadata: OnyxTypes.SearchResults['search'],
     type: K,
+    context: SearchDataContext,
 ): ReturnType<SearchTypeToItemMap[K]['getSections']> {
-    return searchTypeToItemMap[type].getSections(data, metadata) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
+    return searchTypeToItemMap[type].getSections(data, metadata, context) as ReturnType<SearchTypeToItemMap[K]['getSections']>;
 }
 
 function getSortedSections<K extends keyof SearchTypeToItemMap>(
@@ -279,4 +285,4 @@ function getSearchParams() {
 }
 
 export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
-export type {SearchColumnType, SortOrder};
+export type {SearchColumnType, SortOrder, SearchDataContext};

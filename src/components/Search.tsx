@@ -137,7 +137,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const ListItem = SearchUtils.getListItem(type);
 
-    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
+    const searchContext = {searchHash: hash};
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type, searchContext);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {

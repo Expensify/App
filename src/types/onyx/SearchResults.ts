@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
+import type {SearchColumnType, SearchDataContext, SortOrder} from '@libs/SearchUtils';
 import type CONST from '@src/CONST';
 
 /** Types of search data */
@@ -29,7 +29,7 @@ type SearchTypeToItemMap = {
         listItem: ListItemType<K>;
 
         /** Returns search results sections based on search results data */
-        getSections: (data: SearchResults['data'], metadata: SearchResults['search']) => SectionsType<K>;
+        getSections: (data: SearchResults['data'], metadata: SearchResults['search'], context: SearchDataContext) => SectionsType<K>;
 
         /** Returns sorted search results sections based on search results data */
         getSortedSections: (data: SectionsType<K>, sortBy?: SearchColumnType, sortOrder?: SortOrder) => SectionsType<K>;
@@ -93,6 +93,9 @@ type SearchPolicyDetails = {
     name: string;
 };
 
+/** The action that can be performed for the transaction */
+type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
 /** Model of report search result */
 type SearchReport = {
     /** The ID of the report */
@@ -111,7 +114,7 @@ type SearchReport = {
     type?: string;
 
     /** The action that can be performed for the report */
-    action?: string;
+    action?: SearchTransactionAction;
 };
 
 /** Model of transaction search result */
@@ -201,7 +204,7 @@ type SearchTransaction = {
     transactionThreadReportID: string;
 
     /** The action that can be performed for the transaction */
-    action: string;
+    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -229,6 +232,9 @@ type SearchResults = {
 
     /** Search results data */
     data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
+
+    /** Whether search data is being fetched from server */
+    isLoading?: boolean;
 };
 
 export default SearchResults;
@@ -237,6 +243,7 @@ export type {
     SearchQuery,
     SearchTransaction,
     SearchTransactionType,
+    SearchTransactionAction,
     SearchPersonalDetails,
     SearchPolicyDetails,
     SearchAccountDetails,

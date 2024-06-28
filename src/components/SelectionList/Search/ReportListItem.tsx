@@ -112,6 +112,9 @@ function ReportListItem<TItem extends ListItem>({
         );
     }
 
+    // every child item comes from the same search hash, so it doesn't matter which one we use, we just need the hash
+    const {searchHash} = reportItem.transactions[0];
+
     return (
         <BaseListItem
             item={item}
@@ -139,6 +142,7 @@ function ReportListItem<TItem extends ListItem>({
                         participantTo={participantTo}
                         participantToDisplayName={participantToDisplayName}
                         action={reportItem.action}
+                        searchHash={searchHash}
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
@@ -164,9 +168,9 @@ function ReportListItem<TItem extends ListItem>({
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)} />
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
-                                    isLargeScreenWidth={isLargeScreenWidth}
-                                    onButtonPress={handleOnButtonPress}
                                     action={reportItem.action}
+                                    searchHash={searchHash}
+                                    goToItem={handleOnButtonPress}
                                 />
                             </View>
                         </>
