@@ -3033,13 +3033,13 @@ export default {
         actions: {
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} de ${oldValue} a ${newValue}`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `cambió ${fieldName} a ${newValue}`,
                 changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `cambió policy de ${fromPolicy} a ${toPolicy}`,
                 changeType: ({oldType, newType}: ChangeTypeParams) => `cambió type de ${oldType} a ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `envié este informe a ${delegateUser} ya que ${originalManager} está de vacaciones`,
                 exportedToCSV: `exportó este informe a CSV`,
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
-                // verify errorMessage
                 integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `no se pudo exportar este informe a ${label}. ${errorMessage}`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó el recibo`,

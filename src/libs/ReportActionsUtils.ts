@@ -1238,7 +1238,9 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
-
+            if (!oldValue) {
+                Localize.translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
+            }
             return Localize.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
         }
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY: {
