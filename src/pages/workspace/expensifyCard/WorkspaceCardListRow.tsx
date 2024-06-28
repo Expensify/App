@@ -70,7 +70,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name, curr
                     {lastFourPAN}
                 </Text>
             </View>
-            <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                 <Badge text={CurrencyUtils.convertToDisplayString(limit, currency)} />
             </View>
         </View>

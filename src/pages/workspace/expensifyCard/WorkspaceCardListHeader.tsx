@@ -62,7 +62,7 @@ function WorkspaceCardListHeader() {
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
                 </View>
-                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textLabelSupporting, styles.lh16]}
