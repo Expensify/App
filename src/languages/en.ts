@@ -49,6 +49,7 @@ import type {
     PaySomeoneParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
+    RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
@@ -1416,6 +1417,12 @@ export default {
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
     onboarding: {
+        welcome: 'Welcome!',
+        explanationModal: {
+            title: 'Welcome to Expensify',
+            description: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
+            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
+        },
         welcomeVideo: {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
@@ -2087,8 +2094,8 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                accountSelectDescription: "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
-                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.',
+                accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
+                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in QuickBooks Online.",
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -2158,8 +2165,8 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero bill payment account',
                 xeroInvoiceCollectionAccount: 'Xero invoice collections account',
-                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.',
-                xeroBillPaymentAccountDescription: "Choose a bank account for reimbursements and we'll create the payment in Xero.",
+                xeroBillPaymentAccountDescription: "Choose where to pay bills from and we'll create the payment in Xero.",
+                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in Xero.",
             },
             exportDate: {
                 label: 'Export date',
@@ -2405,6 +2412,8 @@ export default {
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove these members?',
+            removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
+                `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
             removeMemberGroupButtonTitle: 'Remove from group',
@@ -2471,22 +2480,19 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Disconnect QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Disconnect Xero';
-                    default: {
-                        return 'Disconnect integration';
-                    }
-                }
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+                return `Disconnect ${integrationName}`;
             },
+            connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
+
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return "Can't connect to Xero.";
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return "Can't connect to NetSuite.";
                     default: {
                         return "Can't connect to integration.";
                     }
@@ -2505,25 +2511,17 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
             },
-            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
-                switch (integrationToConnect) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
-                    default: {
-                        switch (currentIntegration) {
-                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                                return 'Are you sure you want to disconnect QuickBooks Online?';
-                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                                return 'Are you sure you want to disconnect Xero?';
-                            default: {
-                                return 'Are you sure you want to disconnect this integration?';
-                            }
-                        }
-                    }
-                }
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+                const integrationName =
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        : 'this integration';
+                return `Are you sure you want to disconnect ${integrationName}?`;
             },
+            connectPrompt: (integrationToConnect: ConnectionName): string =>
+                `Are you sure you want to connect ${
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'
+                }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
@@ -2531,6 +2529,8 @@ export default {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
                         case 'quickbooksOnlineImportEmployees':
+                        case 'netSuiteSyncImportEmployees':
+                        case 'intacctImportEmployees':
                             return 'Importing employees';
                         case 'quickbooksOnlineImportAccounts':
                             return 'Importing accounts';
@@ -2541,6 +2541,7 @@ export default {
                         case 'quickbooksOnlineImportProcessing':
                             return 'Processing imported data';
                         case 'quickbooksOnlineSyncBillPayments':
+                        case 'intacctImportSyncBillPayments':
                             return 'Syncing reimbursed reports and bill payments';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importing tax codes';
@@ -2555,6 +2556,8 @@ export default {
                         case 'quickbooksOnlineSyncTitle':
                             return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':
+                        case 'xeroSyncStep':
+                        case 'intacctImportData':
                             return 'Loading data';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Updating categories';
@@ -2584,8 +2587,6 @@ export default {
                             return 'Checking Xero connection';
                         case 'xeroSyncTitle':
                             return 'Syncing Xero data';
-                        case 'xeroSyncStep':
-                            return 'Loading data';
                         case 'netSuiteSyncConnection':
                             return 'Initializing connection to NetSuite';
                         case 'netSuiteSyncCustomers':
@@ -2604,8 +2605,6 @@ export default {
                             return 'Syncing currencies';
                         case 'netSuiteSyncCategories':
                             return 'Syncing categories';
-                        case 'netSuiteSyncImportEmployees':
-                            return 'Importing employees';
                         case 'netSuiteSyncReportFields':
                             return 'Importing data as Expensify report fields';
                         case 'netSuiteSyncTags':
@@ -2616,6 +2615,10 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'intacctCheckConnection':
+                            return 'Checking Sage Intacct connection';
+                        case 'intacctImportDimensions':
+                            return 'Importing dimensions';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
