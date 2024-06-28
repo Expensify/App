@@ -115,7 +115,7 @@ platforms:
         description: Configure rules, settings, and limits for your company’s spending.
       
       - href: expenses-&-payments
-        title: Expenses-&-Payments
+        title: Expenses & Payments
         icon: /assets/images/money-into-wallet.svg
         description: Learn more about expense tracking and submission.
 
