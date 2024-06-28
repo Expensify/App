@@ -27,10 +27,25 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options.config;
 
-    const {subsidiaryList, receivableList, taxAccountsList} = policy?.connections?.netsuite?.options?.data ?? {};
+    const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
     const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
 
     const selectedReceivable = useMemo(() => (receivableList ?? []).find((receivable) => receivable.id === config?.receivableAccount), [receivableList, config?.receivableAccount]);
+
+    const selectedItem = useMemo(() => (items ?? []).find((item) => item.id === config?.invoiceItem), [items, config?.invoiceItem]);
+
+    const invoiceItemValue = useMemo(() => {
+        if (!config?.invoiceItemPreference) {
+            return undefined;
+        }
+        if (config.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
+            return translate('workspace.netsuite.invoiceItem.values.create.label');
+        }
+        if (!selectedItem) {
+            return translate('workspace.netsuite.invoiceItem.values.select.label');
+        }
+        return selectedItem.name;
+    }, [config?.invoiceItemPreference, selectedItem, translate]);
 
     const selectedTaxPostingAccount = useMemo(
         () => (taxAccountsList ?? []).find((taxAccount) => taxAccount.externalID === config?.taxPostingAccount),
@@ -110,7 +125,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.netsuite.invoiceItem.label'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
             brickRoadIndicator: config?.errorFields?.invoiceItemPreference ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: config?.invoiceItemPreference ? translate(`workspace.netsuite.invoiceItem.values.${config.invoiceItemPreference}.label`) : undefined,
+            title: invoiceItemValue,
             pendingAction: config?.pendingFields?.invoiceItemPreference,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE),
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE),

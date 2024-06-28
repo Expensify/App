@@ -30,11 +30,7 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
     const config = policy?.connections?.netsuite.options.config;
 
     const {items} = policy?.connections?.netsuite.options.data ?? {};
-
-    const selectedItem = useMemo(() => {
-        const selectedRec = (items ?? []).find((item) => item.id === config?.invoiceItem);
-        return selectedRec;
-    }, [items, config?.invoiceItem]);
+    const selectedItem = useMemo(() => (items ?? []).find((item) => item.id === config?.invoiceItem), [items, config?.invoiceItem]);
 
     const data: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
         value: postingPreference,
