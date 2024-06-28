@@ -363,7 +363,6 @@ const CONST = {
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
-        EXPENSIFY_CARD_FEATURE: 'expensifyCardFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
     },
     BUTTON_STATES: {

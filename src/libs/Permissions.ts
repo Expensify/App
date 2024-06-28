@@ -48,10 +48,6 @@ function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
 }
 
-function canUseExpensifyCardFeature(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.EXPENSIFY_CARD_FEATURE) || canUseAllBetas(betas);
-}
-
 function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
@@ -75,6 +71,5 @@ export default {
     canUseSpotnanaTravel,
     canUseNetSuiteIntegration,
     canUseReportFieldsFeature,
-    canUseExpensifyCardFeature,
     canUseWorkspaceFeeds,
 };
