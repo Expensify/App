@@ -769,11 +769,9 @@ function createOption(
         isPolicyExpenseChat: false,
         isOwnPolicyExpenseChat: false,
         isExpenseReport: false,
-        isTripRoom: false,
         policyID: undefined,
         isOptimisticPersonalDetail: false,
         lastMessageText: '',
-        isSearchableViaParticipants: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
