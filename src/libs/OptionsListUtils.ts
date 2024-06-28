@@ -2509,11 +2509,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
-            // We don't want the following to be searchable by participant:
-            // - Default rooms
-            // - Policy rooms
-            // - Invoice rooms
-            // - Trip rooms
             if (
                 ReportUtils.isSearchableViaParticipants({
                     reportID: item.reportID,
