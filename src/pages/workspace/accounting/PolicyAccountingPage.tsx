@@ -413,6 +413,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                                 >
                                     <MenuItem
                                         brickRoadIndicator={menuItem.brickRoadIndicator}
+                                        key={menuItem.title}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...menuItem}
                                     />
