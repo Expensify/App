@@ -361,10 +361,9 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
-        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
-        XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
+        WORKSPACE_FEEDS: 'workspaceFeeds',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -602,6 +601,10 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    PRICING: `https://www.expensify.com/pricing`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -943,20 +946,6 @@ const CONST = {
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
     },
-    SEARCH_TABLE_COLUMNS: {
-        RECEIPT: 'receipt',
-        DATE: 'date',
-        MERCHANT: 'merchant',
-        DESCRIPTION: 'description',
-        FROM: 'from',
-        TO: 'to',
-        CATEGORY: 'category',
-        TAG: 'tag',
-        TOTAL_AMOUNT: 'amount',
-        TYPE: 'type',
-        ACTION: 'action',
-        TAX_AMOUNT: 'taxAmount',
-    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
@@ -1266,6 +1255,7 @@ const CONST = {
     },
     CENTRAL_PANE_ANIMATION_HEIGHT: 200,
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
+    SEARCH_SKELETON_VIEW_ITEM_HEIGHT: 108,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
         ACCOUNTING: 'accounting@expensify.com',
@@ -1345,6 +1335,10 @@ const CONST = {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
         },
+    },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
@@ -1732,7 +1726,7 @@ const CONST = {
             ARE_TAGS_ENABLED: 'areTagsEnabled',
             ARE_DISTANCE_RATES_ENABLED: 'areDistanceRatesEnabled',
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
-            ARE_REPORTFIELDS_ENABLED: 'areReportFieldsEnabled',
+            ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_TAXES_ENABLED: 'tax',
         },
@@ -1802,6 +1796,13 @@ const CONST = {
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'intacct',
+            },
+            NAME_USER_FRIENDLY: {
+                netsuite: 'NetSuite',
+                quickbooksOnline: 'Quickbooks Online',
+                xero: 'Xero',
+                intacct: 'Sage Intacct',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -1849,6 +1850,12 @@ const CONST = {
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
                 NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
+                SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
+                SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
+                SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
+                SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
+                SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
+                SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -1924,6 +1931,15 @@ const CONST = {
             SMART: 'smart',
             MONTHLY: 'monthly',
             FIXED: 'fixed',
+        },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD_TYPE: 'CardType',
+            LIMIT_TYPE: 'LimitType',
+            LIMIT: 'Limit',
+            CARD_NAME: 'CardName',
+            CONFIRMATION: 'Confirmation',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -3542,12 +3558,7 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
-    TAB_SEARCH: {
-        ALL: 'all',
-        SHARED: 'shared',
-        DRAFTS: 'drafts',
-        FINISHED: 'finished',
-    },
+
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
@@ -4848,26 +4859,50 @@ const CONST = {
         ADHOC: ' AdHoc',
     },
 
-    SEARCH_TRANSACTION_TYPE: {
-        CASH: 'cash',
-        CARD: 'card',
-        DISTANCE: 'distance',
-    },
-
-    SEARCH_RESULTS_PAGE_SIZE: 50,
-
-    SEARCH_DATA_TYPES: {
-        TRANSACTION: 'transaction',
-        REPORT: 'report',
+    SEARCH: {
+        RESULTS_PAGE_SIZE: 50,
+        DATA_TYPES: {
+            TRANSACTION: 'transaction',
+            REPORT: 'report',
+        },
+        ACTION_TYPES: {
+            DONE: 'done',
+            PAID: 'paid',
+            VIEW: 'view',
+        },
+        TRANSACTION_TYPE: {
+            CASH: 'cash',
+            CARD: 'card',
+            DISTANCE: 'distance',
+        },
+        SORT_ORDER: {
+            ASC: 'asc',
+            DESC: 'desc',
+        },
+        TAB: {
+            ALL: 'all',
+            SHARED: 'shared',
+            DRAFTS: 'drafts',
+            FINISHED: 'finished',
+        },
+        TABLE_COLUMNS: {
+            RECEIPT: 'receipt',
+            DATE: 'date',
+            MERCHANT: 'merchant',
+            DESCRIPTION: 'description',
+            FROM: 'from',
+            TO: 'to',
+            CATEGORY: 'category',
+            TAG: 'tag',
+            TOTAL_AMOUNT: 'amount',
+            TYPE: 'type',
+            ACTION: 'action',
+            TAX_AMOUNT: 'taxAmount',
+        },
     },
 
     REFERRER: {
         NOTIFICATION: 'notification',
-    },
-
-    SORT_ORDER: {
-        ASC: 'asc',
-        DESC: 'desc',
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
