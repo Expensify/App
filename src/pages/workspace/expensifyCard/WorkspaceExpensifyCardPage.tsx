@@ -29,8 +29,6 @@ import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-const stickyHeaderIndices = [0];
-
 // TODO: remove when Onyx data is available
 const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     test1: {
@@ -159,7 +157,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                     data={sortedCards}
                     renderItem={renderItem}
                     ListHeaderComponent={WorkspaceCardListHeader}
-                    stickyHeaderIndices={stickyHeaderIndices}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
