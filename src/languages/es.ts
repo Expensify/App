@@ -2192,7 +2192,7 @@ export default {
             },
             exportDate: {
                 label: 'Fecha de la factura de compra',
-                description: 'Usa esta fecha al exportar informe a Xero.',
+                description: 'Usa esta fecha al exportar el informe a Xero.',
                 values: {
                     [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Fecha del último gasto',
