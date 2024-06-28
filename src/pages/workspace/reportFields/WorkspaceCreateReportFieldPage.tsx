@@ -100,7 +100,7 @@ function WorkspaceCreateReportFieldPage({
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
+                style={styles.defaultModalContainer}
                 testID={WorkspaceCreateReportFieldPage.displayName}
                 shouldEnableMaxHeight
             >

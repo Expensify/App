@@ -49,7 +49,7 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
+                style={styles.defaultModalContainer}
                 testID={WorkspaceAddValuePage.displayName}
                 shouldEnableMaxHeight
             >

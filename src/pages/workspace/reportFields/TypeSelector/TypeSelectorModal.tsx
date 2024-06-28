@@ -45,7 +45,7 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
             useNativeDriver
         >
             <ScreenWrapper
-                style={[styles.pb0]}
+                style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={TypeSelectorModal.displayName}
