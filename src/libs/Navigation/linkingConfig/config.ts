@@ -92,6 +92,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.EXPLANATION_MODAL.ROOT]: {
+                    path: ROUTES.EXPLANATION_MODAL_ROOT,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             path: ROUTES.ONBOARDING_ROOT,
             initialRouteName: SCREENS.ONBOARDING.PURPOSE,
@@ -357,6 +365,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
+                        },
+                        // TODO: uncomment after development
+                        // [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+                        //     path: ROUTES.WORKSPACE_EXPENSIFY_CARD,
+                        // },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
                         },
                         [SCREENS.WORKSPACE.RATE_AND_UNIT]: {
                             path: ROUTES.WORKSPACE_RATE_AND_UNIT.route,
