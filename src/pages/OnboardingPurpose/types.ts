@@ -6,6 +6,9 @@ type OnboardingPurposeProps = Record<string, unknown>;
 type BaseOnboardingPurposeOnyxProps = {
     /** Saved onboarding purpose selected by the user */
     onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
+
+    /** Saved error message to be displayed */
+    onboardingErrorMessage: OnyxEntry<string>;
 };
 
 type BaseOnboardingPurposeProps = OnboardingPurposeProps &

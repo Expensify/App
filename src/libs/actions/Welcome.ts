@@ -105,7 +105,7 @@ function handleHybridAppOnboarding() {
 
 /**
 
-* Check if user dismissed modal and if report data are loaded
+* Check if report data are loaded
  */
 function checkServerDataReady() {
     if (isLoadingReportData) {
@@ -128,6 +128,10 @@ function checkTryNewDotDataReady() {
 
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
+}
+
+function setOnboardingErrorMessage(value: string) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, value ?? null);
 }
 
 function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
@@ -230,4 +234,5 @@ export {
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
     handleHybridAppOnboarding,
+    setOnboardingErrorMessage,
 };

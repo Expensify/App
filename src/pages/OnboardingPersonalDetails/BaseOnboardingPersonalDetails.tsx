@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -41,6 +41,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {accountID} = useSession();
 
     useDisableModalDismissOnEscape();
+
+    useEffect(() => {
+        Welcome.setOnboardingErrorMessage('');
+    }, []);
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {

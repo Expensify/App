@@ -2555,6 +2555,8 @@ function openReportFromDeepLink(url: string) {
                 }
 
                 if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                    // TODO - add translation
+                    Welcome.setOnboardingErrorMessage('Finish onboarding');
                     return;
                 }
 

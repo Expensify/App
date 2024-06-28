@@ -8,6 +8,7 @@ import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
+import * as Welcome from '@userActions/Welcome';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
@@ -105,6 +106,8 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
     const targetFocusedRoute = findFocusedRoute(action?.payload);
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
+        // TODO - add translation
+        Welcome.setOnboardingErrorMessage('Finish onboarding');
         // We reset the URL as the browser sets it in a way that doesn't match the navigation state
         // eslint-disable-next-line no-restricted-globals
         history.replaceState({}, '', getPathFromState(state, linkingConfig.config));
