@@ -295,6 +295,10 @@ function IOURequestStepDistance({
                     undefined,
                     undefined,
                     DistanceRequestUtils.getCustomUnitRateID(report.reportID),
+                    currentUserPersonalDetails.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    transaction?.splitShares,
+                    iouType,
                 );
                 return;
             }

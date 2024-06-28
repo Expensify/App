@@ -4880,6 +4880,7 @@ function createDistanceRequest(
     currentUserLogin = '',
     currentUserAccountID = -1,
     splitShares: SplitShares = {},
+    iouType: ValueOf<typeof CONST.IOU.TYPE> = CONST.IOU.TYPE.SUBMIT,
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
@@ -4893,7 +4894,7 @@ function createDistanceRequest(
 
     let parameters: CreateDistanceRequestParams;
     let onyxData: OnyxData;
-    if (participants.length > 1) {
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
         const {splitData, splits, onyxData: splitOnyxData} = createSplitsAndOnyxData(
             participants,
             currentUserLogin ?? '',

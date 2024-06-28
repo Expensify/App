@@ -296,7 +296,6 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
             IOU.createDistanceRequest(
                 report,
                 selectedParticipants,
@@ -318,9 +317,10 @@ function IOURequestStepConfirmation({
                 currentUserPersonalDetails.login,
                 currentUserPersonalDetails.accountID,
                 transaction.splitShares,
+                iouType,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );
 
     const createTransaction = useCallback(
@@ -514,6 +514,8 @@ function IOURequestStepConfirmation({
             policyCategories,
             transactionTaxAmount,
             transactionTaxCode,
+            action,
+            requestType,
         ],
     );
 
