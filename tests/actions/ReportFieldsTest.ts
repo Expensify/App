@@ -22,14 +22,16 @@ describe('actions/ReportFields', () => {
         });
     });
 
+    let mockFetch: MockFetch;
     beforeEach(() => {
         global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createReportField', () => {
         it('creates a new text report field of a workspace', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch?.pause?.();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
             await waitForBatchedUpdates();
 
@@ -94,7 +96,7 @@ describe('actions/ReportFields', () => {
         });
 
         it('creates a new date report field of a workspace', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch?.pause?.();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {});
             await waitForBatchedUpdates();
 
@@ -160,7 +162,7 @@ describe('actions/ReportFields', () => {
         });
 
         it('creates a new list report field of a workspace', async () => {
-            (fetch as MockFetch)?.pause?.();
+            mockFetch?.pause?.();
             Onyx.set(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {
                 [INPUT_IDS.LIST_VALUES]: ['Value 1', 'Value 2'],
                 [INPUT_IDS.DISABLED_LIST_VALUES]: [false, true],
