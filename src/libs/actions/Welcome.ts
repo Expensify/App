@@ -14,7 +14,6 @@ import type TryNewDot from '@src/types/onyx/TryNewDot';
 
 type OnboardingData = Onboarding | [] | undefined;
 
-let onboarding: OnboardingData;
 let isLoadingReportData = true;
 let tryNewDotData: TryNewDot | undefined;
 
@@ -105,22 +104,6 @@ function handleHybridAppOnboarding() {
 }
 
 /**
- * Check that a few requests have completed so that the welcome action can proceed:
- *
- * - Whether we are a first time new expensify user
- * - Whether we have loaded all policies the server knows about
- * - Whether we have loaded all reports the server knows about
- * Check if onboarding data is ready in order to check if the user has completed onboarding or not
- */
-function checkOnboardingDataReady() {
-    if (onboarding === undefined) {
-        return;
-    }
-
-    resolveOnboardingFlowStatus?.();
-}
-
-/**
 
 * Check if user dismissed modal and if report data are loaded
  */
@@ -190,9 +173,7 @@ Onyx.connect({
             return;
         }
 
-        onboarding = value;
-
-        resolveOnboardingFlowStatus(onboarding);
+        resolveOnboardingFlowStatus(value);
     },
 });
 
@@ -237,7 +218,6 @@ function resetAllChecks() {
     isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
-    onboarding = undefined;
     isLoadingReportData = true;
 }
 
