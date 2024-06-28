@@ -5381,7 +5381,6 @@ function shouldReportBeInOptionList({
     excludeEmptyChats,
     doesReportHaveViolations,
     includeSelfDM = false,
-    isSearchingForReports = false,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
@@ -5391,7 +5390,6 @@ function shouldReportBeInOptionList({
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
-    isSearchingForReports?: boolean;
 }) {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -5419,9 +5417,7 @@ function shouldReportBeInOptionList({
             !isGroupChat(report) &&
             !isInvoiceRoom(report) &&
             // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing rooms with no participants when searching for reports.
-            // In any other circumstances we should never have these reports with no participants in Onyx.
-            !isSearchingForReports &&
+            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
             !isChatRoom(report))
     ) {
         return false;
