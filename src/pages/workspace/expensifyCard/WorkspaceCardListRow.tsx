@@ -27,9 +27,12 @@ type WorkspacesListRowProps = {
 
     /** Card limit */
     limit: number;
+
+    /** Policy currency */
+    currency: string;
 };
 
-function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name, currency}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -68,7 +71,7 @@ function WorkspaceCardListRow({style, limit, cardholder, lastFourPAN, name}: Wor
                 </Text>
             </View>
             <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex2 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
-                <Badge text={CurrencyUtils.convertToDisplayString(limit, 'USD')} />
+                <Badge text={CurrencyUtils.convertToDisplayString(limit, currency)} />
             </View>
         </View>
     );

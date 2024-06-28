@@ -4,6 +4,7 @@ import React, {useCallback, useMemo} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -20,6 +21,7 @@ import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {ExpensifyCard, ExpensifyCardsList} from '@src/types/onyx';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
@@ -57,6 +59,9 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
     const styles = useThemeStyles();
 
     const policyID = route.params.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
+    const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
     // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
     // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${policyID}_Expensify Card`);
@@ -119,6 +124,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
                         cardholder={item.cardholder}
                         limit={item.limit}
                         name={item.name}
+                        currency={policyCurrency}
                     />
                 )}
             </PressableWithoutFeedback>
