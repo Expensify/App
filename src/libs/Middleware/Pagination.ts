@@ -10,15 +10,17 @@ import type {Request} from '@src/types/onyx';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Middleware from './types';
 
+type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
+
 type PaginationConfig<TResourceKey extends OnyxCollectionKey, TPageKey extends OnyxPagesKey> = {
     initialCommand: ApiCommand;
     previousCommand: ApiCommand;
     nextCommand: ApiCommand;
     resourceCollectionKey: TResourceKey;
     pageCollectionKey: TPageKey;
-    sortItems: (items: OnyxValues[TResourceKey]) => Array<OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never>;
-    getItemID: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => string;
-    isLastItem: (item: OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never) => boolean;
+    sortItems: (items: OnyxValues[TResourceKey]) => Array<PagedResource<TResourceKey>>;
+    getItemID: (item: PagedResource<TResourceKey>) => string;
+    isLastItem: (item: PagedResource<TResourceKey>) => boolean;
 };
 
 type PaginationConfigMapValue = Omit<PaginationConfig<OnyxCollectionKey, OnyxPagesKey>, 'initialCommand' | 'previousCommand' | 'nextCommand'> & {
@@ -69,7 +71,7 @@ function isPaginatedRequest(request: Request | PaginatedRequest): request is Pag
  * 1. Extracting the paginated resources from the response
  * 2. Sorting them
  * 3. Merging the new page of resources with any preexisting pages it overlaps with
- * 4. Updating the saves pages in Onyx for that resource.
+ * 4. Updating the saved pages in Onyx for that resource.
  *
  * It does this to keep track of what it's fetched via pagination and what may have showed up from other sources,
  * so it can keep track of and fill any potential gaps in paginated lists.
