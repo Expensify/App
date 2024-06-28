@@ -2515,11 +2515,13 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             // - Policy rooms
             // - Invoice rooms
             // - Trip rooms
-            if (ReportUtils.isSearchableViaParticipants({
-                reportID: item.reportID,
-                type: item.type,
-                chatType: item.chatType
-            })) {
+            if (
+                ReportUtils.isSearchableViaParticipants({
+                    reportID: item.reportID,
+                    type: item.type,
+                    chatType: item.chatType,
+                })
+            ) {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
