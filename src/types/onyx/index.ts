@@ -6,7 +6,7 @@ import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
-import type {CardList} from './Card';
+import type {CardList, IssueNewCard} from './Card';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -80,6 +80,7 @@ import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type {TravelSettings} from './TravelSettings';
+import type TryNewDot from './TryNewDot';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
@@ -93,6 +94,7 @@ import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 
 export type {
+    TryNewDot,
     Account,
     AccountData,
     BankAccount,
@@ -115,6 +117,7 @@ export type {
     FundList,
     IntroSelected,
     IOU,
+    IssueNewCard,
     Locale,
     Login,
     LoginList,
