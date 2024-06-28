@@ -211,6 +211,10 @@ const emojis: PickerEmojis = [
         code: '😑',
     },
     {
+        name: 'shaking_face',
+        code: '🫨',
+    },
+    {
         name: 'no_mouth',
         code: '😶',
     },
@@ -225,6 +229,10 @@ const emojis: PickerEmojis = [
     {
         name: 'unamused',
         code: '😒',
+    },
+    {
+        name: 'head_shaking_horizontally',
+        code: '🙂‍↔️',
     },
     {
         name: 'roll_eyes',
@@ -317,6 +325,10 @@ const emojis: PickerEmojis = [
     {
         name: 'partying_face',
         code: '🥳',
+    },
+    {
+        name: 'head_shaking_vertically',
+        code: '🙂‍↕️',
     },
     {
         name: 'disguised_face',
@@ -607,6 +619,18 @@ const emojis: PickerEmojis = [
         code: '❤️',
     },
     {
+        name: 'pink_heart',
+        code: '🩷',
+    },
+    {
+        name: 'light_blue_heart',
+        code: '🩵',
+    },
+    {
+        name: 'grey_heart',
+        code: '🩶',
+    },
+    {
         name: 'orange_heart',
         code: '🧡',
     },
@@ -847,6 +871,16 @@ const emojis: PickerEmojis = [
         name: 'fist_right',
         code: '🤜',
         types: ['🤜🏿', '🤜🏾', '🤜🏽', '🤜🏼', '🤜🏻'],
+    },
+    {
+        name: 'leftwards_pushing_hand',
+        code: '🫷',
+        types: ['🫷🏿', '🫷🏾', '🫷🏽', '🫷🏼', '🫷🏻'],
+    },
+    {
+        name: 'rightwards_pushing_hand',
+        code: '🫸',
+        types: ['🫸🏿', '🫸🏾', '🫸🏽', '🫸🏼', '🫸🏻'],
     },
     {
         name: 'clap',
@@ -1997,6 +2031,96 @@ const emojis: PickerEmojis = [
         code: '👯‍♀️',
     },
     {
+        name: 'person_walking_facing_right',
+        code: '🚶‍➡️',
+        types: ['🚶🏿‍➡️', '🚶🏾‍➡️', '🚶🏽‍➡️', '🚶🏼‍➡️', '🚶🏻‍➡️'],
+    },
+    {
+        name: 'woman_walking_facing_right',
+        code: '🚶‍♀️‍➡️',
+        types: ['🚶🏿‍♀️‍➡️', '🚶🏾‍♀️‍➡️', '🚶🏽‍♀️‍➡️', '🚶🏼‍♀️‍➡️', '🚶🏻‍♀️‍➡️'],
+    },
+    {
+        name: 'man_walking_facing_right',
+        code: '🚶‍♂️‍➡️',
+        types: ['🚶🏿‍♂️‍➡️', '🚶🏾‍♂️‍➡️', '🚶🏽‍♂️‍➡️', '🚶🏼‍♂️‍➡️', '🚶🏻‍♂️‍➡️'],
+    },
+    {
+        name: 'person_kneeling_facing_right',
+        code: '🧎‍➡️',
+        types: ['🧎🏿‍➡️', '🧎🏾‍➡️', '🧎🏽‍➡️', '🧎🏼‍➡️', '🧎🏻‍➡️'],
+    },
+    {
+        name: 'woman_kneeling_facing_right',
+        code: '🧎‍♀️‍➡️',
+        types: ['🧎🏿‍♀️‍➡️', '🧎🏾‍♀️‍➡️', '🧎🏽‍♀️‍➡️', '🧎🏼‍♀️‍➡️', '🧎🏻‍♀️‍➡️'],
+    },
+    {
+        name: 'man_kneeling_facing_right',
+        code: '🧎‍♂️‍➡️',
+        types: ['🧎🏿‍♂️‍➡️', '🧎🏾‍♂️‍➡️', '🧎🏽‍♂️‍➡️', '🧎🏼‍♂️‍➡️', '🧎🏻‍♂️‍➡️'],
+    },
+    {
+        name: 'person_with_white_cane_facing_right',
+        code: '🧑‍🦯‍➡️',
+        types: ['🧑🏿‍🦯‍➡️', '🧑🏾‍🦯‍➡️', '🧑🏽‍🦯‍➡️', '🧑🏼‍🦯‍➡️', '🧑🏻‍🦯‍➡️'],
+    },
+    {
+        name: 'man_with_white_cane_facing_right',
+        code: '👨‍🦯‍➡️',
+        types: ['👨🏿‍🦯‍➡️', '👨🏾‍🦯‍➡️', '👨🏽‍🦯‍➡️', '👨🏼‍🦯‍➡️', '👨🏻‍🦯‍➡️'],
+    },
+    {
+        name: 'woman_with_white_cane_facing_right',
+        code: '👩‍🦯‍➡️',
+        types: ['👩🏿‍🦯‍➡️', '👩🏾‍🦯‍➡️', '👩🏽‍🦯‍➡️', '👩🏼‍🦯‍➡️', '👩🏻‍🦯‍➡️'],
+    },
+    {
+        name: 'person_in_motorized_wheelchair_facing_right',
+        code: '🧑‍🦼‍➡️',
+        types: ['🧑🏿‍🦼‍➡️', '🧑🏾‍🦼‍➡️', '🧑🏽‍🦼‍➡️', '🧑🏼‍🦼‍➡️', '🧑🏻‍🦼‍➡️'],
+    },
+    {
+        name: 'man_in_motorized_wheelchair_facing_right',
+        code: '👨‍🦼‍➡️',
+        types: ['👨🏿‍🦼‍➡️', '👨🏾‍🦼‍➡️', '👨🏽‍🦼‍➡️', '👨🏼‍🦼‍➡️', '👨🏻‍🦼‍➡️'],
+    },
+    {
+        name: 'woman_in_motorized_wheelchair_facing_right',
+        code: '👩‍🦼‍➡️',
+        types: ['👩🏿‍🦼‍➡️', '👩🏾‍🦼‍➡️', '👩🏽‍🦼‍➡️', '👩🏼‍🦼‍➡️', '👩🏻‍🦼‍➡️'],
+    },
+    {
+        name: 'person_in_manual_wheelchair_facing_right',
+        code: '🧑‍🦽‍➡️',
+        types: ['🧑🏿‍🦽‍➡️', '🧑🏾‍🦽‍➡️', '🧑🏽‍🦽‍➡️', '🧑🏼‍🦽‍➡️', '🧑🏻‍🦽‍➡️'],
+    },
+    {
+        name: 'man_in_manual_wheelchair_facing_right',
+        code: '👨‍🦽‍➡️',
+        types: ['👨🏿‍🦽‍➡️', '👨🏾‍🦽‍➡️', '👨🏽‍🦽‍➡️', '👨🏼‍🦽‍➡️', '👨🏻‍🦽‍➡️'],
+    },
+    {
+        name: 'woman_in_manual_wheelchair_facing_right',
+        code: '👩‍🦽‍➡️',
+        types: ['👩🏿‍🦽‍➡️', '👩🏾‍🦽‍➡️', '👩🏽‍🦽‍➡️', '👩🏼‍🦽‍➡️', '👩🏻‍🦽‍➡️'],
+    },
+    {
+        name: 'person_running_facing_right',
+        code: '🏃‍➡️',
+        types: ['🏃🏿‍➡️', '🏃🏾‍➡️', '🏃🏽‍➡️', '🏃🏼‍➡️', '🏃🏻‍➡️'],
+    },
+    {
+        name: 'woman_running_facing_right',
+        code: '🏃‍♀️‍➡️',
+        types: ['🏃🏿‍♀️‍➡️', '🏃🏾‍♀️‍➡️', '🏃🏽‍♀️‍➡️', '🏃🏼‍♀️‍➡️', '🏃🏻‍♀️‍➡️'],
+    },
+    {
+        name: 'man_running_facing_right',
+        code: '🏃‍♂️‍➡️',
+        types: ['🏃🏿‍♂️‍➡️', '🏃🏾‍♂️‍➡️', '🏃🏽‍♂️‍➡️', '🏃🏼‍♂️‍➡️', '🏃🏻‍♂️‍➡️'],
+    },
+    {
         name: 'sauna_person',
         code: '🧖',
         types: ['🧖🏿', '🧖🏾', '🧖🏽', '🧖🏼', '🧖🏻'],
@@ -2539,6 +2663,34 @@ const emojis: PickerEmojis = [
         code: '🦄',
     },
     {
+        name: 'moose',
+        code: '🫎',
+    },
+    {
+        name: 'donkey',
+        code: '🫏',
+    },
+    {
+        name: 'wing',
+        code: '🪽',
+    },
+    {
+        name: 'black_bird',
+        code: '🐦‍⬛',
+    },
+    {
+        name: 'goose',
+        code: '🪿',
+    },
+    {
+        name: 'jellyfish',
+        code: '🪼',
+    },
+    {
+        name: 'hyacinth',
+        code: '🪻',
+    },
+    {
         name: 'zebra',
         code: '🦓',
     },
@@ -2807,6 +2959,10 @@ const emojis: PickerEmojis = [
         code: '🐉',
     },
     {
+        name: 'phoenix',
+        code: '🐦‍🔥',
+    },
+    {
         name: 'sauropod',
         code: '🦕',
     },
@@ -3052,6 +3208,10 @@ const emojis: PickerEmojis = [
         code: '🍋',
     },
     {
+        name: 'lime',
+        code: '🍋‍🟩',
+    },
+    {
         name: 'banana',
         code: '🍌',
     },
@@ -3158,6 +3318,10 @@ const emojis: PickerEmojis = [
     {
         name: 'mushroom',
         code: '🍄',
+    },
+    {
+        name: 'brown_mushroom',
+        code: '🍄‍🟫',
     },
     {
         name: 'peanuts',
@@ -3342,6 +3506,14 @@ const emojis: PickerEmojis = [
     {
         name: 'sweet_potato',
         code: '🍠',
+    },
+    {
+        name: 'ginger',
+        code: '🫚',
+    },
+    {
+        name: 'pea_pod',
+        code: '🫛',
     },
     {
         name: 'oden',
@@ -4490,6 +4662,10 @@ const emojis: PickerEmojis = [
         code: '🎎',
     },
     {
+        name: 'folding_hand_fan',
+        code: '🪭',
+    },
+    {
         name: 'flags',
         code: '🎏',
     },
@@ -5063,12 +5239,20 @@ const emojis: PickerEmojis = [
         code: '🎹',
     },
     {
+        name: 'maracas',
+        code: '🪇',
+    },
+    {
         name: 'trumpet',
         code: '🎺',
     },
     {
         name: 'violin',
         code: '🎻',
+    },
+    {
+        name: 'flute',
+        code: '🪈',
     },
     {
         name: 'banjo',
@@ -5619,6 +5803,10 @@ const emojis: PickerEmojis = [
         code: '⛓️',
     },
     {
+        name: 'broken_chain',
+        code: '⛓️‍💥',
+    },
+    {
         name: 'hook',
         code: '🪝',
     },
@@ -5739,6 +5927,10 @@ const emojis: PickerEmojis = [
         code: '🪒',
     },
     {
+        name: 'hair_pick',
+        code: '🪮',
+    },
+    {
         name: 'lotion_bottle',
         code: '🧴',
     },
@@ -5844,6 +6036,22 @@ const emojis: PickerEmojis = [
         code: '🚼',
     },
     {
+        name: 'family_adult_adult_child',
+        code: '🧑‍🧑‍🧒',
+    },
+    {
+        name: 'family_adult_adult_child_child',
+        code: '🧑‍🧑‍🧒‍🧒',
+    },
+    {
+        name: 'family_adult_child',
+        code: '🧑‍🧒',
+    },
+    {
+        name: 'family_adult_child_child',
+        code: '🧑‍🧒‍🧒',
+    },
+    {
         name: 'wc',
         code: '🚾',
     },
@@ -5862,6 +6070,10 @@ const emojis: PickerEmojis = [
     {
         name: 'left_luggage',
         code: '🛅',
+    },
+    {
+        name: 'wireless',
+        code: '🛜',
     },
     {
         name: 'warning',
@@ -6019,6 +6231,11 @@ const emojis: PickerEmojis = [
         name: 'wheel_of_dharma',
         code: '☸️',
     },
+    {
+        name: 'khanda',
+        code: '🪯',
+    },
+
     {
         name: 'yin_yang',
         code: '☯️',
