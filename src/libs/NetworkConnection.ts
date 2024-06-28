@@ -125,11 +125,11 @@ function subscribeToNetInfo(): () => void {
             // If a check is taking longer than this time we're considered offline
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
             reachabilityShouldRun: () => {
-                if (!hasPendingNetworkCheck) {
-                    hasPendingNetworkCheck = true;
-                    return true;
+                if (hasPendingNetworkCheck) {
+                    return false;
                 }
-                return false;
+                hasPendingNetworkCheck = true;
+                return true;
             },
         });
     }
