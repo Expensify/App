@@ -44,8 +44,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
-    /** If a file download is happening */
-    download: OnyxEntry<OnyxDownload>;
 };
 
 type AttachmentViewProps = AttachmentViewOnyxProps &
@@ -89,6 +87,9 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         isUsedAsChatAttachment?: boolean;
 
         downloadAttachment?: () => void;
+
+        /* Indicates that the attachment has not been uploaded yet */
+        isUploaded?: boolean;
     };
 
 function AttachmentView({
@@ -112,7 +113,7 @@ function AttachmentView({
     isHovered,
     duration,
     isUsedAsChatAttachment,
-    download,
+    isUploaded = true,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
     const {updateCurrentlyPlayingURL} = usePlaybackContext();
@@ -284,7 +285,7 @@ function AttachmentView({
         let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string)
 
         if (!isResolutionValid) {
-            if(isUsedInAttachmentModal) {
+            if(!isUploaded) {
                 return (
                     <DefaultAttachmentView
                         icon={Expensicons.Gallery}
@@ -341,12 +342,6 @@ export default memo(
     withOnyx<AttachmentViewProps, AttachmentViewOnyxProps>({
         transaction: {
             key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        },
-        download: {
-            key: ({source}) => {
-                const sourceID = (source?.toString().match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-                return `${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`;
-            },
         },
     })(AttachmentView),
 );
