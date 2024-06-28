@@ -115,6 +115,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             if (currOnModalHide) {
                 currOnModalHide();
             }
+            // eslint-disable-next-line react-compiler/react-compiler
             emojiPopoverAnchorRef.current = null;
         };
         setIsEmojiPickerVisible(false);

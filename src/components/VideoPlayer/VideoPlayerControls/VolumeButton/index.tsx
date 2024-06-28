@@ -45,6 +45,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     const changeVolumeOnPan = useCallback(
         (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
             const val = NumberUtils.roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
+            // eslint-disable-next-line react-compiler/react-compiler
             volume.value = NumberUtils.clamp(val, 0, 1);
         },
         [sliderHeight, volume],

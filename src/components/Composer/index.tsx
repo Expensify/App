@@ -253,8 +253,9 @@ function Composer(
         if (!textInput.current || prevScroll === undefined) {
             return;
         }
+        // eslint-disable-next-line react-compiler/react-compiler
         textInput.current.scrollTop = prevScroll;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isComposerFullSize]);
 
     useHtmlPaste(textInput, handlePaste, true);
@@ -271,7 +272,7 @@ function Composer(
             }
             ReportActionComposeFocusManager.clear();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     const handleKeyPress = useCallback(

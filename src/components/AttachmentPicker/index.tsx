@@ -46,6 +46,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE}: 
 
                     // Cleanup after selecting a file to start from a fresh state
                     if (fileInput.current) {
+                        // eslint-disable-next-line react-compiler/react-compiler
                         fileInput.current.value = '';
                     }
                 }}

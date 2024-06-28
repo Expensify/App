@@ -61,7 +61,7 @@ function BasePicker<TPickerValue>(
         // so they don't have to spend extra time selecting the only possible value.
         onInputChange(items[0].value, 0);
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [items]);
 
     const context = useScrollContext();
