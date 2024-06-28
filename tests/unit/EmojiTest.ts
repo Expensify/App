@@ -203,6 +203,11 @@ describe('EmojiTest', () => {
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
             {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
+            {
                 code: '🤙',
                 name: 'mano_llámame',
                 types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
