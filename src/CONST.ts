@@ -1812,6 +1812,7 @@ const CONST = {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
                 xero: 'Xero',
+                intacct: 'Sage Intacct',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',

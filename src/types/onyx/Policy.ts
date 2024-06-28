@@ -662,7 +662,7 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 /** Data stored about subsidiaries from NetSuite  */
-type Subsidiary = {
+type NetSuiteSubsidiary = {
     /** ID of the subsidiary */
     internalID: string;
 

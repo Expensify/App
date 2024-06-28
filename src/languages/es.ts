@@ -104,17 +104,8 @@ import type {
     ZipCodeExampleFormatParams,
 } from './types';
 
-function integrationName(integration: ConnectionName): string {
-    switch (integration) {
-        case CONST.POLICY.CONNECTIONS.NAME.QBO:
-            return 'Quickbooks Online';
-        case CONST.POLICY.CONNECTIONS.NAME.XERO:
-            return 'Xero';
-        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-            return 'Sage Intacct';
-        default:
-            return 'Integration';
-    }
+function integrationName(fallbackName: string, integration?: ConnectionName): string {
+    return integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : fallbackName;
 }
 
 /* eslint-disable max-len */
@@ -2042,7 +2033,7 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: (integration: ConnectionName) => `Añade la cuenta en ${integrationName(integration)} y sincroniza de nuevo la conexión.`,
+            noAccountsFoundDescription: (integration: ConnectionName) => `Añade la cuenta en ${integrationName('esta integración', integration)} y sincroniza de nuevo la conexión.`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2467,7 +2458,6 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
-            integrationName,
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
@@ -2476,10 +2466,7 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integración';
-                return `Desconectar ${integrationName}`;
-            },
+            disconnectTitle: (integration?: ConnectionName): string => `Desconectar ${integrationName('integración', integration)}`,
             connectTitle: (integrationToConnect: ConnectionName): string => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
@@ -2507,11 +2494,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'integración';
-                return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
-            },
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => `¿Estás seguro de que quieres desconectar ${integrationName('integración', currentIntegration)}?`,
             connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `¿Estás seguro de que quieres conectar a ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'esta integración contable'
