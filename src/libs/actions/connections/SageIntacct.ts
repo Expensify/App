@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {UpdateSageIntacctExporterParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -102,7 +103,13 @@ function updateSageIntacctExport(policyID: string, settingName: keyof Connection
 }
 
 function updateSageIntacctExporter(policyID: string, exporter: string) {
-    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
+    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
+    const parameters: UpdateSageIntacctExporterParams = {
+        policyID,
+        email: exporter,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER, parameters, {optimisticData, failureData, successData});
 }
 
 function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
