@@ -42,7 +42,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 icons: [
                     {
                         source: iconToDisplay ?? '',
-                        type: 'avatar',
+                        type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
                 isDisabled: !canBeExported,
@@ -60,7 +60,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 icons: [
                     {
                         source: iconToDisplay ?? '',
-                        type: 'avatar',
+                        type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
                 isDisabled: !canBeExported,

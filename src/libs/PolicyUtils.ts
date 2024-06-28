@@ -505,7 +505,7 @@ function getConnectedIntegration(policy: Policy | undefined, accountingIntegrati
 }
 
 function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
-    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync.enabled) ?? false;
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
 }
 
 export {
