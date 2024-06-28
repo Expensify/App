@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -42,9 +42,25 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [showIdologyQuestions, setShowIdologyQuestions] = useState(false);
+
+    const hasIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
+
+    useEffect(() => {
+        if (!hasIdologyQuestions) {
+            return;
+        }
+        if (hasIdologyQuestions) {
+            setShowIdologyQuestions(true);
+        }
+    }, [hasIdologyQuestions]);
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
+        if (hasIdologyQuestions) {
+            setShowIdologyQuestions(true);
+            return;
+        }
         const personalDetails = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
             legalFirstName: values?.[PERSONAL_INFO_STEP_KEYS.FIRST_NAME] ?? '',
@@ -85,6 +101,10 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
             Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             return;
         }
+        if (showIdologyQuestions) {
+            setShowIdologyQuestions(false);
+            return;
+        }
         prevScreen();
     };
 
@@ -103,10 +123,10 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
                     stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
-            {walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0 ? (
+            {showIdologyQuestions && hasIdologyQuestions ? (
                 <IdologyQuestions
-                    questions={walletAdditionalDetails.questions}
-                    idNumber={walletAdditionalDetails.idNumber ?? ''}
+                    questions={walletAdditionalDetails?.questions ?? []}
+                    idNumber={walletAdditionalDetails?.idNumber ?? ''}
                 />
             ) : (
                 <SubStep
