@@ -193,7 +193,7 @@ function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctSyncReimbursedReports(policyID: string, vendorID: string | null) {
+function updateSageIntacctSyncReimbursedReports(policyID: string, vendorID: string | boolean) {
     const settingValue = vendorID ?? false;
     const {optimisticData, failureData, successData} = prepareSyncOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, settingValue);
     const parameters = {

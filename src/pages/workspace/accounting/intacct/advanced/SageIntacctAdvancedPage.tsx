@@ -73,7 +73,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 onToggle: (enabled: boolean) => {
                     setIsSyncReimbursedReportsEnabled(enabled);
                     if (!enabled) {
-                        updateSageIntacctSyncReimbursedReports(policyID, null);
+                        updateSageIntacctSyncReimbursedReports(policyID, false);
                         updateSageIntacctSyncReimbursementAccountID(policyID, null);
                     }
                 },
