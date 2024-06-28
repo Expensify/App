@@ -1544,9 +1544,10 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
+    const policy = getPolicy(moneyRequestReport?.policyID);
     if (
-        PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID)) &&
-        PolicyUtils.isSubmitAndClose(getPolicy(moneyRequestReport?.policyID)) &&
+        PolicyUtils.isInstantSubmitEnabled(policy) &&
+        PolicyUtils.isSubmitAndClose(policy) &&
         hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)
     ) {
         return false;
