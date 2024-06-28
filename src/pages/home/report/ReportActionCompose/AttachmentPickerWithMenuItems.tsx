@@ -151,7 +151,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: {
                 icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), true),
+                onSelected: () => selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? '-1'), false),
             },
             [CONST.IOU.TYPE.TRACK]: {
                 icon: getIconForAction(CONST.IOU.TYPE.TRACK),

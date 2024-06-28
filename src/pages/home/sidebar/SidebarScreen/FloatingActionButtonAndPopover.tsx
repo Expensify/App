@@ -261,7 +261,7 @@ function FloatingActionButtonAndPopover(
                 selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
                 selectOption(
@@ -270,13 +270,13 @@ function FloatingActionButtonAndPopover(
                 );
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true), false);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), true);
+                selectOption(() => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true), false);
                 break;
             default:
         }
