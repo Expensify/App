@@ -60,14 +60,14 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
             key={index}
             style={styles.flex1}
         >
-            <View style={[styles.w100, styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                {stepNames.length > 1 && (
+            {stepNames.length > 1 && (
+                <View style={[styles.w100, styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                     <InteractiveStepSubHeader
                         stepNames={stepNames}
                         startStepIndex={index}
                     />
-                )}
-            </View>
+                </View>
+            )}
 
             <Text
                 family="EXP_NEW_KANSAS_MEDIUM"
