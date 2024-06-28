@@ -1,9 +1,11 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -36,6 +38,25 @@ function CardSection() {
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
     const BillingBanner = <PreTrialBillingBanner />;
+
+    useEffect(() => {
+        Onyx.merge(ONYXKEYS.FUND_LIST, [
+            {
+                accountData: {
+                    cardMonth: 11,
+
+                    cardNumber: '1234',
+
+                    cardYear: 2026,
+
+                    currency: 'USD',
+
+                    addressName: 'John Doe',
+                },
+                isDefault: true,
+            },
+        ]);
+    }, [fundList]);
 
     return (
         <Section
@@ -72,6 +93,13 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
+            <MenuItem
+                title="Request early cancellation"
+                icon={Expensicons.CalendarSolid}
+                iconFill={theme.icon}
+                shouldShowRightIcon
+                wrapperStyle={styles.sectionMenuItemTopDescription}
+            />
             {!!account?.hasPurchases && (
                 <MenuItem
                     shouldShowRightIcon
