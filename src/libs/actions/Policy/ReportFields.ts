@@ -173,15 +173,6 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
         reportFields: JSON.stringify([newReportField]),
     };
 
-    // eslint-disable-next-line no-console
-    console.group('createReportField');
-    // eslint-disable-next-line no-console
-    console.log('parameters', parameters);
-    // eslint-disable-next-line no-console
-    console.log('onyxData', onyxData);
-    // eslint-disable-next-line no-console
-    console.groupEnd();
-
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
 }
 
