@@ -115,6 +115,9 @@ const ONYXKEYS = {
     /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
+    /** This NVP contains data associated with HybridApp */
+    NVP_TRYNEWDOT: 'nvp_tryNewDot',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -154,6 +157,8 @@ const ONYXKEYS = {
     /** Whether the user has dismissed the hold educational interstitial */
     NVP_DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
 
+    /** Whether the user has seen HybridApp explanation modal */
+    NVP_SEEN_NEW_USER_MODAL: 'nvp_seen_new_user_modal',
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
@@ -339,6 +344,9 @@ const ONYXKEYS = {
     // Paths of PDF file that has been cached during one session
     CACHED_PDF_PATHS: 'cachedPDFPaths',
 
+    /** Stores iframe link to verify 3DS flow for subscription */
+    VERIFY_3DS_SUBSCRIPTION: 'verify3dsSubscription',
+
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
@@ -405,8 +413,8 @@ const ONYXKEYS = {
 
     /** List of Form ids */
     FORMS: {
-        ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
+        ADD_PAYMENT_CARD_FORM: 'addPaymentCardForm',
+        ADD_PAYMENT_CARD_FORM_DRAFT: 'addPaymentCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
         WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
@@ -475,6 +483,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusSetClearAfterFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
+        CHANGE_BILLING_CURRENCY_FORM: 'changeBillingCurrencyForm',
+        CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'changeBillingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         PRIVATE_NOTES_FORM_DRAFT: 'privateNotesFormDraft',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
@@ -517,7 +527,7 @@ const ONYXKEYS = {
 type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
 
 type OnyxFormValuesMapping = {
-    [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: FormTypes.AddDebitCardForm;
+    [ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM]: FormTypes.AddPaymentCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
@@ -549,6 +559,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
+    [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: FormTypes.SettingsStatusSetClearAfterForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
@@ -625,6 +636,9 @@ type OnyxValuesMapping = {
     // NVP_ONBOARDING is an array for old users.
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
 
+    // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
+    [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
+
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
     [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
@@ -667,6 +681,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
+    [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -704,6 +719,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
+    [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
