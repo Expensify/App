@@ -19,7 +19,6 @@ const migrations = {
     private_pushNotificationID: ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     tryFocusMode: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     introSelected: ONYXKEYS.NVP_INTRO_SELECTED,
-    hasDismissedIdlePanel: ONYXKEYS.NVP_HAS_DISMISSED_IDLE_PANEL,
 };
 
 // This migration changes the keys of all the NVP related keys so that they are standardized
@@ -33,7 +32,7 @@ export default function () {
                 key: oldKey as OnyxKey,
                 callback: (value) => {
                     Onyx.disconnect(connectionID);
-                    if (value === null) {
+                    if (value === undefined) {
                         resolveWhenDone();
                         return;
                     }

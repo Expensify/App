@@ -97,7 +97,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = filteredMethods[0];
-            PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '');
+            PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '-1');
             return;
         }
 
@@ -113,7 +113,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
             return;
         }
 
-        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '');
+        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '-1');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
@@ -191,7 +191,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                         ))}
                     </View>
                     <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
-                    {Boolean(selectedAccount) && (
+                    {!!selectedAccount && (
                         <MenuItem
                             title={selectedAccount?.title}
                             description={selectedAccount?.description}

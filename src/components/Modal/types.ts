@@ -10,6 +10,10 @@ type PopoverAnchorPosition = {
     left?: number;
 };
 
+type WindowState = {
+    shouldGoBack: boolean;
+};
+
 type BaseModalProps = Partial<ModalProps> & {
     /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
     fullscreen?: boolean;
@@ -69,6 +73,9 @@ type BaseModalProps = Partial<ModalProps> & {
     /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
     shouldUseCustomBackdrop?: boolean;
 
+    /** unique id for the modal */
+    modalId?: number;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -83,4 +90,4 @@ type BaseModalProps = Partial<ModalProps> & {
 };
 
 export default BaseModalProps;
-export type {PopoverAnchorPosition};
+export type {PopoverAnchorPosition, WindowState};

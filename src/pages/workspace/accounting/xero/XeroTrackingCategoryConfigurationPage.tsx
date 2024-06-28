@@ -6,7 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import {getTrackingCategory} from '@libs/actions/connections/ConnectToXero';
+import {getTrackingCategories} from '@libs/actions/connections/ConnectToXero';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -16,37 +16,22 @@ import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
     const isSwitchOn = !!xeroConfig?.importTrackingCategories;
 
     const menuItems: MenuItemProps[] = useMemo(() => {
-        const availableCategories = [];
-
-        const costCenterCategoryValue = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.COST_CENTERS)?.value ?? '';
-        const regionCategoryValue = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION)?.value ?? '';
-        if (costCenterCategoryValue) {
-            const isValidOption = Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).findIndex((option) => option.toLowerCase() === costCenterCategoryValue.toLowerCase()) > -1;
-            availableCategories.push({
-                description: translate('workspace.xero.mapXeroCostCentersTo'),
-                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS.getRoute(policyID)),
-                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths) : '',
-            });
-        }
-
-        if (regionCategoryValue) {
-            const isValidOption = Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).findIndex((option) => option.toLowerCase() === regionCategoryValue.toLowerCase()) > -1;
-            availableCategories.push({
-                description: translate('workspace.xero.mapXeroRegionsTo'),
-                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION.getRoute(policyID)),
-                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths) : '',
-            });
-        }
-        return availableCategories;
+        const trackingCategories = getTrackingCategories(policy);
+        return trackingCategories.map((category: XeroTrackingCategory & {value: string}) => ({
+            description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: category.name}) as TranslationPaths,
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
+            title: translate(`workspace.xero.trackingCategoriesOptions.${category.value.toLowerCase()}` as TranslationPaths),
+        }));
     }, [translate, policy, policyID]);
 
     return (
@@ -58,11 +43,13 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
                 isActive={isSwitchOn}
+                wrapperStyle={styles.mv3}
                 onToggle={() =>
                     Connections.updatePolicyConnectionConfig(
                         policyID,

@@ -10,13 +10,13 @@ import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
@@ -64,11 +64,14 @@ type MoneyRequestAmountFormProps = {
 
     /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
     selectedTab?: SelectedTabRequest;
+
+    /** Whether the user input should be kept or not */
+    shouldKeepUserInput?: boolean;
 };
 
 const isAmountInvalid = (amount: string) => !amount.length || parseFloat(amount) < 0.01;
 const isTaxAmountInvalid = (currentAmount: string, taxAmount: number, isTaxAmountForm: boolean) =>
-    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmount(Math.abs(taxAmount));
+    isTaxAmountForm && Number.parseFloat(currentAmount) > CurrencyUtils.convertToFrontendAmountAsInteger(Math.abs(taxAmount));
 
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
@@ -88,6 +91,7 @@ function MoneyRequestAmountForm(
         onCurrencyButtonPress,
         onSubmitButtonPress,
         selectedTab = CONST.TAB_REQUEST.MANUAL,
+        shouldKeepUserInput = false,
     }: MoneyRequestAmountFormProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
@@ -98,7 +102,7 @@ function MoneyRequestAmountForm(
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
 
-    const [formError, setFormError] = useState<MaybePhraseKey>('');
+    const [formError, setFormError] = useState<string>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const isFocused = useIsFocused();
@@ -126,7 +130,8 @@ function MoneyRequestAmountForm(
         if (!textInput.current) {
             return;
         }
-        if (!textInput.current.isFocused()) {
+
+        if (!isTextInputFocused(textInput)) {
             textInput.current.focus();
         }
     };
@@ -144,7 +149,7 @@ function MoneyRequestAmountForm(
     }, [isFocused, wasFocused]);
 
     const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
+        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmountAsString(newAmount) : '';
         moneyRequestAmountInput.current?.changeAmount(frontendAmount);
         moneyRequestAmountInput.current?.changeSelection({
             start: frontendAmount.length,
@@ -167,7 +172,7 @@ function MoneyRequestAmountForm(
      */
     const updateAmountNumberPad = useCallback(
         (key: string) => {
-            if (shouldUpdateSelection && !textInput.current?.isFocused()) {
+            if (shouldUpdateSelection && !isTextInputFocused(textInput)) {
                 textInput.current?.focus();
             }
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
@@ -194,7 +199,7 @@ function MoneyRequestAmountForm(
      */
     const updateLongPressHandlerState = useCallback((value: boolean) => {
         setShouldUpdateSelection(!value);
-        if (!value && !textInput.current?.isFocused()) {
+        if (!value && !isTextInputFocused(textInput)) {
             textInput.current?.focus();
         }
     }, []);
@@ -209,39 +214,22 @@ function MoneyRequestAmountForm(
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
             if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
-                setFormError('iou.error.invalidAmount');
+                setFormError(translate('iou.error.invalidAmount'));
                 return;
             }
 
             if (isTaxAmountInvalid(currentAmount, taxAmount, isTaxAmountForm)) {
-                setFormError(['iou.error.invalidTaxAmount', {amount: formattedTaxAmount}]);
+                setFormError(translate('iou.error.invalidTaxAmount', {amount: formattedTaxAmount}));
                 return;
             }
 
-            // Update display amount string post-edit to ensure consistency with backend amount
-            // Reference: https://github.com/Expensify/App/issues/30505
-            const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount));
-            initializeAmount(backendAmount);
-
             onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount],
+        [taxAmount, onSubmitButtonPress, currency, translate, formattedTaxAmount],
     );
 
     const buttonText: string = useMemo(() => {
-        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
         if (skipConfirmation) {
-            if (currentAmount !== '') {
-                const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
-                let text = translate('iou.submitAmount', {amount: currencyAmount});
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    text = translate('iou.splitAmount', {amount: currencyAmount});
-                } else if (iouType === CONST.IOU.TYPE.TRACK) {
-                    text = translate('iou.trackAmount', {amount: currencyAmount});
-                }
-                return text[0].toUpperCase() + text.slice(1);
-            }
-
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 return translate('iou.splitExpense');
             }
@@ -251,7 +239,7 @@ function MoneyRequestAmountForm(
             return translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
-    }, [skipConfirmation, iouType, currency, isEditing, translate]);
+    }, [skipConfirmation, iouType, isEditing, translate]);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
@@ -287,6 +275,7 @@ function MoneyRequestAmountForm(
                         }
                         textInput.current = ref;
                     }}
+                    shouldKeepUserInput={shouldKeepUserInput}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
                     inputStyle={[styles.iouAmountTextInput]}
                     containerStyle={[styles.iouAmountTextInputContainer]}
@@ -320,7 +309,7 @@ function MoneyRequestAmountForm(
                             addBankAccountRoute={bankAccountRoute}
                             addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                             currency={currency ?? CONST.CURRENCY.USD}
-                            policyID={policyID ?? ''}
+                            policyID={policyID ?? '-1'}
                             style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                             kycWallAnchorAlignment={{

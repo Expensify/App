@@ -37,6 +37,11 @@ type TextInputWithCurrencySymbolProps = {
      */
     onMouseDown?: ((e: React.MouseEvent) => void) | undefined;
 
+    /**
+     * Callback that is called when the text input is pressed up
+     */
+    onMouseUp?: ((e: React.MouseEvent) => void) | undefined;
+
     /** Whether the currency symbol is pressable */
     isCurrencyPressable: boolean;
 
@@ -72,6 +77,6 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
-} & Pick<BaseTextInputProps, 'autoFocus'>;
+} & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow'>;
 
 export default TextInputWithCurrencySymbolProps;

@@ -12,15 +12,16 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import type {NewChatNavigatorParamList} from '@navigation/types';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
+import type {Report as ReportOnyxType} from '@src/types/onyx';
 import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -28,26 +29,27 @@ type GroupChatNameEditPageOnyxProps = {
     groupChatDraft: OnyxEntry<NewGroupChatDraft>;
 };
 
-type GroupChatNameEditPageProps = StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME> & GroupChatNameEditPageOnyxProps;
+type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
+    Partial<StackScreenProps<NewChatNavigatorParamList, typeof SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME>> & {
+        report?: ReportOnyxType;
+    };
 
-function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPageProps) {
-    // If we have a reportID this means we are using this page to update an existing Group Chat name
-    const reportID = route.params?.reportID ?? '';
-    const isUpdatingExistingReport = Boolean(reportID);
+function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPageProps) {
+    // If we have a report this means we are using this page to update an existing Group Chat name
+    // In this case its better to use empty string as the reportID if there is no reportID
+    const reportID = report?.reportID ?? '';
+    const isUpdatingExistingReport = !!reportID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     // We will try to get the chatName from the report or draft depending on what flow we are in
-    const participantAccountIDs = useMemo(() => {
-        if (reportID) {
-            return ReportUtils.getParticipantAccountIDs(reportID);
-        }
-
-        return (groupChatDraft?.participants ?? []).map((participant) => participant.accountID);
-    }, [groupChatDraft, reportID]);
-    const existingReportName = useMemo(() => ReportUtils.getGroupChatName(participantAccountIDs, false, reportID), [participantAccountIDs, reportID]);
+    const draftParticipantAccountIDs = useMemo(() => (groupChatDraft?.participants ?? []).map((participant) => participant.accountID), [groupChatDraft?.participants]);
+    const existingReportName = useMemo(
+        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(draftParticipantAccountIDs)),
+        [draftParticipantAccountIDs, report],
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 

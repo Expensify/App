@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
@@ -18,7 +18,9 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
+import {READ_COMMANDS} from '@libs/API/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import HttpUtils from '@libs/HttpUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -171,6 +173,8 @@ function RoomInvitePage({
     }, [isPolicyEmployee, reportID, role]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
+        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+
         if (!validate()) {
             return;
         }
@@ -214,7 +218,7 @@ function RoomInvitePage({
         ) {
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
         }
-        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
+        return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, !!userToInvite, searchValue);
     }, [debouncedSearchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
 
     useEffect(() => {

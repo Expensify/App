@@ -42,7 +42,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
             userToInvite: localUserToInvite,
         } = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage((localRecentReports?.length || 0) + (localPersonalDetails?.length || 0) !== 0, Boolean(localUserToInvite), debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage((localRecentReports?.length || 0) + (localPersonalDetails?.length || 0) !== 0, !!localUserToInvite, debouncedSearchValue);
 
         return {
             recentReports: localRecentReports,
@@ -99,7 +99,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute())}
                     />
                     <SelectionList
                         ListItem={UserListItem}

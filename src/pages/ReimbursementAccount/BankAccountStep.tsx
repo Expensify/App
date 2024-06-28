@@ -18,6 +18,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Link from '@userActions/Link';
@@ -38,6 +39,9 @@ type BankAccountStepOnyxProps = {
 
     /** If the plaid button has been disabled */
     isPlaidDisabled: OnyxEntry<boolean>;
+
+    /** Login list for the user that is signed in */
+    loginList: OnyxEntry<OnyxTypes.LoginList>;
 };
 
 type BankAccountStepProps = BankAccountStepOnyxProps & {
@@ -70,6 +74,7 @@ function BankAccountStep({
     receivedRedirectURI,
     reimbursementAccount,
     onBackButtonPress,
+    loginList,
     isPlaidDisabled = false,
 }: BankAccountStepProps) {
     const theme = useTheme();
@@ -82,6 +87,7 @@ function BankAccountStep({
     }
     const plaidDesktopMessage = getPlaidDesktopMessage();
     const bankAccountRoute = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policyID, ROUTES.WORKSPACE_INITIAL.getRoute(policyID))}`;
+    const loginNames = Object.keys(loginList ?? {});
 
     const removeExistingBankAccountDetails = () => {
         const bankAccountData: Partial<ReimbursementAccountForm> = {
@@ -129,7 +135,7 @@ function BankAccountStep({
                         </View>
                         {!!plaidDesktopMessage && (
                             <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
+                                <TextLink onPress={() => Link.openExternalLink(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                             </View>
                         )}
                         <Button
@@ -178,6 +184,16 @@ function BankAccountStep({
                                 >
                                     {translate('bankAccount.validateAccountError.phrase2')}
                                 </TextLink>
+                                {translate('bankAccount.validateAccountError.phrase3')}
+                                <TextLink
+                                    fontSize={variables.fontSizeLabel}
+                                    onPress={() => {
+                                        const login = loginList?.[loginNames?.[0]] ?? {};
+                                        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(login?.partnerUserID ?? loginNames?.[0]));
+                                    }}
+                                >
+                                    {translate('bankAccount.validateAccountError.phrase4')}
+                                </TextLink>
                                 .
                             </Text>
                         </View>
@@ -214,5 +230,8 @@ export default withOnyx<BankAccountStepProps, BankAccountStepOnyxProps>({
     },
     isPlaidDisabled: {
         key: ONYXKEYS.IS_PLAID_DISABLED,
+    },
+    loginList: {
+        key: ONYXKEYS.LOGIN_LIST,
     },
 })(BankAccountStep);

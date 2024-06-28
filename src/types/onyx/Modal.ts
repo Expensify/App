@@ -1,3 +1,4 @@
+/** Modal state */
 type Modal = {
     /** Indicates when an Alert modal is about to be visible */
     willAlertModalBecomeVisible?: boolean;
@@ -8,6 +9,7 @@ type Modal = {
     /** Indicates if there is a modal currently visible or not */
     isVisible?: boolean;
 
+    /** Indicates if the modal is a popover */
     isPopover?: boolean;
 };
 

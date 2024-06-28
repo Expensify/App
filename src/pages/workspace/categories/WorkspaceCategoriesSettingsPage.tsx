@@ -23,14 +23,14 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const isConnectedToQbo = policy?.connections?.quickbooksOnline;
     const isConnectedToXero = policy?.connections?.xero;
-    const policyID = route.params.policyID ?? '';
+    const policyID = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     let toggleSubtitle = '';
     if (isConnectedToQbo) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}`;
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}.`;
     }
     if (isConnectedToXero) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}`;
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}.`;
     }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
@@ -61,7 +61,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
                         wrapperStyle={[styles.mt2, styles.mh4]}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
-                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
+                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', 'requiresCategory')}
                         shouldPlaceSubtitleBelowSwitch
                     />
                 </View>

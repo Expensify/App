@@ -1,5 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
@@ -19,7 +18,7 @@ type LoggedInAsParams = {
     email: string;
 };
 
-type NewFaceEnterMagicCodeParams = {
+type SignUpNewFaceCodeParams = {
     login: string;
 };
 
@@ -41,15 +40,15 @@ type LocalTimeParams = {
 };
 
 type EditActionParams = {
-    action: OnyxEntry<ReportAction>;
+    action: OnyxInputOrEntry<ReportAction>;
 };
 
 type DeleteActionParams = {
-    action: OnyxEntry<ReportAction>;
+    action: OnyxInputOrEntry<ReportAction>;
 };
 
 type DeleteConfirmationParams = {
-    action: OnyxEntry<ReportAction>;
+    action: OnyxInputOrEntry<ReportAction>;
 };
 
 type BeginningOfChatHistoryDomainRoomPartOneParams = {
@@ -299,6 +298,11 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -331,7 +335,7 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    NewFaceEnterMagicCodeParams,
+    SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -403,4 +407,5 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    RemoveMembersWarningPrompt,
 };

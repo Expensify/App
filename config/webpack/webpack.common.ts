@@ -4,14 +4,27 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import path from 'path';
-import type {Configuration} from 'webpack';
+import type {Compiler, Configuration} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import CustomVersionFilePlugin from './CustomVersionFilePlugin';
 import type Environment from './types';
 
+// importing anything from @vue/preload-webpack-plugin causes an error
+type Options = {
+    rel: string;
+    as: string;
+    fileWhitelist: RegExp[];
+    include: string;
+};
+
+type PreloadWebpackPluginClass = {
+    new (options?: Options): PreloadWebpackPluginClass;
+    apply: (compiler: Compiler) => void;
+};
+
 // require is necessary, there are no types for this package and the declaration file can't be seen by the build process which causes an error.
-const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin');
+const PreloadWebpackPlugin: PreloadWebpackPluginClass = require('@vue/preload-webpack-plugin');
 
 const includeModules = [
     'react-native-animatable',

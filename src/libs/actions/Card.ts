@@ -5,7 +5,7 @@ import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFrau
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Response} from '@src/types/onyx';
+import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -158,7 +158,7 @@ function clearCardListErrors(cardID: number) {
  *
  * @returns promise with card details object
  */
-function revealVirtualCardDetails(cardID: number): Promise<Response> {
+function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails> {
     return new Promise((resolve, reject) => {
         const parameters: RevealExpensifyCardDetailsParams = {cardID};
 
@@ -170,7 +170,7 @@ function revealVirtualCardDetails(cardID: number): Promise<Response> {
                     reject('cardPage.cardDetailsLoadingFailure');
                     return;
                 }
-                resolve(response);
+                resolve(response as ExpensifyCardDetails);
             })
             // eslint-disable-next-line prefer-promise-reject-errors
             .catch(() => reject('cardPage.cardDetailsLoadingFailure'));

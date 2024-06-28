@@ -39,8 +39,8 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
     const styles = useThemeStyles();
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState<string>('');
     const {isSmallScreenWidth} = useWindowDimensions();
-    const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? ''}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-    const distanceCustomUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const viewAllReceiptsUrl = `expenses?policyIDList=${policy?.id ?? '-1'}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+    const distanceCustomUnit = PolicyUtils.getCustomUnit(policy);
     const distanceCustomRate = Object.values(distanceCustomUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
     const {translate, toLocaleDigit} = useLocalize();
     const {isOffline} = useNetwork();
@@ -61,7 +61,7 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
         // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
         // updating Onyx with the optimistic data.
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(policy?.id ?? '');
+        Policy.openWorkspaceReimburseView(policy?.id ?? '-1');
     }, [policy?.id]);
 
     useEffect(() => {
@@ -122,8 +122,8 @@ function WorkspaceReimburseView({policy, reimbursementAccount}: WorkspaceReimbur
                             description={translate('workspace.reimburse.trackDistanceRate')}
                             shouldShowRightIcon
                             onPress={() => {
-                                Policy.setPolicyIDForReimburseView(policy?.id ?? '');
-                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? ''));
+                                Policy.setPolicyIDForReimburseView(policy?.id ?? '-1');
+                                Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(policy?.id ?? '-1'));
                             }}
                             wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
                             brickRoadIndicator={(distanceCustomUnit?.errors ?? distanceCustomRate?.errors) && CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR}

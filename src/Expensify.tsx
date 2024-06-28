@@ -1,6 +1,7 @@
+import {Audio} from 'expo-av';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking} from 'react-native';
+import {AppState, Linking, NativeModules} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
@@ -76,9 +77,12 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-type SplashScreenHiddenContextType = {isSplashHidden?: boolean};
+// HybridApp needs access to SetStateAction in order to properly hide SplashScreen when React Native was booted before.
+type SplashScreenHiddenContextType = {isSplashHidden?: boolean; setIsSplashHidden: React.Dispatch<React.SetStateAction<boolean>>};
 
-const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({});
+const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({
+    setIsSplashHidden: () => {},
+});
 
 function Expensify({
     isCheckingPublicRoom = true,
@@ -108,13 +112,6 @@ function Expensify({
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
-    const contextValue = useMemo(
-        () => ({
-            isSplashHidden,
-        }),
-        [isSplashHidden],
-    );
-
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
@@ -138,14 +135,22 @@ function Expensify({
         Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     }, []);
 
+    const contextValue = useMemo(
+        () => ({
+            isSplashHidden,
+            setIsSplashHidden,
+        }),
+        [isSplashHidden, setIsSplashHidden],
+    );
+
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
 
-        // Used for the offline indicator appearing when someone is offline or backend is unreachable
-        const unsubscribeNetworkStatus = NetworkConnection.subscribeToNetworkStatus();
+        // Used for the offline indicator appearing when someone is offline
+        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
 
-        return () => unsubscribeNetworkStatus();
+        return unsubscribeNetInfo;
     }, []);
 
     useEffect(() => {
@@ -206,6 +211,11 @@ function Expensify({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
+    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
+    useEffect(() => {
+        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+    }, []);
+
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
         return null;
@@ -253,11 +263,13 @@ function Expensify({
                     />
                 </SplashScreenHiddenContext.Provider>
             )}
-
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {/* HybridApp has own middleware to hide SplashScreen */}
+            {!NativeModules.HybridAppModule && shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
         </DeeplinkWrapper>
     );
 }
+
+Expensify.displayName = 'Expensify';
 
 export default withOnyx<ExpensifyProps, ExpensifyOnyxProps>({
     isCheckingPublicRoom: {

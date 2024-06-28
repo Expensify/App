@@ -1,7 +1,6 @@
 import type {RefObject} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
-import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
@@ -24,10 +23,6 @@ type StreetValue = {
     street: string;
 };
 
-type PredefinedPlace = Place & {
-    name?: string;
-};
-
 type AddressSearchProps = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
@@ -35,14 +30,11 @@ type AddressSearchProps = {
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
-    /** Callback that is called when the text input is focused */
-    onFocus?: () => void;
-
     /** Callback that is called when the text input is blurred */
     onBlur?: () => void;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Hint text to display */
     hint?: string;
@@ -72,7 +64,7 @@ type AddressSearchProps = {
     canUseCurrentLocation?: boolean;
 
     /** A list of predefined places that can be shown when the user isn't searching for something */
-    predefinedPlaces?: PredefinedPlace[] | null;
+    predefinedPlaces?: Place[] | null;
 
     /** A map of inputID key names */
     renamedInputKeys?: Address;
@@ -92,4 +84,4 @@ type AddressSearchProps = {
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;
 
-export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue, PredefinedPlace};
+export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue};

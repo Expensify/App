@@ -29,6 +29,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
@@ -50,12 +51,13 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false);
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const illustrationStyle = getLightbulbIllustrationStyle();
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
             icon: Expensicons.Gear,
-            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE)),
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(ROUTES.SETTINGS_TROUBLESHOOT))),
         };
 
         const baseMenuItems: BaseMenuItem[] = [
@@ -101,7 +103,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         isCentralPane
                         subtitleMuted
                         illustration={LottieAnimations.Desk}
-                        illustrationStyle={[styles.mt4, styles.mbn4]}
+                        illustrationStyle={illustrationStyle}
                         titleStyles={styles.accountSettingsSectionTitle}
                         illustrationBackgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.TROUBLESHOOT].backgroundColor}
                         renderSubtitle={() => (

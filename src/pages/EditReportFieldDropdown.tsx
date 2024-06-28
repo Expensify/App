@@ -10,6 +10,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentlyUsedReportFields} from '@src/types/onyx';
 
@@ -86,6 +87,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             false,
             false,
             undefined,
+            CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             undefined,
             undefined,
             true,

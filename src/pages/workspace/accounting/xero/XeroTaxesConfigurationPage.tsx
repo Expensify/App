@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const xeroConfig = policy?.connections?.xero?.config;
     const isSwitchOn = !!xeroConfig?.importTaxRates;
 
@@ -26,6 +26,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

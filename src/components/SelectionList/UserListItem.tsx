@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
@@ -25,11 +25,11 @@ function UserListItem<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    pressableStyle,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -58,11 +58,11 @@ function UserListItem<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
+            pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
