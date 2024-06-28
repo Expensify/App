@@ -412,7 +412,6 @@ type OptionData = {
     displayNamesWithTooltips?: DisplayNameWithTooltips | null;
     isDefaultRoom?: boolean;
     isInvoiceRoom?: boolean;
-    isTripRoom?: boolean;
     isExpenseReport?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
@@ -431,7 +430,6 @@ type OptionData = {
     shouldShowAmountInput?: boolean;
     amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
-    isSearchableViaParticipants?: boolean;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
