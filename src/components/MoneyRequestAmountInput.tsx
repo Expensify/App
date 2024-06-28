@@ -227,7 +227,7 @@ function MoneyRequestAmountInput(
             return;
         }
 
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
+        if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
 
