@@ -731,7 +731,7 @@ type InvoiceItem = {
 /** Data from the NetSuite accounting integration. */
 type NetSuiteConnectionData = {
     /** Collection of the subsidiaries present in the NetSuite account */
-    subsidiaryList: Subsidiary[];
+    subsidiaryList: NetSuiteSubsidiary[];
 
     /** Collection of receivable accounts */
     receivableList: NetSuiteAccount[];
@@ -1217,9 +1217,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
-        /** The accountID of manager who the employee submits their expenses to on paid policies */
-        submitsTo?: number;
-
         /** The employee list of the policy */
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
@@ -1384,5 +1381,6 @@ export type {
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
     XeroTrackingCategory,
+    NetSuiteSubsidiary,
     SageIntacctDataElement,
 };
