@@ -329,7 +329,7 @@ function ReportPreview({
     const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
     const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
 
-    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
+    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration;
 
     return (
         <OfflineWithFeedback

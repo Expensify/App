@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -11,6 +12,7 @@ import * as ReportActions from '@libs/actions/Report';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ModalStatus} from '@pages/home/report/ReportDetailsExportPage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 type ExportWithDropdownMenuProps = {
@@ -25,15 +27,16 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
+    const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(integrationName);
     const canBeExported = ReportUtils.canBeExported(report);
 
-    const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(
-        () => [
+    const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
+        const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('common.export'),
+                text: translate('workspace.common.exportIntegrationSelected', {integrationName}),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
             },
@@ -43,9 +46,15 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                 icon: iconToDisplay,
                 disabled: !canBeExported,
             },
-        ],
-        [canBeExported, iconToDisplay, translate],
-    );
+        ];
+        const exportMethod = exportMethods?.[report?.policyID ?? ''] ?? null;
+        if (exportMethod) {
+            options.sort((method) => (method.value === exportMethod ? -1 : 0));
+        }
+        return options;
+        // We do not include exportMethods not to re-render the component when the preffered export method changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [canBeExported, iconToDisplay, integrationName, report?.policyID, translate]);
 
     const confirmExport = useCallback(() => {
         setModalStatus(null);
@@ -58,6 +67,13 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
             ReportActions.markAsManuallyExported(reportID);
         }
     }, [integrationName, modalStatus, reportID]);
+
+    const savePreferredExportMethod = (value: ReportExportType) => {
+        if (!report?.policyID) {
+            return;
+        }
+        ReportActions.savePreferredExportMethod(report?.policyID, value);
+    };
 
     return (
         <>
@@ -83,9 +99,8 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                         ReportActions.markAsManuallyExported(reportID);
                     }
                 }}
-                onOptionSelected={() => {}}
+                onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
-                customText={translate('workspace.common.exportIntegrationSelected', {integrationName})}
                 style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
