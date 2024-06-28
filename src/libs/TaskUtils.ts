@@ -6,6 +6,7 @@ import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import * as Localize from './Localize';
+import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -29,8 +30,8 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
             return {text: Localize.translateLocal('task.messages.reopened')};
         case CONST.REPORT.ACTIONS.TYPE.TASK_EDITED:
             return {
-                text: action?.message?.[0]?.text ?? '',
-                html: action?.message?.[0]?.html,
+                text: getReportActionText(action),
+                html: getReportActionHtml(action),
             };
         default:
             return {text: Localize.translateLocal('task.task')};
@@ -46,7 +47,7 @@ function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
 }
 
 function getTaskCreatedMessage(reportAction: OnyxEntry<ReportAction>) {
-    const taskReportID = reportAction?.childReportID ?? '';
+    const taskReportID = reportAction?.childReportID ?? '-1';
     const taskTitle = getTaskTitle(taskReportID, reportAction?.childReportName);
     return taskTitle ? Localize.translateLocal('task.messages.created', {title: taskTitle}) : '';
 }

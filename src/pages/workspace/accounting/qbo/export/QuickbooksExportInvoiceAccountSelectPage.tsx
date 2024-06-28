@@ -29,7 +29,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {receivableAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const data: CardListItem[] = useMemo(
         () =>
             accountsReceivable?.map((account) => ({

@@ -15,6 +15,7 @@ import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +25,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -109,6 +111,7 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {canUseViolations} = usePermissions();
+    const {isOffline} = useNetwork();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -128,15 +131,16 @@ function ReportPreview({
     const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
-    const managerID = iouReport?.managerID ?? 0;
+    const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? 0;
     const {totalDisplaySpend, reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(iouReport);
 
-    const iouSettled = ReportUtils.isSettled(iouReportID);
+    const iouSettled = ReportUtils.isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
-    const isApproved = ReportUtils.isReportApproved(iouReport);
+    const isApproved = ReportUtils.isReportApproved(iouReport, action);
     const canAllowSettlement = ReportUtils.hasUpdatedTotal(iouReport, policy);
     const allTransactions = TransactionUtils.getAllReportTransactions(iouReportID);
     const numberOfRequests = allTransactions.length;
@@ -155,7 +159,7 @@ function ReportPreview({
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ({...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}));
     const showRTERViolationMessage =
         numberOfRequests === 1 &&
-        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '', transactionViolations));
+        TransactionUtils.hasPendingUI(allTransactions[0], TransactionUtils.getTransactionViolations(allTransactions[0]?.transactionID ?? '-1', transactionViolations));
 
     let formattedMerchant = numberOfRequests === 1 ? TransactionUtils.getMerchant(allTransactions[0]) : null;
     const formattedDescription = numberOfRequests === 1 ? TransactionUtils.getDescription(allTransactions[0]) : null;
@@ -195,7 +199,7 @@ function ReportPreview({
         if (ReportUtils.hasHeldExpenses(iouReport?.reportID)) {
             setIsHoldMenuVisible(true);
         } else {
-            IOU.approveMoneyRequest(iouReport ?? {}, true);
+            IOU.approveMoneyRequest(iouReport, true);
         }
     };
 
@@ -212,7 +216,7 @@ function ReportPreview({
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         let displayAmount = '';
-        const actionMessage = action.message?.[0]?.text ?? '';
+        const actionMessage = ReportActionsUtils.getReportActionText(action);
         const splits = actionMessage.split(' ');
 
         splits.forEach((split) => {
@@ -369,7 +373,7 @@ function ReportPreview({
                                         <View style={styles.flexRow}>
                                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                                 <Text style={styles.textHeadlineH1}>{getDisplayAmount()}</Text>
-                                                {ReportUtils.isSettled(iouReportID) && (
+                                                {iouSettled && (
                                                     <View style={styles.defaultCheckmarkWrapper}>
                                                         <Icon
                                                             src={Expensicons.Checkmark}
@@ -421,7 +425,8 @@ function ReportPreview({
                                             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                                         }}
-                                        isDisabled={!canAllowSettlement}
+                                        isDisabled={isOffline && !canAllowSettlement}
+                                        isLoading={!isOffline && !canAllowSettlement}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

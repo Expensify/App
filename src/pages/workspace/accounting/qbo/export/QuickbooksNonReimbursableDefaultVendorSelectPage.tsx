@@ -28,7 +28,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const sections = useMemo(() => {
         const data: CardListItem[] =
             vendors?.map((vendor) => ({

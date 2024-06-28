@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {nonReimbursableBillDefaultVendor, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} =
         policy?.connections?.quickbooksOnline?.config ?? {};
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -65,6 +65,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                     {nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL && (
                         <>
                             <ToggleSettingOptionRow
+                                shouldPlaceSubtitleBelowSwitch
                                 subtitle={translate('workspace.qbo.defaultVendorDescription')}
                                 switchAccessibilityLabel={translate('workspace.qbo.defaultVendorDescription')}
                                 errors={errorFields?.autoCreateVendor ?? undefined}

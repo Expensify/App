@@ -4,24 +4,19 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {
-    BottomTabNavigatorParamList,
-    CentralPaneNavigatorParamList,
-    FullScreenNavigatorParamList,
-    ReimbursementAccountNavigatorParamList,
-    SettingsNavigatorParamList,
-} from '@navigation/types';
+import type {AuthScreensParamList, BottomTabNavigatorParamList, FullScreenNavigatorParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
 import * as Policy from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type NavigatorsParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
+type NavigatorsParamList = BottomTabNavigatorParamList & AuthScreensParamList & SettingsNavigatorParamList & ReimbursementAccountNavigatorParamList & FullScreenNavigatorParamList;
 
 type PolicyRoute = RouteProp<
     NavigatorsParamList,
     | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
     | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.PROFILE
     | typeof SCREENS.WORKSPACE.BILLS
     | typeof SCREENS.WORKSPACE.MORE_FEATURES
     | typeof SCREENS.WORKSPACE.MEMBERS
@@ -44,7 +39,7 @@ type PolicyRoute = RouteProp<
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '';
+    return route?.params?.policyID ?? '-1';
 }
 
 type WithPolicyOnyxProps = {
