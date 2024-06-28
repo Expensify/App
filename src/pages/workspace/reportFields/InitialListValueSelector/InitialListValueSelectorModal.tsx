@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +33,6 @@ type InitialListValueSelectorModalProps = {
 
 function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle, onValueSelected, onClose}: InitialListValueSelectorModalProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
@@ -72,7 +70,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
                     onBackButtonPress={onClose}
                 />
                 <View style={[styles.ph5, styles.pb4]}>
-                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText])}>{subtitle}</Text>
+                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
                 </View>
 
                 <SelectionList

@@ -18,7 +18,6 @@ import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportFields from '@libs/actions/Policy/ReportFields';
@@ -47,7 +46,6 @@ function WorkspaceListValuesPage({
     },
 }: WorkspaceListValuesPageProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -226,7 +224,7 @@ function WorkspaceListValuesPage({
                     {getHeaderButtons()}
                 </HeaderWithBackButton>
                 <View style={[styles.ph5, styles.pb4]}>
-                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText])}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
+                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
                     <WorkspaceEmptyStateSection

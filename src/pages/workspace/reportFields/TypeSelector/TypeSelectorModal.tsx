@@ -4,7 +4,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ReportFieldItemType} from '@pages/workspace/reportFields/ReportFieldTypePicker';
 import ReportFieldTypePicker from '@pages/workspace/reportFields/ReportFieldTypePicker';
@@ -33,7 +32,6 @@ type TypeSelectorModalProps = {
 
 function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelected, onClose}: TypeSelectorModalProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     return (
         <Modal
@@ -56,7 +54,7 @@ function TypeSelectorModal({isVisible, currentType, label, subtitle, onTypeSelec
                     onBackButtonPress={onClose}
                 />
                 <View style={[styles.ph5, styles.pb4]}>
-                    <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.pre])}>{subtitle}</Text>
+                    <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
                 </View>
                 <ReportFieldTypePicker
                     defaultValue={currentType}
