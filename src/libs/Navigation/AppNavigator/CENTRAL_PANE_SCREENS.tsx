@@ -16,7 +16,7 @@ const CENTRAL_PANE_SCREENS = {
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: withPrepareCentralPaneScreen(() => require<ReactComponentModule>('../../../pages/TeachersUnite/SaveTheWorldPage').default),
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: withPrepareCentralPaneScreen(() => require<ReactComponentModule>('../../../pages/settings/Subscription/SubscriptionSettingsPage').default),
     [SCREENS.SEARCH.CENTRAL_PANE]: withPrepareCentralPaneScreen(() => require<ReactComponentModule>('../../../pages/Search/SearchPage').default),
-    [SCREENS.REPORT]: withPrepareCentralPaneScreen(() => require<ReactComponentModule>('./ReportScreenWrapper').default),
+    [SCREENS.REPORT]: withPrepareCentralPaneScreen(() => require<ReactComponentModule>('../../../pages/home/ReportScreen').default),
 } satisfies Screens;
 
 export default CENTRAL_PANE_SCREENS;

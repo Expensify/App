@@ -6,9 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Get the longest continuous chunk of reportActions including the linked reportAction. If not linking to a specific action, returns the continuous chunk of newest reportActions.
- *
- * @param reportID
- * @param [reportActionID]
  */
 function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
     // Use `||` instead of `??` to handle empty string.
@@ -27,7 +24,7 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
         return PaginationUtils.getContinuousChain(sortedAllReportActions, pages, (item) => item.reportActionID, reportActionID);
     }, [reportActionID, sortedAllReportActions, pages]);
 
-    const linkedAction = useMemo(() => sortedAllReportActions.find((obj) => String(obj.reportActionID) === String(reportActionID)), [sortedAllReportActions, reportActionID]);
+    const linkedAction = useMemo(() => sortedAllReportActions.find((obj) => String(obj.reportActionID) === String(reportActionID)), [reportActionID, sortedAllReportActions]);
 
     return {
         reportActions,

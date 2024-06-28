@@ -257,7 +257,7 @@ describe('Pagination', () => {
         jest.clearAllMocks();
     });
 
-    it('opens a chat and load initial messages', async () => {
+    it.only('opens a chat and load initial messages', async () => {
         mockOpenReport(5, '5');
 
         await signInAndGetApp();

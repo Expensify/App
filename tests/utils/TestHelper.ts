@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -305,17 +306,36 @@ function assertFormDataMatchesObject(formData: FormData, obj: Report) {
     ).toEqual(expect.objectContaining(obj));
 }
 
+/**
+ * Get an Onyx value. Only for use in tests for now.
+ */
+async function onyxGet(key: OnyxKey): Promise<Parameters<Required<ConnectOptions<typeof key>>['callback']>[0]> {
+    return new Promise((resolve) => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+        // @ts-expect-error This does not need more strict type checking as it's only for tests
+        const connectionID = Onyx.connect({
+            key,
+            callback: (value) => {
+                Onyx.disconnect(connectionID);
+                resolve(value);
+            },
+            waitForCollectionCallback: true,
+        });
+    });
+}
+
 export type {MockFetch, FormData};
 export {
     assertFormDataMatchesObject,
     buildPersonalDetails,
     buildTestReportComment,
     getGlobalFetchMock,
-    setupApp,
-    setupGlobalFetchMock,
-    expectAPICommandToHaveBeenCalled,
-    expectAPICommandToHaveBeenCalledWith,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,
+    onyxGet,
+    setupApp,
+    expectAPICommandToHaveBeenCalled,
+    expectAPICommandToHaveBeenCalledWith,
+    setupGlobalFetchMock,
 };
