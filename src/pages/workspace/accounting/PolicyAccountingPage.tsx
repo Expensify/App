@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
+import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
 import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
 import ConnectToXeroButton from '@components/ConnectToXeroButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -106,8 +107,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionButton: (
-                    // TODO: Will be updated in the Token Input PR
-                    <ConnectToXeroButton
+                    <ConnectToNetSuiteButton
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
@@ -424,7 +424,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
