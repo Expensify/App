@@ -10,8 +10,8 @@ EXIT_CODE=${PIPESTATUS[0]}
 OUTPUT="$(cat "$TEMP_OUTPUT")"
 rm -f "$TEMP_OUTPUT"
 
-# Check if the output contains the warning message
-echo "$OUTPUT" | grep -q "patch-package detected a patch file version mismatch"
+# Check if the output contains a warning message
+echo "$OUTPUT" | grep -q "Warning:"
 WARNING_FOUND=$?
 
 # Determine the final exit code
