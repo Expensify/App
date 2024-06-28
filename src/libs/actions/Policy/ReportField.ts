@@ -46,7 +46,7 @@ function deletePolicyReportFields(policyID: string, reportFieldsToUpdate: string
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const allReportFields = policy?.fieldList ?? {};
 
-    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !Object.keys(reportFieldsToUpdate).includes(key)));
+    const updatedReportFields = Object.fromEntries(Object.entries(allReportFields).filter(([key]) => !reportFieldsToUpdate.includes(key)));
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -85,13 +85,13 @@ function deletePolicyReportFields(policyID: string, reportFieldsToUpdate: string
             },
         ],
     };
-
+    console.log('updatedReportFields :>> ', updatedReportFields);
     const parameters = {
-        policyID: policyID,
-        reportFields: updatedReportFields,
+        policyID,
+        reportFields: JSON.stringify(Object.values(updatedReportFields)),
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD, parameters, onyxData);
+    API.write(WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE, parameters, onyxData);
 }
 
 export {deletePolicyReportFields};
