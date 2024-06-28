@@ -5400,6 +5400,7 @@ function shouldReportBeInOptionList({
     // Optionally exclude reports that do not belong to currently active workspace
 
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     if (
         !report?.reportID ||
@@ -5431,7 +5432,7 @@ function shouldReportBeInOptionList({
     }
 
     // If this is a transaction thread associated with a report that only has one transaction, omit it
-    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1')) {
+    if (isOneTransactionThread(report.reportID, report.parentReportID ?? '-1') && !ReportActionsUtils.isSentMoneyReportAction(parentReportAction)) {
         return false;
     }
 
@@ -5495,7 +5496,6 @@ function shouldReportBeInOptionList({
     if (isSelfDM(report)) {
         return includeSelfDM;
     }
-    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     // Hide chat threads where the parent message is pending removal
     if (
