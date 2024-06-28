@@ -362,7 +362,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
                 {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb2]}>
+                    <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
                             report={moneyRequestReport}
                             integrationName={connectedIntegration}
@@ -413,12 +413,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     />
                 )}
                 {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb2]}>
-                        <ExportWithDropdownMenu
-                            report={moneyRequestReport}
-                            integrationName={connectedIntegration}
-                        />
-                    </View>
+                    <ExportWithDropdownMenu
+                        report={moneyRequestReport}
+                        integrationName={connectedIntegration}
+                    />
                 )}
 
                 {shouldShowSubmitButton && shouldUseNarrowLayout && (

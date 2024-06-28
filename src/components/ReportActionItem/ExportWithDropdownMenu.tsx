@@ -102,7 +102,7 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                 }}
                 onOptionSelected={({value}) => savePreferredExportMethod(value)}
                 options={dropdownOptions}
-                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                style={[isSmallScreenWidth && styles.flexGrow1]}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
             />
             {!!modalStatus && (
