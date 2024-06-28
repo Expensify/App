@@ -58,7 +58,6 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
             errors={props.report?.errorFields?.addWorkspaceRoom ?? props.report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => navigateToConciergeChatAndDeleteReport(props.report?.reportID ?? props.reportID)}
-            needsOffscreenAlphaCompositing
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
