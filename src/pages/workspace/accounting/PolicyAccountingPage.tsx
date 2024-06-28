@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
+import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
 import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
 import ConnectToXeroButton from '@components/ConnectToXeroButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -100,6 +101,21 @@ function accountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return {
+                title: translate('workspace.accounting.netsuite'),
+                icon: Expensicons.NetSuiteSquare,
+                setupConnectionButton: (
+                    <ConnectToNetSuiteButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onAdvancedPagePress: () => {},
+            };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
                 title: translate('workspace.accounting.intacct'),
@@ -146,10 +162,14 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+    const policyConnectedToNetSuite = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);
+
+    const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+    const netSuiteSelectedSubsidiary = policy?.connections?.netsuite?.options?.config?.subsidiary ?? '';
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -249,6 +269,27 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]
                 : []),
+            ...(policyConnectedToNetSuite && !shouldShowSynchronizationError
+                ? [
+                      {
+                          description: translate('workspace.netsuite.subsidiary'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: netSuiteSelectedSubsidiary,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
+                          brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: () => {
+                              if (!(netSuiteSubsidiaryList.length > 1)) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                          },
+                      },
+                  ]
+                : []),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
@@ -290,13 +331,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         styles.popoverMenuIcon,
         styles.fontWeightNormal,
         connectionSyncProgress?.stageInProgress,
+        datetimeToRelative,
         theme.spinner,
         overflowMenu,
         threeDotsMenuPosition,
         policyConnectedToXero,
         currentXeroOrganizationName,
         tenants.length,
-        datetimeToRelative,
+        policyConnectedToNetSuite,
+        netSuiteSelectedSubsidiary,
+        netSuiteSubsidiaryList.length,
         accountingIntegrations,
         currentXeroOrganization?.id,
     ]);
@@ -394,7 +438,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

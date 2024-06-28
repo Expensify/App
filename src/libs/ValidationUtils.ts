@@ -407,7 +407,7 @@ function isNumeric(value: string): boolean {
     if (typeof value !== 'string') {
         return false;
     }
-    return /^\d*$/.test(value);
+    return CONST.REGEX.NUMBER.test(value);
 }
 
 /**
