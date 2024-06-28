@@ -2750,7 +2750,7 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                 value: {
                     customUnits: {
                         [customUnitID]: {
-                            attributes: policy.customUnits ? policy.customUnits[customUnitID].attributes : null,
+                            attributes: policy?.customUnits ? policy?.customUnits[customUnitID].attributes : null,
                             errorFields: {
                                 taxEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
