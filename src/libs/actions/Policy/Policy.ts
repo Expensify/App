@@ -2937,6 +2937,10 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+function getPoliciesConnectedToSageIntacct(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -3000,6 +3004,7 @@ export {
     buildPolicyData,
     createPolicyExpenseChats,
     clearNetSuiteErrorField,
+    getPoliciesConnectedToSageIntacct,
 };
 
 export type {NewCustomUnit};
