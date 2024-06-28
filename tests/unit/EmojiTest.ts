@@ -163,6 +163,11 @@ describe('EmojiTest', () => {
     it('correct suggests emojis accounting for keywords', () => {
         const thumbEmojis: Emoji[] = [
             {
+                name: 'hand_with_index_finger_and_thumb_crossed',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
+            {
                 code: '👍',
                 name: '+1',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
