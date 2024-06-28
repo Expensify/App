@@ -230,7 +230,6 @@ function getDevicePreferredLocale(): Locale {
  * This function match the message in the translation mapping and return the translation.
  * @param locale - The locale to translate the message to.
  * @param message - The message to translate.
- * @param messageLocale - The locale of the message.
  * @returns - translation of the message or the original message if no translation found
  */
 function swapForTranslation(locale: Locale, message: string): string {

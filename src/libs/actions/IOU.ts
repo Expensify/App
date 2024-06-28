@@ -5369,7 +5369,8 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
 
     let urlToNavigateBack: ReturnType<typeof ROUTES.REPORT_WITH_ID.getRoute> | undefined;
 
-    // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
+    // STEP 5: Calculate what is the url that we will navigate user back
+    // This depends on which page they are on and which resources were deleted
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
         // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
         urlToNavigateBack = ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
@@ -5420,7 +5421,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
 
     // build Onyx data
 
-    // delete transaction
+    // Onyx operations to delete the transaction, update the IOU report action and chat report action
     const onyxUpdates: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -5450,6 +5451,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         },
     ];
 
+    // added the operation to delete associated transaction violations
     if (Permissions.canUseViolations(betas)) {
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -5458,6 +5460,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         });
     }
 
+    // added the operation to delete transaction thread
     if (shouldDeleteTransactionThread) {
         onyxUpdates.push(
             {
@@ -5473,6 +5476,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
         );
     }
 
+    // added operations to update IOU report and chat report
     onyxUpdates.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5541,6 +5545,7 @@ function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repo
  * @return the url to navigate back once the money request is deleted
  */
 function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    // STEP 1: Calculate and prepare the data
     const {
         shouldDeleteTransactionThread,
         shouldDeleteIOUReport,
@@ -5557,7 +5562,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         urlToNavigateBack,
     } = prepareToCleanUpMoneyRequest(transactionID, reportAction, isSingleTransactionView);
 
-    // STEP 5: Build Onyx data
+    // STEP 2: Build Onyx data
+    // The logic mostly resembles the cleanUpMoneyRequest function
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -5758,7 +5764,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         reportActionID: reportAction.reportActionID,
     };
 
-    // STEP 6: Make the API request
+    // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
     CachedPDFPaths.clearByKey(transactionID);
 
