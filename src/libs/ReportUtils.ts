@@ -5390,6 +5390,7 @@ function shouldReportBeInOptionList({
     excludeEmptyChats,
     doesReportHaveViolations,
     includeSelfDM = false,
+    isSearchingForReports = false,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
