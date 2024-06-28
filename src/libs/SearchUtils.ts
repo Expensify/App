@@ -26,7 +26,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'type' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
@@ -73,7 +73,7 @@ function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTyp
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-        return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+        return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     });
 }
 
@@ -254,8 +254,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = a[sortingProperty];
-        const bValue = b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
