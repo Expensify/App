@@ -113,6 +113,10 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
+function integrationName(fallbackName: string, integration?: ConnectionName): string {
+    return integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : fallbackName;
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2004,6 +2008,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Add the account in ${integrationName('this integration', integration)} and sync the connection again.`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2203,6 +2209,18 @@ export default {
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+        },
+        sageIntacct: {
+            autoSync: 'Auto-sync',
+            autoSyncDescription: 'Sync Sage Intacct and Expensify automatically, every day.',
+            inviteEmployees: 'Invite employees',
+            inviteEmployeesDescription:
+                'Import Sage Intacct employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be furthered configured on the Members page.',
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
+            paymentAccount: 'Sage Intacct payment account',
+            notConfigured: 'Not configured',
+            paymentAccountDescription: 'Some desc',
         },
         type: {
             free: 'Free',
@@ -2463,6 +2481,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            intacct: 'Sage Intacct',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -2471,10 +2490,7 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
-                return `Disconnect ${integrationName}`;
-            },
+            disconnectTitle: (integration?: ConnectionName): string => `Disconnect ${integrationName('integration', integration)}`,
             connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
 
             syncError: (integration?: ConnectionName): string => {
@@ -2503,13 +2519,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
-                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
-                        : 'this integration';
-                return `Are you sure you want to disconnect ${integrationName}?`;
-            },
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => `Are you sure you want to disconnect ${integrationName('this integration', currentIntegration)}?`,
             connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `Are you sure you want to connect ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'

@@ -1338,6 +1338,22 @@ const CONST = {
         SUBSIDIARY: 'subsidiary',
     },
 
+    SAGE_INTACCT_CONFIG: {
+        IS_AUTO_SYNC_ENABLED: 'isAutoSyncEnabled',
+        AUTO_SYNC: 'autoSync',
+        IMPORT_EMPLOYEES: 'importEmployees',
+        APPROVAL_MODE: 'approvalMode',
+        SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBUSERED_ACCOUNT_ID: 'reimbursementAccountID',
+    },
+
+    SAGE_INTACCT: {
+        APPROVAL_MODE: {
+            APPROVAL_MANUAL: 'APPROVAL_MANUAL',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -1793,11 +1809,13 @@ const CONST = {
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'intacct',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
                 xero: 'Xero',
+                intacct: 'Sage Intacct',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',

@@ -104,6 +104,10 @@ import type {
     ZipCodeExampleFormatParams,
 } from './types';
 
+function integrationName(fallbackName: string, integration?: ConnectionName): string {
+    return integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : fallbackName;
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2028,6 +2032,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Añade la cuenta en ${integrationName('esta integración', integration)} y sincroniza de nuevo la conexión.`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2239,6 +2245,19 @@ export default {
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
         },
+        sageIntacct: {
+            autoSync: 'Sincronización automática',
+            autoSyncDescription: 'Sincronice Sage Intacct y Expensify automáticamente, todos los días.',
+            inviteEmployees: 'Invitar a los empleados',
+            inviteEmployeesDescription:
+                'Importe los registros de empleados de Sage Intacct e invite a los empleados a este espacio de trabajo. Su flujo de trabajo de aprobación será por defecto la aprobación del gerente y se puede configurar aún más en la página Miembros.',
+            syncReimbursedReports: 'Sincronizar informes reembolsados',
+            syncReimbursedReportsDescription:
+                'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
+            paymentAccount: 'Cuenta de pago Sage Intacct',
+            notConfigured: 'No configurado',
+            paymentAccountDescription: 'Descripción',
+        },
         type: {
             free: 'Gratis',
             control: 'Control',
@@ -2438,6 +2457,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            intacct: 'Sage Intacct',
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
@@ -2446,10 +2466,7 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integración';
-                return `Desconectar ${integrationName}`;
-            },
+            disconnectTitle: (integration?: ConnectionName): string => `Desconectar ${integrationName('integración', integration)}`,
             connectTitle: (integrationToConnect: ConnectionName): string => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
@@ -2477,11 +2494,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'integración';
-                return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
-            },
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => `¿Estás seguro de que quieres desconectar ${integrationName('integración', currentIntegration)}?`,
             connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `¿Estás seguro de que quieres conectar a ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'esta integración contable'

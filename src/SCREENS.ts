@@ -273,6 +273,8 @@ const SCREENS = {
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Net_Suite_Subsidiary_Selector',
+            SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
+            SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',

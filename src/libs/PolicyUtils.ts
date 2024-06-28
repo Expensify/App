@@ -408,6 +408,17 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
+function getSageIntacctBankAccounts(policy?: Policy, selectedBankAccountId?: string): SelectorType[] {
+    const bankAccounts = policy?.connections?.intacct?.data?.bankAccounts ?? [];
+
+    return (bankAccounts ?? []).map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: selectedBankAccountId === id,
+    }));
+}
+
 /**
  * Returns the policy of the report
  */
@@ -552,6 +563,7 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccountsWithDefaultSelect,
+    getSageIntacctBankAccounts,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,
