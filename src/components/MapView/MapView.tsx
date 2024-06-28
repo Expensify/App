@@ -25,7 +25,7 @@ import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+    ({accessToken, style, mapPadding, userLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -34,7 +34,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
         const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
+        const currentPosition = userLocation ?? initialLocation;
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);
 
@@ -50,7 +50,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition(initialLocation);
             },
             [initialLocation],
         );
@@ -74,7 +73,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
                     UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
