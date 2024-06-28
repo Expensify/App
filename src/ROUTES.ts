@@ -95,6 +95,7 @@ const ROUTES = {
     WORKSPACE_SWITCHER: 'workspace-switcher',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
@@ -107,6 +108,8 @@ const ROUTES = {
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize}` as const,
     },
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
+    SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
+    SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
@@ -780,6 +783,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    // TODO: uncomment after development is done
+    // WORKSPACE_EXPENSIFY_CARD: {
+    //     route: 'settings/workspaces/:policyID/expensify-card',
+    //     getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    // },
+    // WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
+    // route: 'settings/workspaces/:policyID/expensify-card/issues-new',
+    // getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+    // },
+    // TODO: remove after development is done - this one is for testing purposes
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'settings/workspaces/expensify-card/issue-new',
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -822,6 +836,7 @@ const ROUTES = {
     ONBOARDING_WORK: 'onboarding/work',
     ONBOARDING_PURPOSE: 'onboarding/purpose',
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
+    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
 
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
