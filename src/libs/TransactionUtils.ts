@@ -387,7 +387,6 @@ function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
     return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
-
 /**
  * Return the reimbursable value. Defaults to true to match BE logic.
  */

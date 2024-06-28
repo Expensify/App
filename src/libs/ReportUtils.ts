@@ -1427,7 +1427,6 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string): bo
     return isIOUReport(report) || isExpenseReport(report);
 }
 
-
 /**
  * Checks if a report contains only Non-Reimbursable transactions
  */
@@ -1545,10 +1544,12 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
         return false;
     }
 
-    if(PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID))
-        && PolicyUtils.isSubmitAndClose(getPolicy(moneyRequestReport?.policyID))
-        && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
-            return false;
+    if (
+        PolicyUtils.isInstantSubmitEnabled(getPolicy(moneyRequestReport?.policyID)) &&
+        PolicyUtils.isSubmitAndClose(getPolicy(moneyRequestReport?.policyID)) &&
+        hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)
+    ) {
+        return false;
     }
 
     if (isReportApproved(moneyRequestReport) || isSettled(moneyRequestReport?.reportID)) {
