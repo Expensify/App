@@ -340,6 +340,8 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        companyID: 'Company ID',
+        userID: 'User ID',
         disable: 'Disable',
     },
     location: {
@@ -2203,6 +2205,17 @@ export default {
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
         },
+        intacct: {
+            sageIntacctSetup: 'Sage Intacct setup',
+            prerequisitesTitle: 'Before you connect...',
+            downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
+            followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
+            enterCredentials: 'Enter your Sage Intacct credentials',
+            createNewConnection: 'Create new connection',
+            reuseExistingConnection: 'Reuse existing connection',
+            existingConnections: 'Existing connections',
+            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
+        },
         type: {
             free: 'Free',
             control: 'Control',
@@ -2462,6 +2475,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            intacct: 'Sage Intacct',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -2608,8 +2622,8 @@ export default {
                             return 'Marking NetSuite bills and invoices as paid';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
-                        case 'intacctImportDimensions':
-                            return 'Importing dimensions';
+                        case 'intacctImportTitle':
+                            return 'Importing Sage Intacct data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
