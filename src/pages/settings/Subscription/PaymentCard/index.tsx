@@ -56,7 +56,7 @@ function AddPaymentCard() {
 
     const addPaymentCard = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
         const cardData = {
-            cardNumber: values.cardNumber,
+            cardNumber: values.cardNumber.split(' ').join(''),
             cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
             cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
             cardCVV: values.securityCode,
