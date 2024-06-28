@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTheme from '@hooks/useTheme';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
@@ -44,6 +45,7 @@ import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TextLink from './TextLink';
+import Icon from './Icon';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -169,6 +171,7 @@ function AttachmentModal({
     accountID = undefined,
 }: AttachmentModalProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const [isModalOpen, setIsModalOpen] = useState(defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
@@ -548,19 +551,17 @@ function AttachmentModal({
                     {((!!onConfirm && !isConfirmButtonDisabled) || isHiResImage) && (
                         <SafeAreaConsumer>
                             {({ safeAreaPaddingBottomStyle }) => (<>
-                                {isHiResImage && <View style={[styles.alignItemsCenter]}>
-                                    <Text style={[styles.p5, styles.textMicroSupporting]}>This image has been resized for previewing.
-                                        <TextLink
-                                            style={[styles.textMicroSupporting, styles.link]}
-                                            onPress={() => {
-                                                downloadAttachment();
-                                            }}
-                                        > Download </TextLink>
-                                        for full resolution.
-                                    </Text>
+                                {isHiResImage && <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
+                                    <Icon
+                                        src={Expensicons.Info}
+                                        height={variables.iconSizeExtraSmall}
+                                        width={variables.iconSizeExtraSmall}
+                                        fill={theme.icon}
+                                        additionalStyles={styles.p1}
+                                    />
+                                    <Text style={[styles.textLabelSupporting]}>This image has been resized for previewing. Download for full resolution.</Text>
                                 </View>
                                 }
-
                                 {!!onConfirm && !isConfirmButtonDisabled && <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
                                         success
