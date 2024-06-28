@@ -94,4 +94,5 @@ function deletePolicyReportFields(policyID: string, reportFieldsToUpdate: string
     API.write(WRITE_COMMANDS.POLICY_REPORT_FIELDS_REPLACE, parameters, onyxData);
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export {deletePolicyReportFields};
