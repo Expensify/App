@@ -183,18 +183,7 @@ async function addComment() {
     const num = Number.parseInt(lastComment.slice(-1), 10);
     lastComment = `${lastComment.slice(0, -1)}${num + 1}`;
     const comment = lastComment;
-    const reportActionsBefore = (await TestHelper.onyxGet(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)) as Record<string, ReportAction>;
     Report.addComment(REPORT_ID, comment);
-    const reportActionsAfter = (await TestHelper.onyxGet(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`)) as Record<string, ReportAction>;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const newReportActionID = Object.keys(reportActionsAfter).find((reportActionID) => !reportActionsBefore[reportActionID])!;
-    await act(() =>
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-            [newReportActionID]: {
-                previousReportActionID: '9',
-            },
-        }),
-    );
     await waitForBatchedUpdatesWithAct();
 
     // Verify the comment is visible (it will appear twice, once in the LHN and once on the report screen)
