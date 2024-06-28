@@ -58,6 +58,9 @@ function findLastItem<TResource>(sortedItems: TResource[], page: string[], getID
     return null;
 }
 
+/**
+ * Finds the index and id of the first and last items of each page in `sortedItems`.
+ */
 function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, getID: (item: TResource) => string): PageWithIndex[] {
     return pages
         .map((page) => {
