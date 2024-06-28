@@ -5,7 +5,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 
-let onboarding: Onboarding | [] | undefined;
+type OnboardingData = Onboarding | [] | undefined;
+
+let onboarding: OnboardingData;
 let isLoadingReportData = true;
 
 type HasCompletedOnboardingFlowProps = {
@@ -13,13 +15,13 @@ type HasCompletedOnboardingFlowProps = {
     onNotCompleted?: () => void;
 };
 
-let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
+let resolveIsReadyPromise: (value?: void) => void;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let resolveOnboardingFlowStatus: (value?: Promise<void>) => void | undefined;
-let isOnboardingFlowStatusKnownPromise = new Promise<void>((resolve) => {
+let resolveOnboardingFlowStatus: (value?: OnboardingData) => void;
+let isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
     resolveOnboardingFlowStatus = resolve;
 });
 
@@ -107,7 +109,7 @@ function resetAllChecks() {
     isServerDataReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
-    isOnboardingFlowStatusKnownPromise = new Promise((resolve) => {
+    isOnboardingFlowStatusKnownPromise = new Promise<OnboardingData>((resolve) => {
         resolveOnboardingFlowStatus = resolve;
     });
     onboarding = undefined;
