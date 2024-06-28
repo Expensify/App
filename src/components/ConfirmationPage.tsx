@@ -14,7 +14,7 @@ import Text from './Text';
 
 type ConfirmationPageProps = {
     /** The asset to render */
-    animation?: DotLottieAnimation | IconAsset;
+    illustration?: DotLottieAnimation | IconAsset;
 
     /** Heading of the confirmation page */
     heading: string;
@@ -35,40 +35,40 @@ type ConfirmationPageProps = {
     headingStyle?: TextStyle;
 
     /** Additional style for the animation */
-    animationStyle?: ViewStyle;
+    illustrationStyle?: ViewStyle;
 
     /** Additional style for the description */
     descriptionStyle?: TextStyle;
 };
 
 function ConfirmationPage({
-    animation = LottieAnimations.Fireworks,
+    illustration = LottieAnimations.Fireworks,
     heading,
     description,
     buttonText = '',
     onButtonPress = () => {},
     shouldShowButton = false,
     headingStyle,
-    animationStyle,
+    illustrationStyle,
     descriptionStyle,
 }: ConfirmationPageProps) {
     const styles = useThemeStyles();
-    const isLottie = isIllustrationLottieAnimation(animation);
+    const isLottie = isIllustrationLottieAnimation(illustration);
 
     return (
         <>
             <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
                 {isLottie ? (
                     <Lottie
-                        source={animation}
+                        source={illustration}
                         autoPlay
                         loop
-                        style={[styles.confirmationAnimation, animationStyle]}
+                        style={[styles.confirmationAnimation, illustrationStyle]}
                     />
                 ) : (
-                    <View style={[styles.confirmationAnimation, animationStyle]}>
+                    <View style={[styles.confirmationAnimation, illustrationStyle]}>
                         <ImageSVG
-                            src={animation}
+                            src={illustration}
                             contentFit="contain"
                         />
                     </View>
