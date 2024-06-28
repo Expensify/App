@@ -366,10 +366,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
                         },
-                        // TODO: uncomment after development
-                        // [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-                        //     path: ROUTES.WORKSPACE_EXPENSIFY_CARD,
-                        // },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
                         },
