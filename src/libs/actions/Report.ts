@@ -7,7 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
-import {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
+import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -3749,6 +3749,7 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     API.write('Report_Export', {
         // TODO: Update it when backend is ready
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'reportIDList[]': reportID,
         connectionName,
         type: 'MANUAL',
@@ -3758,6 +3759,7 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
 function markAsManuallyExported(reportID: string) {
     API.write('MarkAsExported', {
         // TODO: Update it when backend is ready
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         'reportIDList[]': reportID,
         markedManually: true,
     });
