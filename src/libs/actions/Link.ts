@@ -161,7 +161,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function buildURLWithAuthenToken(url: string, shortLivedAuthToken?: string) {
+function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
     const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
     const exitTo = `exitTo=${url}`;
@@ -179,8 +179,8 @@ function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = fa
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildURLWithAuthenToken(url, response.shortLivedAuthToken) : buildURLWithAuthenToken(url)))
-            .catch(() => buildURLWithAuthenToken(url)),
+            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
+            .catch(() => buildURLWithAuthToken(url)),
         (link) => link,
         shouldSkipCustomSafariLogic,
     );
