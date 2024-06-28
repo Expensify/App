@@ -289,7 +289,7 @@ function IOURequestStepDistance({
                     0,
                     transaction?.currency ?? 'USD',
                     translate('iou.fieldPending'),
-                    false,
+                    !!policy?.defaultBillable,
                     TransactionUtils.getValidWaypoints(waypoints, true),
                     undefined,
                     undefined,
