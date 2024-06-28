@@ -5,7 +5,7 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 
 # Run patch-package and capture its output and exit code
 TEMP_OUTPUT="$(mktemp)"
-npx patch-package --error-on-fail 2>&1 | tee "$TEMP_OUTPUT"
+script -q /dev/null npx patch-package --error-on-fail 2>&1 | tee "$TEMP_OUTPUT"
 EXIT_CODE=${PIPESTATUS[0]}
 OUTPUT="$(cat "$TEMP_OUTPUT")"
 rm -f "$TEMP_OUTPUT"
