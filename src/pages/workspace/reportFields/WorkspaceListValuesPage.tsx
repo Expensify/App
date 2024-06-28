@@ -194,7 +194,7 @@ function WorkspaceListValuesPage({
         return (
             <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
                 <Button
-                    style={[isSmallScreenWidth && styles.flex1]}
+                    style={isSmallScreenWidth && styles.flex1}
                     medium
                     success
                     icon={Expensicons.Plus}

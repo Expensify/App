@@ -99,7 +99,7 @@ function WorkspaceReportFieldsPage({
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addField')}
-                style={[isSmallScreenWidth && styles.flex1]}
+                style={isSmallScreenWidth && styles.flex1}
             />
         </View>
     );
@@ -142,7 +142,7 @@ function WorkspaceReportFieldsPage({
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
+                        style={styles.flex1}
                         color={theme.spinner}
                     />
                 )}
