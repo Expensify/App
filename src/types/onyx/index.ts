@@ -77,6 +77,7 @@ import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type {TravelSettings} from './TravelSettings';
+import type TryNewDot from './TryNewDot';
 import type User from './User';
 import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
@@ -90,6 +91,7 @@ import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
 
 export type {
+    TryNewDot,
     Account,
     AccountData,
     BankAccount,
