@@ -27,8 +27,8 @@ function WorkspaceCardListHeader() {
 
     return (
         <View>
-            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, styles.mv5, styles.mh5]}>
-                <View style={[styles.flexRow, styles.flex1]}>
+            <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
+                <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
                     <WorkspaceCardsListLabel
                         type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE}
                         value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE]}
@@ -41,7 +41,6 @@ function WorkspaceCardListHeader() {
                 <WorkspaceCardsListLabel
                     type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK}
                     value={cardSettings?.[CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CASH_BACK]}
-                    style={isLessThanMediumScreen ? styles.mt3 : undefined}
                 />
             </View>
 
