@@ -26,7 +26,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'type' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
@@ -254,8 +254,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = a[sortingProperty];
-        const bValue = b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
