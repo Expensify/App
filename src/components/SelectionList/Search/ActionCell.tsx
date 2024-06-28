@@ -24,13 +24,13 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    transactionIDs?: string[];
+    transactionID: string;
     searchHash: number;
     isLargeScreenWidth?: boolean;
     goToItem: () => void;
 };
 
-function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionIDs = [], searchHash, isLargeScreenWidth = true, goToItem}: ActionCellProps) {
+function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, searchHash, isLargeScreenWidth = true, goToItem}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -73,17 +73,17 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionIDs = [
         );
     }
 
-    const command = SearchUtils.getTransactionActionCommand(action);
+    const onAction = SearchUtils.getTransactionAction(action);
 
     return (
         <Button
             text={text}
             onPress={() => {
-                if (!command) {
+                if (!onAction) {
                     return;
                 }
 
-                command(searchHash, transactionIDs);
+                onAction(searchHash, transactionID);
             }}
             small
             pressOnEnter
