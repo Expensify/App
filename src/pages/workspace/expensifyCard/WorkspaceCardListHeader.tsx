@@ -26,7 +26,7 @@ function WorkspaceCardListHeader() {
     const cardSettings = mockedSettings;
 
     return (
-        <View>
+        <View style={styles.appBG}>
             <View style={[isLessThanMediumScreen ? styles.flexColumn : styles.flexRow, isLessThanMediumScreen ? [styles.mt5, styles.mb3] : styles.mv5, styles.mh5, styles.ph4]}>
                 <View style={[styles.flexRow, styles.flex1, isLessThanMediumScreen && styles.mb5]}>
                     <WorkspaceCardsListLabel
@@ -44,7 +44,7 @@ function WorkspaceCardListHeader() {
                 />
             </View>
 
-            <View style={[styles.flexRow, styles.appBG, styles.mh5, styles.gap5, styles.p4]}>
+            <View style={[styles.flexRow, styles.mh5, styles.gap5, styles.p4]}>
                 <View style={[styles.flexRow, styles.flex5, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
