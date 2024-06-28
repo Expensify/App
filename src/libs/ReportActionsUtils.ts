@@ -402,11 +402,14 @@ function getCombinedReportActions(
     transactionThreadReportActions: ReportAction[],
     reportID?: string,
 ): ReportAction[] {
-    if (_.isEmpty(transactionThreadReportID)) {
+    const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
+
+    // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
+    if (_.isEmpty(transactionThreadReportID) || isSentMoneyReport) {
         return reportActions;
     }
 
-    // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    // Filter out request money actions because we don't want to show any preview actions for one transaction reports
     const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
