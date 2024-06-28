@@ -467,7 +467,7 @@ function MoneyRequestConfirmationList({
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
                     shouldResetAmount={shouldResetAmount}
-                    onResetAmount={() => setShouldResetAmount(false)}
+                    onResetAmount={(resetValue) => setShouldResetAmount(resetValue)}
                 />
             ),
         }));
