@@ -1945,12 +1945,8 @@ function getOptions(
             return option;
         }
 
-        if (!accountIDs || accountIDs.length === 0) {
-            if (!isSearchingForReports) {
-                if (!isChatRoom) {
-                    return;
-                }
-            }
+        if ((!accountIDs || accountIDs.length === 0) && !isChatRoom) {
+            return;
         }
 
         return option;
@@ -2603,7 +2599,7 @@ export {
     sortCategories,
     sortTags,
     getCategoryOptionTree,
-    hasEnabledTags,
+    hasEnabledTags
     formatMemberForList,
     formatSectionsFromSearchTerm,
     getShareLogOptions,
