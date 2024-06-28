@@ -6,7 +6,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
@@ -28,7 +27,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const sections = useMemo(() => {
         const data: CardListItem[] =
             vendors?.map((vendor) => ({
@@ -73,7 +72,6 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             <ScreenWrapper testID={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}>
                 <HeaderWithBackButton title={translate('workspace.qbo.defaultVendor')} />
                 <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.defaultVendorDescription')}</Text>}
                     sections={sections}
                     ListItem={RadioListItem}
                     onSelectRow={selectVendor}

@@ -6,31 +6,36 @@ import FixedFooter from '@components/FixedFooter';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/SubscriptionSize/utils';
+import Navigation from '@navigation/Navigation';
+import {formatSubscriptionEndDate, getNewSubscriptionRenewalDate} from '@pages/settings/Subscription/utils';
+import * as FormActions from '@userActions/FormActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SubscriptionSizeForm';
 
 type ConfirmationProps = SubStepProps;
 
-function Confirmation({onNext}: ConfirmationProps) {
+function Confirmation({onNext, isEditing}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [subscriptionSizeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM_DRAFT);
     const subscriptionRenewalDate = getNewSubscriptionRenewalDate();
 
-    // TODO this is temporary and will be replaced in next phase once data in ONYX is ready
-    // we will have to check if the amount of active members is less than the current amount of active members and if account?.canDowngrade is true - if so then we can't downgrade
-    const CAN_DOWNGRADE = true;
-    // TODO this is temporary and will be replaced in next phase once data in ONYX is ready
-    const SUBSCRIPTION_UNTIL = subscriptionRenewalDate;
+    const isTryingToIncreaseSubscriptionSize = (subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0) > (privateSubscription?.userCount ?? 0);
+    const canChangeSubscriptionSize = (account?.canDowngrade ?? false) || (isTryingToIncreaseSubscriptionSize && isEditing);
+    const formattedSubscriptionEndDate = formatSubscriptionEndDate(privateSubscription?.endDate);
+
+    const onClosePress = () => {
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM);
+        Navigation.goBack();
+    };
 
     return (
         <View style={[styles.flexGrow1]}>
-            {CAN_DOWNGRADE ? (
+            {canChangeSubscriptionSize ? (
                 <>
                     <Text style={[styles.ph5, styles.pb3]}>{translate('subscription.subscriptionSize.confirmDetails')}</Text>
                     <MenuItemWithTopDescription
@@ -49,20 +54,28 @@ function Confirmation({onNext}: ConfirmationProps) {
                     <Text style={[styles.ph5, styles.pb5, styles.textNormalThemeText]}>{translate('subscription.subscriptionSize.youCantDowngrade')}</Text>
                     <Text style={[styles.ph5, styles.textNormalThemeText]}>
                         {translate('subscription.subscriptionSize.youAlreadyCommitted', {
-                            size: subscriptionSizeFormDraft ? subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE] : 0,
-                            date: SUBSCRIPTION_UNTIL,
+                            size: privateSubscription?.userCount ?? 0,
+                            date: formattedSubscriptionEndDate,
                         })}
                     </Text>
                 </>
             )}
             <FixedFooter style={[styles.mtAuto]}>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    large
-                    onPress={onNext}
-                    text={translate(CAN_DOWNGRADE ? 'common.save' : 'common.close')}
-                />
+                {canChangeSubscriptionSize ? (
+                    <Button
+                        success
+                        large
+                        onPress={onNext}
+                        text={translate('common.save')}
+                    />
+                ) : (
+                    <Button
+                        success
+                        large
+                        onPress={onClosePress}
+                        text={translate('common.close')}
+                    />
+                )}
             </FixedFooter>
         </View>
     );

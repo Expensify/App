@@ -8,6 +8,10 @@ import type HoverableProps from './types';
 
 type ActiveHoverableProps = Omit<HoverableProps, 'disabled'>;
 
+type MouseEvents = 'onMouseEnter' | 'onMouseLeave' | 'onMouseMove' | 'onBlur';
+
+type OnMouseEvents = Record<MouseEvents, (e: MouseEvent) => void>;
+
 function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreezeCapture, children}: ActiveHoverableProps, outerRef: Ref<HTMLElement>) {
     const [isHovered, setIsHovered] = useState(false);
 
@@ -98,25 +102,23 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
 
     const child = useMemo(() => getReturnValue(children, !isScrollingRef.current && isHovered), [children, isHovered]);
 
-    const childOnMouseEnter = child.props.onMouseEnter;
-    const childOnMouseLeave = child.props.onMouseLeave;
-    const childOnMouseMove = child.props.onMouseMove;
+    const {onMouseEnter, onMouseLeave, onMouseMove, onBlur}: OnMouseEvents = child.props;
 
     const hoverAndForwardOnMouseEnter = useCallback(
         (e: MouseEvent) => {
             isVisibiltyHidden.current = false;
             updateIsHovered(true);
-            childOnMouseEnter?.(e);
+            onMouseEnter?.(e);
         },
-        [updateIsHovered, childOnMouseEnter],
+        [updateIsHovered, onMouseEnter],
     );
 
     const unhoverAndForwardOnMouseLeave = useCallback(
         (e: MouseEvent) => {
             updateIsHovered(false);
-            childOnMouseLeave?.(e);
+            onMouseLeave?.(e);
         },
-        [updateIsHovered, childOnMouseLeave],
+        [updateIsHovered, onMouseLeave],
     );
 
     const unhoverAndForwardOnBlur = useCallback(
@@ -127,18 +129,18 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
                 setIsHovered(false);
             }
 
-            child.props.onBlur?.(event);
+            onBlur?.(event);
         },
-        [child.props],
+        [onBlur],
     );
 
     const handleAndForwardOnMouseMove = useCallback(
         (e: MouseEvent) => {
             isVisibiltyHidden.current = false;
             updateIsHovered(true);
-            childOnMouseMove?.(e);
+            onMouseMove?.(e);
         },
-        [updateIsHovered, childOnMouseMove],
+        [updateIsHovered, onMouseMove],
     );
 
     return cloneElement(child, {

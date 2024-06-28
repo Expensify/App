@@ -21,7 +21,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const {nonReimbursableAccount: nonReimbursableAccountID} = policy?.connections?.xero?.config.export ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccountsWithDefaultSelect(policy ?? undefined, nonReimbursableAccountID), [nonReimbursableAccountID, policy]);

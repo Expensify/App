@@ -18,7 +18,6 @@ function BaseListItem<TItem extends ListItem>({
     wrapperStyle,
     containerStyle,
     isDisabled = false,
-    shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
@@ -88,7 +87,7 @@ function BaseListItem<TItem extends ListItem>({
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}

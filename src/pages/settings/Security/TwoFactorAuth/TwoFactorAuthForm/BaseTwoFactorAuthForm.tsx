@@ -3,6 +3,7 @@ import type {ForwardedRef, RefAttributes} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {AutoCompleteVariant, MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
+import useLocalize from '@hooks/useLocalize';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Session from '@userActions/Session';
@@ -14,6 +15,7 @@ type BaseTwoFactorAuthFormProps = BaseTwoFactorAuthFormOnyxProps & {
 };
 
 function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
+    const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
@@ -41,18 +43,18 @@ function BaseTwoFactorAuthForm({account, autoComplete}: BaseTwoFactorAuthFormPro
             inputRef.current.blur();
         }
         if (!twoFactorAuthCode.trim()) {
-            setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'});
+            setFormError({twoFactorAuthCode: translate('twoFactorAuthForm.error.pleaseFillTwoFactorAuth')});
             return;
         }
 
         if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
-            setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.incorrect2fa'});
+            setFormError({twoFactorAuthCode: translate('twoFactorAuthForm.error.incorrect2fa')});
             return;
         }
 
         setFormError({});
         Session.validateTwoFactorAuth(twoFactorAuthCode);
-    }, [twoFactorAuthCode]);
+    }, [twoFactorAuthCode, translate]);
 
     useImperativeHandle(ref, () => ({
         validateAndSubmitForm() {

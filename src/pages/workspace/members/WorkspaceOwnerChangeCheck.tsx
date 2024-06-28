@@ -39,7 +39,7 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
         buttonText: '',
     });
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
 
     const updateDisplayTexts = useCallback(() => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});

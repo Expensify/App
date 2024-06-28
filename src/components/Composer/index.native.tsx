@@ -1,3 +1,4 @@
+import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
@@ -12,6 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import type {ComposerProps} from './types';
+
+const excludeNoStyles: Array<keyof MarkdownStyle> = [];
+const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
 
 function Composer(
     {
@@ -37,7 +41,7 @@ function Composer(
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const textContainsOnlyEmojis = useMemo(() => EmojiUtils.containsOnlyEmojis(value ?? ''), [value]);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? ['mentionReport'] : []);
+    const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 

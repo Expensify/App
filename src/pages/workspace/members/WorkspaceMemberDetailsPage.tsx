@@ -66,6 +66,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
+    const confirmModalPrompt = useMemo(() => {
+        const isApprover = Member.isApprover(policy, accountID);
+        if (!isApprover) {
+            translate('workspace.people.removeMemberPrompt', {memberName: displayName});
+        }
+        return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policy?.owner ?? ''});
+    }, [accountID, policy, displayName, translate]);
+
     const roleItems: ListItemType[] = useMemo(
         () => [
             {
@@ -83,18 +91,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         ],
         [member?.role, translate],
     );
-
-    useEffect(() => {
-        if (!policy?.errorFields?.changeOwner && policy?.isChangeOwnerSuccessful) {
-            return;
-        }
-
-        const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
-
-        if (changeOwnerErrors && changeOwnerErrors.length > 0) {
-            Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, changeOwnerErrors[0] as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
-        }
-    }, [accountID, policy?.errorFields?.changeOwner, policy?.isChangeOwnerSuccessful, policyID]);
 
     useEffect(() => {
         if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -160,6 +156,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 imageStyles={[styles.avatarXLarge]}
                                 source={details.avatar}
                                 avatarID={accountID}
+                                type={CONST.ICON_TYPE_AVATAR}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 fallbackIcon={fallbackIcon}
                             />
@@ -199,7 +196,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             isVisible={isRemoveMemberConfirmModalVisible}
                             onConfirm={removeUser}
                             onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            prompt={confirmModalPrompt}
                             confirmText={translate('common.remove')}
                             cancelText={translate('common.cancel')}
                         />

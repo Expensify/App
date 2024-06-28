@@ -20,16 +20,16 @@ const formatPercentChange = (value: number): string => {
     return `${value >= 0 ? '+' : '-'}${formatPercent(absValue)}`;
 };
 
-const formatDuration = (duration: number): string => `${duration.toFixed(3)} ms`;
+const formatMetric = (duration: number, unit: string): string => `${duration.toFixed(3)} ${unit}`;
 
-const formatDurationChange = (value: number): string => {
+const formatMetricChange = (value: number, unit: string): string => {
     if (value > 0) {
-        return `+${formatDuration(value)}`;
+        return `+${formatMetric(value, unit)}`;
     }
     if (value < 0) {
-        return `${formatDuration(value)}`;
+        return `${formatMetric(value, unit)}`;
     }
-    return '0 ms';
+    return `0 ${unit}`;
 };
 
 const formatChange = (value: number): string => {
@@ -69,13 +69,13 @@ const getDurationSymbols = (entry: Entry): string => {
     return '';
 };
 
-const formatDurationDiffChange = (entry: Entry): string => {
+const formatMetricDiffChange = (entry: Entry): string => {
     const {baseline, current} = entry;
 
-    let output = `${formatDuration(baseline.mean)} → ${formatDuration(current.mean)}`;
+    let output = `${formatMetric(baseline.mean, entry.unit)} → ${formatMetric(current.mean, entry.unit)}`;
 
     if (baseline.mean !== current.mean) {
-        output += ` (${formatDurationChange(entry.diff)}, ${formatPercentChange(entry.relativeDurationDiff)})`;
+        output += ` (${formatMetricChange(entry.diff, entry.unit)}, ${formatPercentChange(entry.relativeDurationDiff)})`;
     }
 
     output += ` ${getDurationSymbols(entry)}`;
@@ -83,4 +83,4 @@ const formatDurationDiffChange = (entry: Entry): string => {
     return output;
 };
 
-export {formatPercent, formatPercentChange, formatDuration, formatDurationChange, formatChange, getDurationSymbols, formatDurationDiffChange};
+export {formatPercent, formatPercentChange, formatMetric, formatMetricChange, formatChange, getDurationSymbols, formatMetricDiffChange};

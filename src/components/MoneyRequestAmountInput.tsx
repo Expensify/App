@@ -9,6 +9,7 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 import CONST from '@src/CONST';
+import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
@@ -201,7 +202,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused()) || shouldKeepUserInput) {
+        if ((!currency || typeof amount !== 'number' || (formatAmountOnBlur && isTextInputFocused(textInput))) ?? shouldKeepUserInput) {
             return;
         }
         const frontendAmount = onFormatAmount(amount, currency);

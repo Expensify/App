@@ -22,6 +22,9 @@ type BankAccountAdditionalData = {
 
     /** In which country is the bank account */
     country?: string;
+
+    /** Is billing card */
+    isBillingCard?: boolean;
 };
 
 /** Model of bank account */

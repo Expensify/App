@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 
@@ -12,7 +13,7 @@ type BeneficialOwnerValues = {
     zipCode: string;
 };
 
-function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: ReimbursementAccountForm | null): BeneficialOwnerValues {
+function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>): BeneficialOwnerValues {
     if (!reimbursementAccountDraft) {
         return {
             firstName: '',

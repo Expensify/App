@@ -27,7 +27,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {reimbursementAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
     const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
@@ -45,7 +45,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectorDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
