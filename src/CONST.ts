@@ -1343,6 +1343,9 @@ const CONST = {
         AUTO_SYNC: 'autoSync',
         IMPORT_EMPLOYEES: 'importEmployees',
         APPROVAL_MODE: 'approvalMode',
+        SYNC: 'sync',
+        SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+        REIMBUSERED_ACCOUNT_ID: 'reimbursementAccountID',
     },
 
     SAGE_INTACCT: {

@@ -646,13 +646,16 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Sage Intacct sync */
-    sync: {
+    sync: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** ID of the bank account for Sage Intacct bill payment account */
         reimbursementAccountID?: string;
 
         /** Whether the reimbursed reports should be synched */
         syncReimbursedReports: boolean;
-    };
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;

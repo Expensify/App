@@ -77,6 +77,82 @@ function prepareOnyxData(policyID: string, settingName: keyof Connections['intac
     return {optimisticData, failureData, successData};
 }
 
+function prepareSyncOnyxData(policyID: string, settingName: keyof Connections['intacct']['config']['sync'], settingValue: string | boolean | null) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue,
+                                pendingFields: {
+                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                                errorFields: {
+                                    [settingName]: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue,
+                                pendingFields: {
+                                    [settingName]: null,
+                                },
+                                errorFields: {
+                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            sync: {
+                                [settingName]: settingValue,
+                                pendingFields: {
+                                    [settingName]: null,
+                                },
+                                errorFields: {
+                                    [settingName]: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    return {optimisticData, failureData, successData};
+}
+
 function updateSageIntacctAutoSync(policyID: string, enabled: boolean) {
     const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.IS_AUTO_SYNC_ENABLED, enabled);
     const parameters = {
@@ -117,4 +193,31 @@ function updateSageIntacctApprovalMode(policyID: string, enabled: boolean) {
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
-export {updateSageIntacctAutoSync, updateSageIntacctImportEmployees, updateSageIntacctApprovalMode};
+function updateSageIntacctSyncReimbursedReports(policyID: string, vendorID: string | null) {
+    const settingValue = vendorID ?? false;
+    const {optimisticData, failureData, successData} = prepareSyncOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS, settingValue);
+    const parameters = {
+        policyID,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+        settingName: CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.SYNC_REIMBURSED_REPORTS,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
+}
+
+function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID: string | null) {
+    const {optimisticData, failureData, successData} = prepareSyncOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID, vendorID);
+    const parameters = {
+        policyID,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+        settingName: CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID,
+        settingValue: JSON.stringify(vendorID),
+        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
+}
+
+export {updateSageIntacctAutoSync, updateSageIntacctImportEmployees, updateSageIntacctApprovalMode, updateSageIntacctSyncReimbursedReports, updateSageIntacctSyncReimbursementAccountID};
