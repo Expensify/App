@@ -38,6 +38,7 @@ import * as Download from '@userActions/Download';
 import { ImageSource } from '@rnmapbox/maps';
 import type {Download as OnyxDownload} from '@src/types/onyx';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import * as Expensicons from '@components/Icon/Expensicons';
 
 
 
@@ -92,6 +93,7 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
 function AttachmentView({
     source,
+    previewSource,
     file,
     isAuthTokenRequired,
     onPress,
@@ -110,7 +112,6 @@ function AttachmentView({
     isHovered,
     duration,
     isUsedAsChatAttachment,
-    downloadAttachment,
     download,
 }: AttachmentViewProps) {
     const {translate} = useLocalize();
@@ -148,14 +149,10 @@ function AttachmentView({
                 .then(({ width, height }) => {
                     file.width = width;
                     file.height = height;
-                     return Promise.resolve(true);
-
                     return true;
                 })
                 .catch(error => {
                     console.error('Failed to get image resolution:', error);
-                    return Promise.resolve(false);
-
                     return false;
                 });
         }
@@ -166,8 +163,8 @@ function AttachmentView({
         setIsCalculatingDimension(true);
         isFileHaveDimension(file)
             .then(isDimensionAvailable => {
-                const isValid = file && isDimensionAvailable && (file?.height ?? 0) <= 8000 && (file?.width ?? 0) <= 8000;
-                setIsResolutionValid(isValid ?? false);
+                const isValid = (file && isDimensionAvailable && (file?.height ?? 0) <= 5000 && (file?.width ?? 0) <= 5000) ?? false;
+                setIsResolutionValid(isValid);
                 setIsCalculatingDimension(false);
             })
             .catch(error => {
@@ -284,46 +281,27 @@ function AttachmentView({
                 />
             );
         }
-        const imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string)
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string)
 
         if (!isResolutionValid) {
-            const isLocalFile = FileUtils.isLocalFile(imageSource);
-            const sourceURLWithAuth = isLocalFile ? imageSource : addEncryptedAuthTokenToURL(imageSource);
-            const sourceID = (imageSource.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-            const styles = useThemeStyles();
-        
-            const isDownloading = download?.isDownloading ?? false;
-        
-            return (<View style={[styles.alignItemsCenter]}>
-                <ThumbnailImage
-                    previewSourceURL={sourceURLWithAuth}
-                    style={styles.webViewStyles.tagStyles.img}
-                    isAuthTokenRequired={isAuthTokenRequired ?? false}
-                    // fallbackIcon={fallbackIcon}
-                    imageWidth={file?.width}
-                    imageHeight={file?.height}
-                />
+            if(isUsedInAttachmentModal) {
+                return (
+                    <DefaultAttachmentView
+                        icon={Expensicons.Gallery}
+                        fileName={file?.name}
+                        shouldShowDownloadIcon={shouldShowDownloadIcon}
+                        shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+                        containerStyles={containerStyles}
+                    />
+                );
+            }
 
-                <Text style={styles.p5}>This image has been resized for previewing.
-                    <TextLink
-                        onPress={() => {
-                            // if (isOffline) {
-                            if (isDownloading || isOffline) {
-                                return;
-                            }
-    
-                            Download.setDownload(sourceID, true);
-                            fileDownload(sourceURLWithAuth, file?.name, '').then(() => Download.setDownload(sourceID, false));
-                        }}
-                    > Download </TextLink>
-                    for full resolution.
-                </Text>
-            </View>)
+            imageSource = previewSource?.toString() ?? imageSource;
         }
 
         return (
             <AttachmentViewImage
-                url={imageError && fallbackSource ? (fallbackSource as string) : (source as string)}
+                url={imageSource}
                 file={file}
                 isAuthTokenRequired={isAuthTokenRequired}
                 loadComplete={loadComplete}

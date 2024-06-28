@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import {Animated, Keyboard, View} from 'react-native';
+import {Animated, Keyboard, View, Text} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -43,6 +43,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
+import TextLink from './TextLink';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -196,6 +197,9 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+
+    const isDimensionAvailable = file && 'width' in file && 'height' in file;
+    const isHiResImage = isDimensionAvailable && (file.height ?? 0) > 5000 && (file.width ?? 0) > 5000;
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
@@ -540,10 +544,23 @@ function AttachmentModal({
                             ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {!!onConfirm && !isConfirmButtonDisabled && (
+                    {((!!onConfirm && !isConfirmButtonDisabled) || isHiResImage) && (
                         <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                            {({ safeAreaPaddingBottomStyle }) => (<>
+                                {isHiResImage && <View style={[styles.alignItemsCenter]}>
+                                    <Text style={[styles.p5, styles.textMicroSupporting]}>This image has been resized for previewing.
+                                        <TextLink
+                                            style={[styles.textMicroSupporting, styles.link]}
+                                            onPress={() => {
+                                                downloadAttachment();
+                                            }}
+                                        > Download </TextLink>
+                                        for full resolution.
+                                    </Text>
+                                </View>
+                                }
+
+                                {!!onConfirm && !isConfirmButtonDisabled && <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                     <Button
                                         success
                                         large
@@ -555,6 +572,8 @@ function AttachmentModal({
                                         pressOnEnter
                                     />
                                 </Animated.View>
+                                }
+                            </>
                             )}
                         </SafeAreaConsumer>
                     )}

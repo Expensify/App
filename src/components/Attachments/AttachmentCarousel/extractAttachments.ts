@@ -52,6 +52,7 @@ function extractAttachments(
             if (name === 'img' && attribs.src) {
                 const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
+                const previewSource = tryResolveUrlFromApiRoot(attribs.src);
                 if (uniqueSources.has(source)) {
                     return;
                 }
@@ -75,6 +76,7 @@ function extractAttachments(
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
                     source,
+                    previewSource,
                     isAuthTokenRequired: !!expensifySource,
                     file: {name: fileName, width, height},
                     isReceipt: false,

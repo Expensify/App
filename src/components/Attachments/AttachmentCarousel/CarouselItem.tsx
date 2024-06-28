@@ -26,7 +26,7 @@ type CarouselItemProps = {
     isFocused: boolean;
 };
 
-function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
+function CarouselItem({item, onPress, isFocused, isModalHovered, onHiResImageAttachment}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
@@ -74,6 +74,7 @@ function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemPr
             <View style={[styles.imageModalImageCenterContainer]}>
                 <AttachmentView
                     source={item.source}
+                    previewSource={item.previewSource}
                     file={item.file}
                     isAuthTokenRequired={item.isAuthTokenRequired}
                     onPress={onPress}
