@@ -209,8 +209,10 @@ const usePanGesture = ({
             panVelocityX.value = evt.velocityX;
             panVelocityY.value = evt.velocityY;
 
-            if (!isSwipingDownToClose.value && !isMobileBrowser) {
-                panTranslateX.value += evt.changeX;
+            if (!isSwipingDownToClose.value) {
+                if (!isMobileBrowser || (isMobileBrowser && zoomScale.value !== 1)) {
+                    panTranslateX.value += evt.changeX;
+                }
             }
 
             if (enableSwipeDownToClose.value || isSwipingDownToClose.value) {
