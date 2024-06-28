@@ -2247,7 +2247,7 @@ export default {
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
             remainingLimit: 'Límite restante',
-            requestLimitIncrease: 'Solicitud de aumento de límite',
+            requestLimitIncrease: 'Solicitar aumento de límite',
             remainingLimitDescription:
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
             cashBack: 'Reembolso',

@@ -27,7 +27,7 @@ import type {ExpensifyCard, ExpensifyCardsList} from '@src/types/onyx';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
-type WorkspaceCardPageFreeProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 const stickyHeaderIndices = [0];
 
@@ -53,7 +53,7 @@ const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     },
 };
 
-function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
+function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -142,7 +142,7 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldEnableMaxHeight
-                testID={WorkspaceCardPageFree.displayName}
+                testID={WorkspaceExpensifyCardPage.displayName}
             >
                 <HeaderWithBackButton
                     icon={Illustrations.HandCard}
@@ -166,6 +166,6 @@ function WorkspaceCardPageFree({route}: WorkspaceCardPageFreeProps) {
     );
 }
 
-WorkspaceCardPageFree.displayName = 'WorkspacesListPage';
+WorkspaceExpensifyCardPage.displayName = 'WorkspacesListPage';
 
-export default WorkspaceCardPageFree;
+export default WorkspaceExpensifyCardPage;
