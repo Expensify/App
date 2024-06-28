@@ -1339,6 +1339,7 @@ const CONST = {
 
     NETSUITE_CONFIG: {
         SUBSIDIARY: 'subsidiary',
+        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5']
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
