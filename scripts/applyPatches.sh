@@ -19,6 +19,8 @@ rm -f "$TEMP_OUTPUT"
 echo "$OUTPUT" | grep -q "Warning:"
 WARNING_FOUND=$?
 
+printf "\n";
+
 # Determine the final exit code
 if [ "$EXIT_CODE" -eq 0 ]; then
   if [ $WARNING_FOUND -eq 0 ]; then
