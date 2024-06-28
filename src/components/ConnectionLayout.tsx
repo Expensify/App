@@ -63,6 +63,9 @@ type ConnectionLayoutProps = {
 
     /** Allow without connection */
     allowWithoutConnection?: boolean;
+
+    /** Handler for back button press */
+    onBackButtonPress?: () => void;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -95,6 +98,7 @@ function ConnectionLayout({
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
     allowWithoutConnection = false,
+    onBackButtonPress = () => Navigation.goBack()
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -129,7 +133,7 @@ function ConnectionLayout({
                 <HeaderWithBackButton
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle) : '')}
                     subtitle={headerSubtitle}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
                     <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>

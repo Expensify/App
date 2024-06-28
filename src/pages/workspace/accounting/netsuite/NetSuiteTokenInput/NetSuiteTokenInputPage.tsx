@@ -8,11 +8,13 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import { View } from 'react-native';
 import useSubStep from '@hooks/useSubStep';
 import type { SubStepProps } from '@hooks/useSubStep/types';
+import Navigation from '@libs/Navigation/Navigation';
 import NetSuiteTokenInputStaticContent from './substeps/NetSuiteTokenInputStaticContent';
-import NetSuiteTokenInputStaticContent2 from './substeps/NetSuiteTokenInputStaticContent2';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 
-const tokenInputSteps: Array<React.ComponentType<SubStepProps>> = [NetSuiteTokenInputStaticContent, NetSuiteTokenInputStaticContent2, NetSuiteTokenInputStaticContent, NetSuiteTokenInputStaticContent2, NetSuiteTokenInputForm];
+
+const staticContentSteps = Array(4).fill(NetSuiteTokenInputStaticContent);
+const tokenInputSteps: Array<React.ComponentType<SubStepProps>> = [...staticContentSteps, NetSuiteTokenInputForm];
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -22,7 +24,17 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         alert('Submit');
     };
 
-    const {componentToRender: SubStep, isEditing, nextScreen, moveTo} = useSubStep({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+
+    const handleBackButtonPress = () => {
+        
+        if (screenIndex === 0) {
+            Navigation.goBack();
+            return;
+        }
+        prevScreen();
+    };
+
 
     return (
         <ConnectionLayout
@@ -35,10 +47,11 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             allowWithoutConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}            
+            onBackButtonPress={handleBackButtonPress}
         >
             <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStepIndex={0}
+                    startStepIndex={screenIndex}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
@@ -46,6 +59,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                 isEditing={isEditing}
                 onNext={nextScreen}
                 onMove={moveTo}
+                screenIndex={screenIndex}
             />
         </ConnectionLayout>
     );
