@@ -122,7 +122,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
         const existingPages = pagesCollections[pageKey] ?? [];
-        const mergedPages = PaginationUtils.mergeContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
+        const mergedPages = PaginationUtils.mergeAndSortContinuousPages(sortedAllItems, [...existingPages, newPage], getItemID);
 
         response.onyxData.push({
             key: pageKey,

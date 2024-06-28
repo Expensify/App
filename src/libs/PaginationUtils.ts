@@ -101,7 +101,7 @@ function getPagesWithIndexes<TResource>(sortedItems: TResource[], pages: Pages, 
 /**
  * Given a sorted array of items and an array of Pages of item IDs, find any overlapping pages and merge them together.
  */
-function mergeContinuousPages<TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string): Pages {
+function mergeAndSortContinuousPages<TResource>(sortedItems: TResource[], pages: Pages, getItemID: (item: TResource) => string): Pages {
     const pagesWithIndexes = getPagesWithIndexes(sortedItems, pages, getItemID);
     if (pagesWithIndexes.length === 0) {
         return [];
@@ -192,4 +192,4 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
     return page ? sortedItems.slice(page.firstIndex, page.lastIndex + 1) : sortedItems;
 }
 
-export default {mergeContinuousPages, getContinuousChain};
+export default {mergeAndSortContinuousPages, getContinuousChain};

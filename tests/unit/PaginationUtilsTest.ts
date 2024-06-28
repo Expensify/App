@@ -266,7 +266,7 @@ describe('PaginationUtils', () => {
         });
     });
 
-    describe('mergeContinuousPages', () => {
+    describe('mergeAndSortContinuousPages', () => {
         it('merges continuous pages', () => {
             const sortedItems = createItems([
                 // Given these sortedItems
@@ -285,7 +285,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['5', '4', '3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -307,7 +307,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['4', '3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -329,7 +329,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['5', '4', '3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -352,7 +352,7 @@ describe('PaginationUtils', () => {
                 ['5', '4'],
                 ['2', '1'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -382,7 +382,7 @@ describe('PaginationUtils', () => {
                 ['6', '5'],
                 ['3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -400,7 +400,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['4', '3'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -417,7 +417,7 @@ describe('PaginationUtils', () => {
 
             // Expect these pages
             const expectedResult: Pages = [];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -438,7 +438,7 @@ describe('PaginationUtils', () => {
                 ['4'],
                 ['2'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -461,7 +461,7 @@ describe('PaginationUtils', () => {
                 ['2', '1', '3'],
                 ['4'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -483,7 +483,7 @@ describe('PaginationUtils', () => {
                 ['1', '2'],
                 ['4', '5'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -502,7 +502,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 [CONST.PAGINATION_START_ID, '1', '2'],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -521,7 +521,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['1', '2', CONST.PAGINATION_END_ID],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -541,7 +541,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -561,7 +561,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
             ];
-            const result = PaginationUtils.mergeContinuousPages(sortedItems, pages, getID);
+            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
     });
