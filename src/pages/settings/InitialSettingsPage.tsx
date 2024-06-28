@@ -213,7 +213,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 iconRight: Expensicons.NewWindow,
                 link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
                 badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
-                badgeStyle: styles.badgeSuccess,
+                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
             });
         }
 
