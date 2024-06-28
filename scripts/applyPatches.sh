@@ -1,9 +1,14 @@
 #!/bin/bash
 
+# This script is a simple wrapper around patch-package that fails if any errors or warnings are detected.
+# This is useful because patch-package does not fail on errors or warnings by default,
+# which means that broken patches are easy to miss, and leads to developer frustration and wasted time.
+
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$SCRIPTS_DIR/shellUtils.sh"
 
-# Run patch-package and capture its output and exit code
+# Run patch-package and capture its output and exit code, while still displaying the original output to the terminal
+# (we use `script -q /dev/null` to preserve colorization in the output)
 TEMP_OUTPUT="$(mktemp)"
 script -q /dev/null npx patch-package --error-on-fail 2>&1 | tee "$TEMP_OUTPUT"
 EXIT_CODE=${PIPESTATUS[0]}
