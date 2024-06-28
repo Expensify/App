@@ -61,7 +61,7 @@ function EditValuePage({
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
+                style={styles.defaultModalContainer}
                 testID={EditValuePage.displayName}
                 shouldEnableMaxHeight
             >

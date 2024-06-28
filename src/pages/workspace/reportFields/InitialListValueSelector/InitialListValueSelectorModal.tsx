@@ -61,7 +61,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             useNativeDriver
         >
             <ScreenWrapper
-                style={[styles.pb0]}
+                style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={InitialListValueSelectorModal.displayName}
