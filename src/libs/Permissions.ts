@@ -45,7 +45,7 @@ function canUseNetSuiteIntegration(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
+    return true; // !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
 }
 
 function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {

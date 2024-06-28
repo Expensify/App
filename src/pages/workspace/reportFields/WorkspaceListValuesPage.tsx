@@ -115,13 +115,13 @@ function WorkspaceListValuesPage({
     );
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES>>> = [];
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
         if (selectedValuesArray.length > 0) {
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
-                value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DELETE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteValuesConfirmModalVisible(true),
             });
 
@@ -143,7 +143,7 @@ function WorkspaceListValuesPage({
                 options.push({
                     icon: Expensicons.DocumentSlash,
                     text: translate(enabledValues.length === 1 ? 'workspace.reportFields.disableValue' : 'workspace.reportFields.disableValues'),
-                    value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.DISABLE,
+                    value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedValues({});
                         ReportFields.setReportFieldsListValueEnabled(valuesToDisable, false);
@@ -169,7 +169,7 @@ function WorkspaceListValuesPage({
                 options.push({
                     icon: Expensicons.Document,
                     text: translate(disabledValues.length === 1 ? 'workspace.reportFields.enableValue' : 'workspace.reportFields.enableValues'),
-                    value: CONST.POLICY.REPORT_FIELDS_VALUES_BULK_ACTION_TYPES.ENABLE,
+                    value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedValues({});
                         ReportFields.setReportFieldsListValueEnabled(valuesToEnable, true);
