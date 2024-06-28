@@ -33,10 +33,11 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
     const canBeExported = ReportUtils.canBeExported(report);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
+        const integrationText = ReportUtils.getIntegrationDisplayName(integrationName);
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', {integrationName}),
+                text: translate('workspace.common.exportIntegrationSelected', {integrationName: integrationText}),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
             },
