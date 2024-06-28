@@ -72,7 +72,7 @@ function ReviewFields({stepNames, label, options, index, onSelectRow}: ReviewFie
             <Text
                 family="EXP_NEW_KANSAS_MEDIUM"
                 fontSize={variables.fontSizeLarge}
-                style={[styles.pb5, styles.ph5]}
+                style={[styles.pb5, styles.ph5, stepNames.length < 1 && styles.mt3]}
             >
                 {label}
             </Text>
