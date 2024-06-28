@@ -4,7 +4,7 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -129,7 +129,9 @@ function getDistanceFromPathInRootNavigator(path?: string): number {
             break;
         }
 
-        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        // When paths are compared, they the policyID param should be excluded from the state. If it's present in currentState, pathFromState will include it and in result it will be different than the path value.
+        const currentStateWithoutParams = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
+        const pathFromState = getPathFromState(currentStateWithoutParams, linkingConfig.config);
         if (path === pathFromState.substring(1)) {
             return index;
         }
