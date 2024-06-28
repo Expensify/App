@@ -310,7 +310,7 @@ type ExportedToIntegrationParams = {label: string};
 
 type ForwardedParams = {amount: string; currency: string};
 
-type IntegrationsMessageParams = {errorMessage: string};
+type IntegrationsMessageParams = {errorMessage: string; label: string};
 
 type MarkedReimbursedParams = {amount: string; currency: string};
 

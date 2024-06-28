@@ -1242,8 +1242,10 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
             return Localize.translateLocal('report.actions.type.exportedToCSV');
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
             return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
-        case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE:
-            return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage: originalMessage.errorMessage});
+        case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
+            const {errorMessage, label} = originalMessage;
+            return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage, label});
+        }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return Localize.translateLocal('report.actions.type.managerAttachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:

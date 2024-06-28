@@ -3033,7 +3033,7 @@ export default {
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
                 // verify errorMessage
-                integrationsMessage: ({errorMessage}: IntegrationsMessageParams) => `no se pudo exportar este informe a NetSuite. ${errorMessage}`,
+                integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `no se pudo exportar este informe a ${label}. ${errorMessage}`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó el recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,

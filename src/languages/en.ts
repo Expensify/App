@@ -2993,7 +2993,7 @@ export default {
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 // verify errorMessage
-                integrationsMessage: ({errorMessage}: IntegrationsMessageParams) => `failed to export this report to NetSuite. ${errorMessage}`,
+                integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `failed to export this report to ${label}. ${errorMessage}`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed the receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
