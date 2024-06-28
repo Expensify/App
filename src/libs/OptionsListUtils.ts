@@ -1941,6 +1941,10 @@ function getOptions(
 
         // Reports that aren't searchable via participant won't have any participants returned with SearchForReports
         // so we don't need to check if their participants exist in order for them to qualify as a valid option.
+        // This doesn't necessarily mean these reports are empty, we just do this because:
+        // - they don't need participants to be displayed as an option, and we'll load all the participant data again if the user selects the report from the option list
+        // - it improves query performance in SearchForReports
+        // - it drastically reduces response size
         if (isSearchingForReports && !ReportUtils.isSearchableViaParticipants(report)) {
             return option;
         }
