@@ -224,7 +224,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         participantTo={item.to}
                         participantToDisplayName={item.formattedTo}
                         action={item.action}
-                        transactionIDs={[item.transactionID]}
+                        transactionID={item.transactionID}
                         searchHash={item.searchHash}
                         onButtonPress={onButtonPress}
                     />
@@ -362,7 +362,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
                         action={item.action}
-                        transactionIDs={[item.transactionID]}
+                        transactionID={item.transactionID}
                         searchHash={item.searchHash}
                         goToItem={onButtonPress}
                     />

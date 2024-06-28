@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -7,10 +7,12 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchUtils from '@libs/SearchUtils';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
+import * as SearchActions from '@userActions/Search';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
@@ -24,7 +26,7 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
 
 type ActionCellProps = {
     action?: SearchTransactionAction;
-    transactionID: string;
+    transactionID?: string;
     searchHash: number;
     isLargeScreenWidth?: boolean;
     goToItem: () => void;
@@ -35,6 +37,18 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, sea
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+
+    const onButtonPress = useCallback(() => {
+        if (!transactionID) {
+            return;
+        }
+
+        if (action === CONST.SEARCH.ACTION_TYPES.HOLD) {
+            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute('all', transactionID, searchHash));
+        } else if (action === CONST.SEARCH.ACTION_TYPES.UNHOLD) {
+            SearchActions.unholdMoneyRequestOnSearch(searchHash, [transactionID]);
+        }
+    }, [action, searchHash, transactionID]);
 
     const text = translate(actionTranslationsMap[action]);
 
@@ -73,18 +87,10 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, sea
         );
     }
 
-    const onAction = SearchUtils.getTransactionAction(action);
-
     return (
         <Button
             text={text}
-            onPress={() => {
-                if (!onAction) {
-                    return;
-                }
-
-                onAction(searchHash, transactionID);
-            }}
+            onPress={onButtonPress}
             small
             pressOnEnter
             style={[styles.w100]}

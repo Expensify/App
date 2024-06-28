@@ -2,21 +2,10 @@ import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtil
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {
-    SearchAccountDetails,
-    SearchDataTypes,
-    SearchPersonalDetails,
-    SearchTransaction,
-    SearchTransactionAction,
-    SearchTypeToItemMap,
-    SectionsType,
-} from '@src/types/onyx/SearchResults';
-import * as SearchActions from './actions/Search';
+import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
@@ -290,26 +279,10 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
-function getTransactionAction(
-    action: Omit<SearchTransactionAction, typeof CONST.SEARCH.ACTION_TYPES.VIEW | typeof CONST.SEARCH.ACTION_TYPES.DONE | typeof CONST.SEARCH.ACTION_TYPES.PAID>,
-): ((searchHash: number, transactionID: string) => void) | undefined {
-    if (action === CONST.SEARCH.ACTION_TYPES.HOLD) {
-        return (searchHash, transactionID) => {
-            Navigation.navigate(ROUTES.TRANSACTION_HOLD_REASON_RHP.getRoute('all', transactionID, searchHash));
-        };
-    }
-
-    if (action === CONST.SEARCH.ACTION_TYPES.UNHOLD) {
-        return (searchHash, transactionID) => {
-            SearchActions.unholdMoneyRequestOnSearch(searchHash, [transactionID]);
-        };
-    }
-}
-
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, getTransactionAction};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
 export type {SearchColumnType, SortOrder, SearchDataContext};

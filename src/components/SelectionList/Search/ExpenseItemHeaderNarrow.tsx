@@ -16,7 +16,7 @@ type ExpenseItemHeaderNarrowProps = {
     participantFromDisplayName: string;
     participantToDisplayName: string;
     action?: SearchTransactionAction;
-    transactionIDs?: string[];
+    transactionID?: string;
     searchHash: number;
     onButtonPress: () => void;
 };
@@ -27,7 +27,7 @@ function ExpenseItemHeaderNarrow({
     participantTo,
     participantToDisplayName,
     action,
-    transactionIDs,
+    transactionID,
     searchHash,
     onButtonPress,
 }: ExpenseItemHeaderNarrowProps) {
@@ -60,7 +60,7 @@ function ExpenseItemHeaderNarrow({
             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
                 <ActionCell
                     action={action}
-                    transactionIDs={transactionIDs}
+                    transactionID={transactionID}
                     searchHash={searchHash}
                     goToItem={onButtonPress}
                 />
