@@ -6,16 +6,16 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 # Run patch-package and capture its output and exit code
 TEMP_OUTPUT="$(mktemp)"
 npx patch-package --error-on-fail 2>&1 | tee "$TEMP_OUTPUT"
+EXIT_CODE=${PIPESTATUS[0]}
 OUTPUT="$(cat "$TEMP_OUTPUT")"
 rm -f "$TEMP_OUTPUT"
-EXIT_CODE=$?
 
 # Check if the output contains the warning message
 echo "$OUTPUT" | grep -q "patch-package detected a patch file version mismatch"
 WARNING_FOUND=$?
 
 # Determine the final exit code
-if [ $EXIT_CODE -eq 0 ]; then
+if [ "$EXIT_CODE" -eq 0 ]; then
   if [ $WARNING_FOUND -eq 0 ]; then
     # patch-package succeeded but warning was found
     error "It looks like you upgraded a dependency without upgrading the patch. Please review the patch, determine if it's still needed, and port it to the new version of the dependency."
@@ -28,5 +28,5 @@ if [ $EXIT_CODE -eq 0 ]; then
 else
   # patch-package failed
   error "patch-package failed to apply a patch"
-  exit $EXIT_CODE
+  exit "$EXIT_CODE"
 fi
