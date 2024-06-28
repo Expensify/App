@@ -161,7 +161,7 @@ describe('EmojiTest', () => {
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const thumbEmojis: Emoji[] = [
+        const thumbEmojisEn: Emoji[] = [
             {
                 name: 'hand_with_index_finger_and_thumb_crossed',
                 code: '🫰',
@@ -179,9 +179,27 @@ describe('EmojiTest', () => {
             },
         ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojis);
+        const thumbEmojisEs: Emoji[] = [
+            {
+                name: 'mano_con_dedos_cruzados',
+                code: '🫰',
+                types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
+            },
+            {
+                code: '👍',
+                name: '+1',
+                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+        ];
 
-        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojis);
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojisEn);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojisEs);
 
         expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
             {
