@@ -973,13 +973,6 @@ function isChatRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Whether the provided report is searchable via participant
- */
-function isSearchableViaParticipants(report: OnyxEntry<Report>): boolean {
-    return !isChatReport(report) || !isChatRoom(report);
-}
-
-/**
  * Whether the provided report is a public room
  */
 function isPublicRoom(report: OnyxEntry<Report>): boolean {
@@ -5425,11 +5418,11 @@ function shouldReportBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report) &&
             !isInvoiceRoom(report) &&
-            // We omit sending back participants for certain reports when searching for reports since they aren't needed to display the results and can get very large.
+            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
             // So we allow showing rooms with no participants when searching for reports.
             // In any other circumstances we should never have these reports with no participants in Onyx.
             !isSearchingForReports &&
-            !isSearchableViaParticipants(report))
+            !isChatRoom(report))
     ) {
         return false;
     }
@@ -7323,7 +7316,6 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
-    isSearchableViaParticipants,
     findPolicyExpenseChatByPolicyID,
 };
 

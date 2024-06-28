@@ -2492,13 +2492,8 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
-            if (
-                ReportUtils.isSearchableViaParticipants({
-                    reportID: item.reportID,
-                    type: item.type,
-                    chatType: item.chatType,
-                })
-            ) {
+            const partialReport = {reportID: item.reportID, type: item.type, chatType: item.chatType};
+            if (!ReportUtils.isChatReport(partialReport) || !ReportUtils.isChatRoom(partialReport)) {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
