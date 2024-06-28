@@ -1,6 +1,6 @@
 import {useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {memo, useCallback, useEffect} from 'react';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
@@ -49,6 +49,11 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
         // To prevent this, the value of the bottomTabRoute?.name is checked here
         if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && !isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
+            return;
+        }
+
+        // HybridApp has own entry point when we decide whether to display onboarding and explanation modal.
+        if (NativeModules.HybridAppModule) {
             return;
         }
 

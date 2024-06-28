@@ -92,6 +92,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.EXPLANATION_MODAL.ROOT]: {
+                    path: ROUTES.EXPLANATION_MODAL_ROOT,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             path: ROUTES.ONBOARDING_ROOT,
             initialRouteName: SCREENS.ONBOARDING.PURPOSE,
