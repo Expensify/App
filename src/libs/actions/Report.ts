@@ -95,6 +95,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -3745,7 +3746,7 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
-function exportToIntegration(reportID: string, connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
+function exportToIntegration(reportID: string, connectionName: ConnectionName) {
     API.write('Report_Export', {
         // TODO: Update it when backend is ready
         'reportIDList[]': reportID,

@@ -2030,7 +2030,7 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
-            exportIntegrationSelected: ({integrationName}: {integrationName: string}) => `Exportar a ${integrationName}`,
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2789,8 +2789,8 @@ export default {
 
         exportAgainModal: {
             title: 'Cuidado!',
-            description: ({reportName, integrationName}: {reportName: string; integrationName: string}) =>
-                `Los siguientes informes ya se han exportado a ${integrationName}:\n\n${reportName}\n\n¿Estás seguro de que desea exportarlos de nuevo?`,
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\n¿Estás seguro de que desea exportarlos de nuevo?`,
             confirmText: 'Sí, exportar de nuevo',
             cancelText: 'Cancelar',
         },

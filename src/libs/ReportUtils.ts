@@ -42,6 +42,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -7040,24 +7041,14 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
-function getIntegrationIcon(integrationName?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
-    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+function getIntegrationIcon(connectionName?: ConnectionName) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
         return XeroSquare;
     }
-    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
         return QBOSquare;
     }
     return undefined;
-}
-
-function getIntegrationDisplayName(integrationName?: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>) {
-    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-        return Localize.translateLocal('workspace.accounting.xero');
-    }
-    if (integrationName === CONST.POLICY.CONNECTIONS.NAME.QBO) {
-        return Localize.translateLocal('workspace.accounting.qbo');
-    }
-    return '';
 }
 
 function canBeExported(report: OnyxEntry<Report>) {
@@ -7168,7 +7159,6 @@ export {
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
-    getIntegrationDisplayName,
     getLastUpdatedReport,
     getLastVisibleMessage,
     getMoneyRequestOptions,

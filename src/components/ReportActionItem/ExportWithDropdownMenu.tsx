@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,14 +13,15 @@ import type {ModalStatus} from '@pages/home/report/ReportDetailsExportPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 
 type ExportWithDropdownMenuProps = {
     report: OnyxEntry<Report>;
 
-    integrationName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+    connectionName: ConnectionName;
 };
 
-function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMenuProps) {
+function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenuProps) {
     const reportID = report?.reportID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -29,15 +29,14 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
     const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
 
-    const iconToDisplay = ReportUtils.getIntegrationIcon(integrationName);
+    const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
-        const integrationText = ReportUtils.getIntegrationDisplayName(integrationName);
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', {integrationName: integrationText}),
+                text: translate('workspace.common.exportIntegrationSelected', connectionName),
                 icon: iconToDisplay,
                 disabled: !canBeExported,
             },
@@ -55,7 +54,7 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
         return options;
         // We do not include exportMethods not to re-render the component when the preffered export method changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canBeExported, iconToDisplay, integrationName, report?.policyID, translate]);
+    }, [canBeExported, iconToDisplay, connectionName, report?.policyID, translate]);
 
     const confirmExport = useCallback(() => {
         setModalStatus(null);
@@ -63,11 +62,11 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
             return;
         }
         if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            ReportActions.exportToIntegration(reportID, integrationName);
+            ReportActions.exportToIntegration(reportID, connectionName);
         } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
             ReportActions.markAsManuallyExported(reportID);
         }
-    }, [integrationName, modalStatus, reportID]);
+    }, [connectionName, modalStatus, reportID]);
 
     const savePreferredExportMethod = (value: ReportExportType) => {
         if (!report?.policyID) {
@@ -95,7 +94,7 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                         return;
                     }
                     if (value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                        ReportActions.exportToIntegration(reportID, integrationName);
+                        ReportActions.exportToIntegration(reportID, connectionName);
                     } else if (value === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
                         ReportActions.markAsManuallyExported(reportID);
                     }
@@ -110,7 +109,7 @@ function ExportWithDropdownMenu({report, integrationName}: ExportWithDropdownMen
                     title={translate('workspace.exportAgainModal.title')}
                     onConfirm={confirmExport}
                     onCancel={() => setModalStatus(null)}
-                    prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
+                    prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
                     confirmText={translate('workspace.exportAgainModal.confirmText')}
                     cancelText={translate('workspace.exportAgainModal.cancelText')}
                     isVisible

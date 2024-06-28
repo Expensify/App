@@ -30,16 +30,15 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const policyID = report?.policyID;
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
-    const integrationName = route?.params?.integrationName;
-    const iconToDisplay = ReportUtils.getIntegrationIcon(integrationName);
+    const connectionName = route?.params?.connectionName;
+    const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
-    const integrationText = ReportUtils.getIntegrationDisplayName(integrationName);
 
     const exportSelectorOptions: SelectorType[] = useMemo(
         () => [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: integrationText,
+                text: translate('workspace.common.exportIntegrationSelected', connectionName),
                 icons: [
                     {
                         source: iconToDisplay ?? '',
@@ -51,7 +50,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     if (ReportUtils.isExported(report)) {
                         setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                     } else {
-                        ReportActions.exportToIntegration(reportID, integrationName);
+                        ReportActions.exportToIntegration(reportID, connectionName);
                     }
                 },
             },
@@ -74,17 +73,17 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 },
             },
         ],
-        [canBeExported, iconToDisplay, integrationName, integrationText, report, reportID, translate],
+        [iconToDisplay, canBeExported, translate, report, reportID, connectionName],
     );
 
     const confirmExport = useCallback(() => {
         if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            ReportActions.exportToIntegration(reportID, integrationName);
+            ReportActions.exportToIntegration(reportID, connectionName);
         } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
             ReportActions.markAsManuallyExported(reportID);
         }
         setModalStatus(null);
-    }, [integrationName, modalStatus, reportID]);
+    }, [connectionName, modalStatus, reportID]);
 
     if (!canBeExported) {
         return (
@@ -115,7 +114,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 shouldBeBlocked={false}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
                 title="common.export"
-                connectionName={integrationName}
+                connectionName={connectionName}
                 onSelectRow={(option) => {
                     option.onPress?.();
                 }}
@@ -125,7 +124,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     title={translate('workspace.exportAgainModal.title')}
                     onConfirm={confirmExport}
                     onCancel={() => setModalStatus(null)}
-                    prompt={translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', integrationName})}
+                    prompt={translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName)}
                     confirmText={translate('workspace.exportAgainModal.confirmText')}
                     cancelText={translate('workspace.exportAgainModal.cancelText')}
                     isVisible

@@ -2006,7 +2006,7 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
             markAsExported: 'Mark as manually entered',
-            exportIntegrationSelected: ({integrationName}: {integrationName: string}) => `Export to ${integrationName}`,
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2760,8 +2760,8 @@ export default {
         },
         exportAgainModal: {
             title: 'Careful!',
-            description: ({reportName, integrationName}: {reportName: string; integrationName: string}) =>
-                `The following reports have already been exported to ${integrationName}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
         },

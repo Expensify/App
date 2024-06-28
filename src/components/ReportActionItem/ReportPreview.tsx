@@ -442,7 +442,7 @@ function ReportPreview({
                                 {shouldShowExportIntegrationButton && (
                                     <ExportWithDropdownMenu
                                         report={iouReport}
-                                        integrationName={connectedIntegration}
+                                        connectionName={connectedIntegration}
                                     />
                                 )}
                                 {shouldShowSubmitButton && (

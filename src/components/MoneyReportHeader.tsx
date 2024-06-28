@@ -365,7 +365,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     <View style={[styles.pv2]}>
                         <ExportWithDropdownMenu
                             report={moneyRequestReport}
-                            integrationName={connectedIntegration}
+                            connectionName={connectedIntegration}
                         />
                     </View>
                 )}
@@ -415,7 +415,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
                     <ExportWithDropdownMenu
                         report={moneyRequestReport}
-                        integrationName={connectedIntegration}
+                        connectionName={connectedIntegration}
                     />
                 )}
 
