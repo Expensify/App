@@ -68,10 +68,6 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
         });
     }, [shouldMaskOnyxState]);
 
-    const toggleOnyxStateMasking = useCallback(() => {
-        setShouldMaskOnyxState(!shouldMaskOnyxState);
-    }, [shouldMaskOnyxState]);
-
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
             translationKey: 'initialSettingsPage.troubleshoot.viewConsole',
@@ -150,7 +146,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
                                         isOn={shouldMaskOnyxState}
-                                        onToggle={toggleOnyxStateMasking}
+                                        onToggle={setShouldMaskOnyxState}
                                     />
                                 </TestToolRow>
                             </View>
