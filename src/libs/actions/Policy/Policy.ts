@@ -606,12 +606,7 @@ function leaveWorkspace(policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                employeeList: {
-                    [sessionEmail]: null,
-                },
-            },
+            value: null,
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -2190,6 +2185,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): string | u
             },
         },
     ];
+    successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
     successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
