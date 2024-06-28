@@ -4,7 +4,10 @@ SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source "$SCRIPTS_DIR/shellUtils.sh"
 
 # Run patch-package and capture its output and exit code
-OUTPUT="$(npx patch-package --error-on-fail 2>&1)"
+TEMP_OUTPUT="$(mktemp)"
+npx patch-package --error-on-fail 2>&1 | tee "$TEMP_OUTPUT"
+OUTPUT="$(cat "$TEMP_OUTPUT")"
+rm -f "$TEMP_OUTPUT"
 EXIT_CODE=$?
 
 # Check if the output contains the warning message
