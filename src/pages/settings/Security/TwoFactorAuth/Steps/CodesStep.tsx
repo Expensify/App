@@ -135,6 +135,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
                     <Button
                         success
                         large
+                        isDisabled={!isUserValidated}
                         text={translate('common.next')}
                         onPress={() => {
                             if (!account?.codesAreCopied) {
