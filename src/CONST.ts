@@ -1339,7 +1339,14 @@ const CONST = {
 
     NETSUITE_CONFIG: {
         SUBSIDIARY: 'subsidiary',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5']
+        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_KEYS: {
+            0: 'installBundle',
+            1: 'enableTokenAuthentication',
+            2: 'enableSoapServices',
+            3: 'createAccessToken',
+            4: 'enterCredentials'
+        }
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

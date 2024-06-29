@@ -5,13 +5,23 @@ import Text from '@components/Text';
 import type { SubStepProps } from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useLocalize from '@hooks/useLocalize';
+import CONST from '@src/CONST';
+import type { TranslationPaths } from '@src/languages/types';
 
 function NetSuiteTokenInputStaticContent({onNext, screenIndex}: SubStepProps) {
 const styles = useThemeStyles();
 const {translate} = useLocalize();
+
+const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_KEYS;
+const currentStepKey = stepKeys[(screenIndex ?? 0) as keyof typeof stepKeys];
+
+const titleKey = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.title` as TranslationPaths;
+const description = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.description` as TranslationPaths;
+
   return (
     <View>
-      <Text>Install the Expensify bundle {screenIndex}</Text>
+      <Text>{translate(titleKey)}</Text>
+      <Text>{translate(description)}</Text>
       <Button
                     success
                     large

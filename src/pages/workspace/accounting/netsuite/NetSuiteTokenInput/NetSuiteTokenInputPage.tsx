@@ -55,12 +55,14 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-                screenIndex={screenIndex}
-            />
+            <View style={[styles.ph5, styles.mb5, styles.mt3]}>
+                <SubStep
+                    isEditing={isEditing}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                    screenIndex={screenIndex}
+                />
+            </View>
         </ConnectionLayout>
     );
 }
