@@ -12,7 +12,7 @@ type SubsidiaryParam = {
     subsidiary: string;
 };
 
-function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, "policyID">) {
+function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     const parameters: ConnectPolicyToNetSuiteParams = {
         policyID,
         ...credentials,
@@ -102,6 +102,5 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
-
 
 export {updateNetSuiteSubsidiary, connectPolicyToNetSuite};

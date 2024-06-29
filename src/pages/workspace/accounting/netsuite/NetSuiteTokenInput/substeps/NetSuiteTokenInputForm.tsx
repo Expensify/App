@@ -14,7 +14,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import CONST from '@src/CONST';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
 
-function NetSuiteTokenInputForm({onNext, policyID}:SubStepProps & { policyID: string}) {
+function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 

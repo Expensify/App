@@ -24,10 +24,17 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
 
     const submit = () => {
         FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM);
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));;
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
     };
 
-    const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep<SubStepProps & {policyID: string}>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        nextScreen,
+        prevScreen,
+        screenIndex,
+        moveTo,
+    } = useSubStep<SubStepProps & {policyID: string}>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
