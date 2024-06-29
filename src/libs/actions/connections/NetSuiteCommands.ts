@@ -5,11 +5,20 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
+import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 
 type SubsidiaryParam = {
     subsidiaryID: string;
     subsidiary: string;
 };
+
+function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, "policyID">) {
+    const parameters: ConnectPolicyToNetSuiteParams = {
+        policyID,
+        ...credentials,
+    };
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {});
+}
 
 function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
     const onyxData: OnyxData = {
@@ -94,6 +103,5 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
-// We'll have more API calls in upcoming PRs
-// eslint-disable-next-line import/prefer-default-export
-export {updateNetSuiteSubsidiary};
+
+export {updateNetSuiteSubsidiary, connectPolicyToNetSuite};

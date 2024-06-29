@@ -12,6 +12,8 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useOnyx} from 'react-native-onyx';
+import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import ROUTES from '@src/ROUTES';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 
@@ -25,8 +27,13 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const [netsuiteTokenInputValues] = useOnyx(ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM_DRAFT);
 
     const submit = useCallback(() => {
-        // Use netsuiteTokenInputValues
+        connectPolicyToNetSuite(policyID, {
+            accountID: netsuiteTokenInputValues?.accountID ?? '',
+            tokenID: netsuiteTokenInputValues?.tokenID ?? '',
+            tokenSecret: netsuiteTokenInputValues?.tokenSecret ?? ''
+        });
         FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM);
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));;
     }, [policyID, netsuiteTokenInputValues]);
 
     const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
