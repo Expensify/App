@@ -2238,7 +2238,7 @@ export default {
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
             tokenInput: {
-                title: 'Netsuite setup',
+                title: 'Netsuite configuración',
                 formSteps: {
                     installBundle: {
                         title: 'Instala el paquete de Expensify',
