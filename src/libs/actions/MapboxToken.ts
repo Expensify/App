@@ -39,7 +39,7 @@ const setExpirationTimer = () => {
             return;
         }
         console.debug(`[MapboxToken] Fetching a new token after waiting ${REFRESH_INTERVAL / 1000 / 60} minutes`);
-        API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, {}, {});
+        API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, null, {});
     }, REFRESH_INTERVAL);
 };
 
@@ -52,7 +52,7 @@ const clearToken = () => {
 };
 
 const fetchToken = () => {
-    API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, {}, {});
+    API.read(READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN, null, {});
     isCurrentlyFetchingToken = true;
 };
 

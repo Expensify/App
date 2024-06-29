@@ -131,7 +131,7 @@ function ScreenWrapper(
 ) {
     /**
      * We are only passing navigation as prop from
-     * ReportScreenWrapper -> ReportScreen -> ScreenWrapper
+     * ReportScreen -> ScreenWrapper
      *
      * so in other places where ScreenWrapper is used, we need to
      * fallback to useNavigation.

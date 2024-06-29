@@ -117,7 +117,6 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 <View style={styles.flex1}>
                     <SelectionList
                         containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportEntity}
