@@ -98,7 +98,7 @@ function ConnectionLayout({
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
     allowWithoutConnection = false,
-    onBackButtonPress = () => Navigation.goBack()
+    onBackButtonPress = () => Navigation.goBack(),
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 

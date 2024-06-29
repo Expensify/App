@@ -5,13 +5,12 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import useThemeStyles from '@hooks/useThemeStyles';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import useSubStep from '@hooks/useSubStep';
-import type { SubStepProps } from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
 import NetSuiteTokenInputStaticContent from './substeps/NetSuiteTokenInputStaticContent';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
-
 
 const staticContentSteps = Array(4).fill(NetSuiteTokenInputStaticContent);
 const tokenInputSteps: Array<React.ComponentType<SubStepProps>> = [...staticContentSteps, NetSuiteTokenInputForm];
@@ -27,14 +26,12 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
-        
         if (screenIndex === 0) {
             Navigation.goBack();
             return;
         }
         prevScreen();
     };
-
 
     return (
         <ConnectionLayout
@@ -46,16 +43,16 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             allowWithoutConnection
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}            
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={handleBackButtonPress}
         >
-            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={screenIndex}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
-            <View style={[styles.ph5, styles.mb5, styles.mt3]}>
+            <View style={[styles.ph5, styles.mt3]}>
                 <SubStep
                     isEditing={isEditing}
                     onNext={nextScreen}

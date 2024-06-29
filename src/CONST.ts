@@ -1345,8 +1345,8 @@ const CONST = {
             1: 'enableTokenAuthentication',
             2: 'enableSoapServices',
             3: 'createAccessToken',
-            4: 'enterCredentials'
-        }
+            4: 'enterCredentials',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

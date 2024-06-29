@@ -2209,25 +2209,25 @@ export default {
                 formSteps: {
                     installBundle: {
                         title: 'Install the Expensify bundle',
-                        description: 'In NetSuite, go to *Customization > SuiteBundler > Search & Install Bundles* > search for "Expensify" > install the bundle.'
-
+                        description: 'In NetSuite, go to *Customization > SuiteBundler > Search & Install Bundles* > search for "Expensify" > install the bundle.',
                     },
                     enableTokenAuthentication: {
                         title: 'Enable token-based authentication',
-                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *token-based authentication*.'
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *token-based authentication*.',
                     },
                     enableSoapServices: {
                         title: 'Enable SOAP web services',
-                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *SOAP Web Services*.'
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *SOAP Web Services*.',
                     },
                     createAccessToken: {
                         title: 'Create an access token',
-                        description: 'In NetSuite, go to *Setup > Users/Roles > Access Tokens* > create an access token for the "Expensify" app and either the "Expensify Integration" or "Administrator" role.\n\n*Important:* Make sure you save the *Token ID* and *Token Secret* from this step. You\'ll need it for the next step.'
+                        description:
+                            'In NetSuite, go to *Setup > Users/Roles > Access Tokens* > create an access token for the "Expensify" app and either the "Expensify Integration" or "Administrator" role.\n\n*Important:* Make sure you save the *Token ID* and *Token Secret* from this step. You\'ll need it for the next step.',
                     },
                     enterCredentials: {
-                        title: 'Enter your NetSuite credentials'
-                    }
-                }
+                        title: 'Enter your NetSuite credentials',
+                    },
+                },
             },
         },
         intacct: {
