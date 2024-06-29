@@ -11524,6 +11524,7 @@ const CONST = {
         USER: 'user',
         ASSISTANT: 'assistant',
     },
+    PROPOSAL_KEYWORD: 'Proposal',
     OPENAI_THREAD_COMPLETED: 'completed',
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
     PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
