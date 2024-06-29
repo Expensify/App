@@ -1,7 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import React from 'react';
-import * as FormActions from '@userActions/FormActions';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,7 +9,6 @@ import {View} from 'react-native';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
@@ -23,7 +21,6 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
 
     const submit = () => {
-        FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM);
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
     };
 
