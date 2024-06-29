@@ -10,6 +10,7 @@ import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayTo
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import ValidateAccountMessage from '@components/ValidateAccountMessage';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -124,6 +125,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
                         </View>
                     </Section>
                 )}
+                {!isUserValidated && <ValidateAccountMessage />}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                     {!!error && (
                         <FormHelpMessage
