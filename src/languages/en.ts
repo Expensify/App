@@ -2226,6 +2226,11 @@ export default {
                     },
                     enterCredentials: {
                         title: 'Enter your NetSuite credentials',
+                        formInputs: {
+                            accountID: 'NetSuite Account ID',
+                            tokenID: 'Token ID',
+                            tokenSecret: 'Token Secret',
+                        }
                     },
                 },
             },

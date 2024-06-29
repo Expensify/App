@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-function NetSuiteTokenInputStaticContent({onNext, screenIndex}: SubStepProps) {
+function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -33,5 +33,5 @@ function NetSuiteTokenInputStaticContent({onNext, screenIndex}: SubStepProps) {
     );
 }
 
-NetSuiteTokenInputStaticContent.displayName = 'NetSuiteTokenInputStaticContent';
-export default NetSuiteTokenInputStaticContent;
+NetSuiteTokenSetupContent.displayName = 'NetSuiteTokenSetupContent';
+export default NetSuiteTokenSetupContent;
