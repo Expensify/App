@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 
 type SubsidiaryParam = {
     subsidiaryID: string;

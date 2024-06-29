@@ -1,20 +1,20 @@
+import {ExpensiMark} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {ExpensiMark} from 'expensify-common';
-import TextInput from '@components/TextInput';
-import Text from '@components/Text';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import type {SubStepProps} from '@hooks/useSubStep/types';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useLocalize from '@hooks/useLocalize';
-import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
-import ONYXKEYS from '@src/ONYXKEYS';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import CONST from '@src/CONST';
-import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useLocalize from '@hooks/useLocalize';
+import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/NetSuiteTokenInputForm';
 
 const parser = new ExpensiMark();
 
@@ -77,7 +77,9 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                         {formInput === INPUT_IDS.ACCOUNT_ID && (
                             <View style={styles.pt2}>
                                 <RenderHTML
-                                    html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`))}</muted-text></comment>`}
+                                    html={`<comment><muted-text>${parser.replace(
+                                        translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`),
+                                    )}</muted-text></comment>`}
                                 />
                             </View>
                         )}

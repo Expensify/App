@@ -1,15 +1,15 @@
+import {ExpensiMark} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import {ExpensiMark} from 'expensify-common';
 import Button from '@components/Button';
-import Text from '@components/Text';
 import FixedFooter from '@components/FixedFooter';
+import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import RenderHTML from '@components/RenderHTML';
 
 const parser = new ExpensiMark();
 

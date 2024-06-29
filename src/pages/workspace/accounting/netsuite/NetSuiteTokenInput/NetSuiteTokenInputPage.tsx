@@ -1,17 +1,17 @@
-import ConnectionLayout from '@components/ConnectionLayout';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import React from 'react';
-import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import CONST from '@src/CONST';
-import useThemeStyles from '@hooks/useThemeStyles';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import {View} from 'react-native';
+import ConnectionLayout from '@components/ConnectionLayout';
+import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
+import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
+import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
 const staticContentSteps = Array(4).fill(NetSuiteTokenSetupContent);
 const tokenInputSteps: Array<React.ComponentType<SubStepProps & {policyID: string}>> = [...staticContentSteps, NetSuiteTokenInputForm];
