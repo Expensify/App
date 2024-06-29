@@ -74,7 +74,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
         return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policyOwnerDisplayName});
-    }, [accountID, policy, displayName, translate]);
+    }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
 
     const roleItems: ListItemType[] = useMemo(
         () => [
