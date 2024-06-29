@@ -40,7 +40,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (account?.requiresTwoFactorAuth || account?.recoveryCodes) {
+        if (account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
