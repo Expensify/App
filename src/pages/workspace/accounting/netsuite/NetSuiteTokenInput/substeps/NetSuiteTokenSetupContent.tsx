@@ -17,8 +17,6 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    
-
     const stepKeys = CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_KEYS;
     const currentStepKey = stepKeys[(screenIndex ?? 0) as keyof typeof stepKeys];
 
