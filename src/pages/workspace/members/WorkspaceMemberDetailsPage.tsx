@@ -75,32 +75,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? -1] ?? ({} as PersonalDetails);
     const policyOwnerDisplayName = ownerDetails.displayName ?? policy?.owner ?? '';
 
-    const memberCards = useMemo(() => {
-        if (!cardsList) {
-            return [];
-        }
-        return Object.values(cardsList).filter((card) => card.accountID === accountID);
-    }, [cardsList, accountID]);
-
     const confirmModalPrompt = useMemo(() => {
         const isApprover = Member.isApprover(policy, accountID);
         if (!isApprover) {
             return translate('workspace.people.removeMemberPrompt', {memberName: displayName});
         }
-        return translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: displayName,
-            ownerName: policyOwnerDisplayName,
-        });
+        return translate('workspace.people.removeMembersWarningPrompt', {memberName: displayName, ownerName: policyOwnerDisplayName});
     }, [accountID, policy, displayName, policyOwnerDisplayName, translate]);
 
-    const roleItems: ListItemType[] = useMemo(
-        () => [
-            {
-                value: CONST.POLICY.ROLE.ADMIN,
-                text: translate('common.admin'),
-                isSelected: member?.role === CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.ADMIN,
-            },
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
