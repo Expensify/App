@@ -45,7 +45,7 @@ function CodesStep({account, user, backTo}: CodesStepProps) {
         }
         Session.toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, []);
+    }, [isUserValidated]);
 
     return (
         <StepWrapper
