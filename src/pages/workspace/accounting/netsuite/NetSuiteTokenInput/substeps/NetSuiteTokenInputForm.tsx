@@ -12,20 +12,20 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import CONST from '@src/CONST';
-import useStepFormSubmit from '@hooks/useStepFormSubmit';
+import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
 
-function NetSuiteTokenInputForm({onNext}: SubStepProps) {
+function NetSuiteTokenInputForm({onNext, policyID}:SubStepProps & { policyID: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const formInputs = Object.values(INPUT_IDS);
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
 
             formInputs.forEach((formInput) => {
-                if (values[formInput]) {
+                if (formValues[formInput]) {
                     return;
                 }
                 ErrorUtils.addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
@@ -35,12 +35,13 @@ function NetSuiteTokenInputForm({onNext}: SubStepProps) {
         [formInputs, translate],
     );
 
-    const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>({
-        formId: ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM,
-        fieldIds: formInputs,
-        onNext,
-        shouldSaveDraft: true,
-    });
+    const connectPolicy = useCallback(
+        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
+            connectPolicyToNetSuite(policyID, formValues);
+            onNext();
+        },
+        [onNext, policyID],
+    );
 
     return (
         <View style={[styles.flexGrow1, styles.ph5]}>
@@ -50,7 +51,7 @@ function NetSuiteTokenInputForm({onNext}: SubStepProps) {
                 formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
                 style={styles.flexGrow1}
                 validate={validate}
-                onSubmit={handleSubmit}
+                onSubmit={connectPolicy}
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline
                 shouldValidateOnBlur

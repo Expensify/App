@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import React, {useCallback} from 'react';
+import React from 'react';
 import * as FormActions from '@userActions/FormActions';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -11,32 +11,23 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useOnyx} from 'react-native-onyx';
-import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
 import ROUTES from '@src/ROUTES';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 
 const staticContentSteps = Array(4).fill(NetSuiteTokenSetupContent);
-const tokenInputSteps: Array<React.ComponentType<SubStepProps>> = [...staticContentSteps, NetSuiteTokenInputForm];
+const tokenInputSteps: Array<React.ComponentType<SubStepProps & {policyID: string}>> = [...staticContentSteps, NetSuiteTokenInputForm];
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
 
-    const [netsuiteTokenInputValues] = useOnyx(ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM_DRAFT);
-
-    const submit = useCallback(() => {
-        connectPolicyToNetSuite(policyID, {
-            accountID: netsuiteTokenInputValues?.accountID ?? '',
-            tokenID: netsuiteTokenInputValues?.tokenID ?? '',
-            tokenSecret: netsuiteTokenInputValues?.tokenSecret ?? ''
-        });
+    const submit = () => {
         FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM);
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));;
-    }, [policyID, netsuiteTokenInputValues]);
+    };
 
-    const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep<SubStepProps & {policyID: string}>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
@@ -71,6 +62,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                     onNext={nextScreen}
                     onMove={moveTo}
                     screenIndex={screenIndex}
+                    policyID={policyID}
                 />
             </View>
         </ConnectionLayout>
