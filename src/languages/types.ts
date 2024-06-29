@@ -300,6 +300,11 @@ type ReimbursementRateParams = {unit: Unit};
 
 type ConfirmHoldExpenseParams = {transactionCount: number};
 
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -405,4 +410,5 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    RemoveMembersWarningPrompt,
 };
