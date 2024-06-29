@@ -370,7 +370,7 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            Navigation.dismissModal();
+            navigateBack();
             IOU.replaceReceipt(transactionID, file as File, source);
         },
         [transactionID],
