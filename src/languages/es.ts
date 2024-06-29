@@ -2263,9 +2263,9 @@ export default {
                             accountID: 'ID de Cuenta NetSuite',
                             tokenID: 'ID de Token',
                             tokenSecret: 'Secreto de Token',
-                        }
+                        },
                     },
-                }
+                },
             },
         },
         intacct: {

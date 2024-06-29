@@ -1,6 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import * as FormActions from '@userActions/FormActions';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -11,10 +11,9 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { useOnyx } from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
-
 
 const staticContentSteps = Array(4).fill(NetSuiteTokenSetupContent);
 const tokenInputSteps: Array<React.ComponentType<SubStepProps>> = [...staticContentSteps, NetSuiteTokenInputForm];

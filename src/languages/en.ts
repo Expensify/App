@@ -2230,7 +2230,7 @@ export default {
                             accountID: 'NetSuite Account ID',
                             tokenID: 'Token ID',
                             tokenSecret: 'Token Secret',
-                        }
+                        },
                     },
                 },
             },

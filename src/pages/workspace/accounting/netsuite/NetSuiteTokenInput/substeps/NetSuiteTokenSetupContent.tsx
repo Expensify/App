@@ -22,15 +22,15 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     return (
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
-            <Text style={[styles.mb3,styles.ph5,styles.textSupporting]}>{translate(description)}</Text>
+            <Text style={[styles.mb3, styles.ph5, styles.textSupporting]}>{translate(description)}</Text>
             <FixedFooter style={[styles.mtAuto]}>
-            <Button
-                success
-                large
-                style={[styles.w100]}
-                onPress={onNext}
-                text={translate('common.next')}
-            />
+                <Button
+                    success
+                    large
+                    style={[styles.w100]}
+                    onPress={onNext}
+                    text={translate('common.next')}
+                />
             </FixedFooter>
         </View>
     );

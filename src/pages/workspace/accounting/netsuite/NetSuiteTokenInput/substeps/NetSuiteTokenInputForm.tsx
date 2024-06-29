@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import TextInput from '@components/TextInput';
 import Text from '@components/Text';
