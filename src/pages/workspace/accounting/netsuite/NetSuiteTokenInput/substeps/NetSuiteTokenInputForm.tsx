@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {ExpensiMark} from 'expensify-common';
 import TextInput from '@components/TextInput';
 import Text from '@components/Text';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +14,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import CONST from '@src/CONST';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import RenderHTML from '@components/RenderHTML';
+
+const parser = new ExpensiMark();
 
 function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: string}) {
     const styles = useThemeStyles();
@@ -71,7 +75,9 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                             spellCheck={false}
                         />
                         {formInput === INPUT_IDS.ACCOUNT_ID && (
-                            <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`)}</Text>
+                            <View style={styles.pt2}>
+                                <RenderHTML html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`))}</muted-text></comment>`} />
+                            </View>
                         )}
                     </View>
                 ))}
