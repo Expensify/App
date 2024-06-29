@@ -70,6 +70,10 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                             role={CONST.ROLE.PRESENTATION}
                             spellCheck={false}
                         />
+                        {
+                            formInput === INPUT_IDS.ACCOUNT_ID && 
+                                <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`)}</Text>
+                        }
                     </View>
                 ))}
             </FormProvider>

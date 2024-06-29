@@ -2264,6 +2264,7 @@ export default {
                             tokenID: 'ID de Token',
                             tokenSecret: 'Secreto de Token',
                         },
+                        accountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.'
                     },
                 },
             },
