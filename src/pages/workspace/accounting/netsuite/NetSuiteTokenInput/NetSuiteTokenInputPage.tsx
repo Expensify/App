@@ -40,7 +40,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[styles.pb2, styles.flex1]}
+            contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             allowWithoutConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
@@ -52,7 +52,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
-            <View style={[styles.flex1, styles.ph5, styles.mt3]}>
+            <View style={[styles.flexGrow1, styles.mt3]}>
                 <SubStep
                     isEditing={isEditing}
                     onNext={nextScreen}

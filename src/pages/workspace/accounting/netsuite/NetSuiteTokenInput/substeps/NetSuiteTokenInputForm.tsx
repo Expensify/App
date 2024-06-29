@@ -34,7 +34,7 @@ function NetSuiteTokenInputForm({onNext}: SubStepProps) {
         [formInputs, translate],
     );
     return (
-        <View style={[styles.flexGrow1]}>
+        <View style={[styles.flexGrow1, styles.ph5]}>
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
 
             <FormProvider

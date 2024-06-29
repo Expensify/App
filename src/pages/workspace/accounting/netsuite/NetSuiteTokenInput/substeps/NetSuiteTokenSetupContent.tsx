@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
+import FixedFooter from '@components/FixedFooter';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useLocalize from '@hooks/useLocalize';
@@ -19,16 +20,18 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     const description = `workspace.netsuite.tokenInput.formSteps.${currentStepKey}.description` as TranslationPaths;
 
     return (
-        <View>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate(titleKey)}</Text>
-            <Text style={[styles.mb3, styles.textSupporting]}>{translate(description)}</Text>
+        <View style={styles.flex1}>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
+            <Text style={[styles.mb3,styles.ph5,styles.textSupporting]}>{translate(description)}</Text>
+            <FixedFooter style={[styles.mtAuto]}>
             <Button
                 success
                 large
-                style={[styles.w100, styles.mv5]}
+                style={[styles.w100]}
                 onPress={onNext}
                 text={translate('common.next')}
             />
+            </FixedFooter>
         </View>
     );
 }
