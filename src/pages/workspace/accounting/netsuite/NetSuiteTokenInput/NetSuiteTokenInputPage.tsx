@@ -53,7 +53,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
-            allowWithoutConnection
+            reverseConnectionEmptyCheck
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={handleBackButtonPress}
         >

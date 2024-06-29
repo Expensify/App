@@ -61,8 +61,8 @@ type ConnectionLayoutProps = {
     /** Name of the current connection */
     connectionName: ConnectionName;
 
-    /** Allow without connection */
-    allowWithoutConnection?: boolean;
+    /** Block the screen when the connection is not empty */
+    reverseConnectionEmptyCheck?: boolean;
 
     /** Handler for back button press */
     onBackButtonPress?: () => void;
@@ -97,7 +97,7 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
-    allowWithoutConnection = false,
+    reverseConnectionEmptyCheck = false,
     onBackButtonPress = () => Navigation.goBack(),
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
@@ -123,7 +123,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={allowWithoutConnection !== true && isConnectionEmpty}
+            shouldBeBlocked={reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
