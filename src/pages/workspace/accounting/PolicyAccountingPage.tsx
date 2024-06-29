@@ -113,7 +113,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                onImportPagePress: () => {},
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => {},
                 onAdvancedPagePress: () => {},
             };
