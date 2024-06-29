@@ -12,6 +12,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import CONST from '@src/CONST';
+import useStepFormSubmit from '@hooks/useStepFormSubmit';
 
 function NetSuiteTokenInputForm({onNext}: SubStepProps) {
     const styles = useThemeStyles();
@@ -33,6 +34,14 @@ function NetSuiteTokenInputForm({onNext}: SubStepProps) {
         },
         [formInputs, translate],
     );
+
+    const handleSubmit = useStepFormSubmit<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>({
+        formId: ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM,
+        fieldIds: formInputs,
+        onNext,
+        shouldSaveDraft: true,
+    });
+
     return (
         <View style={[styles.flexGrow1, styles.ph5]}>
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
@@ -41,7 +50,7 @@ function NetSuiteTokenInputForm({onNext}: SubStepProps) {
                 formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
                 style={styles.flexGrow1}
                 validate={validate}
-                onSubmit={onNext}
+                onSubmit={handleSubmit}
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline
                 shouldValidateOnBlur
