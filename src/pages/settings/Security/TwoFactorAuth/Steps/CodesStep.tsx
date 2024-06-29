@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type CodesStepProps = BaseTwoFactorAuthFormOnyxProps & BackToParams;
 
-function CodesStep({account, backTo}: CodesStepProps) {
+function CodesStep({account, user, backTo}: CodesStepProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -151,4 +151,7 @@ CodesStep.displayName = 'CodesStep';
 
 export default withOnyx<CodesStepProps, BaseTwoFactorAuthFormOnyxProps>({
     account: {key: ONYXKEYS.ACCOUNT},
+    user: {
+        key: ONYXKEYS.USER,
+    },
 })(CodesStep);
