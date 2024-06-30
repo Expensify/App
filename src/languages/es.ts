@@ -331,6 +331,8 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        companyID: 'Empresa ID',
+        userID: 'Usuario ID',
         disable: 'Deshabilitar',
     },
     connectionComplete: {
@@ -2078,7 +2080,7 @@ export default {
             exportInvoicesDescription: 'Usa esta cuenta al exportar facturas a QuickBooks Online.',
             exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
             account: 'Cuenta',
-            accountDescription: 'Elige dónde contabilizar las compensaciones de entradas a los asientos contables.',
+            accountDescription: 'Elige dónde contabilizar los asientos contables.',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
@@ -2086,7 +2088,6 @@ export default {
             accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
             bankAccount: 'Cuenta bancaria',
             bankAccountDescription: 'Elige desde dónde enviar los cheques.',
-            optionBelow: 'Elija una opción a continuación:',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online no permite lugares en las exportaciones de facturas de proveedores. Como tienes activadas los lugares en tu espacio de trabajo, esta opción de exportación no está disponible.',
             exportPreferredExporterNote:
@@ -2108,7 +2109,7 @@ export default {
             advancedConfig: {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
-                autoSyncDescription: 'Sincroniza QuickBooks Online y Expensify automáticamente, todos los días.',
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
                 inviteEmployees: 'Invitar empleados',
                 inviteEmployeesDescription: 'Importe los registros de los empleados de Quickbooks Online e invítelos a este espacio de trabajo.',
                 createEntities: 'Crear entidades automáticamente',
@@ -2135,10 +2136,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.',
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
-                    'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
-                    'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de débito.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Elige dónde exportar las transacciones con tarjeta de crédito.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
 
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
@@ -2190,7 +2189,7 @@ export default {
             advancedConfig: {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
-                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente, todos los días.',
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con Xero todos los días.',
                 purchaseBillStatusTitle: 'Estado de la factura de compra',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
@@ -2201,8 +2200,8 @@ export default {
                 invoiceAccountSelectorDescription: 'Elige dónde recibir los pagos de facturas y crearemos el pago en Xero.',
             },
             exportDate: {
-                label: 'Fecha de exportación',
-                description: 'Usa esta fecha al exportar facturas de compra a Xero.',
+                label: 'Fecha de la factura de compra',
+                description: 'Usa esta fecha al exportar el informe a Xero.',
                 values: {
                     [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Fecha del último gasto',
@@ -2238,6 +2237,17 @@ export default {
             subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+        },
+        intacct: {
+            sageIntacctSetup: 'Sage Intacct configuración',
+            prerequisitesTitle: 'Antes de conectar...',
+            downloadExpensifyPackage: 'Descargar el paquete Expensify para Sage Intacct',
+            followSteps: 'Siga los pasos de nuestras instrucciones Cómo: Instrucciones para conectarse a Sage Intacct',
+            enterCredentials: 'Introduzca sus credenciales de Sage Intacct',
+            createNewConnection: 'Crear una nueva conexión',
+            reuseExistingConnection: 'Reutilizar la conexión existente',
+            existingConnections: 'Conexiones existentes',
+            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Última sincronización ${formattedDate}`,
         },
         type: {
             free: 'Gratis',
@@ -2438,6 +2448,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            intacct: 'Sage Intacct',
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
             import: 'Importar',
@@ -2583,6 +2594,8 @@ export default {
                             return 'Comprobando la conexión a Sage Intacct';
                         case 'intacctImportDimensions':
                             return 'Importando dimensiones';
+                        case 'intacctImportTitle':
+                            return 'Importando datos desde Sage Intacct';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2603,6 +2616,34 @@ export default {
             benefit4: 'Límites personalizables',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
             checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
+            issueCard: 'Emitir tarjeta',
+            issueNewCard: {
+                whoNeedsCard: '¿Quién necesita una tarjeta?',
+                findMember: 'Buscar miembro',
+                chooseCardType: 'Elegir un tipo de tarjeta',
+                physicalCard: 'Tarjeta física',
+                physicalCardDescription: 'Ideal para los consumidores habituales',
+                virtualCard: 'Tarjeta virtual',
+                virtualCardDescription: 'Instantáneo y flexible',
+                chooseLimitType: 'Elegir un tipo de límite',
+                smartLimit: 'Límite inteligente',
+                smartLimitDescription: 'Gasta hasta una determinada cantidad antes de requerir aprobación',
+                monthly: 'Mensual',
+                monthlyDescription: 'Gasta hasta una determinada cantidad al mes',
+                fixedAmount: 'Cantidad fija',
+                fixedAmountDescription: 'Gasta hasta una determinada cantidad una vez',
+                setLimit: 'Establecer un límite',
+                giveItName: 'Dale un nombre',
+                giveItNameInstruction: 'Hazlo lo suficientemente único como para distinguirlo de los demás. Los casos de uso específicos son aún mejores.',
+                cardName: 'Nombre de la tarjeta',
+                letsDoubleCheck: 'Vuelve a comprobar que todo parece correcto. ',
+                willBeReady: 'Esta tarjeta estará lista para su uso inmediato.',
+                cardholder: 'Titular de la tarjeta',
+                cardType: 'Tipo de tarjeta',
+                limit: 'Limite',
+                limitType: 'Tipo de limite',
+                name: 'Nombre',
+            },
         },
         reimburse: {
             captureReceipts: 'Captura recibos',
