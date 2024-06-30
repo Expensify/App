@@ -1342,7 +1342,7 @@ const CONST = {
         SUBSIDIARY: 'subsidiary',
         IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
-        SYNC_TAX: 'syncTax'
+        SYNC_TAX: 'syncTax',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
