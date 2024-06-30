@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -21,18 +22,12 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = policy?.connections?.quickbooksOnline;
-    const isConnectedToXero = policy?.connections?.xero;
     const policyID = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    let toggleSubtitle = '';
-    if (isConnectedToQbo) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}.`;
-    }
-    if (isConnectedToXero) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}.`;
-    }
-
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
+    
+    const toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.`;
+    
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);
     };
