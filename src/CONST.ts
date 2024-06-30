@@ -1339,6 +1339,7 @@ const CONST = {
 
     NETSUITE_CONFIG: {
         SUBSIDIARY: 'subsidiary',
+        IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
