@@ -48,7 +48,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const handleNextScreen = () => {
         ref.current?.moveNext();
         nextScreen();
-    }
+    };
 
     return (
         <ConnectionLayout
