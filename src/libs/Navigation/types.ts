@@ -402,6 +402,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_MAPPING]: {
+        policyID: string;
+        importField: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

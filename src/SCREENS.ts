@@ -274,6 +274,7 @@ const SCREENS = {
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Net_Suite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_Net_Suite_Import',
+            NETSUITE_IMPORT_MAPPING: 'Policy_Accounting_Net_Suite_Import_Mapping',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',

@@ -12,6 +12,8 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -58,7 +60,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                             title={translate(`workspace.accounting.importTypes.${config?.syncOptions?.mapping?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}`)}
                             shouldShowRightIcon
                             onPress={() => {
-                                // TODO: Navigation will be handled in future PRs
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING.getRoute(policyID, importField));
                             }}
                             brickRoadIndicator={config?.errorFields?.[importField] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
