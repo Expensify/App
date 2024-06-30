@@ -230,9 +230,9 @@ function IOURequestStepScan({
             });
     }
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     const navigateToParticipantPage = useCallback(() => {
         switch (iouType) {
