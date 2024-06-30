@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
+import ConfirmModal from '@components/ConfirmModal';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
-import type { LocationPermissionModalProps } from './types';
+import type {LocationPermissionModalProps} from './types';
 
 function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
     const [hasError, setHasError] = useState(false);
@@ -43,16 +43,18 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     };
 
     const onConfirm = errorHandler(() => {
-        requestLocationPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                onGrant();
-            } else {
-                onDeny(status);
-            }
-        }).finally(() => {
-            setShowModal(false);
-            setHasError(false);
-        });
+        requestLocationPermission()
+            .then((status) => {
+                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
+                    onGrant();
+                } else {
+                    onDeny(status);
+                }
+            })
+            .finally(() => {
+                setShowModal(false);
+                setHasError(false);
+            });
     });
 
     const onCancel = () => {

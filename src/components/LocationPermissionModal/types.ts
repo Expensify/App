@@ -16,4 +16,4 @@ type LocationPermissionModalProps = {
 
 export default {};
 
-export type { LocationPermissionModalProps };
+export type {LocationPermissionModalProps};
