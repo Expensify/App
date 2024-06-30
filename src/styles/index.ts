@@ -1800,7 +1800,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.activeComponentBG,
             textDecorationLine: 'none',
         },
 
@@ -5034,6 +5034,20 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
+        },
+
+        computerIllustrationContainer: {
+            width: 272,
+            height: 188,
+        },
+
+        tripReservationIconContainer: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         textLineThrough: {

@@ -341,6 +341,8 @@ export default {
         drafts: 'Drafts',
         finished: 'Finished',
         upgrade: 'Upgrade',
+        companyID: 'Company ID',
+        userID: 'User ID',
         disable: 'Disable',
     },
     location: {
@@ -2068,12 +2070,11 @@ export default {
             exportVendorBillDescription:
                 "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
             account: 'Account',
-            accountDescription: 'Choose where to post journal entry offsets.',
+            accountDescription: 'Choose where to post journal entries.',
             accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
-            optionBelow: 'Choose an option below:',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -2083,7 +2084,7 @@ export default {
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
-                autoSyncDescription: 'Sync QuickBooks Online and Expensify automatically, every day.',
+                autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
@@ -2109,8 +2110,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Choose where to export debit card transactions.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Choose where to export credit card transactions.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
 
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
@@ -2157,7 +2158,7 @@ export default {
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
-                autoSyncDescription: 'Sync Xero and Expensify automatically, every day.',
+                autoSyncDescription: 'Expensify will automatically sync with Xero every day.',
                 purchaseBillStatusTitle: 'Purchase bill status',
                 reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
@@ -2167,18 +2168,18 @@ export default {
                 invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in Xero.",
             },
             exportDate: {
-                label: 'Export date',
-                description: 'Use this date when exporting purchase bills to Xero.',
+                label: 'Purchase bill date',
+                description: 'Use this date when exporting reports to Xero.',
                 values: {
-                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
                         description: 'Date of the most recent expense on the report.',
                     },
-                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
                         description: 'Date the report was exported to Xero.',
                     },
-                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
                         description: 'Date the report was submitted for approval.',
                     },
@@ -2204,6 +2205,17 @@ export default {
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+        },
+        intacct: {
+            sageIntacctSetup: 'Sage Intacct setup',
+            prerequisitesTitle: 'Before you connect...',
+            downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
+            followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
+            enterCredentials: 'Enter your Sage Intacct credentials',
+            createNewConnection: 'Create new connection',
+            reuseExistingConnection: 'Reuse existing connection',
+            existingConnections: 'Existing connections',
+            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
         },
         type: {
             free: 'Free',
@@ -2409,6 +2421,34 @@ export default {
             benefit4: 'Customizable limits and spend controls',
             addWorkEmail: 'Add work email address',
             checkingDomain: "Hang tight! We're still working on enabling your Expensify Cards. Check back here in a few minutes.",
+            issueCard: 'Issue card',
+            issueNewCard: {
+                whoNeedsCard: 'Who needs a card?',
+                findMember: 'Find member',
+                chooseCardType: 'Choose a card type',
+                physicalCard: 'Physical card',
+                physicalCardDescription: 'Great for the frequent spender',
+                virtualCard: 'Virtual card',
+                virtualCardDescription: 'Instant and flexible',
+                chooseLimitType: 'Choose a limit type',
+                smartLimit: 'Smart Limit',
+                smartLimitDescription: 'Spend up to a certain amount before requiring approval',
+                monthly: 'Monthly',
+                monthlyDescription: 'Spend up to a certain amount per month',
+                fixedAmount: 'Fixed amount',
+                fixedAmountDescription: 'Spend up to a certain amount once',
+                setLimit: 'Set a limit',
+                giveItName: 'Give it a name',
+                giveItNameInstruction: 'Make it unique enough to tell apart from the other. Specific use cases are even better!',
+                cardName: 'Card name',
+                letsDoubleCheck: 'Let’s double check that everything looks right.',
+                willBeReady: 'This card will be ready to use immediately.',
+                cardholder: 'Cardholder',
+                cardType: 'Card type',
+                limit: 'Limit',
+                limitType: 'Limit type',
+                name: 'Name',
+            },
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
@@ -2436,6 +2476,7 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            intacct: 'Sage Intacct',
             setup: 'Connect',
             lastSync: 'Last synced just now',
             import: 'Import',
@@ -2445,22 +2486,19 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Disconnect QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Disconnect Xero';
-                    default: {
-                        return 'Disconnect integration';
-                    }
-                }
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+                return `Disconnect ${integrationName}`;
             },
+            connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
+
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return "Can't connect to Xero.";
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return "Can't connect to NetSuite.";
                     default: {
                         return "Can't connect to integration.";
                     }
@@ -2479,25 +2517,17 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
             },
-            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
-                switch (integrationToConnect) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
-                    default: {
-                        switch (currentIntegration) {
-                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                                return 'Are you sure you want to disconnect QuickBooks Online?';
-                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                                return 'Are you sure you want to disconnect Xero?';
-                            default: {
-                                return 'Are you sure you want to disconnect this integration?';
-                            }
-                        }
-                    }
-                }
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+                const integrationName =
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        : 'this integration';
+                return `Are you sure you want to disconnect ${integrationName}?`;
             },
+            connectPrompt: (integrationToConnect: ConnectionName): string =>
+                `Are you sure you want to connect ${
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'
+                }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
@@ -2593,8 +2623,8 @@ export default {
                             return 'Marking NetSuite bills and invoices as paid';
                         case 'intacctCheckConnection':
                             return 'Checking Sage Intacct connection';
-                        case 'intacctImportDimensions':
-                            return 'Importing dimensions';
+                        case 'intacctImportTitle':
+                            return 'Importing Sage Intacct data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }

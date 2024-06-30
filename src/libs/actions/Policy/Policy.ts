@@ -2992,6 +2992,10 @@ function upgradeToCorporate(policyID: string, featureName: string) {
     API.write(WRITE_COMMANDS.UPGRADE_TO_CORPORATE, parameters, {optimisticData, successData, failureData});
 }
 
+function getPoliciesConnectedToSageIntacct(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -3056,6 +3060,7 @@ export {
     createPolicyExpenseChats,
     upgradeToCorporate,
     clearNetSuiteErrorField,
+    getPoliciesConnectedToSageIntacct,
 };
 
 export type {NewCustomUnit};

@@ -787,6 +787,17 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    // TODO: uncomment after development is done
+    // WORKSPACE_EXPENSIFY_CARD: {
+    //     route: 'settings/workspaces/:policyID/expensify-card',
+    //     getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    // },
+    // WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
+    // route: 'settings/workspaces/:policyID/expensify-card/issues-new',
+    // getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,
+    // },
+    // TODO: remove after development is done - this one is for testing purposes
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'settings/workspaces/expensify-card/issue-new',
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
@@ -932,6 +943,18 @@ const ROUTES = {
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
     },
 } as const;
 
