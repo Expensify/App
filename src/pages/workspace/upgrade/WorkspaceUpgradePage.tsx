@@ -10,6 +10,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
@@ -19,7 +20,7 @@ type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, ty
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params.policyID;
     const featureName = route.params.featureName as keyof typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING;
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING[featureName as keyof typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING];
+    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING[featureName];
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
@@ -41,7 +42,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
             />
             {isUpgraded && <UpgradeConfirmation policyName={policy.name} />}
             {!isUpgraded && (

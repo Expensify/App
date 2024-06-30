@@ -10,7 +10,9 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import ROUTES from '@src/ROUTES';
 
 type Props = {
     buttonDisabled?: boolean;
@@ -41,10 +43,8 @@ function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, load
                         success
                     />
                 </View>
-                <View style={styles.mb4}>
-                    <Text style={styles.textHeadlineH1}>{title}</Text>
-                </View>
                 <View style={styles.mb5}>
+                    <Text style={[styles.textHeadlineH1, styles.mb4]}>{title}</Text>
                     <Text style={[styles.textNormal, styles.textSupporting]}>{description}</Text>
                 </View>
                 <Button
@@ -60,7 +60,7 @@ function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, load
                     {translate('workspace.upgrade.note.upgradeWorkspace')}{' '}
                     <TextLink
                         style={[styles.link]}
-                        href=""
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
                     >
                         {translate('workspace.upgrade.note.learnMore')}
                     </TextLink>{' '}

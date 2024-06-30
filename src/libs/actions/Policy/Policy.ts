@@ -2977,6 +2977,13 @@ function upgradeToCorporate(policyID: string, featureName: string) {
             key: `policy_${policyID}`,
             value: {
                 isPendingUpgrade: false,
+                type: policy?.type,
+                maxExpenseAge: policy?.maxExpenseAge ?? null,
+                maxExpenseAmount: policy?.maxExpenseAmount ?? null,
+                maxExpenseAmountNoReceipt: policy?.maxExpenseAmountNoReceipt ?? null,
+                glCodes: policy?.glCodes ?? null,
+                autoReporting: policy?.autoReporting ?? null,
+                autoReportingFrequency: policy?.autoReportingFrequency ?? null,
             },
         },
     ];

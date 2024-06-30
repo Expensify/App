@@ -4,6 +4,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type Props = {
     policyName: string;
@@ -21,7 +22,7 @@ function UpgradeConfirmation({policyName}: Props) {
                     {translate('workspace.upgrade.completed.successMessage', policyName)}{' '}
                     <TextLink
                         style={styles.link}
-                        href=""
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
                     >
                         {translate('workspace.upgrade.completed.viewSubscription')}
                     </TextLink>{' '}
