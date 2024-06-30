@@ -94,6 +94,92 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
+function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        syncTax: isSyncTaxEnabled,
+                                    },
+                                    pendingFields: {
+                                        syncTax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    },
+                                    errorFields: {
+                                        syncTax: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        syncTax: isSyncTaxEnabled,
+                                    },
+                                    pendingFields: {
+                                        syncTax: null
+                                    },
+                                    errorFields: {
+                                        syncTax: null,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        syncTax: !isSyncTaxEnabled,
+                                    },
+                                    pendingFields: {
+                                        syncTax: null,
+                                    },
+                                    errorFields: {
+                                        syncTax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        enabled: isSyncTaxEnabled,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION, params, onyxData);
+}
+
 // We'll have more API calls in upcoming PRs
 // eslint-disable-next-line import/prefer-default-export
-export {updateNetSuiteSubsidiary};
+export {updateNetSuiteSubsidiary, updateNetSuiteSyncTaxConfiguration};
