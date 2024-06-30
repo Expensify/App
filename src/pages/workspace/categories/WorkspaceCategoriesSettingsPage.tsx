@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -25,9 +25,9 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const policyID = route.params.policyID ?? '-1';
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    
+
     const toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.`;
-    
+
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);
     };
