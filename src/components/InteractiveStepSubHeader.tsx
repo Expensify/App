@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useImperativeHandle, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +25,9 @@ type InteractiveStepSubHeaderProps = {
 type InteractiveStepSubHeaderHandle = {
     /** Move to the next step */
     moveNext: () => void;
+
+    /** Move to the previous step */
+    movePrevious: () => void;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
@@ -45,19 +48,12 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
             moveNext: () => {
                 setCurrentStep((actualStep) => actualStep + 1);
             },
+            movePrevious: () => {
+                setCurrentStep((actualStep) => actualStep - 1);
+            },
         }),
         [],
     );
-
-    useEffect(() => {
-        if (currentStep === startStepIndex) {
-            return;
-        }
-
-        setCurrentStep(startStepIndex);
-        // Disabling this rule because adding `currentStep` will cause infinite rerenders
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startStepIndex]);
 
     const amountOfUnions = stepNames.length - 1;
 

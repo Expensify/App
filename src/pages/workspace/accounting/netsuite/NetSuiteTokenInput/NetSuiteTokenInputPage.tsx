@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +21,7 @@ const tokenInputSteps: Array<React.ComponentType<SubStepProps & {policyID: strin
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
+    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
     const submit = () => {
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
@@ -38,8 +41,14 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             Navigation.goBack();
             return;
         }
+        ref.current?.movePrevious();
         prevScreen();
     };
+
+    const handleNextScreen = () => {
+        ref.current?.moveNext();
+        nextScreen();
+    }
 
     return (
         <ConnectionLayout
@@ -56,14 +65,15 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
-                    startStepIndex={screenIndex}
+                    ref={ref}
+                    startStepIndex={0}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
                 <SubStep
                     isEditing={isEditing}
-                    onNext={nextScreen}
+                    onNext={handleNextScreen}
                     onMove={moveTo}
                     screenIndex={screenIndex}
                     policyID={policyID}
