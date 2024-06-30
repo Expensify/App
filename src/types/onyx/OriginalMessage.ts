@@ -531,11 +531,6 @@ type OriginalMessageMap = {
 /** */
 type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
 
-/**
- *
- */
-type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-
 export default OriginalMessage;
 export type {
     DecisionName,
@@ -548,5 +543,4 @@ export type {
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,
     OriginalMessageModifiedExpense,
-    ActionName,
 };
