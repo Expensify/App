@@ -463,6 +463,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                                 // eslint-disable-next-line no-param-reassign
                                 ref.current = {hourRef: textInputRef as TextInput | null, minuteRef: minuteInputRef.current};
                             }
+                            // eslint-disable-next-line react-compiler/react-compiler
                             hourInputRef.current = textInputRef as TextInput | null;
                         }}
                         onSelectionChange={(e) => {
