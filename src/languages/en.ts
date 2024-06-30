@@ -2212,7 +2212,7 @@ export default {
                     classes: 'Classes',
                     locations: 'Locations',
                     customers: 'Customers',
-                    jobs: 'Projects(jobs)',
+                    jobs: 'Projects (jobs)',
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {

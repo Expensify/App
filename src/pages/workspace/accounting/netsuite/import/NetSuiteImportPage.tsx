@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -71,9 +72,12 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     subtitle={translate('workspace.netsuite.import.importTaxDescription')}
                     shouldPlaceSubtitleBelowSwitch
                     isActive={config?.syncOptions?.syncTax ?? false}
-                    disabled
                     switchAccessibilityLabel={translate('common.tax')}
-                    onToggle={() => {}}
+                    onToggle={(isEnabled: boolean) => {
+                        updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
+                    }}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_TAX)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_TAX)}
                 />
             </View>
 

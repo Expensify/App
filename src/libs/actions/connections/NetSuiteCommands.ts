@@ -108,9 +108,9 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: isSyncTaxEnabled,
                                     },
-                                    pendingFields: {
-                                        syncTax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                    },
+                                    // pendingFields: {
+                                    //     syncTax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    // },
                                     errorFields: {
                                         syncTax: null,
                                     },
@@ -133,9 +133,9 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: isSyncTaxEnabled,
                                     },
-                                    pendingFields: {
-                                        syncTax: null
-                                    },
+                                    // pendingFields: {
+                                    //     syncTax: null
+                                    // },
                                     errorFields: {
                                         syncTax: null,
                                     },
@@ -158,9 +158,9 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: !isSyncTaxEnabled,
                                     },
-                                    pendingFields: {
-                                        syncTax: null,
-                                    },
+                                    // pendingFields: {
+                                    //     syncTax: null,
+                                    // },
                                     errorFields: {
                                         syncTax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                     },
