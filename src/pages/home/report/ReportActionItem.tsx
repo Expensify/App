@@ -143,7 +143,11 @@ type ReportActionItemProps = {
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine?: boolean;
 
+    /** Linked report action ID */
     linkedReportActionID?: string;
+
+    /** Whether the linked report action is highlighted */
+    isHighlighted?: boolean;
 
     /** Callback to be called on onPress */
     onPress?: () => void;
@@ -164,6 +168,7 @@ function ReportActionItem({
     report,
     transactionThreadReport,
     linkedReportActionID,
+    isHighlighted,
     displayAsGroup,
     emojiReactions,
     index,
@@ -213,8 +218,8 @@ function ReportActionItem({
     const originalMessage = ReportActionsUtils.getOriginalMessage(action);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
+        () => (isHighlighted && isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
+        [StyleUtils, isHighlighted, isReportActionLinked, theme.messageHighlightBG],
     );
 
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);

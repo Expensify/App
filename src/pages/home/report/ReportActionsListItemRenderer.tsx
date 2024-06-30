@@ -44,6 +44,9 @@ type ReportActionsListItemRendererProps = {
     /** Linked report action ID */
     linkedReportActionID?: string;
 
+    /** Whether the linked report action is highlighted */
+    isHighlighted?: boolean;
+
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
 
@@ -66,6 +69,7 @@ function ReportActionsListItemRenderer({
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
+    isHighlighted = false,
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
@@ -167,6 +171,7 @@ function ReportActionsListItemRenderer({
             action={action}
             reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
+            isHighlighted={isHighlighted}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={

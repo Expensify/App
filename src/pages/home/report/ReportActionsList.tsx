@@ -3,7 +3,7 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Platform} from 'react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -171,6 +171,14 @@ function ReportActionsList({
     const userActiveSince = useRef<string | null>(null);
     const lastMessageTime = useRef<string | null>(null);
 
+    const [isHighlighted, setIsHighlighted] = useState(false);
+    const userHasRefreshedPage =
+        Platform.OS === 'web' &&
+        performance.getEntriesByType('navigation').some((entry) => {
+            const navEntry = entry as PerformanceNavigationTiming;
+            return navEntry.type === 'reload';
+        });
+
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
 
@@ -329,12 +337,13 @@ function ReportActionsList({
     }, [report.reportID]);
 
     useEffect(() => {
-        if (linkedReportActionID) {
-            return;
+        if (linkedReportActionID && !userHasRefreshedPage) {
+            setIsHighlighted(true);
+        } else {
+            InteractionManager.runAfterInteractions(() => {
+                reportScrollManager.scrollToBottom();
+            });
         }
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
-        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -362,9 +371,18 @@ function ReportActionsList({
             previousSubUnsubscribe();
         }
 
+        // Callback to clear highlight state if the action is from the current user
+        const handleNewAction = (isFromCurrentUser: boolean) => {
+            if (!isFromCurrentUser) {
+                return;
+            }
+            setIsHighlighted(false);
+            scrollToBottomForCurrentUserAction(isFromCurrentUser);
+        };
+
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
+        const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, handleNewAction);
 
         const cleanup = () => {
             if (!unsubscribe) {
@@ -563,6 +581,7 @@ function ReportActionsList({
                 report={report}
                 transactionThreadReport={transactionThreadReport}
                 linkedReportActionID={linkedReportActionID}
+                isHighlighted={isHighlighted}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
@@ -575,6 +594,7 @@ function ReportActionsList({
         [
             report,
             linkedReportActionID,
+            isHighlighted,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
