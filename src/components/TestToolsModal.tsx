@@ -64,7 +64,7 @@ function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}:
                         />
                     </TestToolRow>
                 )}
-                {isProduction && <TestToolMenu />}
+                {!isProduction && <TestToolMenu />}
             </View>
         </Modal>
     );
