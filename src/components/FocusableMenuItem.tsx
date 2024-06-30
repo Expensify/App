@@ -5,10 +5,10 @@ import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 
 function FocusableMenuItem(props: MenuItemProps) {
-    const ref = useRef<HTMLDivElement | View>(null);
+    const ref = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(ref, Boolean(props.focused));
+    useSyncFocus(ref, !!props.focused);
 
     return (
         <MenuItem

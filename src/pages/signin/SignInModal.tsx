@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import Navigation from '@libs/Navigation/Navigation';
+import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -27,6 +28,7 @@ function SignInModal({session}: SignInModalProps) {
         if (!isAnonymousUser) {
             // Signing in RHP is only for anonymous users
             Navigation.isNavigationReady().then(() => Navigation.dismissModal());
+            App.openApp();
         }
     }, [session?.authTokenType]);
 

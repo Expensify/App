@@ -2,11 +2,12 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {KeyboardProvider} from 'react-native-keyboard-controller';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
-import ActiveWorkspaceContextProvider from './components/ActiveWorkspace/ActiveWorkspaceProvider';
+import ActiveWorkspaceContextProvider from './components/ActiveWorkspaceProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
@@ -30,8 +31,10 @@ import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import {EnvironmentProvider} from './components/withEnvironment';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
+import CONFIG from './CONFIG';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -50,49 +53,56 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
+const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+
 function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
     return (
-        <InitialURLContextProvider url={url}>
-            <GestureHandlerRootView style={fill}>
-                <ComposeProviders
-                    components={[
-                        OnyxProvider,
-                        ThemeProvider,
-                        ThemeStylesProvider,
-                        ThemeIllustrationsProvider,
-                        SafeAreaProvider,
-                        PortalProvider,
-                        SafeArea,
-                        LocaleContextProvider,
-                        HTMLEngineProvider,
-                        WindowDimensionsProvider,
-                        KeyboardStateProvider,
-                        PopoverContextProvider,
-                        CurrentReportIDContextProvider,
-                        ScrollOffsetContextProvider,
-                        ReportAttachmentsProvider,
-                        PickerStateProvider,
-                        EnvironmentProvider,
-                        CustomStatusBarAndBackgroundContextProvider,
-                        ActiveElementRoleProvider,
-                        ActiveWorkspaceContextProvider,
-                        PlaybackContextProvider,
-                        FullScreenContextProvider,
-                        VolumeContextProvider,
-                        VideoPopoverMenuContextProvider,
-                    ]}
-                >
-                    <CustomStatusBarAndBackground />
-                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                        <ColorSchemeWrapper>
-                            <Expensify />
-                        </ColorSchemeWrapper>
-                    </ErrorBoundary>
-                </ComposeProviders>
-            </GestureHandlerRootView>
-        </InitialURLContextProvider>
+        <StrictModeWrapper>
+            <InitialURLContextProvider url={url}>
+                <GestureHandlerRootView style={fill}>
+                    <ComposeProviders
+                        components={[
+                            OnyxProvider,
+                            ThemeProvider,
+                            ThemeStylesProvider,
+                            ThemeIllustrationsProvider,
+                            SafeAreaProvider,
+                            PortalProvider,
+                            SafeArea,
+                            LocaleContextProvider,
+                            HTMLEngineProvider,
+                            WindowDimensionsProvider,
+                            KeyboardStateProvider,
+                            PopoverContextProvider,
+                            CurrentReportIDContextProvider,
+                            ScrollOffsetContextProvider,
+                            ReportAttachmentsProvider,
+                            PickerStateProvider,
+                            EnvironmentProvider,
+                            CustomStatusBarAndBackgroundContextProvider,
+                            ActiveElementRoleProvider,
+                            ActiveWorkspaceContextProvider,
+                            ReportIDsContextProvider,
+                            PlaybackContextProvider,
+                            FullScreenContextProvider,
+                            VolumeContextProvider,
+                            VideoPopoverMenuContextProvider,
+                            KeyboardProvider,
+                        ]}
+                    >
+                        <CustomStatusBarAndBackground />
+                        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                            <ColorSchemeWrapper>
+                                <Expensify />
+                            </ColorSchemeWrapper>
+                        </ErrorBoundary>
+                    </ComposeProviders>
+                </GestureHandlerRootView>
+            </InitialURLContextProvider>
+        </StrictModeWrapper>
     );
 }
 

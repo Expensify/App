@@ -60,7 +60,7 @@ function BankInfo({reimbursementAccount, reimbursementAccountDraft, plaidLinkTok
         setupType = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
     }
 
-    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '0');
+    const bankAccountID = Number(reimbursementAccount?.achData?.bankAccountID ?? '-1');
     const submit = useCallback(() => {
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
             BankAccounts.connectBankAccountManually(

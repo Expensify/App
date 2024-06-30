@@ -1,6 +1,6 @@
 import type {Asset} from 'react-native-image-picker';
 
-type FileDownload = (url: string, fileName?: string, successMessage?: string) => Promise<void>;
+type FileDownload = (url: string, fileName?: string, successMessage?: string, shouldOpenExternalLink?: boolean) => Promise<void>;
 
 type ImageResolution = {width: number; height: number};
 type GetImageResolution = (url: File | Asset) => Promise<ImageResolution>;

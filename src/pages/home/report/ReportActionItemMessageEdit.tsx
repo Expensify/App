@@ -1,10 +1,9 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
@@ -22,12 +21,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -60,21 +59,24 @@ type ReportActionItemMessageEditProps = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker?: boolean;
 
-    /** Stores user's preferred skin tone */
-    preferredSkinTone?: OnyxEntry<string | number>;
+    /** Whether report is from group policy */
+    isGroupPolicyReport?: boolean;
 };
 
 // native ids
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
-const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
+// video source -> video attributes
+const draftMessageVideoAttributeCache = new Map<string, string>();
+
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
+    {action, draftMessage, reportID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
+    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
+    const [preferredSkinTone] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {initialValue: CONST.EMOJI_DEFAULT_SKIN_TONE});
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -84,14 +86,6 @@ function ReportActionItemMessageEdit(
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
 
-    const getInitialSelection = () => {
-        if (isMobileSafari) {
-            return {start: 0, end: 0};
-        }
-
-        const length = draftMessage.length;
-        return {start: length, end: length};
-    };
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
@@ -99,7 +93,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>(getInitialSelection);
+    const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -117,13 +111,12 @@ function ReportActionItemMessageEdit(
     const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        const parser = new ExpensiMark();
-        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
-        if (
-            ReportActionsUtils.isDeletedAction(action) ||
-            Boolean(action.message && draftMessage === originalMessage) ||
-            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
-        ) {
+        draftMessageVideoAttributeCache.clear();
+
+        const originalMessage = parseHtmlToMarkdown(ReportActionsUtils.getReportActionHtml(action), undefined, undefined, (videoSource, attrs) => {
+            draftMessageVideoAttributeCache.set(videoSource, attrs);
+        });
+        if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
         setDraft(draftMessage);
@@ -142,7 +135,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setModal(modalArg);
@@ -152,7 +145,7 @@ function ReportActionItemMessageEdit(
         const unsubscribeOnyxFocused = onyxSubscribe({
             key: ONYXKEYS.INPUT_FOCUSED,
             callback: (modalArg) => {
-                if (modalArg === null) {
+                if (modalArg === undefined) {
                     return;
                 }
                 setOnyxFocused(modalArg);
@@ -170,26 +163,8 @@ function ReportActionItemMessageEdit(
         [action.reportActionID],
     );
 
-    useEffect(() => {
-        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-        // so we need to ensure that it is only updated after focus.
-        if (isMobileSafari) {
-            setDraft((prevDraft) => {
-                setSelection({
-                    start: prevDraft.length,
-                    end: prevDraft.length,
-                });
-                return prevDraft;
-            });
-
-            // Scroll content of textInputRef to bottom
-            if (textInputRef.current) {
-                textInputRef.current.scrollTop = textInputRef.current.scrollHeight;
-            }
-        }
-
-        return () => {
+    useEffect(
+        () => () => {
             InputFocus.callback(() => setIsFocused(false));
             InputFocus.inputFocusChange(false);
 
@@ -208,9 +183,10 @@ function ReportActionItemMessageEdit(
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
-        };
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
-    }, [action.reportActionID]);
+        [action.reportActionID],
+    );
 
     // show the composer after editing is complete for devices that hide the composer during editing.
     useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
@@ -318,7 +294,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -330,7 +306,7 @@ function ReportActionItemMessageEdit(
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft);
+        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -380,8 +356,8 @@ function ReportActionItemMessageEdit(
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
 
     return (
         <>
@@ -435,7 +411,11 @@ function ReportActionItemMessageEdit(
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                reportScrollManager.scrollToIndex(index, true);
+                                InteractionManager.runAfterInteractions(() => {
+                                    requestAnimationFrame(() => {
+                                        reportScrollManager.scrollToIndex(index, true);
+                                    });
+                                });
                                 setShouldShowComposeInputKeyboardAware(false);
 
                                 // Clear active report action when another action gets focused
@@ -448,15 +428,16 @@ function ReportActionItemMessageEdit(
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
-                                // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                            isGroupPolicyReport={isGroupPolicyReport}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>

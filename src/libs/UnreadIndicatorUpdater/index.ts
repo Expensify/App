@@ -1,3 +1,5 @@
+import debounce from 'lodash/debounce';
+import memoize from 'lodash/memoize';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -15,11 +17,11 @@ export default function getUnreadReportsForUnreadIndicator(reports: OnyxCollecti
             ReportUtils.isUnread(report) &&
             ReportUtils.shouldReportBeInOptionList({
                 report,
-                currentReportId: currentReportID ?? '',
+                currentReportId: currentReportID ?? '-1',
                 betas: [],
                 policies: {},
                 doesReportHaveViolations: false,
-                isInGSDMode: false,
+                isInFocusMode: false,
                 excludeEmptyChats: false,
             }) &&
             /**
@@ -35,13 +37,16 @@ export default function getUnreadReportsForUnreadIndicator(reports: OnyxCollecti
     );
 }
 
-const triggerUnreadUpdate = () => {
-    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() ?? '' : '';
+const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator);
+
+const triggerUnreadUpdate = debounce(() => {
+    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
-    const unreadReports = getUnreadReportsForUnreadIndicator(allReports, currentReportID);
+    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);
+
     updateUnread(unreadReports.length);
-};
+}, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,

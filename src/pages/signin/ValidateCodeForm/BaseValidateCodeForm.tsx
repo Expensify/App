@@ -220,12 +220,23 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
+    useEffect(() => {
+        if (!hasError) {
+            return;
+        }
+
+        setFormError({});
+    }, [hasError]);
+
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
         if (account?.isLoading) {
             return;
+        }
+        if (account?.errors) {
+            SessionActions.clearAccountMessages();
         }
         const requiresTwoFactorAuth = account?.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
@@ -292,7 +303,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={translate('recoveryCodeForm.recoveryCode')}
-                            errorText={formError?.recoveryCode ?? ''}
+                            errorText={formError?.recoveryCode ? translate(formError?.recoveryCode) : ''}
                             hasError={hasError}
                             onSubmitEditing={validateAndSubmitForm}
                             autoFocus
@@ -312,7 +323,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             onChangeText={(text) => onTextInput(text, 'twoFactorAuthCode')}
                             onFulfill={validateAndSubmitForm}
                             maxLength={CONST.TFA_CODE_LENGTH}
-                            errorText={formError?.twoFactorAuthCode ?? ''}
+                            errorText={formError?.twoFactorAuthCode ? translate(formError?.twoFactorAuthCode) : ''}
                             hasError={hasError}
                             autoFocus
                             key="twoFactorAuthCode"
@@ -345,7 +356,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                         value={validateCode}
                         onChangeText={(text) => onTextInput(text, 'validateCode')}
                         onFulfill={validateAndSubmitForm}
-                        errorText={formError?.validateCode ?? ''}
+                        errorText={formError?.validateCode ? translate(formError?.validateCode) : ''}
                         hasError={hasError}
                         autoFocus
                         key="validateCode"

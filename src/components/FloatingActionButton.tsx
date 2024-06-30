@@ -27,12 +27,10 @@ type AdapterProps = {
 
 const adapter = createAnimatedPropAdapter(
     (props: AdapterProps) => {
-        // eslint-disable-next-line rulesdir/prefer-underscore-method
         if (Object.keys(props).includes('fill')) {
             // eslint-disable-next-line no-param-reassign
             props.fill = {type: 0, payload: processColor(props.fill)};
         }
-        // eslint-disable-next-line rulesdir/prefer-underscore-method
         if (Object.keys(props).includes('stroke')) {
             // eslint-disable-next-line no-param-reassign
             props.stroke = {type: 0, payload: processColor(props.stroke)};

@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import type {KeyValueMapping} from 'react-native-onyx';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -1952,11 +1953,10 @@ describe('ReportActionsUtils', () => {
                 waitForBatchedUpdates()
                     // When Onyx is updated with the data and the sidebar re-renders
                     .then(() =>
-                        // @ts-expect-error Preset necessary values
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {[action.reportActionID]: action, [action2.reportActionID]: action2},
-                        }),
+                        } as unknown as KeyValueMapping),
                     )
                     .then(
                         () =>

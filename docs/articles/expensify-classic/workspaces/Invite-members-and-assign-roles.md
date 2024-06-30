@@ -50,12 +50,13 @@ If you’re inviting multiple people who will be assigned the same role, you can
 
 7. Select a role for the new member. The following table shows the permissions available for each role:
 
-|                           | Employee                         | Auditor | Workspace Admin | 
-|---------------------------|----------------------------------|---------|-----------------|
-| Submit reports            |  Yes                             |  Yes    |  Yes            |
-| Comment on reports        |  Yes                             |  Yes    |  Yes            |
-| Approve workspace reports |  Only reports submitted to them  |  Yes    |  Yes            |
-| Edit workspace settings   |  No                              |  No     |  Yes            |
+| Employee                                  | Auditor                                    | Workspace Admin                           |
+| ----------------------------------------- | ------------------------------------------ | ----------------------------------------- |
+| &#10004; Submit their own reports         | &#10004; Submit their own reports          | &#10004; Submit their own reports         |
+| &#10004; Approve reports submitted to them| &#10004; Approve reports submitted to them | &#10004; Approve reports submitted to them|
+|                                           | &#10004; View all workspace reports        | &#10004; View all workspace reports       |
+|                                           |                                            | &#10004; Approve all workspace reports    |
+|                                           |                                            | &#10004; Edit workspace settings          |
 
 8. If your workspace uses Advanced Approvals, select “Approves to.” This determines who the member’s reports must be approved by, if applicable. If “no one” is selected, then if the member submits a report, anyone with the Auditor or Workspace Admin role can approve their reports. 
 9. Add a personal message, if desired. This message will appear in the invitation email or message.

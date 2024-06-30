@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -13,18 +14,20 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {parseHtmlToText} from '@libs/OnyxAwareParser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
 
@@ -34,7 +37,10 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -48,26 +54,41 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         }, []),
     );
 
-    if (!optionItem) {
-        return null;
-    }
-
-    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
-    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
-    const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
-        : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, style];
-
-    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
             : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
     );
+
+    if (!optionItem && !isFocused) {
+        // rendering null as a render item causes the FlashList to render all
+        // its children and consume signficant memory on the first render. We can avoid this by
+        // rendering a placeholder view instead. This behaviour is only observed when we
+        // first sign in to the App.
+        // We can fix this by checking if the optionItem is null and the component is not focused.
+        // Which means that the currentReportID is not the same as the reportID. The currentReportID
+        // in this case is empty and hence the component is not focused.
+        return <View style={sidebarInnerRowStyle} />;
+    }
+
+    if (!optionItem) {
+        // This is the case when the component is focused and the optionItem is null.
+        // For example, when you submit an expense in offline mode and click on the
+        // generated expense report, we would only see the Report Details but no item in LHN.
+        return null;
+    }
+
+    const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const shouldShowGreenDotIndicator = !hasBrickError && ReportUtils.requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
+    const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
+    const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
+    const alternateTextStyle = isInFocusMode
+        ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
+
+    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
@@ -77,7 +98,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
      * @param [event] - A press event.
      */
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isFocusedRef.current && isSmallScreenWidth) {
+        if (!isFocusedRef.current && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
@@ -87,7 +108,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             '',
             popoverAnchor.current,
             reportID,
-            '0',
+            '-1',
             reportID,
             undefined,
             () => {},
@@ -104,12 +125,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const report = ReportUtils.getReport(optionItem.reportID ?? '');
-    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : null);
+    const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
-    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '') : optionItem.text;
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
         <OfflineWithFeedback
@@ -166,17 +186,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {(optionItem.icons?.length ?? 0) > 0 &&
+                                {!!optionItem.icons?.length &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem.icons?.[0]}
-                                            secondaryAvatar={optionItem.icons?.[1]}
+                                            mainAvatar={optionItem.icons[0]}
+                                            secondaryAvatar={optionItem.icons[1]}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            icons={optionItem.icons ?? []}
+                                            icons={optionItem.icons}
                                             isFocusMode={isInFocusMode}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
@@ -202,7 +222,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isTaskReport ||
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
-                                                ReportUtils.isGroupChat(report)
+                                                !!optionItem.isInvoiceReport ||
+                                                ReportUtils.isGroupChat(report) ||
+                                                ReportUtils.isSystemChat(report)
                                             }
                                         />
                                         {isStatusVisible && (
@@ -220,7 +242,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {parseHtmlToText(optionItem.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>

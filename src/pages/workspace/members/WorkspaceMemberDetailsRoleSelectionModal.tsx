@@ -56,6 +56,7 @@ function WorkspaceMemberDetailsRoleSelectionModal({isVisible, items, onRoleChang
                         sections={[{data: items}]}
                         ListItem={RadioListItem}
                         onSelectRow={onRoleChange}
+                        shouldDebounceRowSelect
                         initiallyFocusedOptionKey={items.find((item) => item.isSelected)?.keyForList}
                     />
                 </View>

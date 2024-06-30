@@ -1,11 +1,12 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {getPathFromState} from '@react-navigation/native';
-import type {ValueOf, Writable} from 'type-fest';
+import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import isCentralPaneName from '@libs/NavigationUtils';
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
@@ -18,7 +19,7 @@ type ActionPayloadParams = {
     path?: string;
 };
 
-type CentralPaneRouteParams = Record<string, string> & {policyID?: string; reportID?: string};
+type CentralPaneRouteParams = Record<string, string> & {policyID?: string; policyIDs?: string; reportID?: string};
 
 function checkIfActionPayloadNameIsEqual(action: Writable<NavigationAction>, screenName: string) {
     return action?.payload && 'name' in action.payload && action?.payload?.name === screenName;
@@ -31,31 +32,32 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
         return;
     }
 
-    const params = action.payload.params as ActionPayloadParams;
-    let payloadParams = params?.params as Record<string, string | undefined>;
-    let screen = params.screen;
-
-    // Case when the user is on the AllSettingsScreen and selects the specific workspace. The user is redirected then to the specific workspace settings.
-    if (screen === SCREENS.ALL_SETTINGS && policyID) {
-        screen = SCREENS.WORKSPACE.INITIAL;
-    }
-
-    // Alternative case when the user is on the specific workspace settings screen and selects "All" workspace.
-    else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
-        screen = SCREENS.ALL_SETTINGS;
-    }
-
-    if (!payloadParams) {
-        payloadParams = {policyID};
+    let name;
+    let params: Record<string, string | undefined>;
+    if (isCentralPaneName(action.payload.name)) {
+        name = action.payload.name;
+        params = action.payload.params;
     } else {
-        payloadParams.policyID = policyID;
+        const actionPayloadParams = action.payload.params as ActionPayloadParams;
+        name = actionPayloadParams.screen;
+        params = actionPayloadParams?.params as Record<string, string | undefined>;
+    }
+
+    if (name === SCREENS.SEARCH.CENTRAL_PANE) {
+        name = SCREENS.SEARCH.BOTTOM_TAB;
+    }
+
+    if (!params) {
+        params = {policyID};
+    } else {
+        params.policyID = policyID;
     }
 
     return {
         type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
         payload: {
-            name: screen,
-            params: payloadParams,
+            name,
+            params,
         },
         target: bottomTabNavigatorRoute.state.key,
     };
@@ -65,7 +67,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
-
     let root: NavigationRoot = navigation;
     let current: NavigationRoot | undefined;
 
@@ -76,7 +77,15 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
-    const newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
+    const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
+    let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
+
+    // Currently, the search page displayed in the bottom tab has the same URL as the page in the central pane, so we need to redirect to the correct search route.
+    // Here's the configuration: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
+    const isOpeningSearchFromBottomTab = !route && topmostCentralPaneRoute?.name === SCREENS.SEARCH.CENTRAL_PANE;
+    if (isOpeningSearchFromBottomTab) {
+        newPath = ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL);
+    }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
@@ -93,51 +102,34 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         return;
     }
 
+    // The correct route for SearchPage is located in the CentralPane
+    const shouldAddToCentralPane = !getIsNarrowLayout() || isOpeningSearchFromBottomTab;
+
     // If the layout is wide we need to push matching central pane route to the stack.
-    if (!getIsNarrowLayout()) {
-        // Case when the user selects "All" workspace from the specific workspace settings
-        if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.ALL_SETTINGS) && !policyID) {
-            root.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                payload: {
-                    name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                    params: {
-                        screen: SCREENS.SETTINGS.WORKSPACES,
-                        params: undefined,
-                    },
-                },
-            });
-        } else {
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
-            const screen = topmostCentralPaneRoute?.name;
-            const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
-            const isWorkspaceScreen = screen && Object.values(SCREENS.WORKSPACE).includes(screen as ValueOf<typeof SCREENS.WORKSPACE>);
+    if (shouldAddToCentralPane) {
+        const params: CentralPaneRouteParams = {...topmostCentralPaneRoute?.params};
 
-            // Only workspace settings screens have to store the policyID in the params.
-            // In other case, the policyID is read from the BottomTab params.
-            if (!isWorkspaceScreen) {
-                delete params.policyID;
+        if (isOpeningSearchFromBottomTab) {
+            if (policyID) {
+                params.policyIDs = policyID;
             } else {
-                params.policyID = policyID;
+                delete params.policyIDs;
             }
-
-            // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
-            // To achieve that, it's necessary to navigate without the reportID param.
-            if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.HOME)) {
-                delete params.reportID;
-            }
-
-            root.dispatch({
-                type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
-                payload: {
-                    name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR,
-                    params: {
-                        screen,
-                        params,
-                    },
-                },
-            });
         }
+
+        // If the user is on the home page and changes the current workspace, then should be displayed a report from the selected workspace.
+        // To achieve that, it's necessary to navigate without the reportID param.
+        if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.HOME)) {
+            delete params.reportID;
+        }
+
+        root.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.PUSH,
+            payload: {
+                name: topmostCentralPaneRoute?.name,
+                params,
+            },
+        });
     } else {
         // If the layout is small we need to pop everything from the central pane so the bottom tab navigator is visible.
         root.dispatch({

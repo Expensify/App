@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+/** Names of quick actions that the user can execute */
 type QuickActionName = ValueOf<typeof CONST.QUICK_ACTIONS>;
 
+/** Model of user quick action */
 type QuickAction = {
     /** The action to take */
     action?: QuickActionName;

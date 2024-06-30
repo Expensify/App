@@ -1,4 +1,3 @@
-// eslint-disable-next-line you-dont-need-lodash-underscore/each
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';

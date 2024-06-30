@@ -5,15 +5,15 @@ import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import type {MaybePhraseKey} from '@libs/Localize';
 import mapChildrenFlat from '@libs/mapChildrenFlat';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
+import type {AllStyles} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import CustomStylesForChildrenProvider from './CustomStylesForChildrenProvider';
 import MessagesRow from './MessagesRow';
 
 /**
@@ -62,10 +62,6 @@ type OfflineWithFeedbackProps = ChildrenProps & {
 
 type StrikethroughProps = Partial<ChildrenProps> & {style: Array<ViewStyle | TextStyle | ImageStyle>};
 
-function isMaybePhraseKeyType(message: unknown): message is MaybePhraseKey {
-    return typeof message === 'string' || Array.isArray(message);
-}
-
 function OfflineWithFeedback({
     pendingAction,
     canDismissError = true,
@@ -89,8 +85,8 @@ function OfflineWithFeedback({
 
     // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
     const errorEntries = Object.entries(errors ?? {});
-    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, MaybePhraseKey | ReceiptError] => errorEntry[1] !== null);
-    const errorMessages = mapValues(Object.fromEntries(filteredErrorEntries), (error) => (isMaybePhraseKeyType(error) ? ErrorUtils.getErrorMessageWithTranslationData(error) : error));
+    const filteredErrorEntries = errorEntries.filter((errorEntry): errorEntry is [string, string | ReceiptError] => errorEntry[1] !== null);
+    const errorMessages = mapValues(Object.fromEntries(filteredErrorEntries), (error) => error);
 
     const hasErrorMessages = !isEmptyObject(errorMessages);
     const isOfflinePendingAction = !!isOffline && !!pendingAction;
@@ -111,12 +107,13 @@ function OfflineWithFeedback({
                     return child;
                 }
 
+                const childProps: {children: React.ReactNode | undefined; style: AllStyles} = child.props;
                 const props: StrikethroughProps = {
-                    style: StyleUtils.combineStyles(child.props.style, styles.offlineFeedback.deleted, styles.userSelectNone),
+                    style: StyleUtils.combineStyles(childProps.style, styles.offlineFeedback.deleted, styles.userSelectNone),
                 };
 
-                if (child.props.children) {
-                    props.children = applyStrikeThrough(child.props.children);
+                if (childProps.children) {
+                    props.children = applyStrikeThrough(childProps.children);
                 }
 
                 return React.cloneElement(child, props);
@@ -138,7 +135,7 @@ function OfflineWithFeedback({
                     style={[needsOpacity ? styles.offlineFeedback.pending : {}, contentContainerStyle]}
                     needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOpacity && needsOffscreenAlphaCompositing : undefined}
                 >
-                    {children}
+                    <CustomStylesForChildrenProvider style={needsStrikeThrough ? [styles.offlineFeedback.deleted, styles.userSelectNone] : null}>{children}</CustomStylesForChildrenProvider>
                 </View>
             )}
             {shouldShowErrorMessages && hasErrorMessages && (

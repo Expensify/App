@@ -7,6 +7,9 @@ type OnboardingPersonalDetailsProps = Record<string, unknown>;
 type BaseOnboardingPersonalDetailsOnyxProps = {
     /** Saved onboarding purpose selected by the user */
     onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
+
+    /** Saved onboarding admin chat report ID */
+    onboardingAdminsChatReportID: OnyxEntry<string>;
 };
 
 type BaseOnboardingPersonalDetailsProps = WithCurrentUserPersonalDetailsProps &

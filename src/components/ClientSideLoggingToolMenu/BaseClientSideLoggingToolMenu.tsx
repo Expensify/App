@@ -30,9 +30,11 @@ type BaseClientSideLoggingToolProps = {
     onDisableLogging: (logs: Log[]) => void;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
+    /** Path used to display location of saved file */
+    displayPath?: string;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
-function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging}: BaseClientSideLoggingToolProps) {
+function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, displayPath}: BaseClientSideLoggingToolProps) {
     const {translate} = useLocalize();
 
     const onToggle = () => {
@@ -70,7 +72,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
             </TestToolRow>
             {!!file && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${file.path}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
                         <Button
                             small

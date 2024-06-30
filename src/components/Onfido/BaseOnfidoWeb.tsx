@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import './index.css';
-import type {OnfidoElement, OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
@@ -92,9 +92,9 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error) => {
+        onError: (error: OnfidoError) => {
             const errorType = error.type;
-            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
+            const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
             if (errorType === CONST.WALLET.ERROR.ONFIDO_USER_CONSENT_DENIED) {
                 onUserExit();

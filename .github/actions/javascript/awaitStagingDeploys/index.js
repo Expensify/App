@@ -7373,7 +7373,7 @@ FetchError.prototype.name = 'FetchError';
 
 let convert;
 try {
-	convert = (__nccwpck_require__(2877).convert);
+	convert = (__nccwpck_require__(3975).convert);
 } catch (e) {}
 
 const INTERNALS = Symbol('Body internals');
@@ -12131,14 +12131,8 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const promiseWhile_1 = __nccwpck_require__(9438);
 function run() {
-    console.info('[awaitStagingDeploys] run()');
-    console.info('[awaitStagingDeploys] getStringInput', ActionUtils_1.getStringInput);
-    console.info('[awaitStagingDeploys] GitHubUtils', GithubUtils_1.default);
-    console.info('[awaitStagingDeploys] promiseDoWhile', promiseWhile_1.promiseDoWhile);
     const tag = (0, ActionUtils_1.getStringInput)('TAG', { required: false });
-    console.info('[awaitStagingDeploys] run() tag', tag);
     let currentStagingDeploys = [];
-    console.info('[awaitStagingDeploys] run()  _.throttle', throttle_1.default);
     const throttleFunc = () => Promise.all([
         // These are active deploys
         GithubUtils_1.default.octokit.actions.listWorkflowRuns({
@@ -12158,22 +12152,18 @@ function run() {
             }),
     ])
         .then((responses) => {
-        console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
         const workflowRuns = responses[0].data.workflow_runs;
         if (!tag && typeof responses[1] === 'object') {
             workflowRuns.push(...responses[1].data.workflow_runs);
         }
-        console.info('[awaitStagingDeploys] workflowRuns', workflowRuns);
         return workflowRuns;
     })
         .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
         .then(() => {
-        console.info('[awaitStagingDeploys] currentStagingDeploys', currentStagingDeploys);
         console.log(!currentStagingDeploys.length
             ? 'No current staging deploys found'
             : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`);
     });
-    console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
     return (0, promiseWhile_1.promiseDoWhile)(() => !!currentStagingDeploys.length, (0, throttle_1.default)(throttleFunc, 
     // Poll every 60 seconds instead of every 10 seconds
     CONST_1.default.POLL_RATE * 6));
@@ -12324,13 +12314,11 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
-     * Initialize internal octokit
-     *
-     * @private
+     * Initialize internal octokit.
+     * NOTE: When using GithubUtils in CI, you don't need to call this manually.
      */
-    static initOctokit() {
+    static initOctokitWithToken(token) {
         const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
-        const token = core.getInput('GITHUB_TOKEN', { required: true });
         // Save a copy of octokit used in this class
         this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {
@@ -12349,6 +12337,15 @@ class GithubUtils {
                 },
             },
         }));
+    }
+    /**
+     * Default initialize method assuming running in CI, getting the token from an input.
+     *
+     * @private
+     */
+    static initOctokit() {
+        const token = core.getInput('GITHUB_TOKEN', { required: true });
+        this.initOctokitWithToken(token);
     }
     /**
      * Either give an existing instance of Octokit rest or create a new one
@@ -12705,12 +12702,31 @@ class GithubUtils {
             .then((events) => events.filter((event) => event.event === 'closed'))
             .then((closedEvents) => closedEvents.at(-1)?.actor?.login ?? '');
     }
-    static getArtifactByName(artefactName) {
-        return this.paginate(this.octokit.actions.listArtifactsForRepo, {
+    /**
+     * Returns a single artifact by name. If none is found, it returns undefined.
+     */
+    static getArtifactByName(artifactName) {
+        return this.octokit.actions
+            .listArtifactsForRepo({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
-            per_page: 100,
-        }).then((artifacts) => artifacts.find((artifact) => artifact.name === artefactName));
+            per_page: 1,
+            name: artifactName,
+        })
+            .then((response) => response.data.artifacts[0]);
+    }
+    /**
+     * Given an artifact ID, returns the download URL to a zip file containing the artifact.
+     */
+    static getArtifactDownloadURL(artifactId) {
+        return this.octokit.actions
+            .downloadArtifact({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            artifact_id: artifactId,
+            archive_format: 'zip',
+        })
+            .then((response) => response.url);
     }
 }
 exports["default"] = GithubUtils;
@@ -12729,7 +12745,6 @@ exports.promiseDoWhile = exports.promiseWhile = void 0;
  * Simulates a while loop where the condition is determined by the result of a Promise.
  */
 function promiseWhile(condition, action) {
-    console.info('[promiseWhile] promiseWhile()');
     return new Promise((resolve, reject) => {
         const loop = function () {
             if (!condition()) {
@@ -12737,12 +12752,16 @@ function promiseWhile(condition, action) {
             }
             else {
                 const actionResult = action?.();
-                console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
                 if (!actionResult) {
                     resolve();
                     return;
                 }
-                Promise.resolve(actionResult).then(loop).catch(reject);
+                Promise.resolve(actionResult)
+                    .then(() => {
+                    // Set a timeout to delay the next loop iteration
+                    setTimeout(loop, 1000); // 1000 ms delay
+                })
+                    .catch(reject);
             }
         };
         loop();
@@ -12753,11 +12772,8 @@ exports.promiseWhile = promiseWhile;
  * Simulates a do-while loop where the condition is determined by the result of a Promise.
  */
 function promiseDoWhile(condition, action) {
-    console.info('[promiseWhile] promiseDoWhile()');
     return new Promise((resolve, reject) => {
-        console.info('[promiseWhile] promiseDoWhile() condition', condition);
         const actionResult = action?.();
-        console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
         if (!actionResult) {
             resolve();
             return;
@@ -12806,14 +12822,6 @@ exports["default"] = arrayDifference;
 
 /***/ }),
 
-/***/ 2877:
-/***/ ((module) => {
-
-module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
 /***/ 9491:
 /***/ ((module) => {
 
@@ -12827,6 +12835,14 @@ module.exports = require("assert");
 
 "use strict";
 module.exports = require("crypto");
+
+/***/ }),
+
+/***/ 3975:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("encoding");
 
 /***/ }),
 

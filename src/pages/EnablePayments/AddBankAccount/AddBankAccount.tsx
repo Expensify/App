@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as PaymentMethods from '@userActions/PaymentMethods';
+import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,7 +45,6 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
         if (selectedPlaidBankAccount) {
             BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
-            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 
@@ -64,7 +64,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
             PaymentMethods.continueSetup(onSuccessFallbackRoute);
             return;
         }
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack();
     };
 
     const handleBackButtonPress = () => {
@@ -74,41 +74,44 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
         }
         if (screenIndex === 0) {
             BankAccounts.clearPersonalBankAccount();
+            Wallet.updateCurrentStep(null);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
         prevScreen();
     };
-
-    useEffect(() => BankAccounts.clearPersonalBankAccount, []);
 
     return (
         <ScreenWrapper
             testID={AddBankAccount.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicator
         >
             <HeaderWithBackButton
                 shouldShowBackButton
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.addBankAccount')}
             />
-            {isSetupTypeChosen ? (
-                <>
-                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                        <InteractiveStepSubHeader
-                            startStepIndex={0}
-                            stepNames={CONST.WALLET.STEP_NAMES}
+            <View style={styles.flex1}>
+                {isSetupTypeChosen ? (
+                    <>
+                        <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                            <InteractiveStepSubHeader
+                                startStepIndex={0}
+                                stepNames={CONST.WALLET.STEP_NAMES}
+                            />
+                        </View>
+                        <SubStep
+                            isEditing={isEditing}
+                            onNext={nextScreen}
+                            onMove={moveTo}
                         />
-                    </View>
-                    <SubStep
-                        isEditing={isEditing}
-                        onNext={nextScreen}
-                        onMove={moveTo}
-                    />
-                </>
-            ) : (
-                <SetupMethod />
-            )}
+                    </>
+                ) : (
+                    <SetupMethod />
+                )}
+            </View>
         </ScreenWrapper>
     );
 }

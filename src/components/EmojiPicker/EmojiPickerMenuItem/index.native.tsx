@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+import type {View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,7 +19,7 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
     isUsingKeyboardMovement = false,
 }: EmojiPickerMenuItemProps) {
-    const ref = useRef<HTMLDivElement | null>(null);
+    const ref = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 

@@ -5,7 +5,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 beforeAll(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
 });
 

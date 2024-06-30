@@ -1,5 +1,6 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import * as Session from '@src/libs/actions/Session';
 import HttpUtils from '@src/libs/HttpUtils';
@@ -190,7 +191,7 @@ function getGlobalFetchMock() {
     mockFetch.fail = () => (shouldFail = true);
     mockFetch.succeed = () => (shouldFail = false);
 
-    return mockFetch;
+    return mockFetch as typeof fetch;
 }
 
 function setPersonalDetails(login: string, accountID: number) {
@@ -214,7 +215,12 @@ function buildTestReportComment(created: string, actorAccountID: number, actionI
 }
 
 function assertFormDataMatchesObject(formData: FormData, obj: Report) {
-    expect(Array.from(formData.entries()).reduce((memo, x) => ({...memo, [x[0]]: x[1]}), {})).toEqual(expect.objectContaining(obj));
+    expect(
+        Array.from(formData.entries()).reduce((acc, [key, val]) => {
+            acc[key] = val;
+            return acc;
+        }, {} as Record<string, string | Blob>),
+    ).toEqual(expect.objectContaining(obj));
 }
 
 /**
@@ -230,7 +236,7 @@ const createAddListenerMock = () => {
         transitionEndListeners.forEach((transitionEndListener) => transitionEndListener());
     };
 
-    const addListener = jest.fn().mockImplementation((listener, callback) => {
+    const addListener = jest.fn().mockImplementation((listener, callback: Listener) => {
         if (listener === 'transitionEnd') {
             transitionEndListeners.push(callback);
         }
@@ -242,4 +248,33 @@ const createAddListenerMock = () => {
     return {triggerTransitionEnd, addListener};
 };
 
-export {assertFormDataMatchesObject, buildPersonalDetails, buildTestReportComment, createAddListenerMock, getGlobalFetchMock, setPersonalDetails, signInWithTestUser, signOutTestUser};
+/**
+ * Get an Onyx value. Only for use in tests for now.
+ */
+async function onyxGet(key: OnyxKey): Promise<Parameters<Required<ConnectOptions<typeof key>>['callback']>[0]> {
+    return new Promise((resolve) => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+        // @ts-expect-error This does not need more strict type checking as it's only for tests
+        const connectionID = Onyx.connect({
+            key,
+            callback: (value) => {
+                Onyx.disconnect(connectionID);
+                resolve(value);
+            },
+            waitForCollectionCallback: true,
+        });
+    });
+}
+
+export type {MockFetch, FormData};
+export {
+    assertFormDataMatchesObject,
+    buildPersonalDetails,
+    buildTestReportComment,
+    createAddListenerMock,
+    getGlobalFetchMock,
+    setPersonalDetails,
+    signInWithTestUser,
+    signOutTestUser,
+    onyxGet,
+};

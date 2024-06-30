@@ -53,6 +53,10 @@
                         "comment": "Split Expense"
                     },
                     {
+                        "/": "/submit/*",
+                        "comment": "Submit Expense"
+                    },
+                    {
                         "/": "/request/*",
                         "comment": "Submit Expense"
                     },
@@ -75,6 +79,10 @@
                     {
                         "/": "/search/*",
                         "comment": "Search"
+                    },
+                    {
+                        "/": "/pay/*",
+                        "comment": "Pay someone"
                     },
                     {
                         "/": "/send/*",

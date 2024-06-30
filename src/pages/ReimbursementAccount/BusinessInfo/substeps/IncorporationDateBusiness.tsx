@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
@@ -29,21 +29,24 @@ type IncorporationDateBusinessProps = IncorporationDateBusinessOnyxProps & SubSt
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
-        errors.incorporationDate = 'common.error.dateInvalid';
-    } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
-        errors.incorporationDate = 'bankAccount.error.incorporationDateFuture';
-    }
-
-    return errors;
-};
-
 function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDraft, onNext, isEditing}: IncorporationDateBusinessProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.incorporationDate && !ValidationUtils.isValidDate(values.incorporationDate)) {
+                errors.incorporationDate = translate('common.error.dateInvalid');
+            } else if (values.incorporationDate && !ValidationUtils.isValidPastDate(values.incorporationDate)) {
+                errors.incorporationDate = translate('bankAccount.error.incorporationDateFuture');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const defaultCompanyIncorporationDate = reimbursementAccount?.achData?.incorporationDate ?? reimbursementAccountDraft?.incorporationDate ?? '';
 
@@ -63,8 +66,7 @@ function IncorporationDateBusiness({reimbursementAccount, reimbursementAccountDr
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.selectYourCompanysIncorporationDate')}</Text>
-            {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
-            <InputWrapper<unknown>
+            <InputWrapper
                 InputComponent={DatePicker}
                 inputID={COMPANY_INCORPORATION_DATE_KEY}
                 label={translate('businessInfoStep.incorporationDate')}

@@ -1,80 +1,59 @@
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import {Circle, Rect} from 'react-native-svg';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
-import SkeletonViewContentLoader from './SkeletonViewContentLoader';
+import ItemListSkeletonView from './Skeletons/ItemListSkeletonView';
+
+function getLinedWidth(index: number): string {
+    const step = index % 3;
+    if (step === 0) {
+        return '100%';
+    }
+
+    if (step === 1) {
+        return '50%';
+    }
+
+    return '25%';
+}
 
 type OptionsListSkeletonViewProps = {
     shouldAnimate?: boolean;
+    shouldStyleAsTable?: boolean;
 };
 
-function OptionsListSkeletonView({shouldAnimate = true}: OptionsListSkeletonViewProps) {
-    const theme = useTheme();
-    const themeStyles = useThemeStyles();
-
-    const [numItems, setNumItems] = useState(0);
-    const skeletonViewItems = useMemo(() => {
-        const items = [];
-        for (let i = 0; i < numItems; i++) {
-            const step = i % 3;
-            let lineWidth;
-            switch (step) {
-                case 0:
-                    lineWidth = '100%';
-                    break;
-                case 1:
-                    lineWidth = '50%';
-                    break;
-                default:
-                    lineWidth = '25%';
-            }
-            items.push(
-                <SkeletonViewContentLoader
-                    key={`skeletonViewItems${i}`}
-                    animate={shouldAnimate}
-                    height={CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT}
-                    backgroundColor={theme.skeletonLHNIn}
-                    foregroundColor={theme.skeletonLHNOut}
-                    style={themeStyles.mr5}
-                >
-                    <Circle
-                        cx="40"
-                        cy="32"
-                        r="20"
-                    />
-                    <Rect
-                        x="72"
-                        y="18"
-                        width="20%"
-                        height="8"
-                    />
-                    <Rect
-                        x="72"
-                        y="38"
-                        width={lineWidth}
-                        height="8"
-                    />
-                </SkeletonViewContentLoader>,
-            );
-        }
-        return items;
-    }, [numItems, shouldAnimate, theme, themeStyles]);
+function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false}: OptionsListSkeletonViewProps) {
+    const styles = useThemeStyles();
 
     return (
-        <View
-            style={[themeStyles.flex1, themeStyles.overflowHidden]}
-            onLayout={(event) => {
-                const newNumItems = Math.ceil(event.nativeEvent.layout.height / CONST.LHN_SKELETON_VIEW_ITEM_HEIGHT);
-                if (newNumItems === numItems) {
-                    return;
-                }
-                setNumItems(newNumItems);
+        <ItemListSkeletonView
+            shouldAnimate={shouldAnimate}
+            itemViewStyle={shouldStyleAsTable && [styles.highlightBG, styles.mb3, styles.mh5, styles.br2]}
+            renderSkeletonItem={({itemIndex}) => {
+                const lineWidth = getLinedWidth(itemIndex);
+
+                return (
+                    <>
+                        <Circle
+                            cx={shouldStyleAsTable ? '36' : '40'}
+                            cy="32"
+                            r="20"
+                        />
+                        <Rect
+                            x={shouldStyleAsTable ? '68' : '72'}
+                            y="18"
+                            width="20%"
+                            height="8"
+                        />
+                        <Rect
+                            x={shouldStyleAsTable ? '68' : '72'}
+                            y="38"
+                            width={shouldStyleAsTable ? '10%' : lineWidth}
+                            height="8"
+                        />
+                    </>
+                );
             }}
-        >
-            <View>{skeletonViewItems}</View>
-        </View>
+        />
     );
 }
 

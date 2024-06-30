@@ -10,6 +10,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -18,7 +19,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {ParticipantsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -26,6 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 
@@ -47,11 +48,10 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '');
+    const backTo = ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? '-1');
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserPersonalDetails?.accountID);
@@ -70,6 +70,10 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.getRoute(report.reportID, accountID));
     }, [accountID, report.reportID]);
 
+    if (!member) {
+        return <NotFoundPage />;
+    }
+
     return (
         <ScreenWrapper testID={ReportParticipantDetails.displayName}>
             <HeaderWithBackButton
@@ -81,11 +85,13 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                     <Avatar
                         containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                         imageStyles={[styles.avatarXLarge]}
-                        source={UserUtils.getAvatar(avatar, accountID)}
+                        source={details.avatar}
+                        avatarID={accountID}
+                        type={CONST.ICON_TYPE_AVATAR}
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />
-                    {Boolean(details.displayName ?? '') && (
+                    {!!(details.displayName ?? '') && (
                         <Text
                             style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
                             numberOfLines={1}
@@ -119,13 +125,15 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                 </View>
                 <View style={styles.w100}>
                     {isCurrentUserAdmin && (
-                        <MenuItemWithTopDescription
-                            disabled={isSelectedMemberCurrentUser}
-                            title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                            description={translate('common.role')}
-                            shouldShowRightIcon
-                            onPress={openRoleSelectionModal}
-                        />
+                        <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
+                            <MenuItemWithTopDescription
+                                disabled={isSelectedMemberCurrentUser}
+                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={openRoleSelectionModal}
+                            />
+                        </OfflineWithFeedback>
                     )}
                     <MenuItem
                         title={translate('common.profile')}

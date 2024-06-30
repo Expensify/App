@@ -1,6 +1,15 @@
 import * as core from '@actions/core';
 import fs from 'fs';
 
+type RegressionEntry = {
+    metadata?: {
+        creationDate: string;
+    };
+    name: string;
+    meanDuration: number;
+    meanCount: number;
+};
+
 const run = () => {
     // Prefix path to the graphite metric
     const GRAPHITE_PATH = 'reassure';
@@ -14,6 +23,7 @@ const run = () => {
 
     // Initialize string to store Graphite metrics
     let graphiteString = '';
+    let timestamp: number;
 
     // Iterate over each entry
     regressionEntries.forEach((entry) => {
@@ -23,10 +33,12 @@ const run = () => {
         }
 
         try {
-            const current = JSON.parse(entry);
+            const current: RegressionEntry = JSON.parse(entry);
 
             // Extract timestamp, Graphite accepts timestamp in seconds
-            const timestamp = current.metadata?.creationDate ? Math.floor(new Date(current.metadata.creationDate).getTime() / 1000) : '';
+            if (current.metadata?.creationDate) {
+                timestamp = Math.floor(new Date(current.metadata.creationDate).getTime() / 1000);
+            }
 
             if (current.name && current.meanDuration && current.meanCount && timestamp) {
                 const formattedName = current.name.split(' ').join('-');

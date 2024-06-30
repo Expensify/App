@@ -14,6 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -51,6 +52,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {paddingBottom} = useStyledSafeAreaInsets();
     const paymentCardList = fundList ?? {};
 
     const paymentTypes = [
@@ -95,7 +97,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
             const account = filteredMethods[0];
-            PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '');
+            PaymentMethods.saveWalletTransferAccountTypeAndID(filterPaymentMethodType ?? '', account?.methodID?.toString() ?? '-1');
             return;
         }
 
@@ -111,7 +113,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
             return;
         }
 
-        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '');
+        PaymentMethods.saveWalletTransferAccountTypeAndID(selectedAccount?.accountType ?? '', selectedAccount?.methodID?.toString() ?? '-1');
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this effect to run on initial render
     }, []);
 
@@ -188,8 +190,8 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                             />
                         ))}
                     </View>
-                    <Text style={[styles.p5, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
-                    {Boolean(selectedAccount) && (
+                    <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
+                    {!!selectedAccount && (
                         <MenuItem
                             title={selectedAccount?.title}
                             description={selectedAccount?.description}
@@ -217,6 +219,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
+                        containerStyles={[styles.ph5, !paddingBottom ? styles.pb5 : null]}
                     />
                 </View>
             </FullPageNotFoundView>

@@ -87,18 +87,17 @@ jobs:
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.MYAPP_UPLOAD_STORE_PASSWORD }}
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.MYAPP_UPLOAD_KEY_PASSWORD }}
 
-      # Note: Android production deploys are temporarily disabled until https://github.com/Expensify/App/issues/40108 is resolved
-      #      - name: Run Fastlane production
-      #        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-      #        run: bundle exec fastlane android production
-      #        env:
-      #          VERSION: ${{ env.VERSION_CODE }}
+      - name: Run Fastlane production
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: bundle exec fastlane android production
+        env:
+          VERSION: ${{ env.VERSION_CODE }}
 
       - name: Archive Android sourcemaps
         uses: actions/upload-artifact@v3
         with:
-          name: android-sourcemap
-          path: android/app/build/generated/sourcemaps/react/release/*.map
+          name: android-sourcemap-${{ github.ref_name }}
+          path: android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map
 
       - name: Upload Android version to GitHub artifacts
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -135,7 +134,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-13-large
+    runs-on: macos-14-large
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -249,7 +248,7 @@ jobs:
       - name: Archive iOS sourcemaps
         uses: actions/upload-artifact@v3
         with:
-          name: ios-sourcemap
+          name: ios-sourcemap-${{ github.ref_name }}
           path: main.jsbundle.map
 
       - name: Upload iOS version to GitHub artifacts
@@ -366,6 +365,20 @@ jobs:
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Build a version of iOS and Android HybridApp if we are deploying to staging
+  hybridApp:
+    runs-on: ubuntu-latest
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event_name == 'push' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 'Deploy HybridApp'
+        run: gh workflow run --repo Expensify/Mobile-Deploy deploy.yml -f force_build=true -f build_version="$(npm run print-version --silent)"
+        env:
+            GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully

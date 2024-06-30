@@ -20,8 +20,8 @@ function getDeviceID(): Promise<string | null> {
             key: ONYXKEYS.DEVICE_ID,
             callback: (id) => {
                 Onyx.disconnect(connectionID);
-                deviceID = id;
-                return resolve(id);
+                deviceID = id ?? null;
+                return resolve(id ?? null);
             },
         });
     });
@@ -43,7 +43,7 @@ function setDeviceID() {
             Log.info('Got new deviceID', false, uniqueID);
             Onyx.set(ONYXKEYS.DEVICE_ID, uniqueID);
         })
-        .catch((err) => Log.info('Found existing deviceID', false, err.message));
+        .catch((error: Error) => Log.info('Found existing deviceID', false, error.message));
 }
 
 /**

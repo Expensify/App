@@ -22,7 +22,6 @@ describe('libs/NextStepUtils', () => {
             // Important props
             id: policyID,
             owner: currentUserEmail,
-            submitsTo: currentUserAccountID,
             harvesting: {
                 enabled: false,
             },
@@ -32,6 +31,7 @@ describe('libs/NextStepUtils', () => {
             type: 'team',
             outputCurrency: CONST.CURRENCY.USD,
             isPolicyExpenseChatEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
         };
         const optimisticNextStep: ReportNextStep = {
             type: 'neutral',
@@ -49,6 +49,11 @@ describe('libs/NextStepUtils', () => {
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
                         login: strangeEmail,
+                        avatar: '',
+                    },
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
                         avatar: '',
                     },
                 },
@@ -341,8 +346,12 @@ describe('libs/NextStepUtils', () => {
                 ];
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: currentUserAccountID,
                     preventSelfApproval: true,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            submitsTo: currentUserEmail,
+                        },
+                    },
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -403,7 +412,11 @@ describe('libs/NextStepUtils', () => {
                 ];
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: strangeAccountID,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            submitsTo: strangeEmail,
+                        },
+                    },
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
@@ -438,9 +451,17 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    employeeList: {
+                        [strangeEmail]: {
+                            submitsTo: currentUserEmail,
+                        },
+                    },
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
 
             test('submit and close approval mode', () => {
@@ -463,25 +484,12 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
-            test('self review', () => {
-                optimisticNextStep.title = 'Next Steps:';
+            test('non-payer', () => {
+                report.managerID = strangeAccountID;
+                optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
                     {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: 'you',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'pay',
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses.',
+                        text: 'No further action required!',
                     },
                 ];
 
@@ -490,8 +498,7 @@ describe('libs/NextStepUtils', () => {
                 expect(result).toMatchObject(optimisticNextStep);
             });
 
-            test('another owner', () => {
-                report.ownerAccountID = strangeAccountID;
+            test('payer', () => {
                 optimisticNextStep.title = 'Next Steps:';
                 optimisticNextStep.message = [
                     {
@@ -512,10 +519,18 @@ describe('libs/NextStepUtils', () => {
                         text: ' %expenses.',
                     },
                 ];
+                // mock the report as approved
+                const originalState = {stateNum: report.stateNum, statusNum: report.statusNum};
+                report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+                report.statusNum = CONST.REPORT.STATUS_NUM.APPROVED;
 
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.APPROVED);
 
                 expect(result).toMatchObject(optimisticNextStep);
+
+                // restore
+                report.stateNum = originalState.stateNum;
+                report.statusNum = originalState.statusNum;
             });
         });
 

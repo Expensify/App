@@ -1,11 +1,11 @@
-import React, {useContext, useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import MenuItemGroup, {MenuItemGroupContext} from '@components/MenuItemGroup';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -21,12 +21,11 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {LoginList, PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {LoginList, PrivatePersonalDetails} from '@src/types/onyx';
 
 type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
@@ -61,7 +60,6 @@ function ProfilePage({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -101,10 +99,6 @@ function ProfilePage({
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
         },
     ];
-
-    useEffect(() => {
-        App.openProfile(currentUserPersonalDetails as PersonalDetails);
-    }, [currentUserPersonalDetails]);
 
     const privateOptions = [
         {
@@ -180,7 +174,7 @@ function ProfilePage({
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={waitForNavigate ? waitForNavigate(() => Navigation.navigate(detail.pageRoute)) : () => Navigation.navigate(detail.pageRoute)}
+                                            onPress={() => Navigation.navigate(detail.pageRoute)}
                                         />
                                     ))}
                                 </>
