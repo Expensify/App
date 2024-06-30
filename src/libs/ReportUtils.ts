@@ -2432,13 +2432,6 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string): b
 }
 
 /**
- * Check if report fields are available to use in a report
- */
-function reportFieldsEnabled(report: Report) {
-    return Permissions.canUseReportFields(allBetas ?? []) && isPaidGroupPolicyExpenseReport(report);
-}
-
-/**
  * Given a report field, check if the field can be edited or not.
  * For title fields, its considered disabled if `deletable` prop is `true` (https://github.com/Expensify/App/issues/35043#issuecomment-1911275433)
  * For non title fields, its considered disabled if:
@@ -2539,7 +2532,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy?: OnyxEntry
     const reportFields = isReportSettled ? report?.fieldList : getReportFieldsByPolicyID(report?.policyID ?? '-1');
     const titleReportField = getFormulaTypeReportField(reportFields ?? {});
 
-    if (titleReportField && report?.reportName && reportFieldsEnabled(report)) {
+    if (titleReportField && report?.reportName && isPaidGroupPolicyExpenseReport(report)) {
         return report.reportName;
     }
 
@@ -3946,7 +3939,7 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
-    if (!!titleReportField && reportFieldsEnabled(expenseReport)) {
+    if (!!titleReportField && isPaidGroupPolicyExpenseReport(expenseReport)) {
         expenseReport.reportName = populateOptimisticReportFormula(titleReportField.defaultValue, expenseReport, policy);
     }
 
@@ -7286,7 +7279,6 @@ export {
     navigateBackAfterDeleteTransaction,
     parseReportRouteParams,
     parseReportActionHtmlToText,
-    reportFieldsEnabled,
     requiresAttentionFromCurrentUser,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
