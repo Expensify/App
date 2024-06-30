@@ -172,12 +172,6 @@ function ReportActionsList({
     const lastMessageTime = useRef<string | null>(null);
 
     const [isHighlighted, setIsHighlighted] = useState(false);
-    const userHasRefreshedPage =
-        Platform.OS === 'web' &&
-        performance.getEntriesByType('navigation').some((entry) => {
-            const navEntry = entry as PerformanceNavigationTiming;
-            return navEntry.type === 'reload';
-        });
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -337,13 +331,13 @@ function ReportActionsList({
     }, [report.reportID]);
 
     useEffect(() => {
-        if (linkedReportActionID && !userHasRefreshedPage) {
+        if (linkedReportActionID && linkedReportActionID !== '-1') {
             setIsHighlighted(true);
-        } else {
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
+            return;
         }
+        InteractionManager.runAfterInteractions(() => {
+            reportScrollManager.scrollToBottom();
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
