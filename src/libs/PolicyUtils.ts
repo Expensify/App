@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, ConnectionName, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -515,6 +515,12 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
+    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -573,6 +579,7 @@ export {
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
+    getCurrentConnectionName,
 };
 
 export type {MemberEmailsToAccountIDs};
