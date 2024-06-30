@@ -1287,6 +1287,7 @@ const CONST = {
         REPORT_FIELD: 'REPORT_FIELD',
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
@@ -1340,6 +1341,7 @@ const CONST = {
     NETSUITE_CONFIG: {
         SUBSIDIARY: 'subsidiary',
         IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
+        IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

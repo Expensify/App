@@ -2204,6 +2204,22 @@ export default {
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+            import: {
+                expenseCategories: `Expense categories`,
+                expenseCategoriesDescription: `NetSuite expense categories import into Expensify as categories.`,
+                importFields: {
+                    departments: 'Departments',
+                    classes: 'Classes',
+                    locations: 'Locations',
+                    customers: 'Customers',
+                    jobs: 'Projects(jobs)',
+                },
+                importTaxDescription: 'Import tax groups from NetSuite',
+                importCustomFields: {
+                    customSegments: 'Custom segments/records',
+                    customLists: 'Custom lists',
+                },
+            },
         },
         intacct: {
             sageIntacctSetup: 'Sage Intacct setup',
@@ -2515,6 +2531,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
