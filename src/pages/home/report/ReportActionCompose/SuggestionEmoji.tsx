@@ -149,8 +149,8 @@ function SuggestionEmoji(
      * Calculates and cares about the content of an Emoji Suggester
      */
     const calculateEmojiSuggestion = useCallback(
-        (selectionEnd?: number) => {
-            if (!selectionEnd || shouldBlockCalc.current || !value) {
+        (selectionStart?: number, selectionEnd?: number) => {
+            if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !value) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
@@ -181,7 +181,7 @@ function SuggestionEmoji(
         if (!isComposerFocused) {
             return;
         }
-        calculateEmojiSuggestion(selection.end);
+        calculateEmojiSuggestion(selection.start, selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(

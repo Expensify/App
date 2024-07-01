@@ -83,6 +83,10 @@ Onyx.connect({
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
+function isDate(arg: unknown): arg is Date {
+    return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
 /**
  * Get the day of the week that the week starts on
  */
@@ -133,7 +137,15 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
         }
         return res;
     }
-    const parsedDatetime = new Date(`${datetime}Z`);
+    let parsedDatetime;
+    try {
+        // in some cases we cannot add 'Z' to the date string
+        parsedDatetime = new Date(`${datetime}Z`);
+        parsedDatetime.toISOString(); // we need to call toISOString because it throws RangeError in case of an invalid date
+    } catch (e) {
+        parsedDatetime = new Date(datetime);
+    }
+
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
@@ -795,6 +807,7 @@ function doesDateBelongToAPastYear(date: string): boolean {
 }
 
 const DateUtils = {
+    isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,

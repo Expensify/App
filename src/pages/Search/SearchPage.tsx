@@ -6,13 +6,13 @@ import Search from '@components/Search';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SearchQuery} from '@src/types/onyx/SearchResults';
 
-type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
+type SearchPageProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -21,9 +21,9 @@ function SearchPage({route}: SearchPageProps) {
     const {query: rawQuery, policyIDs, sortBy, sortOrder} = route?.params ?? {};
 
     const query = rawQuery as SearchQuery;
-    const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
+    const isValidQuery = Object.values(CONST.SEARCH.TAB).includes(query);
 
-    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL));
 
     // On small screens this page is not displayed, the configuration is in the file: src/libs/Navigation/AppNavigator/createCustomStackNavigator/index.tsx
     // To avoid calling hooks in the Search component when this page isn't visible, we return null here.

@@ -262,12 +262,18 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
+type SkeletonViewProps = {
+    shouldAnimate: boolean;
+};
+
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
+
+    shouldUseUserSkeletonView?: boolean;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -487,6 +493,7 @@ export type {
     ReportListItemProps,
     ReportListItemType,
     Section,
+    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,

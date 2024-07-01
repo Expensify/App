@@ -37,6 +37,7 @@ function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
         ListItem,
+        shouldUseUserSkeletonView,
         canSelectMultiple = false,
         onSelectRow,
         shouldDebounceRowSelect = false,
@@ -278,7 +279,7 @@ function BaseSelectionList<TItem extends ListItem>(
     }, [onChangeText]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 1000, {leading: true}), [onSelectRow]);
+    const debouncedOnSelectRow = useCallback(lodashDebounce(onSelectRow, 200), [onSelectRow]);
 
     /**
      * Logic to run when a row is selected, either with click/press or keyboard hotkeys.
@@ -547,14 +548,17 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const prevTextInputValue = usePrevious(textInputValue);
     const prevSelectedOptionsLength = usePrevious(flattenedSections.selectedOptions.length);
+    const prevAllOptionsLength = usePrevious(flattenedSections.allOptions.length);
 
     useEffect(() => {
         // Avoid changing focus if the textInputValue remains unchanged.
         if ((prevTextInputValue === textInputValue && flattenedSections.selectedOptions.length === prevSelectedOptionsLength) || flattenedSections.allOptions.length === 0) {
             return;
         }
-        // Remove the focus if the search input is empty or selected options length is changed else focus on the first non disabled item
-        const newSelectedIndex = textInputValue === '' || flattenedSections.selectedOptions.length !== prevSelectedOptionsLength ? -1 : 0;
+        // Remove the focus if the search input is empty or selected options length is changed (and allOptions length remains the same)
+        // else focus on the first non disabled item
+        const newSelectedIndex =
+            textInputValue === '' || (flattenedSections.selectedOptions.length !== prevSelectedOptionsLength && prevAllOptionsLength === flattenedSections.allOptions.length) ? -1 : 0;
 
         // reseting the currrent page to 1 when the user types something
         setCurrentPage(1);
@@ -568,6 +572,7 @@ function BaseSelectionList<TItem extends ListItem>(
         textInputValue,
         updateAndScrollToFocusedIndex,
         prevSelectedOptionsLength,
+        prevAllOptionsLength,
     ]);
 
     useEffect(
@@ -688,7 +693,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     )}
                     {!!headerContent && headerContent}
                     {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldAnimate />
+                        <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />
                     ) : (
                         <>
                             {!listHeaderContent && header()}
