@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {Animated, Keyboard, View} from 'react-native';
-import type {GestureType} from 'react-native-gesture-handler';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -184,8 +183,6 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
-    const pagerRef = useRef<GestureType>(null);
-    const [zoomScale, setZoomScale] = useState(1);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
@@ -445,22 +442,18 @@ function AttachmentModal({
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
 
-    const attachmentCarouselRef = useRef<{onChangeArrowsState: (enabled: boolean) => void}>(null);
-
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
-            pagerRef,
+            pagerRef: undefined,
             isPagerScrolling: nope,
             isScrollEnabled: nope,
-            onTap: () => {
-                attachmentCarouselRef.current?.onChangeArrowsState(zoomScale === 1);
-            },
-            onScaleChanged: setZoomScale,
+            onTap: () => {},
+            onScaleChanged: () => {},
             onSwipeDown: closeModal,
         }),
-        [sourceForAttachmentView, nope, closeModal, zoomScale],
+        [closeModal, nope, sourceForAttachmentView],
     );
 
     return (
@@ -512,20 +505,15 @@ function AttachmentModal({
                         )}
                         {!shouldShowNotFoundPage &&
                             (!isEmptyObject(report) && !isReceiptAttachment ? (
-                                <AttachmentCarouselPagerContext.Provider value={context}>
-                                    <AttachmentCarousel
-                                        accountID={accountID}
-                                        type={type}
-                                        pagerRef={pagerRef}
-                                        attachmentCarouselRef={attachmentCarouselRef}
-                                        report={report}
-                                        onNavigate={onNavigate}
-                                        onClose={closeModal}
-                                        source={source}
-                                        zoomScale={zoomScale}
-                                        setDownloadButtonVisibility={setDownloadButtonVisibility}
-                                    />
-                                </AttachmentCarouselPagerContext.Provider>
+                                <AttachmentCarousel
+                                    accountID={accountID}
+                                    type={type}
+                                    report={report}
+                                    onNavigate={onNavigate}
+                                    onClose={closeModal}
+                                    source={source}
+                                    setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                />
                             ) : (
                                 !!sourceForAttachmentView &&
                                 shouldLoadAttachment &&
