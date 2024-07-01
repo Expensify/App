@@ -267,6 +267,16 @@ function getTagList(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): 
 }
 
 /**
+ * Removes the colon at the beginning of the input string
+ * Example: ":tagName" -> "tagName"
+ * @param tag - The tag name to clean
+ * @returns The cleaned tag name without a leading colon
+ */
+function cleanTagNameFromColon(tag: string): string {
+    return tag?.replace(/^:/, '');
+}
+
+/**
  * Cleans up escaping of colons (used to create multi-level tags, e.g. "Parent: Child") in the tag name we receive from the backend
  */
 function getCleanedTagName(tag: string) {
@@ -522,6 +532,7 @@ export {
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,
+    cleanTagNameFromColon,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
