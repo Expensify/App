@@ -16,10 +16,11 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SearchHeaderProps = {
     query: SearchQuery;
     selectedItems: SelectedTransactions;
+    clearSelectedItems: () => void;
     hash: number;
 };
 
-function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
+function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
@@ -30,7 +31,7 @@ function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
     };
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES>>> = [];
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES & 'NO_AVAILABLE'>>> = [];
         const selectedItemsKeys = Object.keys(selectedItems ?? []);
 
         if (selectedItemsKeys.length === 0) {
@@ -45,36 +46,38 @@ function SearchHeader({query, selectedItems, hash}: SearchHeaderProps) {
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
+                    clearSelectedItems();
                     SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
                 },
             });
         }
+        // @TODO: Uncomment when actions are ready
 
-        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
+        // const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
 
-        if (itemsToHold.length > 0) {
-            options.push({
-                icon: Expensicons.Stopwatch,
-                text: translate('search.bulkActions.hold'),
-                value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
-                onSelected: () => {
-                    SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
-                },
-            });
-        }
+        // if (itemsToHold.length > 0) {
+        //     options.push({
+        //         icon: Expensicons.Stopwatch,
+        //         text: translate('search.bulkActions.hold'),
+        //         value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
+        //         onSelected: () => {
+        //             SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
+        //         },
+        //     });
+        // }
 
-        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD);
+        // const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD);
 
-        if (itemsToUnhold.length > 0) {
-            options.push({
-                icon: Expensicons.Stopwatch,
-                text: translate('search.bulkActions.unhold'),
-                value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
-                onSelected: () => {
-                    SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
-                },
-            });
-        }
+        // if (itemsToUnhold.length > 0) {
+        //     options.push({
+        //         icon: Expensicons.Stopwatch,
+        //         text: translate('search.bulkActions.unhold'),
+        //         value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
+        //         onSelected: () => {
+        //             SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+        //         },
+        //     });
+        // }
 
         if (options.length > 0) {
             return (

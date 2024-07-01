@@ -1,4 +1,5 @@
 type DeleteMoneyRequestOnSearchParams = {
+    hash: number;
     transactionIDList: string[];
 };
 

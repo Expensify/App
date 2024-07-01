@@ -1,4 +1,5 @@
 type UnholdMoneyRequestOnSearchParams = {
+    hash: number;
     transactionIDList: string[];
 };
 

@@ -1,4 +1,5 @@
 type HoldMoneyRequestOnSearchParams = {
+    hash: number;
     transactionIDList: string[];
     comment: string;
 };

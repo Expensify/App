@@ -2973,7 +2973,9 @@ export default {
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
             delete: 'Eliminar',
-            hold: 'Bloqueada',
+            hold: 'Bloquear',
+            unhold: 'Desbloquear',
+            noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
     },
     genericErrorPage: {

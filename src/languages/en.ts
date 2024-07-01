@@ -2940,6 +2940,7 @@ export default {
             delete: 'Delete',
             hold: 'Hold',
             unhold: 'Unhold',
+            noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
     },
     genericErrorPage: {

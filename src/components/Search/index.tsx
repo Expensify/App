@@ -142,7 +142,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     }
 
     const ListItem = SearchUtils.getListItem(type);
-    
+
     const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
 
@@ -235,6 +235,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         <>
             <SearchHeader
                 selectedItems={selectedItems}
+                clearSelectedItems={() => setSelectedItems({})}
                 query={query}
                 hash={hash}
             />
