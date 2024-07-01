@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import SCREENS from '@src/SCREENS';
 import getTopmostBottomTabRoute from './Navigation/getTopmostBottomTabRoute';
 import type {CentralPaneName, RootStackParamList, State} from './Navigation/types';
@@ -26,7 +26,7 @@ function isCentralPaneName(screen: string | undefined): screen is CentralPaneNam
 }
 
 const removePolicyIDParamFromState = (state: State<RootStackParamList>) => {
-    const stateCopy = _.cloneDeep(state);
+    const stateCopy = cloneDeep(state);
     const bottomTabRoute = getTopmostBottomTabRoute(stateCopy);
     if (bottomTabRoute?.params && 'policyID' in bottomTabRoute.params) {
         delete bottomTabRoute.params.policyID;
