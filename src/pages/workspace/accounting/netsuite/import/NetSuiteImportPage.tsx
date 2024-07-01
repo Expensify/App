@@ -7,12 +7,12 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
@@ -56,7 +56,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
                     >
                         <MenuItemWithTopDescription
-                            description={translate(`workspace.netsuite.import.importFields.${importField}`)}
+                            description={translate(`workspace.netsuite.import.importFields.${importField}.title`)}
                             title={translate(`workspace.accounting.importTypes.${config?.syncOptions?.mapping?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}`)}
                             shouldShowRightIcon
                             onPress={() => {

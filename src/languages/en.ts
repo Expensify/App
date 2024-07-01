@@ -2208,16 +2208,45 @@ export default {
                 expenseCategories: `Expense categories`,
                 expenseCategoriesDescription: `NetSuite expense categories import into Expensify as categories.`,
                 importFields: {
-                    departments: 'Departments',
-                    classes: 'Classes',
-                    locations: 'Locations',
-                    customers: 'Customers',
-                    jobs: 'Projects (jobs)',
+                    departments: {
+                        title: 'Departments',
+                        subtitle: 'Choose how to handle the NetSuite *departments* in Expensify.',
+                    },
+                    classes: {
+                        title: 'Classes',
+                        subtitle: 'Choose how to handle *classes* in Expensify.',
+                    },
+                    locations: {
+                        title: 'Locations',
+                        subtitle: 'Choose how to handle *locations* in Expensify.',
+                    },
+                    customers: {
+                        title: 'Customers',
+                        subtitle: "Import *customers* into Expensify and choose how they'll be displayed.",
+                    },
+                    jobs: {
+                        title: 'Projects (jobs)',
+                        subtitle: "Import *projects (jobs)* into Expensify and choose how they'll be displayed.",
+                    },
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
                     customSegments: 'Custom segments/records',
                     customLists: 'Custom lists',
+                },
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Tags',
+                        description: 'Line-item level',
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Report fields',
+                        description: 'Report level',
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'NetSuite employee default',
+                        description: 'Not imported into Expensify, applied on export',
+                    },
                 },
             },
         },
