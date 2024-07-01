@@ -48,6 +48,10 @@ function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
 
+function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -67,4 +71,5 @@ export default {
     canUseNetSuiteIntegration,
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
+    canUseNetSuiteUSATax,
 };
