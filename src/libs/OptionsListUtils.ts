@@ -2473,11 +2473,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values.push(item.login.replace(emailRegex, ''));
             }
 
-            if (!item.isChatRoom) {
-                const participantNames = getParticipantNames(item.participantsList ?? []);
-                values = values.concat(Array.from(participantNames));
-            }
-
             if (item.isThread) {
                 if (item.alternateText) {
                     values.push(item.alternateText);
@@ -2491,8 +2486,12 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
+            // We don't want chat rooms to be searchable via participants, so we only add participant logins/display
+            // if the report in question isn't a chat room.
             const partialReport = {reportID: item.reportID, type: item.type, chatType: item.chatType};
             if (!ReportUtils.isChatReport(partialReport) || !ReportUtils.isChatRoom(partialReport)) {
+                const participantNames = getParticipantNames(item.participantsList ?? []);
+                values = values.concat(Array.from(participantNames));
                 values = values.concat(getParticipantsLoginsArray(item));
             }
 
