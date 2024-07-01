@@ -1,5 +1,5 @@
 diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
-index 7be4e5c..27ca7cf 100644
+index 7be4e5c..686df84 100644
 --- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
 +++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
 @@ -245,16 +245,19 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
@@ -31,7 +31,7 @@ index 7be4e5c..27ca7cf 100644
      if (pasteRef !== null && pasteRef !== void 0 && pasteRef.current) {
        pasteRef.current = false;
        updateSelection(e);
-@@ -283,10 +288,29 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+@@ -283,10 +288,33 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
      if (onChange) {
        const event = e;
        setEventProps(event);
@@ -42,13 +42,17 @@ index 7be4e5c..27ca7cf 100644
 +      // The length of the text that replaced the before text
 +      const count = maybeAddedtext.length;
 +      // The start index of the replacement operation
-+      const start = prevSelection.start;
++      let start = prevSelection.start;
 +      
 +      // The length the deleted text had before
 +      let before = prevSelection.end - prevSelection.start;
-+      if (before === 0 && (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward')) {
++      if (before === 0 && (nativeEvent.inputType === 'deleteContentBackward' || nativeEvent.inputType === 'deleteContentForward')) {
 +        // its possible the user pressed a delete key without a selection range, so we need to adjust the before value
 +        before = 1;
++      }
++      if (nativeEvent.inputType === 'deleteContentBackward') {
++        // if the user pressed backspace, we need to adjust the start index
++        start -= 1;
 +      }
 +
 +      nativeEvent.count = count;
