@@ -16,12 +16,12 @@ import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
+import {parseHtmlToText} from './OnyxAwareParser';
 import * as OptionsListUtils from './OptionsListUtils';
 import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
-import {parseHtmlToText} from './OnyxAwareParser';
 
 const visibleReportActionItems: ReportActions = {};
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -465,7 +465,9 @@ function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): stri
         if (report?.description) {
             return parseHtmlToText(report.description);
         }
-        return `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(report)} ${welcomeMessage.phrase3}`;
+        return `${welcomeMessage.phrase1} ${ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${ReportUtils.getPolicyName(report)} ${
+            welcomeMessage.phrase3
+        }`;
     }
 
     if (ReportUtils.isChatRoom(report)) {
