@@ -46,6 +46,7 @@ import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
@@ -201,6 +202,7 @@ function ReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
+
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || -1}`);
@@ -499,8 +501,7 @@ function ReportActionItem({
             // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
             (ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
                 ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT ||
-                ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ||
-                isSendingMoney)
+                ReportActionsUtils.getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
         ) {
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
             const iouReportID = ReportActionsUtils.getOriginalMessage(action)?.IOUReportID ? ReportActionsUtils.getOriginalMessage(action)?.IOUReportID?.toString() ?? '-1' : '-1';
@@ -628,6 +629,8 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (ReportActionsUtils.isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(ReportActionsUtils.getOriginalMessage(action))} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
+            children = <ReportActionItemBasicMessage message={PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(action)?.text ?? '')} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&

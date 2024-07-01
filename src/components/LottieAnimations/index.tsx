@@ -72,6 +72,7 @@ const DotLottieAnimations = {
         file: require<LottieViewProps['source']>('@assets/animations/Desk.lottie'),
         w: 200,
         h: 120,
+        backgroundColor: colors.blue700,
     },
     Plane: {
         file: require<LottieViewProps['source']>('@assets/animations/Plane.lottie'),

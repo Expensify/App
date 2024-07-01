@@ -36,6 +36,7 @@ import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import * as Member from '@userActions/Policy/Member';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -94,6 +95,17 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+
+    const confirmModalPrompt = useMemo(() => {
+        const approverAccountID = selectedEmployees.find((selectedEmployee) => Member.isApprover(policy, selectedEmployee));
+        if (!approverAccountID) {
+            return translate('workspace.people.removeMembersPrompt');
+        }
+        return translate('workspace.people.removeMembersWarningPrompt', {
+            memberName: getDisplayNameForParticipant(approverAccountID),
+            ownerName: getDisplayNameForParticipant(policy?.ownerAccountID),
+        });
+    }, [selectedEmployees, policy, translate]);
     /**
      * Get filtered personalDetails list with current employeeList
      */
@@ -548,7 +560,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    prompt={confirmModalPrompt}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     onModalHide={() => {
@@ -566,6 +578,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         canSelectMultiple={isPolicyAdmin}
                         sections={[{data, isDisabled: false}]}
                         ListItem={TableListItem}
+                        shouldUseUserSkeletonView
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
                         headerContent={!isSmallScreenWidth && getHeaderContent()}
