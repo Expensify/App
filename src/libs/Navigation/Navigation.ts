@@ -129,9 +129,9 @@ function getDistanceFromPathInRootNavigator(path?: string): number {
             break;
         }
 
-        // When paths are compared, they the policyID param should be excluded from the state. If it's present in currentState, pathFromState will include it and in result it will be different than the path value.
-        const currentStateWithoutParams = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
-        const pathFromState = getPathFromState(currentStateWithoutParams, linkingConfig.config);
+        // When comparing path and pathFromState, the policyID parameter isn't included in the comparison
+        const currentStateWithoutPolicyID = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
+        const pathFromState = getPathFromState(currentStateWithoutPolicyID, linkingConfig.config);
         if (path === pathFromState.substring(1)) {
             return index;
         }
