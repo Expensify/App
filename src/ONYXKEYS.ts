@@ -360,7 +360,8 @@ const ONYXKEYS = {
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
 
     // These statuses below are in separate keys on purpose - it allows us to have different behaviours of the banner based on the status
-    /** Indicates whether ClearOutstandingBalance failed*/
+
+    /** Indicates whether ClearOutstandingBalance failed */
     SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED: 'subscriptionRetryBillingStatusFailed',
 
     /** Indicates whether ClearOutstandingBalance was successful */
