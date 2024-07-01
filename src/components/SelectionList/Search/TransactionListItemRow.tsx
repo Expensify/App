@@ -110,6 +110,9 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const {translate} = useLocalize();
     const description = TransactionUtils.getDescription(transactionItem);
     let merchant = transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description;
+    if (!isLargeScreenWidth) {
+        merchant = transactionItem.shouldShowMerchant ? (transactionItem.formattedMerchant ? transactionItem.formattedMerchant : description) : description;
+    }
 
     if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
@@ -159,18 +162,11 @@ function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
 
 function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
-    return isLargeScreenWidth ? (
+    return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.category}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
-        />
-    ) : (
-        <TextWithIconCell
-            icon={Expensicons.Folder}
-            showTooltip={showTooltip}
-            text={transactionItem?.category}
-            textStyle={[styles.textMicro, styles.mnh0]}
+            style={isLargeScreenWidth ? [styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter] : [styles.textMicro, styles.mnh0]}
         />
     );
 }
@@ -234,24 +230,21 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         isLargeScreenWidth={false}
                         showTooltip={false}
                     />
-                    <View style={[styles.flex2, styles.gap1]}>
+                    <View style={[styles.flex2, !item.category && styles.justifyContentCenter, styles.gap1]}>
                         <MerchantCell
                             transactionItem={item}
                             showTooltip={showTooltip}
                             isLargeScreenWidth={false}
                         />
-                        <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd, styles.gap3]}>
-                            <CategoryCell
-                                isLargeScreenWidth={isLargeScreenWidth}
-                                showTooltip={showTooltip}
-                                transactionItem={item}
-                            />
-                            <TagCell
-                                showTooltip={showTooltip}
-                                transactionItem={item}
-                                isLargeScreenWidth={isLargeScreenWidth}
-                            />
-                        </View>
+                        {item.category && (
+                            <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
+                                <CategoryCell
+                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    showTooltip={showTooltip}
+                                    transactionItem={item}
+                                />
+                            </View>
+                        )}
                     </View>
                     <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
                         <TotalCell
@@ -299,7 +292,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <MerchantCell
                         transactionItem={item}
                         showTooltip={showTooltip}
-                        isLargeScreenWidth={false}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
