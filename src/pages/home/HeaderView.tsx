@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
-import type {ThreeDotsMenuItem} from '@components/HeaderWithBackButton/types';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
@@ -17,16 +16,13 @@ import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
@@ -37,9 +33,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewOnyxProps = {
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink: OnyxEntry<string>;
-
     /** Personal details of all the users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
@@ -74,12 +67,10 @@ function HeaderView({
     parentReportAction,
     policy,
     reportID,
-    guideCalendarLink,
     onNavigationMenuButtonClicked,
     shouldUseNarrowLayout = false,
 }: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -98,10 +89,9 @@ function HeaderView({
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = ReportUtils.isConciergeChatReport(report);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
@@ -118,10 +108,6 @@ function HeaderView({
         }
         return true;
     };
-
-    // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
-    // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
-    const threeDotMenuItems: ThreeDotsMenuItem[] = [];
 
     const join = Session.checkIfActionIsAllowed(() => Report.joinRoom(report));
 
@@ -147,18 +133,6 @@ function HeaderView({
             </>
         );
     };
-
-    if (isConcierge && guideCalendarLink) {
-        threeDotMenuItems.push({
-            icon: Expensicons.Phone,
-            text: translate('videoChatButtonAndMenu.tooltip'),
-            onSelected: Session.checkIfActionIsAllowed(() => {
-                Link.openExternalLink(guideCalendarLink);
-            }),
-        });
-    }
-
-    const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -304,13 +278,6 @@ function HeaderView({
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
                                     {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {canJoin && !shouldUseNarrowLayout && joinButton}
-                                    {shouldShowThreeDotsButton && (
-                                        <ThreeDotsMenu
-                                            anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                                            menuItems={threeDotMenuItems}
-                                            shouldSetModalVisibility={false}
-                                        />
-                                    )}
                                 </View>
                             </View>
                             <ConfirmModal
@@ -340,10 +307,6 @@ HeaderView.displayName = 'HeaderView';
 
 export default memo(
     withOnyx<HeaderViewProps, HeaderViewOnyxProps>({
-        guideCalendarLink: {
-            key: ONYXKEYS.ACCOUNT,
-            selector: (account) => account?.guideCalendarLink,
-        },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? report?.reportID}`,
         },
