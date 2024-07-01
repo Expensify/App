@@ -398,9 +398,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-                    const expenseReport = ReportUtils.getReport(reportID);
-                    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(expenseReport?.total ?? 0), expenseReport?.currency);
-                    setClipboardMessage(Localize.translateLocal('iou.submittedAmount', {formattedAmount}));
+                    const displayMessage = ReportUtils.getIOUSubmittedMessage(reportID);
+                    Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {

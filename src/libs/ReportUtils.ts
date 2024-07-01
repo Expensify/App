@@ -3953,6 +3953,13 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
+function getIOUSubmittedMessage(reportID: string) {
+    const report = getReportOrDraftReport(reportID);
+    const linkedReport = isChatThread(report) ? getParentReport(report) : report;
+    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount});
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -7054,6 +7061,7 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
