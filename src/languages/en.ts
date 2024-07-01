@@ -2903,7 +2903,7 @@ export default {
             },
             upgradeToUnlock: 'Unlock this feature',
             completed: {
-                headline: 'Upgrade complete!',
+                headline: `You've upgraded your workspace!`,
                 successMessage: (policyName: string) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
                 viewSubscription: 'View your subscription',
                 moreDetails: 'for more details.',
