@@ -441,7 +441,6 @@ function AttachmentModal({
         shouldShowDownloadButton = allowDownload && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isReceiptAttachment && !isOffline;
         shouldShowThreeDotsButton = isReceiptAttachment && isModalOpen && threeDotsMenuItems.length !== 0;
     }
-
     const context = useMemo(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
