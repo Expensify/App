@@ -21,7 +21,7 @@ function acceptSpotnanaTerms() {
 
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, {}, {optimisticData})
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS, null, {optimisticData})
             .then((response) => (response?.spotnanaToken ? buildTravelDotURL(response.spotnanaToken) : buildTravelDotURL()))
             .catch(() => buildTravelDotURL()),
         (travelDotURL) => travelDotURL,
