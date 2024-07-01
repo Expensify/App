@@ -175,7 +175,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand>(
  * Responses from read requests can overwrite the optimistic data inserted by
  * write requests that use the same Onyx keys and haven't responded yet.
  */
-function validateReadyToRead<TCommand extends ReadCommand>(command: TCommand) {
+function waitForWrites<TCommand extends ReadCommand>(command: TCommand) {
     if (PersistedRequests.getLength() > 0) {
         Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
     }
@@ -198,7 +198,7 @@ function validateReadyToRead<TCommand extends ReadCommand>(command: TCommand) {
 function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData: OnyxData = {}): void {
     Log.info('[API] Called API.read', false, {command, ...apiCommandParameters});
 
-    validateReadyToRead(command).then(() => {
+    waitForWrites(command).then(() => {
         const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
     });
@@ -241,7 +241,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
         case CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS:
             return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.READ:
-            validateReadyToRead(command as ReadCommand).then(() => processRequest(request, type));
+            waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
             return;
         default:
             throw new Error('Unknown API request type');
