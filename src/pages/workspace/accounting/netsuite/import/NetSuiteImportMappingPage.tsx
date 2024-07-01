@@ -11,6 +11,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import Text from '@components/Text';
 
 const parser = new ExpensiMark();
 
@@ -35,6 +36,14 @@ function NetSuiteImportMappingPage({
     const importMappings = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
 
     const importValue = importMappings?.[importField as keyof typeof importMappings] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+
+    const listFooterContent = useMemo(() => (
+            <View style={[styles.ph5, styles.mt2, styles.mb4]}>
+                <Text>
+                    {translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent` as TranslationPaths, importField)}
+                </Text>
+            </View>
+        ), [importField, importValue, styles.mb4, styles.mt2, styles.ph5, translate]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -74,6 +83,7 @@ function NetSuiteImportMappingPage({
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
             title={titleKey}
+            listFooterContent={listFooterContent}
         />
     );
 }

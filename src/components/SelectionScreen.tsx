@@ -60,6 +60,9 @@ type SelectionScreenProps = {
 
     /** Name of the current connection */
     connectionName: ConnectionName;
+
+    /** Custom content to display in the footer of list component. */
+    listFooterContent?: React.JSX.Element | null;
 };
 
 function SelectionScreen({
@@ -77,6 +80,7 @@ function SelectionScreen({
     featureName,
     shouldBeBlocked,
     connectionName,
+    listFooterContent
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
 
@@ -107,6 +111,7 @@ function SelectionScreen({
                     shouldShowTooltips={false}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     listEmptyContent={listEmptyContent}
+                    listFooterContent={listFooterContent}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

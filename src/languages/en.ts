@@ -1,4 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import { startCase } from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -2235,17 +2236,20 @@ export default {
                     customLists: 'Custom lists',
                 },
                 importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'NetSuite employee default',
+                        description: 'Not imported into Expensify, applied on export',
+                        footerContent: (importField: string) => `If you use ${importField} in NetSuite, we'll apply the default set on the employee record upon export to Expense Report or Journal Entry.`,
+                    },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Tags',
                         description: 'Line-item level',
+                        footerContent: (importField: string) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Report fields',
                         description: 'Report level',
-                    },
-                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
-                        label: 'NetSuite employee default',
-                        description: 'Not imported into Expensify, applied on export',
+                        footerContent: (importField: string) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
                     },
                 },
             },
@@ -2560,7 +2564,6 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
-                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
