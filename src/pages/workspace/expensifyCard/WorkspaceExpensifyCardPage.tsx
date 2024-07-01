@@ -34,22 +34,28 @@ const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     test1: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
-        name: 'Test 1',
-        limit: 1000,
+        nameValuePairs: {
+            unapprovedExpenseLimit: 1000,
+            cardTitle: 'Test 1',
+        },
         lastFourPAN: '1234',
     },
     test2: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
-        name: 'Test 2',
-        limit: 2000,
+        nameValuePairs: {
+            unapprovedExpenseLimit: 2000,
+            cardTitle: 'Test 2',
+        },
         lastFourPAN: '1234',
     },
     test3: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
-        name: 'Test 3',
-        limit: 3000,
+        nameValuePairs: {
+            unapprovedExpenseLimit: 3000,
+            cardTitle: 'Test 3',
+        },
         lastFourPAN: '1234',
     },
 };
@@ -79,9 +85,10 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const sortedCards = useMemo(
         () =>
             Object.values(cardsList ?? {}).sort((a, b) => {
-                // TODO: change cardholder to accountID and get personal details with it
-                const aName = PersonalDetailsUtils.getDisplayNameOrDefault(a.cardholder);
-                const bName = PersonalDetailsUtils.getDisplayNameOrDefault(b.cardholder);
+                // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
+                const aName = PersonalDetailsUtils.getDisplayNameOrDefault(a.cardholder ?? {});
+                // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
+                const bName = PersonalDetailsUtils.getDisplayNameOrDefault(b.cardholder ?? {});
                 return localeCompare(aName, bName);
             }),
         [cardsList],
@@ -109,8 +116,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const renderItem = ({item, index}: ListRenderItemInfo<Card>) => (
         <OfflineWithFeedback
-            key={`${item.name}_${index}`}
-            pendingAction={item.pendingAction}
+            key={`${item.nameValuePairs?.cardTitle}_${index}`}
             errorRowStyles={styles.ph5}
             errors={item.errors}
         >
@@ -122,10 +128,11 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 {({hovered}) => (
                     <WorkspaceCardListRow
                         style={hovered && styles.hoveredComponentBG}
-                        lastFourPAN={item.lastFourPAN}
+                        lastFourPAN={item.lastFourPAN ?? ''}
+                        // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
                         cardholder={item.cardholder}
-                        limit={item.limit}
-                        name={item.name}
+                        limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
+                        name={item.nameValuePairs?.cardTitle ?? ''}
                         currency={policyCurrency}
                     />
                 )}

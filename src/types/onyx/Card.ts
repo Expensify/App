@@ -39,7 +39,7 @@ type Card = {
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        /** User-defined nickname for a virtual card */
+        /** User-defined nickname for the card */
         cardTitle?: string;
 
         /** Account ID of user that issued the card */
