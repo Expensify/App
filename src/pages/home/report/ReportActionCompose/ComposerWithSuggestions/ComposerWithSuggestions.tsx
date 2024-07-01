@@ -503,8 +503,15 @@ function ComposerWithSuggestions(
     // This contains the previous value that we receive directly from the native text input (not our formatted value)
     const prevNativeTextRef = useRef(value);
     const handleInputChange = useCallback(
-        ({nativeEvent}: NativeSyntheticEvent<TextInputChangeEventData>) => {
-            const {count, start, before, text: nativeText} = nativeEvent;
+        ({nativeEvent, target}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            const {count, start, before} = nativeEvent;
+            let nativeText = nativeEvent.text;
+            if (nativeText === undefined) {
+                // Assume we are on a platform where the text is stored in another field called value (e.g. web)
+                // @ts-expect-error Not properly typed
+                nativeText = target.value;
+            }
+
             const previousNativeText = prevNativeTextRef.current;
             prevNativeTextRef.current = nativeText;
 

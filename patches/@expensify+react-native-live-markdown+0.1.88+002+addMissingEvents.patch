@@ -1,0 +1,64 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+index 7be4e5c..27ca7cf 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
+@@ -245,16 +245,19 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+       });
+     }
+   }, [multiline, onContentSizeChange]);
++
+   const handleOnChangeText = useCallback(e => {
+     if (!divRef.current || !(e.target instanceof HTMLElement)) {
+       return;
+     }
++    const prevSelection = contentSelection.current;
+     const changedText = e.target.innerText;
+     if (compositionRef.current && !BrowserUtils.isMobile) {
+       updateTextColor(divRef.current, changedText);
+       compositionRef.current = false;
+       return;
+     }
++    
+     let text = '';
+     const nativeEvent = e.nativeEvent;
+     switch (nativeEvent.inputType) {
+@@ -275,6 +278,8 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+       default:
+         text = parseText(divRef.current, changedText, processedMarkdownStyle).text;
+     }
++    const normalizedText = normalizeValue(text);
++
+     if (pasteRef !== null && pasteRef !== void 0 && pasteRef.current) {
+       pasteRef.current = false;
+       updateSelection(e);
+@@ -283,10 +288,29 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+     if (onChange) {
+       const event = e;
+       setEventProps(event);
++
++      const newSelection = CursorUtils.getCurrentCursorPosition(divRef.current);
++      // The new text is between the prev start selection and the new end selection
++      const maybeAddedtext = normalizedText.slice(prevSelection.start, newSelection.end);
++      // The length of the text that replaced the before text
++      const count = maybeAddedtext.length;
++      // The start index of the replacement operation
++      const start = prevSelection.start;
++      
++      // The length the deleted text had before
++      let before = prevSelection.end - prevSelection.start;
++      if (before === 0 && (event.inputType === 'deleteContentBackward' || event.inputType === 'deleteContentForward')) {
++        // its possible the user pressed a delete key without a selection range, so we need to adjust the before value
++        before = 1;
++      }
++
++      nativeEvent.count = count;
++      nativeEvent.before = before;
++      nativeEvent.start = start;
++
+       onChange(event);
+     }
+     if (onChangeText) {
+-      const normalizedText = normalizeValue(text);
+       onChangeText(normalizedText);
+     }
+     handleContentSizeChange();
