@@ -528,12 +528,27 @@ function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCoun
         }));
 }
 
+function isSyncTaxEnabled(policy: Policy | undefined) {
+    const netSuiteConfg = policy?.connections?.netsuite?.options?.config;
+    const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
+    if (!netSuiteConfg || !subsidiaryList) {
+        return false;
+    }
+
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netSuiteConfg?.subsidiaryID);
+    return !!netSuiteConfg?.suiteTaxEnabled && !isUSASubsidiaryNetSuite(selectedSubsidiary?.country);
+}
+
 function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
     return !!canUseNetSuiteUSATax || CONST.NETSUITE_TAX_COUNTRIES.includes(subsidiaryCountry ?? '');
 }
 
 function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
+}
+
+function isUSASubsidiaryNetSuite(subsidiaryCountry?: string) {
+    return subsidiaryCountry === '_unitedStates';
 }
 
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
@@ -578,6 +593,12 @@ function navigateWhenEnableFeature(policyID: string) {
     setTimeout(() => {
         Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+}
+
+function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
+    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
 
 export {
@@ -645,6 +666,8 @@ export {
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
+    getCurrentConnectionName,
+    isSyncTaxEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
