@@ -2134,6 +2134,7 @@ const CONST = {
         PRIVATE_NOTES: 'privateNotes',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
+        BOOK_A_CALL: 'bookACall',
     },
     EDIT_REQUEST_FIELD: {
         AMOUNT: 'amount',
