@@ -109,10 +109,11 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const description = TransactionUtils.getDescription(transactionItem);
-    let merchant = transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description;
-    if (!isLargeScreenWidth) {
-        merchant = transactionItem.shouldShowMerchant ? (transactionItem.formattedMerchant ? transactionItem.formattedMerchant : description) : description;
+    let merchantOrDescriptionToDisplay = transactionItem.formattedMerchant;
+    if (!merchantOrDescriptionToDisplay && !isLargeScreenWidth) {
+        merchantOrDescriptionToDisplay = description;
     }
+    let merchant = transactionItem.shouldShowMerchant ? merchantOrDescriptionToDisplay : description;
 
     if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
