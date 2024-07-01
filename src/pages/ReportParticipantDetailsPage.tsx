@@ -87,6 +87,7 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                         imageStyles={[styles.avatarXLarge]}
                         source={details.avatar}
                         avatarID={accountID}
+                        type={CONST.ICON_TYPE_AVATAR}
                         size={CONST.AVATAR_SIZE.XLARGE}
                         fallbackIcon={fallbackIcon}
                     />

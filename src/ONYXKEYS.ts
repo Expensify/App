@@ -115,6 +115,9 @@ const ONYXKEYS = {
     /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
+    /** This NVP contains data associated with HybridApp */
+    NVP_TRYNEWDOT: 'nvp_tryNewDot',
+
     /** Contains the user preference for the LHN priority mode */
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
 
@@ -151,9 +154,11 @@ const ONYXKEYS = {
     /** Whether the user has tried focus mode yet */
     NVP_TRY_FOCUS_MODE: 'nvp_tryFocusMode',
 
-    /** Whether the user has been shown the hold educational interstitial yet */
-    NVP_HOLD_USE_EXPLAINED: 'holdUseExplained',
+    /** Whether the user has dismissed the hold educational interstitial */
+    NVP_DISMISSED_HOLD_USE_EXPLANATION: 'nvp_dismissedHoldUseExplanation',
 
+    /** Whether the user has seen HybridApp explanation modal */
+    NVP_SEEN_NEW_USER_MODAL: 'nvp_seen_new_user_modal',
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
@@ -168,6 +173,24 @@ const ONYXKEYS = {
 
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
+
+    /** The NVP containing all information necessary to connect with Spontana */
+    NVP_TRAVEL_SETTINGS: 'nvp_travelSettings',
+
+    /** The start date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
+    NVP_FIRST_DAY_FREE_TRIAL: 'nvp_private_firstDayFreeTrial',
+
+    /** The end date (yyyy-MM-dd HH:mm:ss) of the workspace owner’s free trial period. */
+    NVP_LAST_DAY_FREE_TRIAL: 'nvp_private_lastDayFreeTrial',
+
+    /** ID associated with the payment card added by the user. */
+    NVP_BILLING_FUND_ID: 'nvp_expensify_billingFundID',
+
+    /** The amount owed by the workspace’s owner. */
+    NVP_PRIVATE_AMOUNT_OWNED: 'nvp_private_amountOwed',
+
+    /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
+    NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
 
     /** Does this user have push notifications enabled for this device? */
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
@@ -321,8 +344,17 @@ const ONYXKEYS = {
     // Paths of PDF file that has been cached during one session
     CACHED_PDF_PATHS: 'cachedPDFPaths',
 
+    /** Stores iframe link to verify 3DS flow for subscription */
+    VERIFY_3DS_SUBSCRIPTION: 'verify3dsSubscription',
+
     /** Holds the checks used while transferring the ownership of the workspace */
     POLICY_OWNERSHIP_CHANGE_CHECKS: 'policyOwnershipChangeChecks',
+
+    /** Stores info during review duplicates flow */
+    REVIEW_DUPLICATES: 'reviewDuplicates',
+
+    /** Stores the information about the state of issuing a new card */
+    ISSUE_NEW_EXPENSIFY_CARD: 'issueNewExpensifyCard',
 
     /** Collection Keys */
     COLLECTION: {
@@ -376,12 +408,16 @@ const ONYXKEYS = {
 
         // Search Page related
         SNAPSHOT: 'snapshot_',
+
+        // Shared NVPs
+        /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
+        SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
     },
 
     /** List of Form ids */
     FORMS: {
-        ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        ADD_DEBIT_CARD_FORM_DRAFT: 'addDebitCardFormDraft',
+        ADD_PAYMENT_CARD_FORM: 'addPaymentCardForm',
+        ADD_PAYMENT_CARD_FORM_DRAFT: 'addPaymentCardFormDraft',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_CATEGORY_FORM: 'workspaceCategoryForm',
         WORKSPACE_CATEGORY_FORM_DRAFT: 'workspaceCategoryFormDraft',
@@ -450,6 +486,8 @@ const ONYXKEYS = {
         SETTINGS_STATUS_SET_CLEAR_AFTER_FORM_DRAFT: 'settingsStatusSetClearAfterFormDraft',
         SETTINGS_STATUS_CLEAR_DATE_FORM: 'settingsStatusClearDateForm',
         SETTINGS_STATUS_CLEAR_DATE_FORM_DRAFT: 'settingsStatusClearDateFormDraft',
+        CHANGE_BILLING_CURRENCY_FORM: 'changeBillingCurrencyForm',
+        CHANGE_BILLING_CURRENCY_FORM_DRAFT: 'changeBillingCurrencyFormDraft',
         PRIVATE_NOTES_FORM: 'privateNotesForm',
         PRIVATE_NOTES_FORM_DRAFT: 'privateNotesFormDraft',
         I_KNOW_A_TEACHER_FORM: 'iKnowTeacherForm',
@@ -486,13 +524,17 @@ const ONYXKEYS = {
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
         SUBSCRIPTION_SIZE_FORM: 'subscriptionSizeForm',
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
+        ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCardForm',
+        ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardFormDraft',
+        SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
+        SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
     },
 } as const;
 
 type AllOnyxKeys = DeepValueOf<typeof ONYXKEYS>;
 
 type OnyxFormValuesMapping = {
-    [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: FormTypes.AddDebitCardForm;
+    [ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM]: FormTypes.AddPaymentCardForm;
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: FormTypes.WorkspaceSettingsForm;
     [ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM]: FormTypes.WorkspaceCategoryForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAG_FORM]: FormTypes.WorkspaceTagForm;
@@ -524,6 +566,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WAYPOINT_FORM]: FormTypes.WaypointForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM]: FormTypes.SettingsStatusSetForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM]: FormTypes.SettingsStatusClearDateForm;
+    [ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM]: FormTypes.ChangeBillingCurrencyForm;
     [ONYXKEYS.FORMS.SETTINGS_STATUS_SET_CLEAR_AFTER_FORM]: FormTypes.SettingsStatusSetClearAfterForm;
     [ONYXKEYS.FORMS.PRIVATE_NOTES_FORM]: FormTypes.PrivateNotesForm;
     [ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM]: FormTypes.IKnowTeacherForm;
@@ -545,6 +588,8 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
+    [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
+    [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -589,6 +634,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
 };
 
 type OnyxValuesMapping = {
@@ -598,6 +644,9 @@ type OnyxValuesMapping = {
 
     // NVP_ONBOARDING is an array for old users.
     [ONYXKEYS.NVP_ONBOARDING]: Onboarding | [];
+
+    // ONYXKEYS.NVP_TRYNEWDOT is HybridApp onboarding data
+    [ONYXKEYS.NVP_TRYNEWDOT]: OnyxTypes.TryNewDot;
 
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
@@ -635,12 +684,13 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_TRY_FOCUS_MODE]: boolean;
-    [ONYXKEYS.NVP_HOLD_USE_EXPLAINED]: boolean;
+    [ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION]: boolean;
     [ONYXKEYS.FOCUS_MODE_NOTIFICATION]: boolean;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: OnyxTypes.LastPaymentMethod;
     [ONYXKEYS.NVP_RECENT_WAYPOINTS]: OnyxTypes.RecentWaypoint[];
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
+    [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
@@ -678,6 +728,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
+    [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
     [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: OnyxTypes.MapboxAccessToken;
     [ONYXKEYS.ONYX_UPDATES_FROM_SERVER]: OnyxTypes.OnyxUpdatesFromServer;
@@ -699,6 +750,14 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CACHED_PDF_PATHS]: Record<string, string>;
     [ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS]: Record<string, OnyxTypes.PolicyOwnershipChangeChecks>;
     [ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE]: OnyxTypes.QuickAction;
+    [ONYXKEYS.NVP_TRAVEL_SETTINGS]: OnyxTypes.TravelSettings;
+    [ONYXKEYS.REVIEW_DUPLICATES]: OnyxTypes.ReviewDuplicates;
+    [ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
+    [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
+    [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
+    [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
+    [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: number;
+    [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping;

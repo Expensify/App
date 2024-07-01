@@ -90,14 +90,8 @@ function HeaderView({
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-    const isSystemChat = ReportUtils.isSystemChat(report);
 
-    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-    const participants = Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((accountID) => accountID !== session?.accountID || (!isOneOnOneChat && !isSystemChat))
-        .slice(0, 5);
+    const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report).slice(0, 5);
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
@@ -109,7 +103,7 @@ function HeaderView({
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.isConciergeChatReport(report);

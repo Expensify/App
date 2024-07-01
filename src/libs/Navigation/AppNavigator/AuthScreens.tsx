@@ -2,7 +2,9 @@ import React, {memo, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
+import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +16,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import getOnboardingModalScreenOptions from '@libs/Navigation/getOnboardingModalScreenOptions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, CentralPaneName, CentralPaneScreensParamList} from '@libs/Navigation/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as Pusher from '@libs/Pusher/pusher';
 import PusherConnectionManager from '@libs/PusherConnectionManager';
@@ -30,6 +32,7 @@ import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as PriorityMode from '@userActions/PriorityMode';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
+import toggleTestToolsModal from '@userActions/TestTool';
 import Timing from '@userActions/Timing';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -40,11 +43,13 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import CENTRAL_PANE_SCREENS from './CENTRAL_PANE_SCREENS';
 import createCustomStackNavigator from './createCustomStackNavigator';
 import defaultScreenOptions from './defaultScreenOptions';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
 import BottomTabNavigator from './Navigators/BottomTabNavigator';
-import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
+import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import LeftModalNavigator from './Navigators/LeftModalNavigator';
@@ -63,15 +68,35 @@ type AuthScreensProps = {
     initialLastUpdateIDAppliedToClient: OnyxEntry<number>;
 };
 
-const loadReportAttachments = () => require('../../../pages/home/report/ReportAttachments').default as React.ComponentType;
-const loadValidateLoginPage = () => require('../../../pages/ValidateLoginPage').default as React.ComponentType;
-const loadLogOutPreviousUserPage = () => require('../../../pages/LogOutPreviousUserPage').default as React.ComponentType;
-const loadConciergePage = () => require('../../../pages/ConciergePage').default as React.ComponentType;
-const loadProfileAvatar = () => require('../../../pages/settings/Profile/ProfileAvatar').default as React.ComponentType;
-const loadWorkspaceAvatar = () => require('../../../pages/workspace/WorkspaceAvatar').default as React.ComponentType;
-const loadReportAvatar = () => require('../../../pages/ReportAvatar').default as React.ComponentType;
-const loadReceiptView = () => require('../../../pages/TransactionReceiptPage').default as React.ComponentType;
-const loadWorkspaceJoinUser = () => require('@pages/workspace/WorkspaceJoinUserPage').default as React.ComponentType;
+const loadReportAttachments = () => require<ReactComponentModule>('../../../pages/home/report/ReportAttachments').default;
+const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
+const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
+const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadProfileAvatar = () => require<ReactComponentModule>('../../../pages/settings/Profile/ProfileAvatar').default;
+const loadWorkspaceAvatar = () => require<ReactComponentModule>('../../../pages/workspace/WorkspaceAvatar').default;
+const loadReportAvatar = () => require<ReactComponentModule>('../../../pages/ReportAvatar').default;
+const loadReceiptView = () => require<ReactComponentModule>('../../../pages/TransactionReceiptPage').default;
+const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
+
+function shouldOpenOnAdminRoom() {
+    const url = getCurrentUrl();
+    return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
+}
+
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAccessedReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
+    if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
+        return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
+    }
+
+    if (screenName === SCREENS.REPORT) {
+        return {
+            openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
+            reportID: lastAccessedReportID,
+        };
+    }
+
+    return undefined;
+}
 
 let timezone: Timezone | null;
 let currentAccountID = -1;
@@ -173,6 +198,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const lastAccessedReportID = useLastAccessedReportID(shouldOpenOnAdminRoom());
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
     const onboardingScreenOptions = useMemo(
@@ -190,6 +216,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         const shortcutsOverviewShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUTS;
         const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
         const chatShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_CHAT;
+        const debugShortcutConfig = CONST.KEYBOARD_SHORTCUTS.DEBUG;
         const currentUrl = getCurrentUrl();
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
@@ -273,10 +300,21 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             true,
         );
 
+        const unsubscribeDebugShortcut = KeyboardShortcut.subscribe(
+            debugShortcutConfig.shortcutKey,
+            () => {
+                toggleTestToolsModal();
+            },
+            debugShortcutConfig.descriptionKey,
+            debugShortcutConfig.modifiers,
+            true,
+        );
+
         return () => {
             unsubscribeShortcutsOverviewShortcut();
             unsubscribeSearchShortcut();
             unsubscribeChatShortcut();
+            unsubscribeDebugShortcut();
             Session.cleanupSession();
         };
 
@@ -284,19 +322,25 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const CentralPaneScreenOptions = {
+        headerShown: false,
+        title: 'New Expensify',
+
+        // Prevent unnecessary scrolling
+        cardStyle: styles.cardStyleNavigator,
+    };
+
     return (
         <OptionsListContextProvider>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-                <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+                <RootStack.Navigator
+                    screenOptions={screenOptions.centralPaneNavigator}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                >
                     <RootStack.Screen
                         name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                         options={screenOptions.bottomTab}
                         component={BottomTabNavigator}
-                    />
-                    <RootStack.Screen
-                        name={NAVIGATORS.CENTRAL_PANE_NAVIGATOR}
-                        options={screenOptions.centralPaneNavigator}
-                        component={CentralPaneNavigator}
                     />
                     <RootStack.Screen
                         name={SCREENS.VALIDATE_LOGIN}
@@ -381,6 +425,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         component={DesktopSignInRedirectPage}
                     />
                     <RootStack.Screen
+                        name={NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR}
+                        options={onboardingModalScreenOptions}
+                        component={ExplanationModalNavigator}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
                         options={onboardingModalScreenOptions}
                         component={FeatureTrainingModalNavigator}
@@ -419,6 +468,18 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         options={defaultScreenOptions}
                         component={ConnectionCompletePage}
                     />
+                    {Object.entries(CENTRAL_PANE_SCREENS).map(([screenName, componentGetter]) => {
+                        const centralPaneName = screenName as CentralPaneName;
+                        return (
+                            <RootStack.Screen
+                                key={centralPaneName}
+                                name={centralPaneName}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, lastAccessedReportID)}
+                                getComponent={componentGetter}
+                                options={CentralPaneScreenOptions}
+                            />
+                        );
+                    })}
                 </RootStack.Navigator>
             </View>
         </OptionsListContextProvider>
