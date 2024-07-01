@@ -2490,7 +2490,7 @@ export default {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             setup: 'Connect',
-            lastSync: 'Last synced just now',
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',

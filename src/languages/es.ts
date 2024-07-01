@@ -2463,7 +2463,7 @@ export default {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             setup: 'Configurar',
-            lastSync: 'Recién sincronizado',
+            lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
