@@ -1,13 +1,15 @@
 import React from 'react';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -20,8 +22,12 @@ type SearchHeaderProps = {
     hash: number;
 };
 
+type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES> | undefined;
+
 function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHeaderProps) {
     const {translate} = useLocalize();
+    const theme = useTheme();
+    const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
@@ -31,7 +37,7 @@ function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHe
     };
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES & 'NO_AVAILABLE'>>> = [];
+        const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const selectedItemsKeys = Object.keys(selectedItems ?? []);
 
         if (selectedItemsKeys.length === 0) {
@@ -51,6 +57,7 @@ function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHe
                 },
             });
         }
+
         // @TODO: Uncomment when actions are ready
 
         // const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
@@ -79,25 +86,29 @@ function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHe
         //     });
         // }
 
-        if (options.length > 0) {
-            return (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
-                    options={options}
-                    isSplitButton={false}
-                />
-            );
+        if (options.length === 0) {
+            options.push({
+                icon: Expensicons.Exclamation,
+                text: translate('search.bulkActions.noOptionsAvailable'),
+                value: undefined,
+                interactive: false,
+                iconFill: theme.icon,
+                iconHeight: variables.iconSizeLarge,
+                iconWidth: variables.iconSizeLarge,
+                numberOfLinesTitle: 2,
+                titleStyle: [styles.colorMuted, styles.fontWeightNormal],
+            });
         }
 
         return (
-            <Button
-                medium
-                text={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
-                isDisabled
+            <ButtonWithDropdownMenu
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
+                options={options}
+                isSplitButton={false}
             />
         );
     };

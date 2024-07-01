@@ -1,3 +1,4 @@
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import BaseListItem from '@components/SelectionList/BaseListItem';

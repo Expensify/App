@@ -23,6 +23,10 @@ type DropdownOption<TValueType> = {
     iconDescription?: string;
     onSelected?: () => void;
     disabled?: boolean;
+    iconFill?: string;
+    interactive?: boolean;
+    numberOfLinesTitle?: number;
+    titleStyle?: StyleProp<ViewStyle>;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
