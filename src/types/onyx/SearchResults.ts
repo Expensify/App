@@ -236,8 +236,13 @@ type SearchResults = {
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
+    /** Whether the transaction is selected */
     isSelected: boolean;
+
+    /** If the transaction can be deleted */
     canDelete: boolean;
+
+    /** The action that can be performed for the transaction */
     action: string;
 };
 
