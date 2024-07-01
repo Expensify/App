@@ -66,7 +66,7 @@ E2EClient.getTestConfig()
                 branch: Config.E2E_BRANCH,
                 name: config.name,
                 error: `Test '${config.name}' not found`,
-                isCritical: false, 
+                isCritical: false,
             });
         }
 
