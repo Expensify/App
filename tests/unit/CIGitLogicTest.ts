@@ -267,6 +267,7 @@ describe('CIGitLogic', () => {
     afterAll(() => {
         fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
         fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
+        exec('cd ..');
     });
 
     test('Merge a pull request while the checklist is unlocked', () => {

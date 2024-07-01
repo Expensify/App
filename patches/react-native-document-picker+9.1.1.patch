@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-document-picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.java b/node_modules/react-native-document-picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.java
+index dd67216..5001525 100644
+--- a/node_modules/react-native-document-picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.java
++++ b/node_modules/react-native-document-picker/android/src/main/java/com/reactnativedocumentpicker/RNDocumentPickerModule.java
+@@ -103,9 +103,9 @@ public class RNDocumentPickerModule extends NativeDocumentPickerSpec {
+   }
+ 
+   @Override
+-  public void onCatalystInstanceDestroy() {
++  public void invalidate() {
+     getReactApplicationContext().removeActivityEventListener(activityEventListener);
+-    super.onCatalystInstanceDestroy();
++    super.invalidate();
+   }
+ 
+   @NonNull

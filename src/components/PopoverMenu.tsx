@@ -210,6 +210,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            useNativeDriver
         >
             <FocusTrapForModal active={isVisible}>
                 <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>

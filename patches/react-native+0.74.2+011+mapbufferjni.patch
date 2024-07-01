@@ -1,0 +1,49 @@
+diff --git a/node_modules/react-native/ReactAndroid/build.gradle.kts b/node_modules/react-native/ReactAndroid/build.gradle.kts
+index 4909aed..b1cfd32 100644
+--- a/node_modules/react-native/ReactAndroid/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/build.gradle.kts
+@@ -155,6 +155,8 @@ val preparePrefab by
+                   "glog", Pair(File(buildDir, "third-party-ndk/glog/exported/").absolutePath, "")),
+               PrefabPreprocessingEntry(
+                   "fabricjni", Pair("src/main/jni/react/fabric", "react/fabric/")),
++              PrefabPreprocessingEntry(
++                  "mapbufferjni", Pair("src/main/jni/react/mapbuffer", "react/mapbuffer/")),
+               PrefabPreprocessingEntry(
+                   "react_render_mapbuffer",
+                   Pair("../ReactCommon/react/renderer/mapbuffer/", "react/renderer/mapbuffer/")),
+@@ -574,6 +576,7 @@ android {
+             "jsi",
+             "glog",
+             "fabricjni",
++            "mapbufferjni",
+             "react_render_mapbuffer",
+             "react_render_textlayoutmanager",
+             "yoga",
+@@ -703,6 +706,7 @@ android {
+     create("jsi") { headers = File(prefabHeadersDir, "jsi").absolutePath }
+     create("glog") { headers = File(prefabHeadersDir, "glog").absolutePath }
+     create("fabricjni") { headers = File(prefabHeadersDir, "fabricjni").absolutePath }
++    create("mapbufferjni") { headers = File(prefabHeadersDir, "mapbufferjni").absolutePath }
+     create("react_render_mapbuffer") {
+       headers = File(prefabHeadersDir, "react_render_mapbuffer").absolutePath
+     }
+diff --git a/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake b/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake
+index e2efc26..3d4e151 100644
+--- a/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake
++++ b/node_modules/react-native/ReactAndroid/cmake-utils/ReactNative-application.cmake
+@@ -79,6 +79,7 @@ add_library(rrc_textinput ALIAS ReactAndroid::rrc_textinput)
+ add_library(jsi ALIAS ReactAndroid::jsi)
+ add_library(glog ALIAS ReactAndroid::glog)
+ add_library(fabricjni ALIAS ReactAndroid::fabricjni)
++add_library(mapbufferjni ALIAS ReactAndroid::mapbufferjni)
+ add_library(react_render_mapbuffer ALIAS ReactAndroid::react_render_mapbuffer)
+ add_library(react_render_textlayoutmanager ALIAS ReactAndroid::react_render_textlayoutmanager)
+ add_library(yoga ALIAS ReactAndroid::yoga)
+@@ -93,6 +94,7 @@ add_library(fbjni ALIAS fbjni::fbjni)
+
+ target_link_libraries(${CMAKE_PROJECT_NAME}
+         fabricjni                           # prefab ready
++        mapbufferjni                        # prefab ready
+         fbjni                               # via 3rd party prefab
+         folly_runtime                       # prefab ready
+         glog                                # prefab ready

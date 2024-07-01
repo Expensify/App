@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-index e7b69bf..9f691c9 100644
+index 88ee3fd..41a582b 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -115,6 +115,10 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
+@@ -119,6 +119,10 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
      [self _setMultiline:newTextInputProps.traits.multiline];
    }
  
@@ -13,7 +13,7 @@ index e7b69bf..9f691c9 100644
    if (newTextInputProps.traits.autocapitalizationType != oldTextInputProps.traits.autocapitalizationType) {
      _backedTextInputView.autocapitalizationType =
          RCTUITextAutocapitalizationTypeFromAutocapitalizationType(newTextInputProps.traits.autocapitalizationType);
-@@ -618,6 +622,25 @@ - (void)_setMultiline:(BOOL)multiline
+@@ -622,6 +626,25 @@ - (void)_setMultiline:(BOOL)multiline
    RCTCopyBackedTextInput(_backedTextInputView, backedTextInputView);
    _backedTextInputView = backedTextInputView;
    [self addSubview:_backedTextInputView];
@@ -39,13 +39,13 @@ index e7b69bf..9f691c9 100644
  }
  
  - (BOOL)_textOf:(NSAttributedString *)newText equals:(NSAttributedString *)oldText
-diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-index 0c9cc69..fee423f 100644
---- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-+++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/androidtextinput/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
-@@ -159,15 +159,6 @@ void AndroidTextInputShadowNode::updateStateIfNeeded() {
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index 3e9e0ad..1845d13 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -160,14 +160,6 @@ void AndroidTextInputShadowNode::updateStateIfNeeded() {
  Size AndroidTextInputShadowNode::measureContent(
-     const LayoutContext& /*layoutContext*/,
+     const LayoutContext& layoutContext,
      const LayoutConstraints& layoutConstraints) const {
 -  if (getStateData().cachedAttributedStringId != 0) {
 -    return textLayoutManager_
@@ -55,7 +55,6 @@ index 0c9cc69..fee423f 100644
 -            layoutConstraints)
 -        .size;
 -  }
--
+ 
    // Layout is called right after measure.
    // Measure is marked as `const`, and `layout` is not; so State can be updated
-   // during layout, but not during `measure`. If State is out-of-date in layout,
