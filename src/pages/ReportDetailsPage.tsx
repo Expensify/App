@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
