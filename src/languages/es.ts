@@ -2927,6 +2927,7 @@ export default {
         },
         upgrade: {
             reportFields: {
+                // Todo: Add proper translations for the following strings
                 title: 'Report fields',
                 description: 'Set up custom fields for spend.',
             },
