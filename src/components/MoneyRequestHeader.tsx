@@ -94,77 +94,75 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
     const statusBarProps = getStatusBarProps();
 
     return (
-        <>
-            <View style={[styles.pl0]}>
-                <HeaderWithBackButton
-                    shouldShowBorderBottom={!statusBarProps && !isOnHold}
-                    shouldShowReportAvatarWithDisplay
-                    shouldEnableDetailPageNavigation
-                    shouldShowPinButton={false}
-                    report={{
-                        ...report,
-                        ownerAccountID: parentReport?.ownerAccountID,
-                    }}
-                    policy={policy}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={onBackButtonPress}
-                >
-                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.markAsCash')}
-                            style={[styles.p0]}
-                            onPress={markAsCash}
-                        />
-                    )}
-                    {isDuplicate && !shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.p0]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
-                            }}
-                        />
-                    )}
-                </HeaderWithBackButton>
-                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            medium
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={markAsCash}
-                        />
-                    </View>
+        <View style={[styles.pl0]}>
+            <HeaderWithBackButton
+                shouldShowBorderBottom={!statusBarProps && !isOnHold}
+                shouldShowReportAvatarWithDisplay
+                shouldEnableDetailPageNavigation
+                shouldShowPinButton={false}
+                report={{
+                    ...report,
+                    ownerAccountID: parentReport?.ownerAccountID,
+                }}
+                policy={policy}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={onBackButtonPress}
+            >
+                {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
+                    <Button
+                        success
+                        medium
+                        text={translate('iou.markAsCash')}
+                        style={[styles.p0]}
+                        onPress={markAsCash}
+                    />
                 )}
-                {isDuplicate && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
-                            }}
-                        />
-                    </View>
+                {isDuplicate && !shouldUseNarrowLayout && (
+                    <Button
+                        success
+                        medium
+                        text={translate('iou.reviewDuplicates')}
+                        style={[styles.p0]}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                        }}
+                    />
                 )}
-                {statusBarProps && (
-                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
-                        <MoneyRequestHeaderStatusBar
-                            title={statusBarProps.title}
-                            description={statusBarProps.description}
-                            danger={statusBarProps.danger}
-                        />
-                    </View>
-                )}
-            </View>
-        </>
+            </HeaderWithBackButton>
+            {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                <View style={[styles.ph5, styles.pb3]}>
+                    <Button
+                        medium
+                        success
+                        text={translate('iou.markAsCash')}
+                        style={[styles.w100, styles.pr0]}
+                        onPress={markAsCash}
+                    />
+                </View>
+            )}
+            {isDuplicate && shouldUseNarrowLayout && (
+                <View style={[styles.ph5, styles.pb3]}>
+                    <Button
+                        success
+                        medium
+                        text={translate('iou.reviewDuplicates')}
+                        style={[styles.w100, styles.pr0]}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(report.reportID));
+                        }}
+                    />
+                </View>
+            )}
+            {statusBarProps && (
+                <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                    <MoneyRequestHeaderStatusBar
+                        title={statusBarProps.title}
+                        description={statusBarProps.description}
+                        danger={statusBarProps.danger}
+                    />
+                </View>
+            )}
+        </View>
     );
 }
 

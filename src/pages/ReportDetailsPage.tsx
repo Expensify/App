@@ -383,6 +383,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         shouldShowLeaveButton,
         activeChatMembers.length,
         isPolicyAdmin,
+        isConcierge,
+        guideCalendarLink,
         session,
         leaveChat,
     ]);
