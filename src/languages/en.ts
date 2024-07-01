@@ -3428,6 +3428,26 @@ export default {
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}) => `Renews on ${date}.`,
         },
+        requestEarlyCancellation: {
+            title: 'Request early cancellation',
+            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+            subscriptionCancelled: {
+                title: 'Subscription canceled',
+                subtitle: 'Your annual subscription has been canceled.',
+                info1: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
+                info2: 'If you’d like to prevent future activity and charges, you must delete your workspace(s). Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+            },
+            requestSubmitted: {
+                title: 'Request submitted',
+                subtitle: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with Concierge.',
+            },
+            submitButton: 'Done',
+            acknowledgement: {
+                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
+                link: 'Terms of Service',
+                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
+            },
+        },
     },
     feedbackSurvey: {
         tooLimited: 'Functionality needs improvement',
