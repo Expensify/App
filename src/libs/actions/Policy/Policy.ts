@@ -3047,6 +3047,7 @@ export {
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
+    clearNetSuiteErrorField,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
@@ -3058,7 +3059,6 @@ export {
     buildPolicyData,
     enableExpensifyCard,
     createPolicyExpenseChats,
-    clearNetSuiteErrorField,
     getPoliciesConnectedToSageIntacct,
 };
 
