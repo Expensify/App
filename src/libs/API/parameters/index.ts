@@ -183,6 +183,7 @@ export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
+export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
@@ -236,3 +237,4 @@ export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTok
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as UpdateNetSuiteSyncTaxConfigurationParams} from './UpdateNetSuiteSyncTaxConfigurationParams';
+export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
