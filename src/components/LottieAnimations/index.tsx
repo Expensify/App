@@ -51,11 +51,6 @@ const DotLottieAnimations = {
         h: 400,
         backgroundColor: colors.ice500,
     },
-    MagicCode: {
-        file: require('@assets/animations/MagicCode.lottie'),
-        w: 200,
-        h: 164,
-    },
     Magician: {
         file: require('@assets/animations/Magician.lottie'),
         w: 853,
@@ -76,6 +71,7 @@ const DotLottieAnimations = {
         file: require('@assets/animations/Desk.lottie'),
         w: 200,
         h: 120,
+        backgroundColor: colors.blue700,
     },
     Plane: {
         file: require('@assets/animations/Plane.lottie'),

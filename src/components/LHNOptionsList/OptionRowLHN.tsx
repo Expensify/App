@@ -1,8 +1,8 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -20,16 +20,16 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
+import {parseHtmlToText} from '@libs/OnyxAwareParser';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
-
-const parser = new ExpensiMark();
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -38,6 +38,9 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID || -1}`);
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -122,12 +125,11 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
     const formattedDate = DateUtils.getStatusUntilDate(statusClearAfterDate);
     const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const report = ReportUtils.getReport(optionItem.reportID ?? '-1');
     const isStatusVisible = !!emojiCode && ReportUtils.isOneOnOneChat(!isEmptyObject(report) ? report : undefined);
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
-    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '-1') : optionItem.text;
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
         <OfflineWithFeedback
@@ -184,17 +186,17 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {(optionItem.icons?.length ?? 0) > 0 &&
+                                {!!optionItem.icons?.length &&
                                     (optionItem.shouldShowSubscript ? (
                                         <SubscriptAvatar
                                             backgroundColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                            mainAvatar={optionItem.icons?.[0]}
-                                            secondaryAvatar={optionItem.icons?.[1]}
+                                            mainAvatar={optionItem.icons[0]}
+                                            secondaryAvatar={optionItem.icons[1]}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
-                                            icons={optionItem.icons ?? []}
+                                            icons={optionItem.icons}
                                             isFocusMode={isInFocusMode}
                                             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
@@ -240,7 +242,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {parser.htmlToText(optionItem.alternateText)}
+                                            {parseHtmlToText(optionItem.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>

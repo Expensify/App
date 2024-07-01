@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
-import compose from '@libs/compose';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -95,11 +94,10 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default compose(
+export default withNetwork()(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
-    }),
-    withNetwork(),
-)(TestToolMenu);
+    })(TestToolMenu),
+);

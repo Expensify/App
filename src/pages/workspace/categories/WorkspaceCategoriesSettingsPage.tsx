@@ -27,10 +27,10 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     let toggleSubtitle = '';
     if (isConnectedToQbo) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}`;
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}.`;
     }
     if (isConnectedToXero) {
-        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}`;
+        toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.xero')}.`;
     }
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {

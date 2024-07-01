@@ -83,6 +83,10 @@ Onyx.connect({
     callback: (value) => (networkTimeSkew = value?.timeSkew ?? 0),
 });
 
+function isDate(arg: unknown): arg is Date {
+    return Object.prototype.toString.call(arg) === '[object Date]';
+}
+
 /**
  * Get the day of the week that the week starts on
  */
@@ -133,7 +137,15 @@ function getLocalDateFromDatetime(locale: Locale, datetime?: string, currentSele
         }
         return res;
     }
-    const parsedDatetime = new Date(`${datetime}Z`);
+    let parsedDatetime;
+    try {
+        // in some cases we cannot add 'Z' to the date string
+        parsedDatetime = new Date(`${datetime}Z`);
+        parsedDatetime.toISOString(); // we need to call toISOString because it throws RangeError in case of an invalid date
+    } catch (e) {
+        parsedDatetime = new Date(datetime);
+    }
+
     return utcToZonedTime(parsedDatetime, currentSelectedTimezone);
 }
 
@@ -651,7 +663,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
     }
 
     if (isAfter(startOfDay(new Date()), startOfDay(inputDate))) {
-        return 'common.error.invalidDateShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidDateShouldBeFuture');
     }
     return '';
 };
@@ -665,7 +677,7 @@ const getDayValidationErrorKey = (inputDate: Date): string => {
 const getTimeValidationErrorKey = (inputTime: Date): string => {
     const timeNowPlusOneMinute = addMinutes(new Date(), 1);
     if (isBefore(inputTime, timeNowPlusOneMinute)) {
-        return 'common.error.invalidTimeShouldBeFuture';
+        return Localize.translateLocal('common.error.invalidTimeShouldBeFuture');
     }
     return '';
 };
@@ -789,7 +801,13 @@ function getFormattedTransportDate(date: Date): string {
     return `${translateLocal('travel.departs')} ${format(date, 'EEEE, MMM d, yyyy')} ${translateLocal('common.conjunctionAt')} ${format(date, 'HH:MM')}`;
 }
 
+function doesDateBelongToAPastYear(date: string): boolean {
+    const transactionYear = new Date(date).getFullYear();
+    return transactionYear !== new Date().getFullYear();
+}
+
 const DateUtils = {
+    isDate,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
@@ -831,6 +849,7 @@ const DateUtils = {
     getFormattedDateRange,
     getFormattedReservationRangeDate,
     getFormattedTransportDate,
+    doesDateBelongToAPastYear,
 };
 
 export default DateUtils;
