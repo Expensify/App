@@ -606,12 +606,7 @@ function leaveWorkspace(policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                employeeList: {
-                    [sessionEmail]: null,
-                },
-            },
+            value: null,
         },
     ];
     const failureData: OnyxUpdate[] = [
@@ -2190,6 +2185,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): string | u
             },
         },
     ];
+    successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
     successData.push(...employeeWorkspaceChat.onyxSuccessData);
 
@@ -2943,6 +2939,10 @@ function setForeignCurrencyDefault(policyID: string, taxCode: string) {
     API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
 }
 
+function getPoliciesConnectedToSageIntacct(): Policy[] {
+    return Object.values(allPolicies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && !!policy?.connections?.intacct);
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -3006,6 +3006,7 @@ export {
     buildPolicyData,
     createPolicyExpenseChats,
     clearNetSuiteErrorField,
+    getPoliciesConnectedToSageIntacct,
 };
 
 export type {NewCustomUnit};
