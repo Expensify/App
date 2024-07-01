@@ -369,5 +369,5 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
-    connectPolicyToNetSuite
+    connectPolicyToNetSuite,
 };
