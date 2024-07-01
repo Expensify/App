@@ -1987,7 +1987,7 @@ export default {
             categories: 'Categories',
             tags: 'Tags',
             reportFields: 'Report Fields',
-            reportField: 'Report Fields',
+            reportField: 'Report Field',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2023,8 +2023,7 @@ export default {
             lineItemLevel: 'Line-item level',
             reportLevel: 'Report level',
             appliedOnExport: 'Not imported into Expensify, applied on export',
-            departments: (startsWithBigLetter = false) => (startsWithBigLetter ? 'Departments' : 'departments'),
-            mappingTitle: (mappingName: SageIntacctMappingName, startsWithBigLetter = false) => {
+            mappingTitle: (mappingName: SageIntacctMappingName, startsWithBigLetter = false): string => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
                         return startsWithBigLetter ? 'Department' : 'department';
@@ -2251,7 +2250,7 @@ export default {
             employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
             displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
             displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
-            toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
+            toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct',
             toggleImportTitleSecondPart: ' in Expensify.',
             expenseTypes: 'Expense types',
             expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
@@ -2557,7 +2556,10 @@ export default {
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             classes: 'Classes',
-            classesDescription: (integration: string) => `Choose how to handle ${integration} classes in Expensify.`,
+            classesDescription: (integration?: ConnectionName): string => {
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+                return `Choose how to handle ${integrationName} classes in Expensify.`;
+            },
             imported: 'Imported',
             notImported: 'Not imported',
             importAsCategory: 'Imported as categories',

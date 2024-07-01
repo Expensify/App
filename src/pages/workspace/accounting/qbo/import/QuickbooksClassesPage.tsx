@@ -37,9 +37,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.classes')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                    <Text style={styles.pb5}>
-                        {translate('workspace.accounting.classesDescription', translate('workspace.accounting.integrationName', CONST.POLICY.CONNECTIONS.NAME.QBO))}
-                    </Text>
+                    <Text style={styles.pb5}>{translate('workspace.accounting.classesDescription', CONST.POLICY.CONNECTIONS.NAME.QBO)}</Text>
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
                             <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
