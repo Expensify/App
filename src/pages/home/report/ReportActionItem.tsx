@@ -618,7 +618,8 @@ function ReportActionItem({
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-            const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(report?.total ?? 0), report.currency);
+            const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
+            const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
             children = <ReportActionItemBasicMessage message={translate('iou.submittedAmount', {formattedAmount})} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
