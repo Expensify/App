@@ -1,14 +1,14 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-/** Model of an Expensify card settings */
+/** Model of Expensify card settings for a workspace */
 type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Cards current balance */
+    /** Sum of all posted Expensify Card transactions */
     currentBalance: number;
 
-    /** Cards remaining limit */
+    /** Remaining limit for Expensify Cards on the workspace */
     remainingLimit: number;
 
-    /** Cards cash back */
+    /** The total amount of cash back earned thus far */
     cashBack: number;
 }>;
 

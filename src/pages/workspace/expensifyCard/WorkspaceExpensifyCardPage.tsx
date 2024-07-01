@@ -23,7 +23,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {ExpensifyCard, ExpensifyCardsList} from '@src/types/onyx';
+import type {Card, ExpensifyCardsList} from '@src/types/onyx';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
@@ -32,18 +32,21 @@ type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParam
 // TODO: remove when Onyx data is available
 const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     test1: {
+        // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
         name: 'Test 1',
         limit: 1000,
         lastFourPAN: '1234',
     },
     test2: {
+        // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
         name: 'Test 2',
         limit: 2000,
         lastFourPAN: '1234',
     },
     test3: {
+        // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
         name: 'Test 3',
         limit: 3000,
@@ -76,6 +79,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const sortedCards = useMemo(
         () =>
             Object.values(cardsList ?? {}).sort((a, b) => {
+                // TODO: change cardholder to accountID and get personal details with it
                 const aName = PersonalDetailsUtils.getDisplayNameOrDefault(a.cardholder);
                 const bName = PersonalDetailsUtils.getDisplayNameOrDefault(b.cardholder);
                 return localeCompare(aName, bName);
@@ -103,7 +107,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
         </View>
     );
 
-    const renderItem = ({item, index}: ListRenderItemInfo<ExpensifyCard>) => (
+    const renderItem = ({item, index}: ListRenderItemInfo<Card>) => (
         <OfflineWithFeedback
             key={`${item.name}_${index}`}
             pendingAction={item.pendingAction}

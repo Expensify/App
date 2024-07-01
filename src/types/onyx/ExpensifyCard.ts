@@ -1,3 +1,4 @@
+import type Card from '@src/types/onyx/Card';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -20,7 +21,7 @@ type ExpensifyCard = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 /** List of Expensify cards */
-type ExpensifyCardsList = Record<string, ExpensifyCard>;
+type ExpensifyCardsList = Record<string, Card>;
 
 export default ExpensifyCard;
 export type {ExpensifyCardsList};

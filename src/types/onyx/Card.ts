@@ -31,6 +31,9 @@ type Card = {
     /** Is card data loading */
     isLoading?: boolean;
 
+    /** Cardholder account ID */
+    accountID?: number;
+
     /** Additional card data */
     nameValuePairs?: {
         /** Type of card spending limits */
