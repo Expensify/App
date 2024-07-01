@@ -4058,8 +4058,8 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     }
 
     const amount =
-        type === CONST.IOU.REPORT_ACTION_TYPE.PAY
-            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : undefined).totalDisplaySpend, currency)
+        type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isEmptyObject(report)
+            ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
             : CurrencyUtils.convertToDisplayString(total, currency);
 
     let paymentMethodMessage;
