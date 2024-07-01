@@ -8,7 +8,6 @@ import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {PaginatedRequest, PaginationConfig} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -43,20 +42,6 @@ type OnyxData = {
     finallyData?: OnyxUpdate[];
 };
 
-// For all write requests, we'll send the lastUpdateID that is applied to this client. This will
-// allow us to calculate previousUpdateID faster.
-let lastUpdateIDAppliedToClient = -1;
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => {
-        if (value) {
-            lastUpdateIDAppliedToClient = value;
-        } else {
-            lastUpdateIDAppliedToClient = -1;
-        }
-    },
-});
-
 /**
  * Prepare the request to be sent. Bind data together with request metadata and apply optimistic Onyx data.
  */
@@ -89,8 +74,6 @@ function prepareRequest<TCommand extends ApiCommand>(command: TCommand, type: Ap
     };
 
     if (isWriteRequest) {
-        request.data.clientUpdateID = lastUpdateIDAppliedToClient;
-
         // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
         request.data.shouldRetry = true;
         request.data.canCancel = true;
