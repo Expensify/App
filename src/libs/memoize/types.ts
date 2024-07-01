@@ -2,9 +2,12 @@ import type {MemoizeStats} from './stats';
 
 type KeyComparator = <K>(key1: K[], key2: K[]) => boolean;
 
+type ValueBox<V> = {value: V};
+
 type Cache<K, V> = {
-    get: (key: K) => {value: V} | undefined;
+    get: (key: K) => ValueBox<V> | undefined;
     set: (key: K, value: V) => void;
+    getSet: (key: K, valueProducer: () => V) => ValueBox<V>;
     snapshot: {
         keys: () => K[];
         values: () => V[];

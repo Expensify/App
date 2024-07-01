@@ -46,6 +46,25 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
                 cache.shift();
             }
         },
+        getSet(key: K, valueProducer: () => V) {
+            const index = getKeyIndex(key);
+
+            if (index !== -1) {
+                const [entry] = cache.splice(index, 1);
+                cache.push(entry);
+                return {value: entry[1]};
+            }
+
+            const value = valueProducer();
+
+            cache.push([key, value]);
+
+            if (cache.length > opts.maxSize) {
+                cache.shift();
+            }
+
+            return {value};
+        },
         snapshot: {
             keys() {
                 return cache.map((entry) => entry[0]);

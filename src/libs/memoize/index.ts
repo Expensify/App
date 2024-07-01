@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import buildArrayCache from './cache/arrayCacheBuilder';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
@@ -50,25 +51,22 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
     const memoized = function memoized(...key: Parameters<Fn>): ReturnType<Fn> {
         const statsEntry = stats.createEntry();
         statsEntry.track('keyLength', key.length);
+        statsEntry.track('didHit', true);
 
         const retrievalTimeStart = performance.now();
-        let cached = cache.get(key);
-        statsEntry.track('cacheRetrievalTime', performance.now() - retrievalTimeStart);
-        statsEntry.track('didHit', !!cached);
-
-        if (!cached) {
+        const cached = cache.getSet(key, () => {
             const fnTimeStart = performance.now();
             const result = fn(...key);
             statsEntry.track('fnTime', performance.now() - fnTimeStart);
+            statsEntry.track('didHit', false);
 
-            cached = {value: result};
-            cache.set(key, result as ReturnType<Fn>);
-        }
+            return result;
+        });
+        statsEntry.track('cacheRetrievalTime', performance.now() - retrievalTimeStart - (statsEntry.get('fnTime') ?? 0));
 
         statsEntry.track('cacheSize', cache.size);
         statsEntry.save();
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return cached.value;
     };
 

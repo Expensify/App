@@ -72,6 +72,7 @@ class MemoizeStats {
         if (!this.isEnabled) {
             return {
                 track: () => {},
+                get: () => {},
                 save: () => {},
             };
         }
@@ -82,6 +83,7 @@ class MemoizeStats {
             track: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
                 entry[cacheProp] = value;
             },
+            get: <P extends keyof MemoizeStatsEntry>(cacheProp: P) => entry[cacheProp],
             save: () => this.saveEntry(entry),
         };
     }
