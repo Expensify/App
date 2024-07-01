@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -33,8 +33,6 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {data: intacctData, config} = policy?.connections?.intacct ?? {};
-
-    const [isSwitchOn, setIsSwitchOn] = useState(!!config?.export.nonReimbursableCreditCardChargeDefaultVendor);
 
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({
         value: expenseType,
@@ -140,16 +138,15 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                         subtitle={translate('workspace.sageIntacct.defaultVendorDescription', false)}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
-                        isActive={isSwitchOn}
-                        onToggle={() => {
-                            // TODO: should we set default vendor to first on the list? (it works this way in old dot)
-                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, null);
-                            setIsSwitchOn(!isSwitchOn);
+                        isActive={!!config?.export.nonReimbursableCreditCardChargeDefaultVendor}
+                        onToggle={(enabled) => {
+                            const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
+                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}
                         pendingAction={config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor}
                     />
-                    {isSwitchOn && defaultVendor}
+                    {!!config?.export.nonReimbursableCreditCardChargeDefaultVendor && defaultVendor}
                 </View>
             )}
         </View>

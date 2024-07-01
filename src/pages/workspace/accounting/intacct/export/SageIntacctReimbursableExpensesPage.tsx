@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -33,8 +33,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {data: intacctData, config} = policy?.connections?.intacct ?? {};
     const {reimbursable, reimbursableExpenseReportDefaultVendor} = policy?.connections?.intacct?.config?.export ?? {};
-
-    const [isSwitchOn, setIsSwitchOn] = useState(!!reimbursableExpenseReportDefaultVendor);
 
     const data: MenuListItem[] = Object.values(CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE).map((expenseType) => ({
         value: expenseType,
@@ -112,16 +110,15 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                         subtitle={translate('workspace.sageIntacct.defaultVendorDescription', true)}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
-                        isActive={isSwitchOn}
-                        onToggle={() => {
-                            // TODO: should we set default vendor to first on the list? (it works this way in old dot)
-                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, null);
-                            setIsSwitchOn(!isSwitchOn);
+                        isActive={!!reimbursableExpenseReportDefaultVendor}
+                        onToggle={(enabled) => {
+                            const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
+                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}
                         pendingAction={config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor}
                     />
-                    {isSwitchOn && defaultVendor}
+                    {!!reimbursableExpenseReportDefaultVendor && defaultVendor}
                 </View>
             )}
         </View>
