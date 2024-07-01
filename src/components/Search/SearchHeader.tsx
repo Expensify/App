@@ -17,14 +17,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchHeaderProps = {
     query: SearchQuery;
-    selectedItems: SelectedTransactions;
-    clearSelectedItems: () => void;
+    selectedItems?: SelectedTransactions;
+    clearSelectedItems?: () => void;
     hash: number;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES> | undefined;
 
-function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHeaderProps) {
+function SearchHeader({query, selectedItems = {}, hash, clearSelectedItems}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -52,7 +52,7 @@ function SearchHeader({query, selectedItems, hash, clearSelectedItems}: SearchHe
                 text: translate('search.bulkActions.delete'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
-                    clearSelectedItems();
+                    clearSelectedItems?.();
                     SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
                 },
             });

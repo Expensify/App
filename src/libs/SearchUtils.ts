@@ -79,8 +79,13 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 
 const currentYear = new Date().getFullYear();
 
-function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+function isReportListItemType(item: ListItem): item is ReportListItemType {
     return 'transactions' in item;
+}
+
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
 }
 
 function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
@@ -278,9 +283,5 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-function isReportListItem(item: ListItem): item is ReportListItemType {
-    return `transactions` in item;
-}
-
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItem};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItemType, isTransactionListItemType};
 export type {SearchColumnType, SortOrder};

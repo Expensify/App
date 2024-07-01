@@ -200,6 +200,7 @@ function ReportListItem<TItem extends ListItem>({
                         isChildListItem
                         isDisabled={!!isDisabled}
                         canSelectMultiple={!!canSelectMultiple}
+                        isButtonSelected={item.isSelected}
                     />
                 ))}
             </View>

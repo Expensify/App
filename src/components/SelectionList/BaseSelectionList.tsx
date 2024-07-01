@@ -433,7 +433,7 @@ function BaseSelectionList<TItem extends ListItem>(
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
 
         const handleOnCheckboxPress = () => {
-            if (SearchUtils.isReportListItem(item)) {
+            if (SearchUtils.isReportListItemType(item)) {
                 return onCheckboxPress;
             }
             return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
