@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
@@ -141,6 +142,7 @@ const WRITE_COMMANDS = {
     REOPEN_TASK: 'ReopenTask',
     COMPLETE_TASK: 'CompleteTask',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
+    COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -186,6 +188,7 @@ const WRITE_COMMANDS = {
     ENABLE_POLICY_TAXES: 'EnablePolicyTaxes',
     ENABLE_POLICY_WORKFLOWS: 'EnablePolicyWorkflows',
     ENABLE_POLICY_REPORT_FIELDS: 'EnablePolicyReportFields',
+    ENABLE_POLICY_EXPENSIFY_CARDS: 'EnablePolicyExpensifyCards',
     SET_POLICY_TAXES_CURRENCY_DEFAULT: 'SetPolicyCurrencyDefaultTax',
     SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT: 'SetPolicyForeignCurrencyDefaultTax',
     SET_POLICY_CUSTOM_TAX_NAME: 'SetPolicyCustomTaxName',
@@ -227,6 +230,22 @@ const WRITE_COMMANDS = {
     UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY: 'UpdateSubscriptionAddNewUsersAutomatically',
     UPDATE_SUBSCRIPTION_SIZE: 'UpdateSubscriptionSize',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
+    UPDATE_NETSUITE_EXPORTER: 'UpdateNetSuiteExporter',
+    UPDATE_NETSUITE_EXPORT_DATE: 'UpdateNetSuiteExportDate',
+    UPDATE_NETSUITE_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateNetSuiteReimbursableExpensesExportDestination',
+    UPDATE_NETSUITE_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateNetSuiteNonreimbursableExpensesExportDestination',
+    UPDATE_NETSUITE_DEFAULT_VENDOR: 'UpdateNetSuiteDefaultVendor',
+    UPDATE_NETSUITE_REIMBURSABLE_PAYABLE_ACCOUNT: 'UpdateNetSuiteReimbursablePayableAccount',
+    UPDATE_NETSUITE_PAYABLE_ACCT: 'UpdateNetSuitePayableAcct',
+    UPDATE_NETSUITE_JOURNAL_POSTING_PREFERENCE: 'UpdateNetSuiteJournalPostingPreference',
+    UPDATE_NETSUITE_RECEIVABLE_ACCOUNT: 'UpdateNetSuiteReceivableAccount',
+    UPDATE_NETSUITE_INVOICE_ITEM_PREFERENCE: 'UpdateNetSuiteInvoiceItemPreference',
+    UPDATE_NETSUITE_INVOICE_ITEM: 'UpdateNetSuiteInvoiceItem',
+    UPDATE_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT: 'UpdateNetSuiteProvincialTaxPostingAccount',
+    UPDATE_NETSUITE_TAX_POSTING_ACCOUNT: 'UpdateNetSuiteTaxPostingAccount',
+    UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
+    UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
+    CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -361,6 +380,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
+    [WRITE_COMMANDS.COMPLETE_HYBRID_APP_ONBOARDING]: EmptyObject;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -411,6 +431,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_TAXES]: Parameters.EnablePolicyTaxesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS]: Parameters.EnablePolicyWorkflowsParams;
     [WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS]: Parameters.EnablePolicyReportFieldsParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS]: Parameters.EnablePolicyExpensifyCardsParams;
     [WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [WRITE_COMMANDS.ACCEPT_JOIN_REQUEST]: Parameters.AcceptJoinRequestParams;
     [WRITE_COMMANDS.DECLINE_JOIN_REQUEST]: Parameters.DeclineJoinRequestParams;
@@ -429,7 +450,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
     [WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
     [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
@@ -455,9 +475,25 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT]: Parameters.ConnectPolicyToSageIntacctParams;
 
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORTER]: Parameters.UpdateNetSuiteGenericTypeParams<'email', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_DATE]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_DEFAULT_VENDOR]: Parameters.UpdateNetSuiteGenericTypeParams<'vendorID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_REIMBURSABLE_PAYABLE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_PAYABLE_ACCT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNAL_POSTING_PREFERENCE]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_RECEIVABLE_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_INVOICE_ITEM_PREFERENCE]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_INVOICE_ITEM]: Parameters.UpdateNetSuiteGenericTypeParams<'itemID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_TAX_POSTING_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'bankAccountID', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
 };
 
 const READ_COMMANDS = {
