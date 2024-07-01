@@ -116,7 +116,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <>
+        <View>
             <SelectionScreen
                 displayName={SageIntacctNonReimbursableExpensesPage.displayName}
                 title="workspace.sageIntacct.nonReimbursableExpenses.label"
@@ -152,7 +152,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     {isSwitchOn && defaultVendor}
                 </View>
             )}
-        </>
+        </View>
     );
 }
 

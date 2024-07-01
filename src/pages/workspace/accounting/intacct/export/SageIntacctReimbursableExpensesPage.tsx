@@ -90,7 +90,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <>
+        <View>
             <SelectionScreen
                 displayName={SageIntacctReimbursableExpensesPage.displayName}
                 title="workspace.sageIntacct.reimbursableExpenses.label"
@@ -124,7 +124,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                     {isSwitchOn && defaultVendor}
                 </View>
             )}
-        </>
+        </View>
     );
 }
 

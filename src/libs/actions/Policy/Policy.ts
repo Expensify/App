@@ -531,10 +531,6 @@ function clearNetSuiteErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
 }
 
-function clearSageIntacctExportErrorField(policyID: string, fieldName: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {export: {errorFields: {[fieldName]: null}}}}}});
-}
-
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
@@ -2999,7 +2995,6 @@ export {
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
-    clearSageIntacctExportErrorField,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
