@@ -23,10 +23,6 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
-const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
-
-const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
-
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
