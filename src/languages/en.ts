@@ -3386,7 +3386,7 @@ export default {
             },
             trialStarted: {
                 title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
-                subtitle: 'Add a payment card below to continue using all of your favorite features.',
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },
         cardSection: {
