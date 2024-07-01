@@ -60,16 +60,7 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     shouldUseNarrowLayout?: boolean;
 };
 
-function HeaderView({
-    report,
-    personalDetails,
-    parentReport,
-    parentReportAction,
-    policy,
-    reportID,
-    onNavigationMenuButtonClicked,
-    shouldUseNarrowLayout = false,
-}: HeaderViewProps) {
+function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, reportID, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {translate} = useLocalize();
     const theme = useTheme();
