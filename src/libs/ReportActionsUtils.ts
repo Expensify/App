@@ -1378,6 +1378,14 @@ function getIOUActionForReportID(reportID: string, transactionID: string): OnyxE
     return action;
 }
 
+/**
+ * Get the track expense actionable whisper of the corresponding track expense
+ */
+function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: string) {
+    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+    return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
+}
+
 export {
     extractLinksFromMessageHtml,
     getDismissedViolationMessageText,
@@ -1434,6 +1442,7 @@ export {
     isMemberChangeAction,
     getMemberChangeMessageFragment,
     isOldDotReportAction,
+    getTrackExpenseActionableWhisper,
     getMessageOfOldDotReportAction,
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,

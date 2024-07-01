@@ -1,13 +1,7 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {
-    RemovePolicyConnectionParams,
-    SyncPolicyToQuickbooksOnlineParams,
-    SyncPolicyToXeroParams,
-    UpdateManyPolicyConnectionConfigurationsParams,
-    UpdatePolicyConnectionConfigParams,
-} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, UpdateManyPolicyConnectionConfigurationsParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -123,24 +117,51 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
 }
 
 /**
+ * This method returns read command and stage in progres for a given accounting integration.
+ *
+ * @param policyID - ID of the policy for which the sync is needed
+ * @param connectionName - Name of the connection, QBO/Xero
+ */
+function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.XERO: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_XERO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_XERO};
+        }
+        default:
+            return undefined;
+    }
+}
+
+/**
  * This method helps in syncing policy to the connected accounting integration.
  *
  * @param policyID - ID of the policy for which the sync is needed
  * @param connectionName - Name of the connection, QBO/Xero
  */
 function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined) {
-    const isQBOConnection = connectionName === CONST.POLICY.CONNECTIONS.NAME.QBO;
+    if (!connectionName) {
+        return;
+    }
+    const syncConnectionData = getSyncConnectionParameters(connectionName);
+
+    if (!syncConnectionData) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
             value: {
-                stageInProgress: isQBOConnection ? CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBO : CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_XERO,
+                stageInProgress: syncConnectionData?.stageInProgress,
                 connectionName,
                 timestamp: new Date().toISOString(),
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -149,20 +170,17 @@ function syncConnection(policyID: string, connectionName: PolicyConnectionName |
         },
     ];
 
-    const parameters: SyncPolicyToQuickbooksOnlineParams | SyncPolicyToXeroParams = isQBOConnection
-        ? ({
-              policyID,
-              idempotencyKey: policyID,
-          } as SyncPolicyToQuickbooksOnlineParams)
-        : ({
-              policyID,
-              idempotencyKey: policyID,
-          } as SyncPolicyToXeroParams);
-
-    API.read(isQBOConnection ? READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE : READ_COMMANDS.SYNC_POLICY_TO_XERO, parameters, {
-        optimisticData,
-        failureData,
-    });
+    API.read(
+        syncConnectionData.readCommand,
+        {
+            policyID,
+            idempotencyKey: policyID,
+        },
+        {
+            optimisticData,
+            failureData,
+        },
+    );
 }
 
 function updateManyPolicyConnectionConfigs<TConnectionName extends ConnectionName, TConfigUpdate extends Partial<Connections[TConnectionName]['config']>>(
