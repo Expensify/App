@@ -162,7 +162,7 @@ function addPaymentCard(params: PaymentCardParams) {
     const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
     const parameters: AddPaymentCardParams = {
-        cardNumber: params.cardNumber.split(' ').join(''),
+        cardNumber: CardUtils.getMCardNumberString(params.cardNumber),
         cardYear,
         cardMonth,
         cardCVV: params.securityCode,
