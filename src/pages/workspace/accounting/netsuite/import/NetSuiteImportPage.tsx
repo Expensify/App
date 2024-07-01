@@ -4,7 +4,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -18,7 +17,6 @@ import CONST from '@src/CONST';
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {canUseNetSuiteUSATax} = usePermissions();
 
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.netsuite?.options.config;
@@ -70,7 +68,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 ))}
             </View>
 
-            {isSyncTaxEnabled(policy, canUseNetSuiteUSATax) && (
+            {isSyncTaxEnabled(policy) && (
                 <View style={[styles.flex1, styles.ph5, styles.mb4]}>
                     <ToggleSettingOptionRow
                         title={translate('common.tax')}
