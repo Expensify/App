@@ -1,7 +1,6 @@
 import {isEmpty} from 'lodash';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
@@ -9,13 +8,11 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateSageIntacctExporter} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -85,26 +82,20 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(exportConfiguration ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
-            errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
-        >
-            <SelectionScreen
-                policyID={policyID}
-                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                displayName={SageIntacctPreferredExporterPage.displayName}
-                sections={[{data}]}
-                listItem={RadioListItem}
-                headerContent={headerContent}
-                onSelectRow={selectExporter}
-                initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
-                title="workspace.sageIntacct.preferredExporter"
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            />
-        </OfflineWithFeedback>
+        <SelectionScreen
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={SageIntacctPreferredExporterPage.displayName}
+            sections={[{data}]}
+            listItem={RadioListItem}
+            headerContent={headerContent}
+            onSelectRow={selectExporter}
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
+            title="workspace.sageIntacct.preferredExporter"
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+        />
     );
 }
 

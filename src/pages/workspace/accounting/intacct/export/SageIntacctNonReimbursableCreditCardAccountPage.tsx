@@ -2,21 +2,18 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctCreditCards} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {updateSageIntacctNonreimbursableExpensesExportAccount} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -64,26 +61,20 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     );
 
     return (
-        <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
-            errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
-        >
-            <SelectionScreen
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
-                sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
-                listItem={RadioListItem}
-                onSelectRow={updateCreditCardAccount}
-                initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
-                headerContent={listHeaderComponent}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID))}
-                title="workspace.sageIntacct.creditCardAccount"
-                listEmptyContent={listEmptyContent}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            />
-        </OfflineWithFeedback>
+        <SelectionScreen
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
+            sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
+            listItem={RadioListItem}
+            onSelectRow={updateCreditCardAccount}
+            initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID))}
+            title="workspace.sageIntacct.creditCardAccount"
+            listEmptyContent={listEmptyContent}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+        />
     );
 }
 

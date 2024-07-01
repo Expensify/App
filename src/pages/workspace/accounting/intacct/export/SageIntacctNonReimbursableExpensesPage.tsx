@@ -10,14 +10,12 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {updateSageIntacctDefaultVendor, updateSageIntacctNonreimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SageIntacctDataElementWithValue} from '@src/types/onyx/Policy';
@@ -118,11 +116,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
-            errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
-        >
+        <>
             <SelectionScreen
                 displayName={SageIntacctNonReimbursableExpensesPage.displayName}
                 title="workspace.sageIntacct.nonReimbursableExpenses.label"
@@ -158,7 +152,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     {isSwitchOn && defaultVendor}
                 </View>
             )}
-        </OfflineWithFeedback>
+        </>
     );
 }
 
