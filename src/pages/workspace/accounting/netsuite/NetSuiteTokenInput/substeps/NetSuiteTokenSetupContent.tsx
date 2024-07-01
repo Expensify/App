@@ -26,7 +26,7 @@ function NetSuiteTokenSetupContent({onNext, screenIndex}: SubStepProps) {
     return (
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
-            <View style={[styles.mb3, styles.ph5]}>
+            <View style={[styles.flex1, styles.mb3, styles.ph5]}>
                 <RenderHTML html={`<comment><muted-text>${parser.replace(translate(description))}</muted-text></comment>`} />
             </View>
             <FixedFooter style={[styles.mtAuto]}>

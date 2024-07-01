@@ -1,8 +1,8 @@
 type ConnectPolicyToNetSuiteParams = {
     policyID: string;
     netSuiteAccountID: string;
-    tokenID: string;
-    tokenSecret: string;
+    netSuiteTokenID: string;
+    netSuiteTokenSecret: string;
 };
 
 export default ConnectPolicyToNetSuiteParams;

@@ -62,6 +62,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             reverseConnectionEmptyCheck
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={handleBackButtonPress}
+            shouldIncludeSafeAreaPaddingBottom
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader

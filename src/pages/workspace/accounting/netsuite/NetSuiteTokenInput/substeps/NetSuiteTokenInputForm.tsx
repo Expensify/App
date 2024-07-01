@@ -57,7 +57,6 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                 validate={validate}
                 onSubmit={connectPolicy}
                 submitButtonText={translate('common.confirm')}
-                enabledWhenOffline
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
