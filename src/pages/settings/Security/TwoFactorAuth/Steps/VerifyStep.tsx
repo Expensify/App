@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import StepWrapper from '@pages/settings/Security/TwoFactorAuth/StepWrapper/StepWrapper';
@@ -30,6 +31,7 @@ function VerifyStep({account}: VerifyStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const session = useSession();
+    const theme = useTheme();
 
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -94,6 +96,7 @@ function VerifyStep({account}: VerifyStepProps) {
                             logo={expensifyLogo}
                             logoRatio={CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO}
                             logoMarginRatio={CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO}
+                            backgroundColor={theme.appBG}
                         />
                     </View>
                     <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
