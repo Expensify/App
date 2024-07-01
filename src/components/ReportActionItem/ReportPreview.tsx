@@ -138,6 +138,7 @@ function ReportPreview({
 
     const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(chatReport);
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
 
     const isApproved = ReportUtils.isReportApproved(iouReport, action);
@@ -177,7 +178,7 @@ function ReportPreview({
         [chatReport?.isOwnPolicyExpenseChat, policy?.harvesting?.enabled],
     );
 
-    const confirmPayment = (type: PaymentMethodType | undefined) => {
+    const confirmPayment = (type: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type) {
             return;
         }
@@ -187,7 +188,7 @@ function ReportPreview({
             setIsHoldMenuVisible(true);
         } else if (chatReport && iouReport) {
             if (ReportUtils.isInvoiceReport(iouReport)) {
-                IOU.payInvoice(type, chatReport, iouReport);
+                IOU.payInvoice(type, chatReport, iouReport, payAsBusiness);
             } else {
                 IOU.payMoneyRequest(type, chatReport, iouReport);
             }
@@ -246,7 +247,16 @@ function ReportPreview({
         if (isScanning) {
             return translate('common.receipt');
         }
-        let payerOrApproverName = isPolicyExpenseChat ? ReportUtils.getPolicyName(chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+
+        let payerOrApproverName;
+        if (isPolicyExpenseChat) {
+            payerOrApproverName = ReportUtils.getPolicyName(chatReport);
+        } else if (isInvoiceRoom) {
+            payerOrApproverName = ReportUtils.getInvoicePayerName(chatReport);
+        } else {
+            payerOrApproverName = ReportUtils.getDisplayNameForParticipant(managerID, true);
+        }
+
         if (isApproved) {
             return translate('iou.managerApproved', {manager: payerOrApproverName});
         }
