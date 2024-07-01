@@ -369,10 +369,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_PROFILE_SHARE.route,
                         },
-                        // TODO: uncomment after development
-                        // [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-                        //     path: ROUTES.WORKSPACE_EXPENSIFY_CARD,
-                        // },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
                         },
@@ -830,6 +826,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.REPORT_FIELDS]: {
                     path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
+                },
+                [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+                    path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,

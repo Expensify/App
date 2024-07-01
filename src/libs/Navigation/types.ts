@@ -815,6 +815,9 @@ type FullScreenNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVER]: {
         policyID: string;
     };
