@@ -63,7 +63,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
             return result;
         });
         // Subtract the time it took to run the function from the total retrieval time
-        statsEntry.track('cacheRetrievalTime', retrievalTimeStart + (statsEntry.get('fnTime') ?? 0));
+        statsEntry.trackTime('cacheRetrievalTime', retrievalTimeStart + (statsEntry.get('fnTime') ?? 0));
 
         statsEntry.track('cacheSize', cache.size);
         statsEntry.save();
