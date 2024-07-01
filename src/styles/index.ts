@@ -5013,6 +5013,20 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        computerIllustrationContainer: {
+            width: 272,
+            height: 188,
+        },
+
+        tripReservationIconContainer: {
+            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeNormal,
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusXLarge,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
         textLineThrough: {
             textDecorationLine: 'line-through',
         },

@@ -122,6 +122,7 @@ export type {default as AddMembersToWorkspaceParams} from './AddMembersToWorkspa
 export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersFromWorkspaceParams';
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
 export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams';
+export type {default as ConnectPolicyToSageIntacctParams} from './ConnectPolicyToSageIntacctParams';
 export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceReimburseViewParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
