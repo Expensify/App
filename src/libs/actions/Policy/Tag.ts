@@ -500,7 +500,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             },
         ],
     };
-    const policyTagList = allPolicyTags?.[policyID];
+
+    const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     if (!policyTagList) {
         const defaultTagList: PolicyTagList = {
             Tag: {
@@ -520,6 +521,33 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
             key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
             value: null,
         });
+    } else if (!enabled) {
+        const policyTag = PolicyUtils.getTagLists(policyTagList)[0];
+        onyxData.optimisticData?.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: Object.fromEntries(
+                            Object.keys(policyTag.tags).map((tagName) => [
+                                tagName,
+                                {
+                                    enabled: false,
+                                },
+                            ]),
+                        ),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag: false,
+                },
+            },
+        );
     }
 
     const parameters: EnablePolicyTagsParams = {policyID, enabled};
@@ -692,17 +720,17 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
 }
 
 export {
-    openPolicyTagsPage,
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
     setPolicyTagsRequired,
-    renamePolicyTaglist,
-    enablePolicyTags,
     createPolicyTag,
-    renamePolicyTag,
     clearPolicyTagErrors,
     clearPolicyTagListError,
     deletePolicyTags,
+    enablePolicyTags,
+    openPolicyTagsPage,
+    renamePolicyTag,
+    renamePolicyTaglist,
     setWorkspaceTagEnabled,
 };
 

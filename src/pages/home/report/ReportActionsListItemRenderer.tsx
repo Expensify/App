@@ -72,7 +72,9 @@ function ReportActionsListItemRenderer({
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+        ReportUtils.isChatThread(report) &&
+        (!ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isSentMoneyReportAction(parentReportAction));
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
@@ -108,6 +110,7 @@ function ReportActionsListItemRenderer({
                 childReportName: reportAction.childReportName,
                 childManagerAccountID: reportAction.childManagerAccountID,
                 childMoneyRequestCount: reportAction.childMoneyRequestCount,
+                childOwnerAccountID: reportAction.childOwnerAccountID,
             } as ReportAction),
         [
             reportAction.reportActionID,
@@ -137,6 +140,7 @@ function ReportActionsListItemRenderer({
             reportAction.childReportName,
             reportAction.childManagerAccountID,
             reportAction.childMoneyRequestCount,
+            reportAction.childOwnerAccountID,
         ],
     );
 
