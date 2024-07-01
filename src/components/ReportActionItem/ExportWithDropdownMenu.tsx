@@ -33,18 +33,21 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
     const canBeExported = ReportUtils.canBeExported(report);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
+        const optionTemplate = {
+            icon: iconToDisplay,
+            disabled: !canBeExported,
+            displayInDefaultIconColor: true,
+        };
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
                 text: translate('workspace.common.exportIntegrationSelected', connectionName),
-                icon: iconToDisplay,
-                disabled: !canBeExported,
+                ...optionTemplate,
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
                 text: translate('workspace.common.markAsExported'),
-                icon: iconToDisplay,
-                disabled: !canBeExported,
+                ...optionTemplate,
             },
         ];
         const exportMethod = exportMethods?.[report?.policyID ?? ''] ?? null;
@@ -77,7 +80,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
 
     return (
         <>
-            <ButtonWithDropdownMenu
+            <ButtonWithDropdownMenu<ReportExportType>
                 success
                 pressOnEnter
                 shouldAlwaysShowDropdownMenu
