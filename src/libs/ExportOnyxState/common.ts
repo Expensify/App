@@ -4,6 +4,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const maskFragileData = (data: Record<string, unknown>, parentKey?: string): Record<string, unknown> => {
     const maskedData: Record<string, unknown> = {};
 
+    if (!data) {
+        return maskedData;
+    }
+
     Object.keys(data).forEach((key) => {
         if (!Object.prototype.hasOwnProperty.call(data, key)) {
             return;
