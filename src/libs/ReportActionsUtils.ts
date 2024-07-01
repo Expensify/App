@@ -682,7 +682,7 @@ function isActionableTrackExpense(reportAction: OnyxInputOrEntry<ReportAction>):
  */
 function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
     const originalMessage = getOriginalMessage(reportAction);
-    const resolution = originalMessage && 'resolution' in originalMessage && (originalMessage?.resolution ?? null);
+    const resolution = originalMessage && 'resolution' in originalMessage ? originalMessage?.resolution : null;
     return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
