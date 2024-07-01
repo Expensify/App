@@ -93,10 +93,10 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 headerMessage: '',
             };
         }
-        const optionList = OptionsListUtils.getSearchOptions(options, debouncedSearchValueInServer.trim(), betas ?? []);
+        const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, !!optionList.userToInvite, '');
         return {...optionList, headerMessage: header};
-    }, [areOptionsInitialized, betas, isScreenTransitionEnd, options, debouncedSearchValueInServer]);
+    }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
