@@ -528,6 +528,17 @@ function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCoun
         }));
 }
 
+function isSyncTaxEnabled(policy: Policy | undefined, canUseNetSuiteUSATax?: boolean) {
+    const netSuiteConfg = policy?.connections?.netsuite?.options?.config;
+    const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
+    if (!netSuiteConfg || !subsidiaryList) {
+        return false;
+    }
+
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netSuiteConfg?.subsidiaryID);
+    return !!netSuiteConfg?.suiteTaxEnabled || !netSuiteConfg?.syncOptions.syncTax || !canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country);
+}
+
 function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
     return !!canUseNetSuiteUSATax || CONST.NETSUITE_TAX_COUNTRIES.includes(subsidiaryCountry ?? '');
 }
@@ -652,6 +663,7 @@ export {
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
+    isSyncTaxEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};

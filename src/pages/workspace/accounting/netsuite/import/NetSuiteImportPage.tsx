@@ -4,9 +4,11 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSyncTaxConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {isSyncTaxEnabled} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -16,6 +18,8 @@ import CONST from '@src/CONST';
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {canUseNetSuiteUSATax} = usePermissions();
+
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.netsuite?.options.config;
     const importFields = CONST.NETSUITE_CONFIG.IMPORT_FIELDS;
@@ -66,20 +70,22 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 ))}
             </View>
 
-            <View style={[styles.flex1, styles.ph5, styles.mb4]}>
-                <ToggleSettingOptionRow
-                    title={translate('common.tax')}
-                    subtitle={translate('workspace.netsuite.import.importTaxDescription')}
-                    shouldPlaceSubtitleBelowSwitch
-                    isActive={config?.syncOptions?.syncTax ?? false}
-                    switchAccessibilityLabel={translate('common.tax')}
-                    onToggle={(isEnabled: boolean) => {
-                        updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
-                    }}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_TAX)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_TAX)}
-                />
-            </View>
+            {isSyncTaxEnabled(policy, canUseNetSuiteUSATax) && (
+                <View style={[styles.flex1, styles.ph5, styles.mb4]}>
+                    <ToggleSettingOptionRow
+                        title={translate('common.tax')}
+                        subtitle={translate('workspace.netsuite.import.importTaxDescription')}
+                        shouldPlaceSubtitleBelowSwitch
+                        isActive={config?.syncOptions?.syncTax ?? false}
+                        switchAccessibilityLabel={translate('common.tax')}
+                        onToggle={(isEnabled: boolean) => {
+                            updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
+                        }}
+                        errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_TAX)}
+                        onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_TAX)}
+                    />
+                </View>
+            )}
 
             <View style={styles.mb4}>
                 {importCustomFields.map((importField) => (
