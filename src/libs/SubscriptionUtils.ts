@@ -2,7 +2,6 @@ import {differenceInSeconds, fromUnixTime, isAfter, isBefore, parse as parseDate
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -146,7 +145,7 @@ function hasOverdueGracePeriod(): boolean {
  * @returns Whether the workspace owner's grace period is overdue.
  */
 function hasGracePeriodOverdue(): boolean {
-    return !!ownerBillingGraceEndPeriod && Date.now() < new Date(ownerBillingGraceEndPeriod).getTime();
+    return !!ownerBillingGraceEndPeriod && Date.now() > new Date(ownerBillingGraceEndPeriod).getTime();
 }
 
 /**
@@ -156,6 +155,9 @@ function getAmountOwed(): number {
     return amountOwed ?? 0;
 }
 
+/**
+ * @returns Whether there is an amount owed by the workspace owner.
+ */
 function hasAmountOwed(): boolean {
     return !!amountOwed;
 }
@@ -199,7 +201,7 @@ function getCardForSubscriptionBilling(): Fund | undefined {
  * @returns Whether the card is due to expire soon.
  */
 function hasCardExpiringSoon(): boolean {
-    if (!isEmptyObject(billingStatus ?? {})) {
+    if (!isEmptyObject(billingStatus)) {
         return false;
     }
 
@@ -209,7 +211,15 @@ function hasCardExpiringSoon(): boolean {
         return false;
     }
 
-    return card?.accountData?.cardYear === new Date().getFullYear() && card?.accountData?.cardMonth === new Date().getMonth() + 1;
+    const cardYear = card?.accountData?.cardYear;
+    const cardMonth = card?.accountData?.cardMonth;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+
+    const isExpiringThisMonth = cardYear === currentYear && cardMonth === currentMonth;
+    const isExpiringNextMonth = cardYear === (currentMonth === 12 ? currentYear + 1 : currentYear) && cardMonth === (currentMonth === 12 ? 1 : currentMonth + 1);
+
+    return isExpiringThisMonth || isExpiringNextMonth;
 }
 
 /**
@@ -238,7 +248,7 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
-            if (hasGracePeriodOverdue() === false) {
+            if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                     isError: true,
@@ -253,14 +263,14 @@ function getSubscriptionStatus(): SubscriptionStatus | undefined {
             }
         } else {
             // 3. Owner of policy under invoicing, within grace period
-            if (hasGracePeriodOverdue()) {
+            if (!hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 };
             }
 
             // 4. Owner of policy under invoicing, overdue (past grace period)
-            if (hasGracePeriodOverdue() === false) {
+            if (hasGracePeriodOverdue()) {
                 return {
                     status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
                 };

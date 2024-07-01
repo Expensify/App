@@ -41,6 +41,7 @@ const SCREENS = {
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
+        ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
@@ -104,6 +105,8 @@ const SCREENS = {
             SIZE: 'Settings_Subscription_Size',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
         },
     },
     SAVE_THE_WORLD: {
@@ -270,6 +273,9 @@ const SCREENS = {
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_Net_Suite_Subsidiary_Selector',
+            SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
+            ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
+            EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
@@ -278,6 +284,8 @@ const SCREENS = {
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
+        EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
+        EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
@@ -357,6 +365,10 @@ const SCREENS = {
 
     WELCOME_VIDEO: {
         ROOT: 'Welcome_Video_Root',
+    },
+
+    EXPLANATION_MODAL: {
+        ROOT: 'Explanation_Modal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

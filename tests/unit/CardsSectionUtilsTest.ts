@@ -63,7 +63,7 @@ describe('getNextBillingDate', () => {
 
 describe('CardSectionUtils', () => {
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     beforeAll(() => {

@@ -16,7 +16,8 @@
 /* eslint-disable @lwc/lwc/no-async-await,no-restricted-syntax,no-await-in-loop */
 import {execSync} from 'child_process';
 import fs from 'fs';
-import type {TestConfig} from '@libs/E2E/types';
+import type {TestResult} from '@libs/E2E/client';
+import type {TestConfig, Unit} from '@libs/E2E/types';
 import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
@@ -25,6 +26,7 @@ import installApp from './utils/installApp';
 import killApp from './utils/killApp';
 import launchApp from './utils/launchApp';
 import * as Logger from './utils/logger';
+import * as MeasureUtils from './utils/measure';
 import sleep from './utils/sleep';
 import withFailTimeout from './utils/withFailTimeout';
 
@@ -94,6 +96,32 @@ const runTests = async (): Promise<void> => {
 
     // Create a dict in which we will store the run durations for all tests
     const results: Record<string, Result> = {};
+    const metricForTest: Record<string, Unit> = {};
+
+    const attachTestResult = (testResult: TestResult) => {
+        let result = 0;
+
+        if (testResult?.metric !== undefined) {
+            if (testResult.metric < 0) {
+                return;
+            }
+            result = testResult.metric;
+        }
+
+        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}${testResult.unit}`);
+
+        if (testResult?.branch && !results[testResult.branch]) {
+            results[testResult.branch] = {};
+        }
+
+        if (testResult?.branch && testResult?.name) {
+            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
+        }
+
+        if (!metricForTest[testResult.name] && testResult.unit) {
+            metricForTest[testResult.name] = testResult.unit;
+        }
+    };
 
     // Collect results while tests are being executed
     server.addTestResultListener((testResult) => {
@@ -107,31 +135,12 @@ const runTests = async (): Promise<void> => {
             server.forceTestCompletion();
             Logger.warn(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
-        let result = 0;
 
-        if (testResult?.duration !== undefined) {
-            if (testResult.duration < 0) {
-                return;
-            }
-            result = testResult.duration;
-        }
-        if (testResult?.renderCount !== undefined) {
-            result = testResult.renderCount;
-        }
-
-        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}`);
-
-        if (testResult?.branch && !results[testResult.branch]) {
-            results[testResult.branch] = {};
-        }
-
-        if (testResult?.branch && testResult?.name) {
-            results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
-        }
+        attachTestResult(testResult);
     });
 
     // Function to run a single test iteration
-    async function runTestIteration(appPackage: string, iterationText: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
+    async function runTestIteration(appPackage: string, iterationText: string, branch: string, launchArgs: Record<string, boolean> = {}): Promise<void> {
         Logger.info(iterationText);
 
         // Making sure the app is really killed (e.g. if a prior test run crashed)
@@ -141,10 +150,48 @@ const runTests = async (): Promise<void> => {
         Logger.log('Launching', appPackage);
         await launchApp('android', appPackage, config.ACTIVITY_PATH, launchArgs);
 
+        MeasureUtils.start(appPackage);
         await withFailTimeout(
             new Promise<void>((resolve) => {
-                server.addTestDoneListener(() => {
+                const removeListener = server.addTestDoneListener(() => {
                     Logger.success(iterationText);
+
+                    const metrics = MeasureUtils.stop();
+                    const test = server.getTestConfig();
+
+                    if (server.isReadyToAcceptTestResults) {
+                        attachTestResult({
+                            name: `${test.name} (CPU)`,
+                            branch,
+                            metric: metrics.cpu,
+                            unit: '%',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (FPS)`,
+                            branch,
+                            metric: metrics.fps,
+                            unit: 'FPS',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (RAM)`,
+                            branch,
+                            metric: metrics.ram,
+                            unit: 'MB',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (CPU/JS)`,
+                            branch,
+                            metric: metrics.jsThread,
+                            unit: '%',
+                        });
+                        attachTestResult({
+                            name: `${test.name} (CPU/UI)`,
+                            branch,
+                            metric: metrics.uiThread,
+                            unit: '%',
+                        });
+                    }
+                    removeListener();
                     resolve();
                 });
             }),
@@ -192,10 +239,10 @@ const runTests = async (): Promise<void> => {
         const iterations = 2;
         for (let i = 0; i < iterations; i++) {
             // Warmup the main app:
-            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`);
+            await runTestIteration(config.MAIN_APP_PACKAGE, `[MAIN] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_MAIN);
 
             // Warmup the delta app:
-            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`);
+            await runTestIteration(config.DELTA_APP_PACKAGE, `[DELTA] ${warmupText}. Iteration ${i + 1}/${iterations}`, config.BRANCH_DELTA);
         }
 
         server.setReadyToAcceptTestResults(true);
@@ -230,10 +277,10 @@ const runTests = async (): Promise<void> => {
             const deltaIterationText = `[DELTA] ${iterationText}`;
             try {
                 // Run the test on the main app:
-                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, launchArgs);
+                await runTestIteration(config.MAIN_APP_PACKAGE, mainIterationText, config.BRANCH_MAIN, launchArgs);
 
                 // Run the test on the delta app:
-                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, launchArgs);
+                await runTestIteration(config.DELTA_APP_PACKAGE, deltaIterationText, config.BRANCH_DELTA, launchArgs);
             } catch (e) {
                 onError(e as Error);
             }
@@ -242,7 +289,7 @@ const runTests = async (): Promise<void> => {
 
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
-    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
+    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`, 'all', metricForTest);
 
     await server.stop();
 };
