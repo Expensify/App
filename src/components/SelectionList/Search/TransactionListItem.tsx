@@ -58,6 +58,7 @@ function TransactionListItem<TItem extends ListItem>({
                 onCheckboxPress={() => onCheckboxPress?.(item)}
                 isDisabled={!!isDisabled}
                 canSelectMultiple={!!canSelectMultiple}
+                isButtonSelected={item.isSelected}
             />
         </BaseListItem>
     );
