@@ -113,7 +113,6 @@ function WorkspaceInviteMessagePage({
         Member.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID);
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
-        // Pop the invite message page before navigating to the members page.
         Navigation.dismissModal();
     };
 
