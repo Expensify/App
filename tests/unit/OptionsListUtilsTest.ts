@@ -7,7 +7,6 @@ import * as OptionsListUtils from '@src/libs/OptionsListUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, PolicyCategories, Report, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type PersonalDetailsList = Record<string, PersonalDetails & ReportUtils.OptionData>;
@@ -839,7 +838,6 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
-                pendingAction: undefined,
             },
             Restaurant: {
                 enabled: true,
@@ -849,7 +847,6 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
-                pendingAction: 'delete',
             },
             Food: {
                 enabled: true,
@@ -859,7 +856,6 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
-                pendingAction: undefined,
             },
             'Food: Meat': {
                 enabled: true,
@@ -869,7 +865,6 @@ describe('OptionsListUtils', () => {
                 'GL Code': '',
                 externalID: '',
                 origin: '',
-                pendingAction: undefined,
             },
         };
         const smallResultList: OptionsListUtils.CategoryTreeSection[] = [
@@ -884,7 +879,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '    Meat',
@@ -893,16 +887,14 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Meat',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Restaurant',
                         keyForList: 'Restaurant',
                         searchText: 'Restaurant',
                         tooltipText: 'Restaurant',
-                        isDisabled: true,
+                        isDisabled: false,
                         isSelected: false,
-                        pendingAction: 'delete',
                     },
                 ],
                 indexOffset: 3,
@@ -921,7 +913,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Food: Meat',
@@ -930,7 +921,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Meat',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1084,7 +1074,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Medical',
                         isDisabled: true,
                         isSelected: true,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1100,7 +1089,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Restaurant',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1116,7 +1104,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Cars',
                         isDisabled: true,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '    Audi',
@@ -1125,7 +1112,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Audi',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '    Mercedes-Benz',
@@ -1134,7 +1120,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Mercedes-Benz',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Food',
@@ -1143,7 +1128,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '    Meat',
@@ -1152,7 +1136,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Meat',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '    Milk',
@@ -1161,7 +1144,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Milk',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Restaurant',
@@ -1170,7 +1152,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Restaurant',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Travel',
@@ -1179,7 +1160,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Travel',
                         isDisabled: true,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '    Meals',
@@ -1188,7 +1168,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Meals',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '        Breakfast',
@@ -1197,7 +1176,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Breakfast',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: '        Lunch',
@@ -1206,7 +1184,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Lunch',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1224,7 +1201,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Food: Meat',
@@ -1233,7 +1209,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Meat',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Food: Milk',
@@ -1242,7 +1217,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food: Milk',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1269,7 +1243,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Medical',
                         isDisabled: true,
                         isSelected: true,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1364,7 +1337,6 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'HR',
                 accountID: undefined,
-                pendingAction: 'delete',
             },
         };
         const smallResultList: OptionsListUtils.CategorySection[] = [
@@ -1380,16 +1352,14 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'HR',
                         keyForList: 'HR',
                         searchText: 'HR',
                         tooltipText: 'HR',
-                        isDisabled: true,
+                        isDisabled: false,
                         isSelected: false,
-                        pendingAction: 'delete',
                     },
                     {
                         text: 'Medical',
@@ -1398,7 +1368,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Medical',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1415,7 +1384,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1477,7 +1445,6 @@ describe('OptionsListUtils', () => {
                 enabled: true,
                 name: 'Taxes',
                 accountID: undefined,
-                pendingAction: 'delete',
             },
             Benefits: {
                 enabled: true,
@@ -1497,7 +1464,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Medical',
                         isDisabled: false,
                         isSelected: true,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1512,7 +1478,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'HR',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1528,7 +1493,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Benefits',
@@ -1537,7 +1501,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Benefits',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Cleaning',
@@ -1546,7 +1509,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Cleaning',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Food',
@@ -1555,7 +1517,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Food',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'HR',
@@ -1564,7 +1525,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'HR',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Software',
@@ -1573,16 +1533,14 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Software',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Taxes',
                         keyForList: 'Taxes',
                         searchText: 'Taxes',
                         tooltipText: 'Taxes',
-                        isDisabled: true,
+                        isDisabled: false,
                         isSelected: false,
-                        pendingAction: 'delete',
                     },
                 ],
             },
@@ -1599,7 +1557,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Accounting',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                     {
                         text: 'Cleaning',
@@ -1608,7 +1565,6 @@ describe('OptionsListUtils', () => {
                         tooltipText: 'Cleaning',
                         isDisabled: false,
                         isSelected: false,
-                        pendingAction: undefined,
                     },
                 ],
             },
@@ -1770,7 +1726,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meals',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Restaurant',
@@ -1779,7 +1734,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Restaurant',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Food',
@@ -1788,7 +1742,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '    Meat',
@@ -1797,7 +1750,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meat',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '    Milk',
@@ -1806,7 +1758,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Milk',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Cars',
@@ -1815,7 +1766,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Cars',
                 isDisabled: true,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '    Audi',
@@ -1824,7 +1774,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Audi',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '    Mercedes-Benz',
@@ -1833,7 +1782,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Mercedes-Benz',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Travel',
@@ -1842,7 +1790,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel',
                 isDisabled: true,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '    Meals',
@@ -1851,7 +1798,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meals',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '        Breakfast',
@@ -1860,7 +1806,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Breakfast',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '        Lunch',
@@ -1869,7 +1814,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Lunch',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Plain',
@@ -1878,7 +1822,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Plain',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Audi',
@@ -1887,7 +1830,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Audi',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Health',
@@ -1896,7 +1838,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Health',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'A',
@@ -1905,7 +1846,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'A',
                 isDisabled: true,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '    B',
@@ -1914,7 +1854,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'B',
                 isDisabled: true,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '        C',
@@ -1923,7 +1862,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'C',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '            D',
@@ -1932,7 +1870,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'D',
                 isDisabled: true,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: '                E',
@@ -1941,7 +1878,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'E',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
         ];
         const resultOneLine = [
@@ -1952,7 +1888,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Meals',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Restaurant',
@@ -1961,7 +1896,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Restaurant',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Food',
@@ -1970,7 +1904,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Food: Meat',
@@ -1979,7 +1912,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food: Meat',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Food: Milk',
@@ -1988,7 +1920,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Food: Milk',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Cars: Audi',
@@ -1997,7 +1928,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Cars: Audi',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Cars: Mercedes-Benz',
@@ -2006,7 +1936,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Cars: Mercedes-Benz',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Travel: Meals',
@@ -2015,7 +1944,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel: Meals',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Travel: Meals: Breakfast',
@@ -2024,7 +1952,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel: Meals: Breakfast',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Travel: Meals: Lunch',
@@ -2033,7 +1960,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Travel: Meals: Lunch',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Plain',
@@ -2042,7 +1968,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Plain',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Audi',
@@ -2051,7 +1976,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Audi',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'Health',
@@ -2060,7 +1984,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'Health',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'A: B: C',
@@ -2069,7 +1992,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'A: B: C',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
             {
                 text: 'A: B: C: D: E',
@@ -2078,7 +2000,6 @@ describe('OptionsListUtils', () => {
                 tooltipText: 'A: B: C: D: E',
                 isDisabled: false,
                 isSelected: false,
-                pendingAction: undefined,
             },
         ];
 
@@ -2107,7 +2028,6 @@ describe('OptionsListUtils', () => {
             Test: {
                 name: 'Test',
                 enabled: true,
-                pendingAction: 'delete' as PendingAction,
             },
             Test1: {
                 name: 'Test1',
@@ -2162,87 +2082,70 @@ describe('OptionsListUtils', () => {
             {
                 name: 'Taxes',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Taxi',
                 enabled: false,
-                pendingAction: undefined,
             },
             {
                 name: 'Test',
                 enabled: true,
-                pendingAction: 'delete',
             },
             {
                 name: 'Test: Test1',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest1',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest2',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest3',
                 enabled: false,
-                pendingAction: undefined,
             },
             {
                 name: 'Test: Test1: Subtest4',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test: Test2',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test: Test3: Subtest1',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test1',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test1: Subtest1',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test1: Subtest2',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Test1: Subtest3',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Travel',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Travel: Nested-Travel',
                 enabled: true,
-                pendingAction: undefined,
             },
             {
                 name: 'Utilities',
                 enabled: true,
-                pendingAction: undefined,
             },
         ];
         const categoriesIncorrectOrdering2 = {
@@ -2307,72 +2210,58 @@ describe('OptionsListUtils', () => {
             {
                 enabled: true,
                 name: 'Cars: Audi',
-                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Cars: BMW',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Cars: Mercedes-Benz',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Food',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Food: Meat',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Food: Milk',
-                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Food: Vegetables',
-                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Medical',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Restaurant',
-                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Taxi',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Travel: Meals',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Travel: Meals: Breakfast',
-                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'Travel: Meals: Dinner',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Travel: Meals: Lunch',
-                pendingAction: undefined,
             },
         ];
         const categoriesIncorrectOrdering3 = {
@@ -2405,32 +2294,26 @@ describe('OptionsListUtils', () => {
             {
                 enabled: true,
                 name: 'Dr. House',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'House, M.D.',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Many.dots.on.the.way.',
-                pendingAction: undefined,
             },
             {
                 enabled: false,
                 name: 'More.Many.dots.on.the.way.',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Movies',
-                pendingAction: undefined,
             },
             {
                 enabled: true,
                 name: 'Movies: Mr. Nobody',
-                pendingAction: undefined,
             },
         ];
 
@@ -2679,21 +2562,18 @@ describe('OptionsListUtils', () => {
                     value: '3%',
                     code: 'CODE2',
                     modifiedName: 'Tax rate 2 (3%)',
-                    pendingAction: 'delete',
                 },
                 CODE3: {
                     name: 'Tax option 3',
                     value: '5%',
                     code: 'CODE3',
                     modifiedName: 'Tax option 3 (5%)',
-                    pendingAction: undefined,
                 },
                 CODE1: {
                     name: 'Tax exempt 1',
                     value: '0%',
                     code: 'CODE1',
                     modifiedName: 'Tax exempt 1 (0%) • Default',
-                    pendingAction: undefined,
                 },
             },
         };
@@ -2710,33 +2590,30 @@ describe('OptionsListUtils', () => {
                 data: [
                     {
                         code: 'CODE1',
-                        isDisabled: false,
+                        isDisabled: undefined,
                         isSelected: undefined,
                         keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
                         text: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
-                        pendingAction: undefined,
                     },
                     {
                         code: 'CODE3',
-                        isDisabled: false,
+                        isDisabled: undefined,
                         isSelected: undefined,
                         keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
                         text: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
-                        pendingAction: undefined,
                     },
                     {
                         code: 'CODE2',
-                        isDisabled: true,
+                        isDisabled: undefined,
                         isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
                         text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        pendingAction: 'delete',
                     },
                 ],
                 shouldShow: false,
@@ -2749,13 +2626,12 @@ describe('OptionsListUtils', () => {
                 data: [
                     {
                         code: 'CODE2',
-                        isDisabled: true,
+                        isDisabled: undefined,
                         isSelected: undefined,
                         keyForList: 'Tax rate 2 (3%)',
                         searchText: 'Tax rate 2 (3%)',
                         text: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
-                        pendingAction: 'delete',
                     },
                 ],
                 shouldShow: true,
