@@ -180,6 +180,7 @@ function ReportListItem<TItem extends ListItem>({
                                     isLargeScreenWidth={isLargeScreenWidth}
                                     onButtonPress={handleOnButtonPress}
                                     action={reportItem.action}
+                                    isSelected={item.isSelected}
                                 />
                             </View>
                         </>

@@ -384,6 +384,7 @@ function TransactionListItemRow({
                     <ActionCell
                         onButtonPress={onButtonPress}
                         action={item.action}
+                        isSelected={item.isSelected}
                     />
                 </View>
             </View>
