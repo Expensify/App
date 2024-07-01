@@ -31,6 +31,9 @@ type SelectionScreenProps = {
     /** Content to display if the list is empty */
     listEmptyContent?: React.JSX.Element | null;
 
+    /** Custom content to display in the footer of list component. */
+    listFooterContent?: React.JSX.Element | null;
+
     /** Sections for the section list */
     sections: Array<SectionListDataType<SelectorType>>;
 
@@ -70,6 +73,7 @@ function SelectionScreen({
     title,
     headerContent,
     listEmptyContent,
+    listFooterContent,
     sections,
     listItem,
     initiallyFocusedOptionKey,

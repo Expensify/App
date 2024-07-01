@@ -168,7 +168,7 @@ function addPaymentCard(params: PaymentCardParams) {
         cardCVV: params.securityCode,
         addressName: params.nameOnCard,
         addressZip: params.addressZipCode,
-        currency: CONST.CURRENCY.USD,
+        currency: CONST.PAYMENT_CARD_CURRENCY.USD,
         isP2PDebitCard: true,
     };
 
@@ -214,7 +214,7 @@ function addSubscriptionPaymentCard(cardData: {
     cardCVV: string;
     addressName: string;
     addressZip: string;
-    currency: ValueOf<typeof CONST.CURRENCY>;
+    currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 }) {
     const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
 
@@ -253,7 +253,7 @@ function addSubscriptionPaymentCard(cardData: {
         },
     ];
 
-    if (currency === CONST.CURRENCY.GBP) {
+    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBR, parameters, {optimisticData, successData, failureData}).then((response) => {
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
@@ -290,7 +290,7 @@ function clearPaymentCardFormErrorAndSubmit() {
         [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
         [INPUT_IDS.ADDRESS_STATE]: '',
         [INPUT_IDS.ACCEPT_TERMS]: '',
-        [INPUT_IDS.CURRENCY]: CONST.CURRENCY.USD,
+        [INPUT_IDS.CURRENCY]: CONST.PAYMENT_CARD_CURRENCY.USD,
     });
 }
 
@@ -306,7 +306,7 @@ function clearPaymentCard3dsVerification() {
  * Set currency for payments
  *
  */
-function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.CURRENCY>) {
+function setPaymentMethodCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) {
     Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
         [INPUT_IDS.CURRENCY]: currency,
     });
@@ -465,7 +465,7 @@ function deletePaymentCard(fundID: number) {
  * Call the API to change billing currency.
  *
  */
-function updateBillingCurrency(currency: ValueOf<typeof CONST.CURRENCY>, cardCVV: string) {
+function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>, cardCVV: string) {
     const parameters: UpdateBillingCurrencyParams = {
         cardCVV,
         currency,
