@@ -11,7 +11,6 @@ import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactio
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import Clipboard from '@libs/Clipboard';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import EmailUtils from '@libs/EmailUtils';
 import * as Environment from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
