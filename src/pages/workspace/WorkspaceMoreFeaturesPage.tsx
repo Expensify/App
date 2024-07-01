@@ -122,6 +122,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
+    // TODO remove this when feature will be fully done, and move spend item inside spendItems array
     if (canUseWorkspaceFeeds) {
         spendItems.splice(1, 0, {
             icon: Illustrations.HandCard,

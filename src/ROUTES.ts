@@ -784,10 +784,6 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
     // TODO: uncomment after development is done
-    // WORKSPACE_EXPENSIFY_CARD: {
-    //     route: 'settings/workspaces/:policyID/expensify-card',
-    //     getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
-    // },
     // WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
     // route: 'settings/workspaces/:policyID/expensify-card/issues-new',
     // getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/issue-new` as const,

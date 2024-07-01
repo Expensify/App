@@ -2313,8 +2313,8 @@ export default {
                 title: 'Tarjeta Expensify',
                 subtitle: 'Obtén información y control sobre tus gastos',
                 disableCardTitle: 'Deshabilitar la Tarjeta Expensify',
-                disableCardButton: 'Chatear con Concierge',
                 disableCardPrompt: 'No puedes deshabilitar la Tarjeta Expensify porque ya está en uso. Por favor, contacta con Concierge para conocer los pasos a seguir.',
+                disableCardButton: 'Chatear con Concierge',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
