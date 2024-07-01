@@ -46,8 +46,8 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const errorHandler = (cb: () => void) => () => {
-        if (hasError && Linking.openSettings) {
-            Linking.openSettings();
+        if (hasError) {
+            Linking.openSettings?.();
             setShowModal(false);
             setHasError(false);
             resetPermissionFlow();
@@ -77,9 +77,9 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
         setHasError(false);
     };
 
-    return (
+    return showModal ? (
         <ConfirmModal
-            isVisible={showModal}
+            isVisible
             onConfirm={onConfirm}
             onCancel={onCancel}
             confirmText={hasError ? translate('common.settings') : translate('common.continue')}
@@ -96,7 +96,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             shouldCenterIcon
             shouldReverseStackedButtons
         />
-    );
+    ) : null;
 }
 
 LocationPermissionModal.displayName = 'LocationPermissionModal';
