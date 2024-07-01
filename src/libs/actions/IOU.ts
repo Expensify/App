@@ -364,22 +364,6 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
     });
 }
 
-/**
- * Reset the money request with a new report ID. Unlike the initMoneyRequest function, this function only
- * set the new report ID (and isFromGlobalCreate flag) and reset the participants of the draft transaction
- * @param transactionID
- * @param reportID
- * @param isFromGlobalCreate
- */
-function resetMoneyRequestReportID(transactionID: string, reportID: string, isFromGlobalCreate: boolean) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        reportID,
-        participants: [],
-        participantsAutoAssigned: false,
-        isFromGlobalCreate,
-    });
-}
-
 function createDraftTransaction(transaction: OnyxTypes.Transaction) {
     if (!transaction) {
         return;
@@ -6970,6 +6954,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
+    backToParam?: string,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -6977,8 +6962,8 @@ function navigateToStartStepIfScanFileCannotBeRead(
 
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
-        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL || requestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToParam ?? Navigation.getActiveRouteWithoutParams()));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
@@ -7012,7 +6997,6 @@ export {
     detachReceipt,
     editMoneyRequest,
     initMoneyRequest,
-    resetMoneyRequestReportID,
     navigateToStartStepIfScanFileCannotBeRead,
     payMoneyRequest,
     payInvoice,
