@@ -16,7 +16,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updateSageIntacctDefaultVendor, updateSageIntacctExportNonReimbursableExpense} from '@userActions/connections/SageIntacct';
+import {updateSageIntacctDefaultVendor, updateSageIntacctNonreimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -59,7 +59,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             if (row.value === config?.export.nonReimbursable) {
                 return;
             }
-            updateSageIntacctExportNonReimbursableExpense(policyID, row.value);
+            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value);
         },
         [config?.export.nonReimbursable, policyID],
     );

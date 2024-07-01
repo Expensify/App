@@ -15,7 +15,7 @@ import {getSageIntacctCreditCards} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import {updateSageIntacctExportNonReimbursableAccount} from '@userActions/connections/SageIntacct';
+import {updateSageIntacctNonreimbursableExpensesExportAccount} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -42,7 +42,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const updateCreditCardAccount = useCallback(
         ({value}: SelectorType) => {
             if (value !== exportConfig?.nonReimbursableAccount) {
-                updateSageIntacctExportNonReimbursableAccount(policyID, value);
+                updateSageIntacctNonreimbursableExpensesExportAccount(policyID, value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID));
         },

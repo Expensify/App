@@ -15,7 +15,7 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updateSageIntacctDefaultVendor, updateSageIntacctExportReimbursableExpense} from '@userActions/connections/SageIntacct';
+import {updateSageIntacctDefaultVendor, updateSageIntacctReimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -54,10 +54,10 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
         [translate, styles.pb5, styles.ph5],
     );
 
-    const selectExportDate = useCallback(
+    const selectReimbursableDestination = useCallback(
         (row: MenuListItem) => {
             if (row.value !== reimbursable) {
-                updateSageIntacctExportReimbursableExpense(policyID, row.value);
+                updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value);
             }
             if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
                 Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
@@ -103,7 +103,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                 headerContent={headerContent}
                 sections={[{data}]}
                 listItem={RadioListItem}
-                onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
+                onSelectRow={(selection: SelectorType) => selectReimbursableDestination(selection as MenuListItem)}
                 initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}

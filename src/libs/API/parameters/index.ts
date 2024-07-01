@@ -236,3 +236,10 @@ export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTok
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as UpdateSageIntacctExporterParams} from './UpdateSageIntacctExporterParams';
+export type {default as UpdateSageIntacctExportDateParams} from './UpdateSageIntacctExportDateParams';
+export type {default as UpdateSageIntacctReimbursableExpensesExportDestinationParams} from './UpdateSageIntacctReimbursableExpensesExportDestinationParams';
+export type {default as UpdateSageIntacctNonreimbursableExpensesExportDestinationParams} from './UpdateSageIntacctNonreimbursableExpensesExportDestinationParams';
+export type {default as UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams} from './UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams';
+export type {default as UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams} from './UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams';
+export type {default as UpdateSageIntacctNonreimbursableExpensesExportAccountParams} from './UpdateSageIntacctNonreimbursableExpensesExportAccountParams';
+export type {default as UpdateSageIntacctNonreimbursableExpensesExportVendorParams} from './UpdateSageIntacctNonreimbursableExpensesExportVendorParams';
