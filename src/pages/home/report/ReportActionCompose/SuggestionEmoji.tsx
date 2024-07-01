@@ -1,5 +1,6 @@
 import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
@@ -181,7 +182,9 @@ function SuggestionEmoji(
         if (!isComposerFocused) {
             return;
         }
-        calculateEmojiSuggestion(selection.start, selection.end);
+        InteractionManager.runAfterInteractions(() => {
+            calculateEmojiSuggestion(selection.start, selection.end);
+        });
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
