@@ -5406,19 +5406,16 @@ function shouldReportBeInOptionList({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
         (participantAccountIDs.length === 0 &&
+            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
+            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
+            !isChatRoom(report) &&
             !isChatThread(report) &&
-            !isPublicRoom(report) &&
-            !isUserCreatedPolicyRoom(report) &&
             !isArchivedRoom(report) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
             !isSelfDM(report) &&
             !isSystemChat(report) &&
-            !isGroupChat(report) &&
-            !isInvoiceRoom(report) &&
-            // We omit sending back participants for chat rooms when searching for reports since they aren't needed to display the results and can get very large.
-            // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
-            !isChatRoom(report))
+            !isGroupChat(report))
     ) {
         return false;
     }
