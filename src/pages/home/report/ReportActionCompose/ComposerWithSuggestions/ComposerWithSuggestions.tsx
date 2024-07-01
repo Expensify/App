@@ -471,7 +471,7 @@ function ComposerWithSuggestions(
 
         // Update selection eventually
         if (newComment !== fullNewText) {
-            const position = Math.max((selection.end ?? 0) + (newComment.length - valueRef.current.length), cursorPosition ?? 0);
+            const position = Math.max((endPositionOfNewAddedText ?? 0) + (newComment.length - fullNewText.length), cursorPosition ?? 0);
             setSelection((prevSelection) => ({
                 start: position,
                 end: position,
