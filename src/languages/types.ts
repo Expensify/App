@@ -298,6 +298,11 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -402,4 +407,5 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+    RemoveMembersWarningPrompt,
 };
