@@ -84,7 +84,7 @@ function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntac
                                     [mappingName]: null,
                                 },
                                 errorFields: {
-                                    [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                    [mappingName]: undefined,
                                 },
                             },
                         },
@@ -207,7 +207,7 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
                                 tax: null,
                             },
                             errorFields: {
-                                tax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                tax: undefined,
                             },
                         },
                     },
@@ -352,7 +352,7 @@ function editSageIntacctUserDimensions(
                             mappings: {
                                 dimensions: existingUserDimensions.map((userDimension) => {
                                     if (userDimension.name === previousName) {
-                                        return {name, mapping, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+                                        return {name, mapping, pendingAction: null, errors: undefined};
                                     }
                                     return userDimension;
                                 }),
