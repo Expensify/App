@@ -6,7 +6,7 @@ import type {AnchorRef, PopoverContextProps, PopoverContextValue} from './types'
 
 const PopoverContext = createContext<PopoverContextValue>({
     onOpen: () => {},
-    popover: {},
+    popover: null,
     close: () => {},
     isOpen: false,
 });

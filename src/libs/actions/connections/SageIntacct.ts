@@ -8,6 +8,18 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
+type SageIntacctCredentials = {companyID: string; userID: string; password: string};
+
+function connectToSageIntacct(policyID: string, credentials: SageIntacctCredentials) {
+    const parameters: ConnectPolicyToSageIntacctParams = {
+        policyID,
+        intacctCompanyID: credentials.companyID,
+        intacctUserID: credentials.userID,
+        intacctPassword: credentials.password,
+    };
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
+}
+
 function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: boolean | SageIntacctMappingValue) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -267,4 +279,5 @@ function addSageIntacctUserDimensions(policyID: string, name: string, mapping: t
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});
 }
 
-export {updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration, addSageIntacctUserDimensions, updateSageIntacctMappingValue};
+export default connectToSageIntacct;
+export {connectToSageIntacct, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration, addSageIntacctUserDimensions, updateSageIntacctMappingValue};
