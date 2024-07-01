@@ -8,7 +8,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
+import {clearSageIntacctMappingsErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -74,26 +75,29 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 <Text style={[styles.textStrong]}>{translate('workspace.common.mappingTitle', mappingName)}</Text>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
             </Text>
-            <ToggleSettingOptionRow
-                // key={translate('workspace.xero.advancedConfig.autoSync')}
-                title={translate('workspace.accounting.import')}
-                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.common.mappingTitle', mappingName)}`} // todoson
-                shouldPlaceSubtitleBelowSwitch
-                wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={importMapping ?? false}
-                onToggle={() => {
-                    if (importMapping) {
-                        setImportMapping(false);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
-                    } else {
-                        setImportMapping(true);
-                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT);
-                    }
-                }}
-            />
-            {importMapping && (
-                <View>
-                    <OfflineWithFeedback pendingAction={mappings?.pendingFields?.[mappingName]}>
+            <OfflineWithFeedback
+                pendingAction={mappings?.pendingFields?.[mappingName]}
+                errors={ErrorUtils.getLatestErrorField(mappings ?? {}, mappingName)}
+                onClose={() => clearSageIntacctMappingsErrorField(policyID, mappingName)}
+            >
+                <ToggleSettingOptionRow
+                    title={translate('workspace.accounting.import')}
+                    switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.common.mappingTitle', mappingName)}`}
+                    shouldPlaceSubtitleBelowSwitch
+                    wrapperStyle={[styles.mv3, styles.mh5]}
+                    isActive={importMapping ?? false}
+                    onToggle={() => {
+                        if (importMapping) {
+                            setImportMapping(false);
+                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
+                        } else {
+                            setImportMapping(true);
+                            updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT);
+                        }
+                    }}
+                />
+                {importMapping && (
+                    <View>
                         <MenuItemWithTopDescription
                             title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
                             description={translate('workspace.common.displayedAs')}
@@ -101,15 +105,15 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
                             brickRoadIndicator={mappings?.errorFields?.[mappingName] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
-                    </OfflineWithFeedback>
-                    <Text
-                        style={[styles.textLabelSupporting, styles.ph5]}
-                        numberOfLines={2}
-                    >
-                        {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
-                    </Text>
-                </View>
-            )}
+                        <Text
+                            style={[styles.textLabelSupporting, styles.ph5]}
+                            numberOfLines={2}
+                        >
+                            {translationKeys?.descriptionKey ? translate(translationKeys?.descriptionKey) : undefined}
+                        </Text>
+                    </View>
+                )}
+            </OfflineWithFeedback>
         </ConnectionLayout>
     );
 }

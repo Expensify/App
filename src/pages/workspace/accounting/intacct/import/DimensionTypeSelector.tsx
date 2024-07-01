@@ -9,8 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type PossibleDimensionTypes = typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG;
-
 type DimensionTypeSelectorProps = {
     /** Error text to display */
     errorText?: string;

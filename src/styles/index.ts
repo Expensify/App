@@ -4037,6 +4037,20 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
+        emptySageIntacctUserDimensionsSubtitle: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.textSupporting,
+            textAlign: 'center',
+        },
+
+        sageIntacctUserDimensionsSubtitle: {
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            color: theme.textSupporting,
+            textAlign: 'left',
+        },
+
         taskCheckboxWrapper: {
             height: variables.fontSizeNormalHeight,
             ...flex.justifyContentCenter,

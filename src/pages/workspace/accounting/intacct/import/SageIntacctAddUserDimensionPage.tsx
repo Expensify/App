@@ -1,16 +1,15 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -23,19 +22,27 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
+    const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
 
-    const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
 
-        if (!values[INPUT_IDS.INTEGRATION_NAME]) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, 'common.error.fieldRequired');
-        }
+            if (!values[INPUT_IDS.INTEGRATION_NAME]) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
+            }
 
-        if (!values[INPUT_IDS.DIMENSION_TYPE]) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.DIMENSION_TYPE, 'common.error.fieldRequired');
-        }
-        return errors;
-    }, []);
+            if (userDimensions?.some((userDimension) => userDimension.name === values[INPUT_IDS.INTEGRATION_NAME])) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, 'Dimension with such name already exists!'); // TODO fix name
+            }
+
+            if (!values[INPUT_IDS.DIMENSION_TYPE]) {
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.DIMENSION_TYPE, translate('common.error.fieldRequired'));
+            }
+            return errors;
+        },
+        [translate, userDimensions],
+    );
 
     return (
         <ConnectionLayout
@@ -53,8 +60,8 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                 formID={ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM}
                 validate={validate}
                 onSubmit={(value) => {
-                    console.log('%%%%%\n', 'value', value);
-                    addSageIntacctUserDimensions(policyID, value[INPUT_IDS.INTEGRATION_NAME], value[INPUT_IDS.DIMENSION_TYPE]);
+                    addSageIntacctUserDimensions(policyID, value[INPUT_IDS.INTEGRATION_NAME], value[INPUT_IDS.DIMENSION_TYPE], userDimensions ?? []);
+                    Navigation.goBack();
                 }}
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline

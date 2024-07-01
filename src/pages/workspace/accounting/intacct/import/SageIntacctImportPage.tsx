@@ -4,7 +4,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
+import {clearSageIntacctMappingsErrorField, clearSageIntacctTaxErrorField, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -82,16 +83,17 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 onToggle={() => {}}
                 disabled
             />
-            <OfflineWithFeedback pendingAction={config?.mappings?.pendingFields?.syncItems}>
-                <ToggleSettingOptionRow
-                    title={translate('common.billable')}
-                    switchAccessibilityLabel={translate('common.billable')}
-                    shouldPlaceSubtitleBelowSwitch
-                    wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={config?.mappings?.syncItems ?? false}
-                    onToggle={() => updateSageIntacctBillable(policyID, !config?.mappings?.syncItems)}
-                />
-            </OfflineWithFeedback>
+            <ToggleSettingOptionRow
+                title={translate('common.billable')}
+                switchAccessibilityLabel={translate('common.billable')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={config?.mappings?.syncItems ?? false}
+                onToggle={() => updateSageIntacctBillable(policyID, !config?.mappings?.syncItems)}
+                pendingAction={config?.mappings?.pendingFields?.syncItems}
+                errors={ErrorUtils.getLatestErrorField(config?.mappings ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
+                onCloseError={() => clearSageIntacctMappingsErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
+            />
 
             {mapingItems.map((section) => (
                 <OfflineWithFeedback
@@ -108,26 +110,25 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 </OfflineWithFeedback>
             ))}
 
-            <OfflineWithFeedback pendingAction={config?.pendingFields?.tax}>
-                <ToggleSettingOptionRow
-                    title={translate('common.tax')}
-                    subtitle={translate('workspace.intacct.importTaxDescription')}
-                    switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
-                    shouldPlaceSubtitleBelowSwitch
-                    wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive={config?.tax.syncTax ?? false}
-                    onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !config?.tax.syncTax)}
-                />
-            </OfflineWithFeedback>
+            <ToggleSettingOptionRow
+                title={translate('common.tax')}
+                subtitle={translate('workspace.intacct.importTaxDescription')}
+                switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={[styles.mv3, styles.mh5]}
+                isActive={config?.tax.syncTax ?? false}
+                onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !config?.tax.syncTax)}
+                pendingAction={config?.pendingFields?.tax}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, 'tax')}
+                onCloseError={() => clearSageIntacctTaxErrorField(policyID)}
+            />
 
-            <OfflineWithFeedback
-            // pendingAction={section.pendingAction}
-            >
+            <OfflineWithFeedback pendingAction={config?.mappings?.dimensions.find((userDimension) => !!userDimension.pendingAction)?.pendingAction}>
                 <MenuItemWithTopDescription
                     description={translate('workspace.intacct.userDefinedDimensions')}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
-                    // brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={config?.mappings?.dimensions.some((userDimension) => !!userDimension.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         </ConnectionLayout>

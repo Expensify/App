@@ -430,7 +430,6 @@ function BaseSelectionList<TItem extends ListItem>(
         const isItemFocused = (!isDisabled || item.isSelected) && (focusedIndex === normalizedIndex || itemsToHighlight?.has(item.keyForList ?? ''));
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
         const showTooltip = shouldShowTooltips && normalizedIndex < 10;
-        console.log('%%%%%\n', 'shouldPreventDefaultFocusOnSelectRow', shouldPreventDefaultFocusOnSelectRow);
 
         return (
             <>
@@ -450,7 +449,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}
                     onFocus={() => {
-                        console.log('%%%%%\n', 'i use OnFocus event');
                         if (isDisabled) {
                             return;
                         }

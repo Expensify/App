@@ -419,6 +419,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION]: {
         policyID: string;
+        dimensionName: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

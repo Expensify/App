@@ -237,3 +237,4 @@ export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscription
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as UpdateSageIntacctMapping} from './UpdateSageIntacctMapping';
 export type {default as UpdateSageIntacctImportBooleanValues} from './UpdateSageIntacctImportBooleanValues';
+export type {default as UpdateSageIntacctUserDimension} from './UpdateSageIntacctUserDimension';

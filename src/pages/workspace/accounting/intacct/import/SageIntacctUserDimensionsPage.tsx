@@ -5,6 +5,8 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +21,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
+    const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
 
     return (
         <ConnectionLayout
@@ -31,7 +34,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
-            {true && ( // jak puste
+            {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>
                     <Icon
                         src={Illustrations.FolderWithPapers}
@@ -45,9 +48,30 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         </View>
 
                         <View style={[styles.justifyContentCenter]}>
-                            <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>View detailed instructions on adding user-defined dimensions.</Text>
+                            <Text style={[styles.textNormal, styles.emptySageIntacctUserDimensionsSubtitle]}>View detailed instructions on adding user-defined dimensions.</Text>
                         </View>
                     </View>
+                </View>
+            ) : (
+                <View>
+                    <View style={[styles.ph5]}>
+                        <Text style={[styles.textNormal, styles.sageIntacctUserDimensionsSubtitle]}>View detailed instructions on adding user-defined dimensions.</Text>
+                    </View>
+
+                    {userDimensions.map((userDimension) => (
+                        <OfflineWithFeedback
+                            key={userDimension.name}
+                            pendingAction={userDimension.pendingAction}
+                        >
+                            <MenuItemWithTopDescription
+                                title={userDimension.name}
+                                description="User-defined dimension"
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.name))}
+                                brickRoadIndicator={userDimension.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
+                    ))}
                 </View>
             )}
             <FixedFooter style={[styles.mtAuto]}>

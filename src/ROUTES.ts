@@ -974,8 +974,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/add-user-dimension` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/edit-user-dimension',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/edit-user-dimension` as const,
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/edit-user-dimension/:dimensionName',
+        getRoute: (policyID: string, dimensionName: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/edit-user-dimension/${dimensionName}` as const,
     },
 } as const;
 

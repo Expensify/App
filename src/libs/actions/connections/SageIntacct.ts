@@ -2,11 +2,12 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {ConnectPolicyToSageIntacctParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctDimension, SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -83,7 +84,7 @@ function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntac
                                     [mappingName]: null,
                                 },
                                 errorFields: {
-                                    [mappingName]: null,
+                                    [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                 },
                             },
                         },
@@ -138,11 +139,11 @@ function updateSageIntacctMappingValue(policyID: string, mappingName: ValueOf<ty
     );
 }
 
+function clearSageIntacctMappingsErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {mappings: {errorFields: {[fieldName]: null}}}}}});
+}
+
 function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
-    const parameters = {
-        policyID,
-        enabled,
-    };
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -206,7 +207,7 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
                                 tax: null,
                             },
                             errorFields: {
-                                tax: null,
+                                tax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -214,14 +215,19 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
             },
         },
     ];
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION, parameters, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function addSageIntacctUserDimensions(policyID: string, name: string, mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD) {
-    const parameters = {
-        policyID,
-    };
-    // dodać tablicę z istniejącymi ziomami
+function clearSageIntacctTaxErrorField(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {tax: null}}}}});
+}
+
+function addSageIntacctUserDimensions(
+    policyID: string,
+    name: string,
+    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+    existingUserDimensions: SageIntacctDimension[],
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -231,7 +237,7 @@ function addSageIntacctUserDimensions(policyID: string, name: string, mapping: t
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [{name, mapping}],
+                                dimensions: [...existingUserDimensions, {name, mapping, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}],
                             },
                         },
                     },
@@ -249,7 +255,10 @@ function addSageIntacctUserDimensions(policyID: string, name: string, mapping: t
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [{name, mapping}],
+                                dimensions: [
+                                    ...existingUserDimensions,
+                                    {name, mapping, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                                ],
                             },
                         },
                     },
@@ -267,7 +276,7 @@ function addSageIntacctUserDimensions(policyID: string, name: string, mapping: t
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [{name, mapping}],
+                                dimensions: [...existingUserDimensions, {name, mapping, pendingAction: null, errors: undefined}],
                             },
                         },
                     },
@@ -276,8 +285,115 @@ function addSageIntacctUserDimensions(policyID: string, name: string, mapping: t
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, {optimisticData, successData, failureData});
 }
 
-export default connectToSageIntacct;
-export {connectToSageIntacct, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration, addSageIntacctUserDimensions, updateSageIntacctMappingValue};
+function editSageIntacctUserDimensions(
+    policyID: string,
+    previousName: string,
+    name: string,
+    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+    existingUserDimensions: SageIntacctDimension[],
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            mappings: {
+                                dimensions: existingUserDimensions.map((userDimension) => {
+                                    if (userDimension.name === previousName) {
+                                        return {name, mapping, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: undefined};
+                                    }
+                                    return userDimension;
+                                }),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            mappings: {
+                                dimensions: existingUserDimensions.map((userDimension) => {
+                                    if (userDimension.name === previousName) {
+                                        return {name, mapping, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+                                    }
+                                    return userDimension;
+                                }),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            mappings: {
+                                dimensions: existingUserDimensions.map((userDimension) => {
+                                    if (userDimension.name === previousName) {
+                                        return {name, mapping, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
+                                    }
+                                    return userDimension;
+                                }),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, {optimisticData, successData, failureData});
+}
+
+function clearSageIntacctUserDimensionErrorField(policyID: string, dimensions: SageIntacctDimension[], dimensionName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        connections: {
+            intacct: {
+                config: {
+                    mappings: {
+                        dimensions: dimensions.map((dimension) => {
+                            if (dimension.name === dimensionName) {
+                                return {...dimension, errors: undefined};
+                            }
+                            return dimension;
+                        }),
+                    },
+                },
+            },
+        },
+    });
+}
+
+export {
+    connectToSageIntacct,
+    updateSageIntacctBillable,
+    updateSageIntacctSyncTaxConfiguration,
+    addSageIntacctUserDimensions,
+    updateSageIntacctMappingValue,
+    editSageIntacctUserDimensions,
+    clearSageIntacctMappingsErrorField,
+    clearSageIntacctTaxErrorField,
+    clearSageIntacctUserDimensionErrorField,
+};

@@ -1008,8 +1008,8 @@ type SageIntacctDimension = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Mapping value for user defined dimention */
     mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD;
 
-    /** Collection of mapping field errors, which will be triggered when update action fails  */
-    errorFields?: OnyxCommon.ErrorFields;
+    /** Dimension errors, which will be triggered when update action fails  */
+    errors?: OnyxCommon.Errors;
 }>;
 
 /** Mapping type for Sage Intacct */
@@ -1095,25 +1095,6 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Whether the reimbursed reports should be synched */
         syncReimbursedReports: boolean;
-    };
-
-    /** Sage Intacct export configs */
-    export: {
-        // NOT COMPLETE!
-        /** Current export status */
-        exportDate: BillDateValues;
-
-        /** The e-mail of the exporter */
-        exporter: string;
-
-        /** TODO: Will be handled in another issue */
-        nonReimbursable: ExpenseTypesValues;
-
-        /** TODO: Will be handled in another issue */
-        nonReimbursableAccount: string;
-
-        /** TODO: Will be handled in another issue */
-        reimbursable: ExpenseTypesValues;
     };
 
     /** Collection of Sage Intacct config errors */
