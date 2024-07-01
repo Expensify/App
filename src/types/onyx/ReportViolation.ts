@@ -7,7 +7,6 @@ import type CONST from '@src/CONST';
  */
 type ReportViolationName = ValueOf<typeof CONST.REPORT_VIOLATIONS>;
 
-
 /**
  * Keys of this object are IDs of field that has violations
  */

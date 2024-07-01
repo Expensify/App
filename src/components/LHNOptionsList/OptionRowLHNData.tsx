@@ -5,6 +5,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -39,7 +40,7 @@ function OptionRowLHNData({
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
     const shouldDisplayReportViolations =
         policy?.role !== CONST.POLICY.ROLE.ADMIN &&
-        Object.values(reportViolations ?? {}).some((violations) => violations.length) &&
+        Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations)) &&
         parentReportAction?.childMoneyRequestCount &&
         parentReportAction?.childMoneyRequestCount > 1;
 
