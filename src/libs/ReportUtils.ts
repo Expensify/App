@@ -47,7 +47,6 @@ import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import * as OptionsListUtils from './OptionsListUtils';
 import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
@@ -1635,53 +1634,6 @@ function getWelcomMessage(report: OnyxEntry<Report>): WelcomeMessage {
 
     welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistory');
     return welcomeMessage;
-}
-
-function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string {
-    if (isThread(report)) {
-        return Localize.translateLocal('report.noActivityYet');
-    }
-
-    const welcomeMessage = getWelcomMessage(report);
-    if (isPolicyExpenseChat(report)) {
-        if (report?.description) {
-            return parseHtmlToText(report.description);
-        }
-        return `${welcomeMessage.phrase1} ${getDisplayNameForParticipant(report?.ownerAccountID)} ${welcomeMessage.phrase2} ${getPolicyName(report)} ${welcomeMessage.phrase3}`;
-    }
-
-    if (isChatRoom(report)) {
-        if (report?.description) {
-            return parseHtmlToText(report.description);
-        }
-        return `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
-    }
-
-    if (isSelfDM(report) || isSystemChat(report)) {
-        return `${welcomeMessage.phrase1}`;
-    }
-
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
-    const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails), isMultipleParticipant);
-    const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName, pronouns}, index) => {
-            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
-
-            if (index === displayNamesWithTooltips.length - 1) {
-                return `${formattedText}.`;
-            }
-            if (index === displayNamesWithTooltips.length - 2) {
-                return `${formattedText} ${Localize.translateLocal('common.and')}`;
-            }
-            if (index < displayNamesWithTooltips.length - 2) {
-                return `${formattedText},`;
-            }
-
-            return '';
-        })
-        .join(' ');
-    return `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
 }
 
 /**
@@ -7226,7 +7178,7 @@ export {
     getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
-    getReportBeginningOfChatHistoryMessage,
+    getWelcomMessage,
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
