@@ -18,7 +18,7 @@ type Cache<K, V> = {
 
 type CacheOpts = {
     maxSize: number;
-    equality: 'deep' | 'shallow' | KeyComparator;
+    keyComparator: KeyComparator;
 };
 
 type InternalOptions = {

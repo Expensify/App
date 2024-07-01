@@ -1,16 +1,18 @@
 import {deepEqual, shallowEqual} from 'fast-equals';
 import DEFAULT_OPTIONS from './const';
-import type {CacheOpts, ClientOptions, Options} from './types';
+import type {ClientOptions, KeyComparator, Options} from './types';
 
-function getEqualityComparator(opts: CacheOpts) {
-    switch (opts.equality) {
-        case 'deep':
-            return deepEqual;
-        case 'shallow':
-            return shallowEqual;
-        default:
-            return opts.equality;
+function getEqualityComparator(opts: Options): KeyComparator {
+    // Use the custom equality comparator if it is provided
+    if (typeof opts.equality === 'function') {
+        return opts.equality;
     }
+
+    if (opts.equality === 'shallow') {
+        return shallowEqual;
+    }
+
+    return deepEqual;
 }
 
 function mergeOptions(options?: ClientOptions): Options {

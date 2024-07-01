@@ -2,7 +2,7 @@
 import buildArrayCache from './cache/arrayCacheBuilder';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
-import {mergeOptions} from './utils';
+import {getEqualityComparator, mergeOptions} from './utils';
 
 /**
  * Global memoization class. Use it to orchestrate memoization (e.g. start/stop global monitoring).
@@ -44,7 +44,7 @@ class Memoize {
 function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): MemoizedFn<Fn> {
     const options = mergeOptions(opts);
 
-    const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>(options);
+    const cache = buildArrayCache<Parameters<Fn>, ReturnType<Fn>>({maxSize: options.maxSize, keyComparator: getEqualityComparator(options)});
 
     const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 

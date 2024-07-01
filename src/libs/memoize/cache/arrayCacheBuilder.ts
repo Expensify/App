@@ -1,5 +1,4 @@
 import type {Cache, CacheOpts} from '@libs/memoize/types';
-import {getEqualityComparator} from '@libs/memoize/utils';
 
 /**
  * Builder of the cache using `Array` primitive under the hood. It is an LRU cache, where the most recently accessed elements are at the end of the array, and the least recently accessed elements are at the front.
@@ -9,7 +8,7 @@ import {getEqualityComparator} from '@libs/memoize/utils';
 function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
     const cache: Array<[K, V]> = [];
 
-    const keyComparator = getEqualityComparator(opts);
+    const {maxSize, keyComparator} = opts;
 
     function getKeyIndex(key: K) {
         // We search the array backwards because the most recently added entries are at the end, and our heuristic follows the principles of an LRU cache - that the most recently added entries are most likely to be used again.
@@ -42,7 +41,7 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
 
             cache.push([key, value]);
 
-            if (cache.length > opts.maxSize) {
+            if (cache.length > maxSize) {
                 cache.shift();
             }
         },
@@ -59,7 +58,7 @@ function buildArrayCache<K extends unknown[], V>(opts: CacheOpts): Cache<K, V> {
 
             cache.push([key, value]);
 
-            if (cache.length > opts.maxSize) {
+            if (cache.length > maxSize) {
                 cache.shift();
             }
 
