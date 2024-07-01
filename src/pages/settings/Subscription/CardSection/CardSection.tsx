@@ -3,9 +3,7 @@ import {View} from 'react-native';
 import Onyx, {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -93,13 +91,16 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
-            <MenuItem
-                title="Request early cancellation"
-                icon={Expensicons.CalendarSolid}
-                iconFill={theme.icon}
-                shouldShowRightIcon
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-            />
+            {!!privateSubscription?.type && (
+                <MenuItem
+                    title="Request early cancellation"
+                    icon={Expensicons.CalendarSolid}
+                    iconFill={theme.icon}
+                    shouldShowRightIcon
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION)}
+                />
+            )}
             {!!account?.hasPurchases && (
                 <MenuItem
                     shouldShowRightIcon
