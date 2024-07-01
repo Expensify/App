@@ -648,7 +648,7 @@ type SageIntacctDimension = OnyxCommon.OnyxValueWithOfflineFeedback<{
     name: string;
 
     /** Mapping value for user defined dimention */
-    mapping: Omit<SageIntacctMappingValue, typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT>;
+    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD;
 
     /** Collection of mapping field errors, which will be triggered when update action fails  */
     errorFields?: OnyxCommon.ErrorFields;

@@ -4,6 +4,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -40,6 +41,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
     const policyID: string = policy?.id ?? '-1';
     const sageIntacctConfig = policy?.connections?.intacct?.config;
+    const config = policy?.connections?.intacct?.config;
 
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
@@ -80,22 +82,20 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 onToggle={() => {}}
                 disabled
             />
-            <OfflineWithFeedback
-            // pendingAction={section.pendingAction}
-            >
+            <OfflineWithFeedback pendingAction={config?.mappings?.pendingFields?.syncItems}>
                 <ToggleSettingOptionRow
                     title={translate('common.billable')}
                     switchAccessibilityLabel={translate('common.billable')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive
-                    onToggle={() => {}}
+                    isActive={config?.mappings?.syncItems ?? false}
+                    onToggle={() => updateSageIntacctBillable(policyID, !config?.mappings?.syncItems)}
                 />
             </OfflineWithFeedback>
 
             {mapingItems.map((section) => (
                 <OfflineWithFeedback
-                    key={section.title}
+                    key={section.description}
                     pendingAction={section.pendingAction}
                 >
                     <MenuItemWithTopDescription
@@ -108,17 +108,15 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 </OfflineWithFeedback>
             ))}
 
-            <OfflineWithFeedback
-            // pendingAction={section.pendingAction}
-            >
+            <OfflineWithFeedback pendingAction={config?.pendingFields?.tax}>
                 <ToggleSettingOptionRow
                     title={translate('common.tax')}
                     subtitle={translate('workspace.intacct.importTaxDescription')}
                     switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
                     shouldPlaceSubtitleBelowSwitch
                     wrapperStyle={[styles.mv3, styles.mh5]}
-                    isActive
-                    onToggle={() => {}}
+                    isActive={config?.tax.syncTax ?? false}
+                    onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !config?.tax.syncTax)}
                 />
             </OfflineWithFeedback>
 

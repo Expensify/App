@@ -1360,6 +1360,7 @@ const CONST = {
             CUSTOMERS: 'customers',
             PROJECTS: 'projects',
         },
+        SYNC_ITEMS: 'syncItems',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

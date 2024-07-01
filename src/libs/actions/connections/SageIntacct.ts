@@ -6,9 +6,9 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SageIntacctDimension, SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
-function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: SageIntacctMappingValue | boolean) {
+function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: boolean | SageIntacctMappingValue) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -84,53 +84,128 @@ function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntac
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctBillable(policyID: string, mappingValue: boolean) {
+function updateSageIntacctBillable(policyID: string, enabled: boolean) {
     const parameters = {
         policyID,
+        enabled,
     };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS, mappingValue)); // this will be changed to another API call when BE is ready
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS, enabled));
 }
 
-function updateSageIntacctDepartmentsMapping(policyID: string, mappingValue: SageIntacctMappingValue) {
+function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>) {
+    switch (mappingName) {
+        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+            return WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING;
+        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+            return WRITE_COMMANDS.UPDATE_SAGE_INTACCT_CLASSES_MAPPING;
+        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+            return WRITE_COMMANDS.UPDATE_SAGE_INTACCT_LOCATIONS_MAPPING;
+        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+            return WRITE_COMMANDS.UPDATE_SAGE_INTACCT_CUSTOMERS_MAPPING;
+        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+            return WRITE_COMMANDS.UPDATE_SAGE_INTACCT_PROJECTS_MAPPING;
+        default:
+            return undefined;
+    }
+}
+
+function updateSageIntacctMappingValue(policyID: string, mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>, mappingValue: SageIntacctMappingValue) {
+    const command = getCommandForMapping(mappingName);
+    if (!command) {
+        return;
+    }
+
+    const onyxData = prepareOnyxDataForUpdate(policyID, mappingName, mappingValue);
+    API.write(
+        command,
+        {
+            policyID,
+            mapping: mappingValue,
+        },
+        onyxData,
+    );
+}
+
+function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
     const parameters = {
         policyID,
+        enabled,
     };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS, mappingValue)); // this will be changed to another API call when BE is ready
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                syncTax: enabled,
+                            },
+                            pendingFields: {
+                                tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                tax: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                syncTax: enabled,
+                            },
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                tax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    intacct: {
+                        config: {
+                            tax: {
+                                syncTax: enabled,
+                            },
+                            pendingFields: {
+                                tax: null,
+                            },
+                            errorFields: {
+                                tax: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctClassesMapping(policyID: string, mappingValue: SageIntacctMappingValue) {
-    const parameters = {
-        policyID,
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES, mappingValue)); // this will be changed to another API call when BE is ready
-}
-
-function updateSageIntacctLocationsMapping(policyID: string, mappingValue: SageIntacctMappingValue) {
-    const parameters = {
-        policyID,
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS, mappingValue)); // this will be changed to another API call when BE is ready
-}
-
-function updateSageIntacctCustomersMapping(policyID: string, mappingValue: SageIntacctMappingValue) {
-    const parameters = {
-        policyID,
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS, mappingValue)); // this will be changed to another API call when BE is ready
-}
-
-function updateSageIntacctProjectsMapping(policyID: string, mappingValue: SageIntacctMappingValue) {
-    const parameters = {
-        policyID,
-    };
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS, mappingValue)); // this will be changed to another API call when BE is ready
-}
-
-function addSageIntacctUserDimensions(
-    policyID: string,
-    name: string,
-    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG,
-) {
+function addSageIntacctUserDimensions(policyID: string, name: string, mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD) {
     const parameters = {
         policyID,
     };
@@ -192,30 +267,4 @@ function addSageIntacctUserDimensions(
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, successData, failureData});
 }
 
-function getUpdateFunctionForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>) {
-    switch (mappingName) {
-        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
-            return updateSageIntacctDepartmentsMapping;
-        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
-            return updateSageIntacctClassesMapping;
-        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
-            return updateSageIntacctCustomersMapping;
-        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
-            return updateSageIntacctLocationsMapping;
-        case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
-            return updateSageIntacctProjectsMapping;
-        default:
-            return undefined;
-    }
-}
-
-export {
-    updateSageIntacctBillable,
-    updateSageIntacctDepartmentsMapping,
-    updateSageIntacctClassesMapping,
-    updateSageIntacctLocationsMapping,
-    updateSageIntacctCustomersMapping,
-    updateSageIntacctProjectsMapping,
-    getUpdateFunctionForMapping,
-    addSageIntacctUserDimensions,
-};
+export {updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration, addSageIntacctUserDimensions, updateSageIntacctMappingValue};

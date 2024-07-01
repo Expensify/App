@@ -8,7 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SageIntacctConnection from '@libs/actions/connections/SageIntacct';
+import {updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -17,7 +17,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 type SageIntacctToggleMappingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE>;
 
@@ -51,18 +51,17 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const styles = useThemeStyles();
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
-    const mapping = route.params.mapping;
-    const policyID = policy?.id ?? '-1';
+    const mappingName: SageIntacctMappingName = route.params.mapping;
+    const policyID: string = policy?.id ?? '-1';
 
     const mappings = policy?.connections?.intacct?.config?.mappings;
-    const translationKeys = getDisplayTypeTranslationKeys(mappings?.[mapping]);
-    const [importDepartments, setImportDepartments] = useState(mappings?.[mapping] && mappings?.[mapping] !== CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
-    const updateFunction = SageIntacctConnection.getUpdateFunctionForMapping(mapping);
+    const translationKeys = getDisplayTypeTranslationKeys(mappings?.[mappingName]);
+    const [importMapping, setImportMapping] = useState(mappings?.[mappingName] && mappings?.[mappingName] !== CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
 
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
-            headerTitleAlreadyTranslated={translate('workspace.common.mappingTitle', mapping, true)}
+            headerTitleAlreadyTranslated={translate('workspace.common.mappingTitle', mappingName, true)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -72,38 +71,35 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
         >
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
-                <Text style={[styles.textStrong]}>{translate('workspace.common.mappingTitle', mapping)}</Text>
+                <Text style={[styles.textStrong]}>{translate('workspace.common.mappingTitle', mappingName)}</Text>
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
             </Text>
             <ToggleSettingOptionRow
                 // key={translate('workspace.xero.advancedConfig.autoSync')}
                 title={translate('workspace.accounting.import')}
-                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.common.mappingTitle', mapping)}`} // todoson
+                switchAccessibilityLabel={`${translate('workspace.accounting.import')} ${translate('workspace.common.mappingTitle', mappingName)}`} // todoson
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={importDepartments ?? false}
+                isActive={importMapping ?? false}
                 onToggle={() => {
-                    if (!updateFunction) {
-                        return;
-                    }
-                    if (importDepartments) {
-                        setImportDepartments(false);
-                        updateFunction(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
+                    if (importMapping) {
+                        setImportMapping(false);
+                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
                     } else {
-                        setImportDepartments(true);
-                        updateFunction(policyID, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT);
+                        setImportMapping(true);
+                        updateSageIntacctMappingValue(policyID, mappingName, CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.DEFAULT);
                     }
                 }}
             />
-            {importDepartments && (
+            {importMapping && (
                 <View>
-                    <OfflineWithFeedback pendingAction={mappings?.pendingFields?.[mapping]}>
+                    <OfflineWithFeedback pendingAction={mappings?.pendingFields?.[mappingName]}>
                         <MenuItemWithTopDescription
                             title={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}
                             description={translate('workspace.common.displayedAs')}
                             shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mapping))}
-                            brickRoadIndicator={mappings?.errorFields?.[mapping] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
+                            brickRoadIndicator={mappings?.errorFields?.[mappingName] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                     </OfflineWithFeedback>
                     <Text
