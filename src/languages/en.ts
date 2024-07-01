@@ -1972,6 +1972,10 @@ export default {
         trip: 'Trip',
         tripSummary: 'Trip summary',
         departs: 'Departs',
+        travel: 'Travel',
+        details: 'Details',
+        tripSupport: 'Trip support',
+        confirmationNo: 'Confirmation No.',
     },
     workspace: {
         common: {
