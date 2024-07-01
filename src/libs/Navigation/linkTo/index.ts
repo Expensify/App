@@ -73,7 +73,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
         const actionPayloadParams = action.payload.params as ActionPayloadParams;
-        
+
         const topRouteName = lastRoute?.name;
 
         // CentralPane screens aren't nested in any navigator, if actionPayloadParams?.screen is undefined, it means the screen name and parameters have to be read directly from action.payload
