@@ -580,6 +580,12 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
+    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -645,6 +651,7 @@ export {
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
+    getCurrentConnectionName,
 };
 
 export type {MemberEmailsToAccountIDs};
