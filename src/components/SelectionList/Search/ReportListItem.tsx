@@ -147,7 +147,6 @@ function ReportListItem<TItem extends ListItem>({
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             <View style={[styles.flexShrink1]}>
                                 <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
-                                <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
@@ -172,7 +171,6 @@ function ReportListItem<TItem extends ListItem>({
                         </>
                     )}
                 </View>
-                <View style={[styles.mt3, styles.reportListItemSeparator]} />
                 {reportItem.transactions.map((transaction) => (
                     <TransactionListItemRow
                         item={transaction}

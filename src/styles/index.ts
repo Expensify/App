@@ -5044,7 +5044,6 @@ const styles = (theme: ThemeColors) =>
         reportListItemTitle: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
-            fontWeight: FontUtils.fontWeight.bold,
         },
     } satisfies Styles);
 

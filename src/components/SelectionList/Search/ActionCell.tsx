@@ -53,6 +53,8 @@ function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isL
             small
             pressOnEnter
             style={[styles.w100]}
+            innerStyles={[styles.bgTransparent]}
+            textStyles={[styles.link]}
         />
     );
 }

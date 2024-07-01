@@ -288,6 +288,13 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         showTooltip={false}
                     />
                 </View>
+                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
+                    <TypeCell
+                        transactionItem={item}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                        showTooltip={false}
+                    />
+                </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
                         transactionItem={item}
@@ -348,13 +355,6 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                         transactionItem={item}
                         isLargeScreenWidth={isLargeScreenWidth}
                         isChildListItem={isChildListItem}
-                    />
-                </View>
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
-                    <TypeCell
-                        transactionItem={item}
-                        isLargeScreenWidth={isLargeScreenWidth}
-                        showTooltip={false}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
