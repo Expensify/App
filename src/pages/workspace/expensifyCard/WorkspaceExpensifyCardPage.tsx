@@ -33,7 +33,7 @@ type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParam
 const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     test1: {
         // @ts-expect-error TODO: change cardholder to accountID
-        cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith', avatar: ''},
+        cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith'},
         nameValuePairs: {
             unapprovedExpenseLimit: 1000,
             cardTitle: 'Test 1',
@@ -42,7 +42,7 @@ const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     },
     test2: {
         // @ts-expect-error TODO: change cardholder to accountID
-        cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller', avatar: ''},
+        cardholder: {accountID: 2, lastName: 'Miller', firstName: 'Alex', displayName: 'Alex Miller'},
         nameValuePairs: {
             unapprovedExpenseLimit: 2000,
             cardTitle: 'Test 2',
@@ -51,7 +51,7 @@ const mockedCards: OnyxEntry<ExpensifyCardsList> = {
     },
     test3: {
         // @ts-expect-error TODO: change cardholder to accountID
-        cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown', avatar: ''},
+        cardholder: {accountID: 3, lastName: 'Brown', firstName: 'Kevin', displayName: 'Kevin Brown'},
         nameValuePairs: {
             unapprovedExpenseLimit: 3000,
             cardTitle: 'Test 3',
@@ -86,8 +86,10 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
         () =>
             Object.values(cardsList ?? {}).sort((a, b) => {
                 // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const aName = PersonalDetailsUtils.getDisplayNameOrDefault(a.cardholder ?? {});
                 // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 const bName = PersonalDetailsUtils.getDisplayNameOrDefault(b.cardholder ?? {});
                 return localeCompare(aName, bName);
             }),

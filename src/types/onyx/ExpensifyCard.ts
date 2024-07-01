@@ -1,4 +1,4 @@
-import type Card from '@src/types/onyx/Card';
+import type Card from './Card';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
