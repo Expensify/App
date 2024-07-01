@@ -106,7 +106,7 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                         errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                         pendingAction={currentPolicyTag.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => Tag.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
+                        onClose={() => Tag.clearPolicyTagErrors(route.params.policyID, route.params.tagName, route.params.orderWeight)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>

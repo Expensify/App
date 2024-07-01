@@ -83,7 +83,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
-    const [errorMessage, setErrorMessage] = useState<'onboarding.purpose.errorSelection' | 'onboarding.purpose.errorContinue' | ''>('');
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -100,6 +100,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
             rightComponent: selectedCheckboxIcon,
             shouldShowRightComponent: isSelected,
+            numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
                 setErrorMessage('');
@@ -110,11 +111,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const handleOuterClick = useCallback(() => {
         if (!selectedPurpose) {
-            setErrorMessage('onboarding.purpose.errorSelection');
+            setErrorMessage(translate('onboarding.purpose.errorSelection'));
         } else {
-            setErrorMessage('onboarding.purpose.errorContinue');
+            setErrorMessage(translate('onboarding.purpose.errorContinue'));
         }
-    }, [selectedPurpose]);
+    }, [selectedPurpose, setErrorMessage, translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
@@ -147,7 +148,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
-                                setErrorMessage('onboarding.purpose.errorSelection');
+                                setErrorMessage(translate('onboarding.purpose.errorSelection'));
                                 return;
                             }
                             setErrorMessage('');

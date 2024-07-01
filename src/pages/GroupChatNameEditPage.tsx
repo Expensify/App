@@ -1,5 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,7 +26,7 @@ import type NewGroupChatDraft from '@src/types/onyx/NewGroupChatDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type GroupChatNameEditPageOnyxProps = {
-    groupChatDraft: NewGroupChatDraft | null;
+    groupChatDraft: OnyxEntry<NewGroupChatDraft>;
 };
 
 type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
@@ -35,6 +36,7 @@ type GroupChatNameEditPageProps = GroupChatNameEditPageOnyxProps &
 
 function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPageProps) {
     // If we have a report this means we are using this page to update an existing Group Chat name
+    // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID ?? '';
     const isUpdatingExistingReport = !!reportID;
 
@@ -43,14 +45,11 @@ function GroupChatNameEditPage({groupChatDraft, report}: GroupChatNameEditPagePr
     const {inputCallbackRef} = useAutoFocusInput();
 
     // We will try to get the chatName from the report or draft depending on what flow we are in
-    const participantAccountIDs = useMemo(() => {
-        if (reportID) {
-            return ReportUtils.getParticipantAccountIDs(reportID);
-        }
-
-        return (groupChatDraft?.participants ?? []).map((participant) => participant.accountID);
-    }, [groupChatDraft, reportID]);
-    const existingReportName = useMemo(() => ReportUtils.getGroupChatName(participantAccountIDs, false, reportID), [participantAccountIDs, reportID]);
+    const draftParticipantAccountIDs = useMemo(() => (groupChatDraft?.participants ?? []).map((participant) => participant.accountID), [groupChatDraft?.participants]);
+    const existingReportName = useMemo(
+        () => (report ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getGroupChatName(draftParticipantAccountIDs)),
+        [draftParticipantAccountIDs, report],
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 

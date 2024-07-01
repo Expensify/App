@@ -88,7 +88,7 @@ function AddPlaidBankAccount({
     const styles = useThemeStyles();
     const plaidBankAccounts = plaidData?.bankAccounts ?? [];
     const defaultSelectedPlaidAccount = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID);
-    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '';
+    const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '-1';
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>();
@@ -172,6 +172,7 @@ function AddPlaidBankAccount({
     }));
     const {icon, iconSize, iconStyles} = getBankIcon({styles});
     const plaidErrors = plaidData?.errors;
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors)[0] as string) : '';
     const bankName = plaidData?.bankName;
 

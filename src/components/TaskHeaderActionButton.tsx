@@ -33,7 +33,7 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0)}
+                isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1)}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}

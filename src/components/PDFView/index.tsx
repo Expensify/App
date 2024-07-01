@@ -120,7 +120,6 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                             isPasswordInvalid={isPasswordInvalid}
                             onSubmit={onSubmit}
                             onPasswordUpdated={onPasswordChange}
-                            onPasswordFieldFocused={toggleKeyboardOnSmallScreens}
                         />
                     )}
                 />

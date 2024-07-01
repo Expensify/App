@@ -30,7 +30,7 @@ function HeaderWithBackButton({
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
-    report = null,
+    report,
     policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,

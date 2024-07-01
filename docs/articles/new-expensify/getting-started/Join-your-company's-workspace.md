@@ -51,6 +51,8 @@ Upload your expenses and check your reports right from your phone by downloading
 {% include end-option.html %}
 
 {% include end-selector.html %}
+
+![The profile page to change options like display name]({{site.url}}/assets/images/ExpensifyHelp_R2_Profile_1.png){:width="100%"}
  
 # 3. Meet Concierge
 

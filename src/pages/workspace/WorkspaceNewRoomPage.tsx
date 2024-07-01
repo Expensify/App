@@ -104,7 +104,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
-        const participants = [session?.accountID ?? 0];
+        const participants = [session?.accountID ?? -1];
         const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '');
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
@@ -169,35 +169,36 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
-                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
             } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
                 // We error if the room name has invalid characters
-                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
-            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '')) {
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, reports, values.policyID ?? '-1')) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+                ErrorUtils.addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
             }
 
             const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                ErrorUtils.addErrorMessage(errors, 'reportDescription', [
-                    'common.error.characterLimitExceedCounter',
-                    {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH},
-                ]);
+                ErrorUtils.addErrorMessage(
+                    errors,
+                    'reportDescription',
+                    translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}),
+                );
             }
 
             if (!values.policyID) {
-                errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
+                errors.policyID = translate('newRoomPage.pleaseSelectWorkspace');
             }
 
             return errors;
         },
-        [reports],
+        [reports, translate],
     );
 
     const writeCapabilityOptions = useMemo(
@@ -359,6 +360,5 @@ export default withOnyx<WorkspaceNewRoomPageProps, WorkspaceNewRoomPageOnyxProps
     },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-        initialValue: null,
     },
 })(WorkspaceNewRoomPage);

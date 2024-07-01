@@ -6,7 +6,6 @@ import type {View} from 'react-native';
 import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -17,7 +16,7 @@ type State = keyof typeof COMMON_CONST.STATES;
 
 type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Current selected state  */
     value?: State | '';

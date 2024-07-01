@@ -1,6 +1,6 @@
 import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import {BackHandler} from 'react-native';
+import {BackHandler, NativeModules} from 'react-native';
 import getTopmostCentralPaneRoute from '@navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@navigation/navigationRef';
 import type {BottomTabNavigatorParamList, RootStackParamList, State} from '@navigation/types';
@@ -23,6 +23,12 @@ function setupCustomAndroidBackHandler() {
             return false;
         }
 
+        const isLastScreenOnStack = bottomTabRoutes.length === 1 && rootState.routes.length === 1;
+
+        if (NativeModules.HybridAppModule && isLastScreenOnStack) {
+            NativeModules.HybridAppModule.exitApp();
+        }
+
         // Handle back press on the search page.
         // We need to pop two screens, from the central pane and from the bottom tab.
         if (bottomTabRoutes[bottomTabRoutes.length - 1].name === SCREENS.SEARCH.BOTTOM_TAB && focusedRoute?.name === SCREENS.SEARCH.CENTRAL_PANE) {
@@ -41,7 +47,7 @@ function setupCustomAndroidBackHandler() {
                 (!centralPaneRouteAfterPop || centralPaneRouteAfterPop.name !== SCREENS.SEARCH.CENTRAL_PANE)
             ) {
                 const {policyID, ...restParams} = bottomTabRoutes[bottomTabRoutes.length - 2].params as SearchPageProps['route']['params'];
-                navigationRef.dispatch({...StackActions.push(NAVIGATORS.CENTRAL_PANE_NAVIGATOR, {screen: SCREENS.SEARCH.CENTRAL_PANE, params: {...restParams, policyIDs: policyID}})});
+                navigationRef.dispatch({...StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {...restParams, policyIDs: policyID})});
             }
 
             return true;
@@ -53,7 +59,7 @@ function setupCustomAndroidBackHandler() {
         // In that case we have to push the proper one.
         if (bottomTabRoutes && bottomTabRoutes?.length >= 2 && bottomTabRoutes[bottomTabRoutes.length - 2].name === SCREENS.SEARCH.BOTTOM_TAB && rootState.routes.length === 1) {
             const {policyID, ...restParams} = bottomTabRoutes[bottomTabRoutes.length - 2].params as SearchPageProps['route']['params'];
-            navigationRef.dispatch({...StackActions.push(NAVIGATORS.CENTRAL_PANE_NAVIGATOR, {screen: SCREENS.SEARCH.CENTRAL_PANE, params: {...restParams, policyIDs: policyID}})});
+            navigationRef.dispatch({...StackActions.push(SCREENS.SEARCH.CENTRAL_PANE, {...restParams, policyIDs: policyID})});
             navigationRef.dispatch({...StackActions.pop(), target: bottomTabRoute?.state?.key});
             return true;
         }
