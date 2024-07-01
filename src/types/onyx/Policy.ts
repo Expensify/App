@@ -594,82 +594,6 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
-/** One of the SageIntacctConnectionData object elements */
-type SageIntacctDataElement = {
-    /** Element ID */
-    id: string;
-
-    /** Element name */
-    name: string;
-};
-
-/** One of the SageIntacctConnectionData object elements with value */
-type SageIntacctDataElementWithValue = SageIntacctDataElement & {
-    /** Element value */
-    value: string;
-};
-
-/**
- * Connection data for Sage Intacct
- */
-type SageIntacctConnectionData = {
-    /** Collection of credit cards */
-    creditCards: SageIntacctDataElement[];
-
-    /** Collection of bank accounts */
-    bankAccounts: SageIntacctDataElement[];
-
-    /** Collection of vendors */
-    vendors: SageIntacctDataElementWithValue[];
-};
-
-/**
- * Connection config for Sage Intacct
- */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Sage Intacct credentials */
-    credentials: {
-        /** Sage Intacct companyID */
-        companyID: string;
-    };
-
-    /** Sage Intacct export configs */
-    export: OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** Current export status */
-        exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
-
-        /** The e-mail of the exporter */
-        exporter: string;
-
-        /** TODO: Will be handled in another issue */
-        nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
-
-        /** TODO: Will be handled in another issue */
-        nonReimbursableAccount: string;
-
-        /** */
-        nonReimbursableCreditCardChargeDefaultVendor: string | null;
-
-        /** */
-        nonReimbursableVendor: string | null;
-
-        /** TODO: Will be handled in another issue */
-        reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
-
-        /** */
-        reimbursableExpenseReportDefaultVendor: string | null;
-
-        /** Collection of mapping field errors, which will be triggered when update action fails  */
-        errorFields?: OnyxCommon.ErrorFields;
-    }>;
-
-    /** Collection of Sage Intacct config errors */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
-
 /** Data stored about subsidiaries from NetSuite  */
 type NetSuiteSubsidiary = {
     /** ID of the subsidiary */
@@ -1025,11 +949,34 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
 /**
  * Connection data for Sage Intacct
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-type SageIntacctConnectionData = {};
+type SageIntacctConnectionData = {
+    /** Collection of credit cards */
+    creditCards: SageIntacctDataElement[];
+
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+
+    /** Collection of vendors */
+    vendors: SageIntacctDataElementWithValue[];
+};
 
 /**
  * Connection config for Sage Intacct
@@ -1046,6 +993,36 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Sage Intacct userID */
         userID: string;
     };
+
+    /** Sage Intacct export configs */
+    export: OnyxCommon.OnyxValueWithOfflineFeedback<{
+        /** Current export status */
+        exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+        /** The e-mail of the exporter */
+        exporter: string;
+
+        /** TODO: Will be handled in another issue */
+        nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** TODO: Will be handled in another issue */
+        nonReimbursableAccount: string;
+
+        /** */
+        nonReimbursableCreditCardChargeDefaultVendor: string | null;
+
+        /** */
+        nonReimbursableVendor: string | null;
+
+        /** TODO: Will be handled in another issue */
+        reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+        /** */
+        reimbursableExpenseReportDefaultVendor: string | null;
+
+        /** Collection of mapping field errors, which will be triggered when update action fails  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;
