@@ -45,7 +45,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
             }
 
             if (userDimensions?.some((userDimension) => userDimension.name === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, 'Dimension with such name already exists!'); // TODO fix name
+                ErrorUtils.addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
             }
 
             if (!values[INPUT_IDS.DIMENSION_TYPE]) {
@@ -113,14 +113,14 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                     </View>
                 </OfflineWithFeedback>
                 <ConfirmModal
-                    title="Remove user-defined dimension"
+                    title={translate('workspace.intacct.removeDimension')}
                     isVisible={isDeleteModalOpen}
                     onConfirm={() => {
                         setIsDeleteModalOpen(false);
                         Navigation.goBack();
                     }}
                     onCancel={() => setIsDeleteModalOpen(false)}
-                    prompt="Are you sure you want to remove this user-defined dimension?"
+                    prompt={translate('workspace.intacct.removeDimensionPrompt')}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}
                     danger

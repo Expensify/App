@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';

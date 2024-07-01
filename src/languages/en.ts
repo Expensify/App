@@ -2259,6 +2259,13 @@ export default {
             userDefinedDimensions: 'User-defined dimensions',
             addUserDefinedDimension: 'Add user-defined dimension',
             integrationName: 'Integration name',
+            dimensionExists: 'Dimension with such name already exists.',
+            removeDimension: 'Remove user-defined dimension',
+            removeDimensionPrompt: 'Are you sure you want to remove this user-defined dimension?',
+            userDefinedDimension: 'User-defined dimensions',
+            addAUserDefinedDimension: 'Add a user-defined dimension',
+            detailedInstructionsLink: 'View detailed instructions',
+            detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
         },
         type: {
             free: 'Free',

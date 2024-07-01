@@ -8,11 +8,13 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -26,7 +28,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     return (
         <ConnectionLayout
             displayName={SageIntacctUserDimensionsPage.displayName}
-            headerTitle="User-defined dimensions"
+            headerTitle="workspace.intacct.userDefinedDimension"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -44,18 +46,36 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
 
                     <View style={[styles.w100, styles.pt5]}>
                         <View style={[styles.justifyContentCenter]}>
-                            <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>Add a user-defined dimension</Text>
+                            <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{translate('workspace.intacct.addAUserDefinedDimension')}</Text>
                         </View>
 
                         <View style={[styles.justifyContentCenter]}>
-                            <Text style={[styles.textNormal, styles.emptySageIntacctUserDimensionsSubtitle]}>View detailed instructions on adding user-defined dimensions.</Text>
+                            <Text>
+                                <TextLink
+                                    style={styles.link}
+                                    onPress={() => {}}
+                                >
+                                    {translate('workspace.intacct.detailedInstructionsLink')}
+                                </TextLink>
+                                <Text style={[styles.textNormal, styles.emptySageIntacctUserDimensionsSubtitle]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
+                            </Text>
                         </View>
                     </View>
                 </View>
             ) : (
                 <View>
                     <View style={[styles.ph5]}>
-                        <Text style={[styles.textNormal, styles.sageIntacctUserDimensionsSubtitle]}>View detailed instructions on adding user-defined dimensions.</Text>
+                        <Text>
+                            <TextLink
+                                style={styles.link}
+                                onPress={() => {
+                                    Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                }}
+                            >
+                                {translate('workspace.intacct.detailedInstructionsLink')}
+                            </TextLink>
+                            <Text style={[styles.textNormal, styles.sageIntacctUserDimensionsSubtitle]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
+                        </Text>
                     </View>
 
                     {userDimensions.map((userDimension) => (
