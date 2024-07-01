@@ -537,7 +537,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled;
 
-    const nameSectionTitleField = (titleField &&
+    const nameSectionTitleField = titleField && (
         <OfflineWithFeedback
             pendingAction={report.pendingFields?.[fieldKey]}
             errors={report.errorFields?.[fieldKey]}
@@ -554,12 +554,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
-                    furtherDetailsContent={() => (<ParentNavigationSubtitle
-                        parentNavigationSubtitleData={parentNavigationSubtitleData}
-                        parentReportID={report?.parentReportID}
-                        parentReportActionID={report?.parentReportActionID}
-                        pressableStyles={[styles.mt1, styles.mw100]}
-                    />)}
+                    furtherDetailsContent={() => (
+                        <ParentNavigationSubtitle
+                            parentNavigationSubtitleData={parentNavigationSubtitleData}
+                            parentReportID={report?.parentReportID}
+                            parentReportActionID={report?.parentReportActionID}
+                            pressableStyles={[styles.mt1, styles.mw100]}
+                        />
+                    )}
                 />
             </View>
         </OfflineWithFeedback>

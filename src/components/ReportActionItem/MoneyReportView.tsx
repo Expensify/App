@@ -64,10 +64,10 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                 <>
                     {ReportUtils.reportFieldsEnabled(report) &&
                         sortedPolicyReportFields.map((reportField) => {
-                            if(ReportUtils.isReportFieldOfTypeTitle(reportField)) {
+                            if (ReportUtils.isReportFieldOfTypeTitle(reportField)) {
                                 return null;
                             }
-                            
+
                             const fieldValue = reportField.value ?? reportField.defaultValue;
                             const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
                             const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
