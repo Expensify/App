@@ -26,7 +26,7 @@ type DropdownOption<TValueType> = {
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: StyleProp<ViewStyle>;
+    titleStyle?: ViewStyle;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {

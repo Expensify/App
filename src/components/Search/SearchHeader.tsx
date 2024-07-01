@@ -96,7 +96,7 @@ function SearchHeader({query, selectedItems = {}, hash, clearSelectedItems}: Sea
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
-                titleStyle: [styles.colorMuted, styles.fontWeightNormal],
+                titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal},
             });
         }
 
