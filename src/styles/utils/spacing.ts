@@ -373,6 +373,10 @@ export default {
         padding: 20,
     },
 
+    pb6: {
+        padding: 24,
+    },
+
     p8: {
         padding: 32,
     },

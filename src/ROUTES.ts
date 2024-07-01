@@ -960,6 +960,18 @@ const ROUTES = {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+    },
 } as const;
 
 /**

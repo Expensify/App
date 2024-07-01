@@ -528,6 +528,8 @@ const ONYXKEYS = {
         SUBSCRIPTION_SIZE_FORM_DRAFT: 'subscriptionSizeFormDraft',
         ISSUE_NEW_EXPENSIFY_CARD_FORM: 'issueNewExpensifyCardForm',
         ISSUE_NEW_EXPENSIFY_CARD_FORM_DRAFT: 'issueNewExpensifyCardFormDraft',
+        SAGE_INTACCT_CREDENTIALS_FORM: 'sageIntacctCredentialsForm',
+        SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
     },
 } as const;
 
@@ -590,6 +592,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
     [ONYXKEYS.FORMS.SUBSCRIPTION_SIZE_FORM]: FormTypes.SubscriptionSizeForm;
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
+    [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
 };
 
 type OnyxFormDraftValuesMapping = {
