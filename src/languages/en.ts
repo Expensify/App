@@ -3518,7 +3518,7 @@ export default {
             title: 'Subscription settings',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
-            saveUpTo: ({amountSaved}) => `Save up to $${amountSaved}/month per active member`,
+            saveUpTo: ({amountWithCurrency}) => `Save up to ${amountWithCurrency}/month per active member`,
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
