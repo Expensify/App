@@ -20,7 +20,7 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
 
     const addPaymentCard = () => {
-        Navigation.resetToHome();
+        Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     };
 
@@ -31,7 +31,7 @@ function WorkspaceOwnerRestrictedAction() {
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
-                onBackButtonPress={Navigation.resetToHome}
+                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={[styles.ph5, styles.pt3]}>
                 <View style={[styles.cardSectionContainer, styles.p5, styles.mb0, styles.mh0]}>
