@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -87,7 +88,7 @@ function WorkspaceReportFieldsPage({
 
     const isLoading = reportFieldsList === undefined;
     const shouldShowEmptyState = Object.values(filteredPolicyFieldList).length <= 0 && !isLoading;
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
     const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
 
     const getHeaderButtons = () => (
@@ -112,7 +113,7 @@ function WorkspaceReportFieldsPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-            {isConnectedToAccounting ? (
+            {hasAccountingConnections ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.reportFields.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
@@ -147,9 +148,9 @@ function WorkspaceReportFieldsPage({
                     title={translate('workspace.common.reportFields')}
                     shouldShowBackButton={isSmallScreenWidth}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
                 {(!isSmallScreenWidth || reportFieldsList.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
