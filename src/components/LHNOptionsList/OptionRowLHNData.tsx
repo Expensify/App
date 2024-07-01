@@ -37,7 +37,11 @@ function OptionRowLHNData({
     const optionItemRef = useRef<OptionData>();
 
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
-    const shouldDisplayReportViolations = policy?.role !== CONST.POLICY.ROLE.ADMIN && !!Object.keys(reportViolations ?? {}).length;
+    const shouldDisplayReportViolations =
+        policy?.role !== CONST.POLICY.ROLE.ADMIN &&
+        Object.values(reportViolations ?? {}).some((violations) => violations.length) &&
+        parentReportAction?.childMoneyRequestCount &&
+        parentReportAction?.childMoneyRequestCount > 1;
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -48,7 +52,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
+            hasViolations: !!shouldDisplayViolations || !!shouldDisplayReportViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -72,6 +76,7 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
+        shouldDisplayReportViolations,
     ]);
 
     return (
