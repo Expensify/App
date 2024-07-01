@@ -114,8 +114,7 @@ function WorkspaceInviteMessagePage({
         debouncedSaveDraft(null);
         SearchInputManager.searchInput = '';
         // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+        Navigation.dismissModal();
     };
 
     /** Opens privacy url as an external link */
