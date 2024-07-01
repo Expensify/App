@@ -27,6 +27,7 @@ const shareAsFile = (value: string) => {
         RNFS.writeFile(infoFilePath, value, 'utf8').then(() => {
             Share.open({
                 url: actualInfoFile,
+                failOnCancel: false,
             });
         });
     } catch (error) {
