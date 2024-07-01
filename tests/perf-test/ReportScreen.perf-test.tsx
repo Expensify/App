@@ -29,6 +29,7 @@ import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
+import createAddListenerMock from '../utils/createAddListenerMock';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -40,6 +41,7 @@ jest.mock('@src/libs/API', () => ({
     write: jest.fn(),
     makeRequestWithSideEffects: jest.fn(),
     read: jest.fn(),
+    paginate: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
@@ -213,9 +215,9 @@ const reportActions = ReportTestUtils.getMockedReportActionsMap(1000);
 const mockRoute = {params: {reportID: '1', reportActionID: ''}, key: 'Report', name: 'Report' as const};
 
 test('[ReportScreen] should render ReportScreen', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
     const scenario = async () => {
-        await screen.findByTestId('ReportScreen');
+        await screen.findByTestId(`report-screen-${report.reportID}`);
     };
 
     const navigation = {addListener} as unknown as StackNavigationProp<AuthScreensParamList, 'Report', undefined>;
@@ -247,7 +249,7 @@ test('[ReportScreen] should render ReportScreen', async () => {
 });
 
 test('[ReportScreen] should render composer', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
     const scenario = async () => {
         await screen.findByTestId('composer');
     };
@@ -282,7 +284,7 @@ test('[ReportScreen] should render composer', async () => {
 });
 
 test('[ReportScreen] should render report list', async () => {
-    const {addListener} = TestHelper.createAddListenerMock();
+    const {addListener} = createAddListenerMock();
     const scenario = async () => {
         await screen.findByTestId('report-actions-list');
     };

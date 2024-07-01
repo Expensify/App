@@ -1,5 +1,6 @@
 import {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import PaginationUtils from '@libs/PaginationUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -14,13 +15,14 @@ function usePaginatedReportActions(reportID?: string, reportActionID?: string) {
         canEvict: false,
         selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
+    const [pages = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportIDWithDefault}`);
 
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionID);
-    }, [reportActionID, sortedAllReportActions]);
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, pages, (item) => item.reportActionID, reportActionID);
+    }, [reportActionID, sortedAllReportActions, pages]);
 
     const linkedAction = useMemo(() => sortedAllReportActions.find((obj) => String(obj.reportActionID) === String(reportActionID)), [reportActionID, sortedAllReportActions]);
 

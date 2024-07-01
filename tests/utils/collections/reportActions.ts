@@ -39,7 +39,6 @@ export default function createRandomReportAction(index: number): ReportAction {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType))) as any,
         reportActionID: index.toString(),
-        previousReportActionID: (index === 0 ? 0 : index - 1).toString(),
         actorAccountID: index,
         person: [
             {

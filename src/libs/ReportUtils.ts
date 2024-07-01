@@ -4402,7 +4402,6 @@ function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOURe
                 type: 'TEXT',
             },
         ],
-        previousReportActionID: iouAction?.reportActionID,
         reportActionID,
         shouldShow: true,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,

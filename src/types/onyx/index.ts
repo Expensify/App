@@ -33,6 +33,7 @@ import type NewGroupChatDraft from './NewGroupChatDraft';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
 import type {OnyxUpdateEvent, OnyxUpdatesFromServer} from './OnyxUpdatesFromServer';
 import type {DecisionName, OriginalMessageIOU} from './OriginalMessage';
+import type Pages from './Pages';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
@@ -123,6 +124,7 @@ export type {
     OnyxInputOrEntry,
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
+    Pages,
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,

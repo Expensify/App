@@ -86,7 +86,7 @@ jest.doMock('react-native', () => {
             },
             Dimensions: {
                 ...ReactNative.Dimensions,
-                addEventListener: jest.fn(),
+                addEventListener: jest.fn(() => ({remove: jest.fn()})),
                 get: () => dimensions,
                 set: (newDimensions: Record<string, number>) => {
                     dimensions = newDimensions;
@@ -98,7 +98,10 @@ jest.doMock('react-native', () => {
             // so it seems easier to just run the callback immediately in tests.
             InteractionManager: {
                 ...ReactNative.InteractionManager,
-                runAfterInteractions: (callback: () => void) => callback(),
+                runAfterInteractions: (callback: () => void) => {
+                    callback();
+                    return {cancel: () => {}};
+                },
             },
         },
         ReactNative,
