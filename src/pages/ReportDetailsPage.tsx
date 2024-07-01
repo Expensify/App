@@ -531,11 +531,20 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const titleField = useMemo<OnyxTypes.PolicyReportField | undefined>((): OnyxTypes.PolicyReportField | undefined => {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
-    }, []);
+    }, [report, policy?.fieldList]);
     const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
     const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
 
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled;
+
+    const nameSectionFurtherDetailsContent = (
+        <ParentNavigationSubtitle
+            parentNavigationSubtitleData={parentNavigationSubtitleData}
+            parentReportID={report?.parentReportID}
+            parentReportActionID={report?.parentReportActionID}
+            pressableStyles={[styles.mt1, styles.mw100]}
+        />
+    );
 
     const nameSectionTitleField = titleField && (
         <OfflineWithFeedback
@@ -554,14 +563,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     shouldCheckActionAllowedOnPress={false}
                     description={Str.UCFirst(titleField.name)}
                     onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
-                    furtherDetailsContent={() => (
-                        <ParentNavigationSubtitle
-                            parentNavigationSubtitleData={parentNavigationSubtitleData}
-                            parentReportID={report?.parentReportID}
-                            parentReportActionID={report?.parentReportActionID}
-                            pressableStyles={[styles.mt1, styles.mw100]}
-                        />
-                    )}
+                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>
         </OfflineWithFeedback>
