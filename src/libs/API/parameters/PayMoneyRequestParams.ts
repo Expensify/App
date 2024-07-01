@@ -7,6 +7,8 @@ type PayMoneyRequestParams = {
     paymentMethodType: PaymentMethodType;
     full: boolean;
     amount?: number;
+    optimisticHoldReportID?: string;
+    optimisticHoldActionID?: string;
 };
 
 export default PayMoneyRequestParams;
