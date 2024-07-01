@@ -783,6 +783,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    WORKSPACE_REPORT_FIELD_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportField/:reportFieldKey',
+        getRoute: (policyID: string, reportFieldKey: string) => `settings/workspaces/${policyID}/reportField/${encodeURIComponent(reportFieldKey)}` as const,
+    },
     // TODO: uncomment after development is done
     // WORKSPACE_EXPENSIFY_CARD: {
     //     route: 'settings/workspaces/:policyID/expensify-card',

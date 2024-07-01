@@ -235,3 +235,4 @@ export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from '
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
+export type {default as PolicyReportFieldsReplace} from './PolicyReportFieldsReplace';
