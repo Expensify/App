@@ -3053,7 +3053,7 @@ export default {
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
-                integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `failed to export this report to ${label}. ${errorMessage}`,
+                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed the receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
