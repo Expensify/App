@@ -74,6 +74,7 @@ class MemoizeStats {
                 track: () => {},
                 get: () => {},
                 save: () => {},
+                trackTime: () => {},
             };
         }
 
@@ -82,6 +83,9 @@ class MemoizeStats {
         return {
             track: <P extends keyof MemoizeStatsEntry>(cacheProp: P, value: MemoizeStatsEntry[P]) => {
                 entry[cacheProp] = value;
+            },
+            trackTime: <P extends keyof Pick<MemoizeStatsEntry, 'cacheRetrievalTime' | 'fnTime'>>(cacheProp: P, startTime: number, endTime = performance.now()) => {
+                entry[cacheProp] = endTime - startTime;
             },
             get: <P extends keyof MemoizeStatsEntry>(cacheProp: P) => entry[cacheProp],
             save: () => this.saveEntry(entry),

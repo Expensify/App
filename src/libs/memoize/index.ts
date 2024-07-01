@@ -57,12 +57,13 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
         const cached = cache.getSet(key, () => {
             const fnTimeStart = performance.now();
             const result = fn(...key);
-            statsEntry.track('fnTime', performance.now() - fnTimeStart);
+            statsEntry.trackTime('fnTime', fnTimeStart);
             statsEntry.track('didHit', false);
 
             return result;
         });
-        statsEntry.track('cacheRetrievalTime', performance.now() - retrievalTimeStart - (statsEntry.get('fnTime') ?? 0));
+        // Subtract the time it took to run the function from the total retrieval time
+        statsEntry.track('cacheRetrievalTime', retrievalTimeStart + (statsEntry.get('fnTime') ?? 0));
 
         statsEntry.track('cacheSize', cache.size);
         statsEntry.save();
