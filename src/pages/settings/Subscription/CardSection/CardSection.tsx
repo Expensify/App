@@ -109,18 +109,18 @@ function CardSection() {
                     </>
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-                {billingStatus?.isRetryAvailable && (
-                    <Button
-                        text={translate('subscription.cardSection.retryPaymentButton')}
-                        isDisabled={isOffline}
-                        isLoading={subscriptionRetryBillingStatusPending}
-                        onPress={handleRetryPayment}
-                        style={styles.w100}
-                        success
-                        large
-                    />
-                )}
             </View>
+            {billingStatus?.isRetryAvailable && (
+                <Button
+                    text={translate('subscription.cardSection.retryPaymentButton')}
+                    isDisabled={isOffline}
+                    isLoading={subscriptionRetryBillingStatusPending}
+                    onPress={handleRetryPayment}
+                    style={[styles.w100, styles.mt5]}
+                    success
+                    large
+                />
+            )}
             {!!account?.hasPurchases && (
                 <MenuItem
                     shouldShowRightIcon
