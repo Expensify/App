@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,6 +11,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
@@ -25,6 +26,7 @@ type AssigneeStepProps = {
 function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [searchTerm, setSearchTerm] = useState('');
 
     const submit = () => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
@@ -33,24 +35,55 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
-    const membersEmails = policy?.employeeList ? Object.keys(policy.employeeList) : [];
-    const membersDetails = membersEmails.map((email) => PersonalDetailsUtils.getPersonalDetailByEmail(email));
 
-    const data = membersDetails.map((detail) => {
-        return {
-            key: detail.login,
-            text: detail.login,
-            alternateText: detail.displayName,
-            icons: [
+    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length > 8;
+    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
+
+    const membersDetails = useMemo(() => {
+        if (!policy?.employeeList) {
+            return [];
+        }
+
+        return Object.keys(policy.employeeList)
+            .map(PersonalDetailsUtils.getPersonalDetailByEmail)
+            .map((detail) => ({
+                keyForList: detail?.login,
+                text: detail?.displayName,
+                alternateText: detail?.login,
+                login: detail?.login,
+                accountID: detail?.accountID,
+                icons: [
+                    {
+                        source: detail?.avatar ?? Expensicons.FallbackAvatar,
+                        name: formatPhoneNumber(detail?.login ?? ''),
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: detail?.accountID,
+                    },
+                ],
+            }));
+    }, [policy?.employeeList]);
+
+    const sections = useMemo(() => {
+        if (!searchTerm) {
+            return [
                 {
-                    source: detail?.avatar ?? Expensicons.FallbackAvatar,
-                    name: formatPhoneNumber(detail?.login),
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: detail.accountID,
+                    data: membersDetails,
+                    shouldShow: true,
                 },
-            ],
-        };
-    });
+            ];
+        }
+
+        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm).toLowerCase();
+        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+
+        return [
+            {
+                title: undefined,
+                data: filteredOptions,
+                shouldShow: true,
+            },
+        ];
+    }, [membersDetails, searchTerm]);
 
     return (
         <ScreenWrapper
@@ -71,7 +104,10 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
-                sections={[{data, shouldShow: true}]}
+                textInputLabel={textInputLabel}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                sections={sections}
                 ListItem={UserListItem}
                 onSelectRow={submit}
             />
