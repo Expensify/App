@@ -85,7 +85,7 @@ function deletePolicyReportFields(policyID: string, reportFieldsToUpdate: string
             },
         ],
     };
-    console.log('updatedReportFields :>> ', updatedReportFields);
+
     const parameters = {
         policyID,
         reportFields: JSON.stringify(Object.values(updatedReportFields)),
