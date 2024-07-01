@@ -12,6 +12,7 @@ import type {
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     EnablePolicyConnectionsParams,
+    EnablePolicyExpensifyCardsParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
     EnablePolicyWorkflowsParams,
@@ -41,6 +42,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -2456,6 +2458,58 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
+function enableExpensifyCard(policyID: string, enabled: boolean) {
+    const authToken = NetworkStore.getAuthToken();
+    if (!authToken) {
+        return;
+    }
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areExpensifyCardsEnabled: enabled,
+                    pendingFields: {
+                        areExpensifyCardsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areExpensifyCardsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areExpensifyCardsEnabled: !enabled,
+                    pendingFields: {
+                        areExpensifyCardsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyExpensifyCardsParams = {authToken, policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
+    }
+}
+
 function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -3004,6 +3058,7 @@ export {
     getPrimaryPolicy,
     createDraftWorkspace,
     buildPolicyData,
+    enableExpensifyCard,
     createPolicyExpenseChats,
     clearNetSuiteErrorField,
     getPoliciesConnectedToSageIntacct,

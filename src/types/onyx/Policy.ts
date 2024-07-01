@@ -1267,6 +1267,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
+        /** Whether the Expensify Card feature is enabled */
+        areExpensifyCardsEnabled?: boolean;
+
         /** Whether the workflows feature is enabled */
         areWorkflowsEnabled?: boolean;
 

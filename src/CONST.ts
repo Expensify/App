@@ -1728,6 +1728,7 @@ const CONST = {
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
         },
         CATEGORIES_BULK_ACTION_TYPES: {
@@ -2058,6 +2059,7 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
