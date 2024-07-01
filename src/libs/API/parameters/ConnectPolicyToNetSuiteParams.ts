@@ -1,6 +1,6 @@
 type ConnectPolicyToNetSuiteParams = {
     policyID: string;
-    accountID: string;
+    netSuiteAccountID: string;
     tokenID: string;
     tokenSecret: string;
 };

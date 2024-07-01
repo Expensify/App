@@ -74,7 +74,7 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepProps & {policyID: st
                             role={CONST.ROLE.PRESENTATION}
                             spellCheck={false}
                         />
-                        {formInput === INPUT_IDS.ACCOUNT_ID && (
+                        {formInput === INPUT_IDS.NETSUITE_ACCOUNT_ID && (
                             <View style={[styles.flexRow, styles.pt2]}>
                                 <RenderHTML
                                     html={`<comment><muted-text>${parser.replace(

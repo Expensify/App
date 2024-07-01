@@ -2314,11 +2314,11 @@ export default {
                     enterCredentials: {
                         title: 'Enter your NetSuite credentials',
                         formInputs: {
-                            accountID: 'NetSuite Account ID',
-                            tokenID: 'Token ID',
-                            tokenSecret: 'Token Secret',
+                            netSuiteAccountID: 'NetSuite Account ID',
+                            netSuiteTokenID: 'Token ID',
+                            netSuiteTokenSecret: 'Token Secret',
                         },
-                        accountIDDescription: 'In NetSuite, go to *Setup > Integration > SOAP Web Services Preferences*.',
+                        netSuiteAccountIDDescription: 'In NetSuite, go to *Setup > Integration > SOAP Web Services Preferences*.',
                     },
                 },
             },

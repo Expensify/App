@@ -2347,11 +2347,11 @@ export default {
                     enterCredentials: {
                         title: 'Ingresa tus credenciales de NetSuite',
                         formInputs: {
-                            accountID: 'ID de Cuenta NetSuite',
-                            tokenID: 'ID de Token',
-                            tokenSecret: 'Secreto de Token',
+                            netSuiteAccountID: 'ID de Cuenta NetSuite',
+                            netSuiteTokenID: 'ID de Token',
+                            netSuiteTokenSecret: 'Secreto de Token',
                         },
-                        accountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.',
+                        netSuiteAccountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.',
                     },
                 },
             },
