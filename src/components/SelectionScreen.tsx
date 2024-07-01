@@ -16,6 +16,8 @@ import type UserListItem from './SelectionList/UserListItem';
 
 type SelectorType = ListItem & {
     value: string;
+
+    onPress?: () => void;
 };
 
 type SelectionScreenProps = {

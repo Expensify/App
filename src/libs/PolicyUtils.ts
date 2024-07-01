@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, ConnectionName, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -515,6 +515,14 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
+    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
+}
+
+function hasIntegrationAutoSync(policy: Policy | undefined, connectedIntegration?: ConnectionName) {
+    return (connectedIntegration && policy?.connections?.[connectedIntegration]?.config?.autoSync?.enabled) ?? false;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -522,6 +530,7 @@ export {
     getActivePolicies,
     getAdminEmployees,
     getCleanedTagName,
+    getConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
     getMemberAccountIDsForWorkspace,
@@ -543,6 +552,7 @@ export {
     hasAccountingConnections,
     hasCustomUnitsError,
     hasEmployeeListError,
+    hasIntegrationAutoSync,
     hasPolicyCategoriesError,
     hasPolicyError,
     hasPolicyErrorFields,

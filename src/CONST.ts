@@ -885,6 +885,10 @@ const CONST = {
             INDIVIDUAL: 'individual',
             BUSINESS: 'policy',
         },
+        EXPORT_OPTIONS: {
+            EXPORT_TO_INTEGRATION: 'exportToIntegration',
+            MARK_AS_EXPORTED: 'markAsExported',
+        },
     },
     NEXT_STEP: {
         FINISHED: 'Finished!',
@@ -2158,6 +2162,7 @@ const CONST = {
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
         PRIVATE_NOTES: 'privateNotes',
+        EXPORT: 'export',
         DELETE: 'delete',
         MARK_AS_INCOMPLETE: 'markAsIncomplete',
     },

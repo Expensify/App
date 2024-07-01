@@ -356,6 +356,7 @@ export default {
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
+        export: 'Export',
     },
     location: {
         useCurrent: 'Use current location',
@@ -2019,6 +2020,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            markAsExported: 'Mark as manually entered',
+            exportIntegrationSelected: (connectionName: ConnectionName) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2644,6 +2647,12 @@ export default {
                 },
             },
         },
+        export: {
+            // TODO: Add correct translations
+            notReadyHeading: 'Not ready to export',
+            notReadyDescription:
+                'Draft or outstanding expense reports can’t be exported to a connected accounting solution. Please approve or pay these expenses first before trying to export them.',
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
@@ -2802,6 +2811,13 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        exportAgainModal: {
+            title: 'Careful!',
+            description: (reportName: string, connectionName: ConnectionName) =>
+                `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}:\n\n${reportName}\n\nAre you sure you want to export them again?`,
+            confirmText: 'Yes, export again',
+            cancelText: 'Cancel',
         },
         restrictedAction: {
             restricted: 'Restricted',

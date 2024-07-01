@@ -10,6 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -36,6 +37,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
+import ExportWithDropdownMenu from './ReportActionItem/ExportWithDropdownMenu';
 import SettlementButton from './SettlementButton';
 
 type MoneyReportHeaderProps = {
@@ -109,6 +111,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy);
 
     const navigateBackToAfterDelete = useRef<Route>();
     const hasScanningReceipt = ReportUtils.getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => TransactionUtils.isReceiptBeingScanned(t));
@@ -131,15 +134,21 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation;
-
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !allHavePendingRTERViolation;
+
+    const hasIntegrationAutoSync = PolicyUtils.hasIntegrationAutoSync(policy, connectedIntegration);
+    // TODO: Double check the condition below
+    const shouldShowExportIntegrationButton = !hasIntegrationAutoSync && !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && !!policy;
+
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !allHavePendingRTERViolation && !shouldShowExportIntegrationButton;
+
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const shouldShowMarkAsCashButton = isDraft && allHavePendingRTERViolation;
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowStatusBar = allHavePendingRTERViolation || hasOnlyHeldExpenses || hasScanningReceipt;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length && !shouldShowStatusBar;
-    const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation;
+    const shouldShowAnyButton =
+        shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep || allHavePendingRTERViolation || shouldShowExportIntegrationButton;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
@@ -352,6 +361,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         />
                     </View>
                 )}
+                {shouldShowExportIntegrationButton && !shouldUseNarrowLayout && (
+                    <View style={[styles.pv2]}>
+                        <ExportWithDropdownMenu
+                            report={moneyRequestReport}
+                            connectionName={connectedIntegration}
+                        />
+                    </View>
+                )}
                 {shouldShowSubmitButton && !shouldUseNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
@@ -395,6 +412,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                         isLoading={!isOffline && !canAllowSettlement}
                     />
                 )}
+                {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                    <ExportWithDropdownMenu
+                        report={moneyRequestReport}
+                        connectionName={connectedIntegration}
+                    />
+                )}
+
                 {shouldShowSubmitButton && shouldUseNarrowLayout && (
                     <Button
                         medium

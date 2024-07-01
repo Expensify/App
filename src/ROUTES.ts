@@ -3,6 +3,7 @@ import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type {AuthScreensParamList} from './libs/Navigation/types';
+import type {ConnectionName} from './types/onyx/Policy';
 import type {SearchQuery} from './types/onyx/SearchResults';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -279,6 +280,10 @@ const ROUTES = {
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
+    },
+    REPORT_WITH_ID_DETAILS_EXPORT: {
+        route: 'r/:reportID/details/export/:connectionName',
+        getRoute: (reportID: string, connectionName: ConnectionName) => `r/${reportID}/details/export/${connectionName}` as const,
     },
     REPORT_SETTINGS: {
         route: 'r/:reportID/settings',

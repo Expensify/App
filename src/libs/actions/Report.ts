@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
+import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
@@ -94,6 +95,7 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
@@ -3732,6 +3734,30 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
+function exportToIntegration(reportID: string, connectionName: ConnectionName) {
+    API.write('Report_Export', {
+        // TODO: Update it when backend is ready
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'reportIDList[]': reportID,
+        connectionName,
+        type: 'MANUAL',
+    });
+}
+
+function markAsManuallyExported(reportID: string) {
+    API.write('MarkAsExported', {
+        // TODO: Update it when backend is ready
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'reportIDList[]': reportID,
+        markedManually: true,
+    });
+}
+
+/** Save the preferred export method for a policy */
+function savePreferredExportMethod(policyID: string, exportMethod: ReportExportType) {
+    Onyx.merge(`${ONYXKEYS.LAST_EXPORT_METHOD}`, {[policyID]: exportMethod});
+}
+
 export {
     searchInServer,
     addComment,
@@ -3815,4 +3841,7 @@ export {
     updateLoadingInitialReportAction,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    exportToIntegration,
+    markAsManuallyExported,
+    savePreferredExportMethod,
 };

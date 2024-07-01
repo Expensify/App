@@ -30,6 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -159,7 +160,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
         (name) => !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE || name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) && !canUseNetSuiteIntegration),
     );
-    const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
+    const connectedIntegration = PolicyUtils.getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
     const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
 

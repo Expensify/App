@@ -146,6 +146,7 @@ const SCREENS = {
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
         RESTRICTED_ACTION: 'RestrictedAction',
+        REPORT_EXPORT: 'Report_Export',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -232,6 +233,7 @@ const SCREENS = {
     REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
+        EXPORT: 'Report_Details_Export',
     },
 
     WORKSPACE: {
