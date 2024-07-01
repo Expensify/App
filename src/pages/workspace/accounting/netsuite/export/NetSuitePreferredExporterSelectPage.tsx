@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections';
+import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import {getAdminEmployees, isExpensifyTeam} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -20,8 +20,8 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {export: exportConfiguration} = policy?.connections?.xero?.config ?? {};
+function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
+    const config = policy?.connections?.netsuite.options.config;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
@@ -55,20 +55,20 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
                 value: exporter.email,
                 text: exporter.email,
                 keyForList: exporter.email,
-                isSelected: exportConfiguration?.exporter === exporter.email,
+                isSelected: config?.exporter === exporter.email,
             });
             return options;
         }, []);
-    }, [exportConfiguration, exporters, policyOwner, currentUserLogin]);
+    }, [config?.exporter, exporters, policyOwner, currentUserLogin]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportConfiguration?.exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {exporter: row.value});
+            if (row.value !== config?.exporter) {
+                Connections.updateNetSuiteExporter(policyID, row.value, config?.exporter ?? '');
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
         },
-        [policyID, exportConfiguration],
+        [config?.exporter, policyID],
     );
 
     const headerContent = useMemo(
@@ -86,19 +86,19 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroPreferredExporterSelectPage.displayName}
+            displayName={NetSuitePreferredExporterSelectPage.displayName}
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
             onSelectRow={selectExporter}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
             title="workspace.accounting.preferredExporter"
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         />
     );
 }
 
-XeroPreferredExporterSelectPage.displayName = 'XeroPreferredExporterSelectPage';
+NetSuitePreferredExporterSelectPage.displayName = 'NetSuitePreferredExporterSelectPage';
 
-export default withPolicyConnections(XeroPreferredExporterSelectPage);
+export default withPolicyConnections(NetSuitePreferredExporterSelectPage);
