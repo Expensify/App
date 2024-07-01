@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {CustomUnit, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -19,6 +19,11 @@ type MemberEmailsToAccountIDs = Record<string, number>;
 type WorkspaceDetails = {
     policyID: string | undefined;
     name: string;
+};
+
+type ConnectionWithLastSyncData = {
+    /** State of the last synchronization */
+    lastSync?: ConnectionLastSync;
 };
 
 let allPolicies: OnyxCollection<Policy>;
@@ -466,6 +471,16 @@ function getXeroBankAccountsWithDefaultSelect(policy: Policy | undefined, select
     }));
 }
 
+function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
+    if (!connection) {
+        return undefined;
+    }
+    if ((connection as NetSuiteConnection)?.lastSyncDate) {
+        return (connection as NetSuiteConnection)?.lastSyncDate;
+    }
+    return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
+}
+
 function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: string | null | undefined): SelectorType[] {
     const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
     const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
@@ -594,6 +609,7 @@ export {
     sortWorkspacesBySelected,
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
+    getIntegrationLastSuccessfulDate,
 };
 
 export type {MemberEmailsToAccountIDs};

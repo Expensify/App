@@ -2,12 +2,25 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type ConnectPolicyToSageIntacctParams from '@libs/API/parameters/ConnectPolicyToSageIntacctParams';
 import type {UpdateSageIntacctExporterParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
+
+type SageIntacctCredentials = {companyID: string; userID: string; password: string};
+
+function connectToSageIntacct(policyID: string, credentials: SageIntacctCredentials) {
+  const parameters: ConnectPolicyToSageIntacctParams = {
+    policyID,
+    intacctCompanyID: credentials.companyID,
+    intacctUserID: credentials.userID,
+    intacctPassword: credentials.password,
+  };
+  API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
+}
 
 function prepareOnyxData(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
     const optimisticData: OnyxUpdate[] = [
@@ -34,109 +47,110 @@ function prepareOnyxData(policyID: string, settingName: keyof Connections['intac
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    intacct: {
-                        config: {
-                            export: {
-                                [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                },
-                            },
-                        },
-                    },
+  const failureData: OnyxUpdate[] = [
+    {
+      onyxMethod: Onyx.METHOD.MERGE,
+      key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+      value: {
+        connections: {
+          intacct: {
+            config: {
+              export: {
+                [settingName]: settingValue,
+                pendingFields: {
+                  [settingName]: null,
                 },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    intacct: {
-                        config: {
-                            export: {
-                                [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
-                            },
-                        },
-                    },
+                errorFields: {
+                  [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
+              },
             },
+          },
         },
-    ];
+      },
+    },
+  ];
 
-    return {optimisticData, failureData, successData};
+  const successData: OnyxUpdate[] = [
+    {
+      onyxMethod: Onyx.METHOD.MERGE,
+      key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+      value: {
+        connections: {
+          intacct: {
+            config: {
+              export: {
+                [settingName]: settingValue,
+                pendingFields: {
+                  [settingName]: null,
+                },
+                errorFields: {
+                  [settingName]: null,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  ];
+
+  return {optimisticData, failureData, successData};
 }
 
 function prepareParametersForExport(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
-    return {
-        policyID,
-        connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-        settingName: CONST.SAGE_INTACCT_CONFIG.EXPORT,
-        settingValue: JSON.stringify({[settingName]: settingValue}),
-        idempotencyKey: CONST.SAGE_INTACCT_CONFIG.EXPORT,
-    };
+  return {
+    policyID,
+    connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+    settingName: CONST.SAGE_INTACCT_CONFIG.EXPORT,
+    settingValue: JSON.stringify({[settingName]: settingValue}),
+    idempotencyKey: CONST.SAGE_INTACCT_CONFIG.EXPORT,
+  };
 }
 
 function updateSageIntacctExport(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, settingName, settingValue);
-    const parameters = prepareParametersForExport(policyID, settingName, settingValue);
+  const {optimisticData, failureData, successData} = prepareOnyxData(policyID, settingName, settingValue);
+  const parameters = prepareParametersForExport(policyID, settingName, settingValue);
 
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
+  API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
 function updateSageIntacctExporter(policyID: string, exporter: string) {
-    const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
-    const parameters: UpdateSageIntacctExporterParams = {
-        policyID,
-        email: exporter,
-    };
+  const {optimisticData, failureData, successData} = prepareOnyxData(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER, exporter);
+  const parameters: UpdateSageIntacctExporterParams = {
+    policyID,
+    email: exporter,
+  };
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER, parameters, {optimisticData, failureData, successData});
+  API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER, parameters, {optimisticData, failureData, successData});
 }
 
 function updateSageIntacctExportDate(policyID: string, date: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>) {
-    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date);
+  updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE, date);
 }
 
 function updateSageIntacctExportReimbursableExpense(policyID: string, reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>) {
-    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, reimbursable);
+  updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE, reimbursable);
 }
 
 function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
-    updateSageIntacctExport(policyID, settingName, settingValue);
+  updateSageIntacctExport(policyID, settingName, settingValue);
 }
 
 function updateSageIntacctExportNonReimbursableExpense(policyID: string, nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>) {
-    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE, nonReimbursable);
+  updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE, nonReimbursable);
 }
 
 function updateSageIntacctExportNonReimbursableAccount(policyID: string, nonReimbursableAccount: string) {
-    updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
+  updateSageIntacctExport(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT, nonReimbursableAccount);
 }
 
 export {
-    updateSageIntacctExporter,
-    updateSageIntacctExportDate,
-    updateSageIntacctExportReimbursableExpense,
-    updateSageIntacctDefaultVendor,
-    updateSageIntacctExportNonReimbursableExpense,
-    updateSageIntacctExportNonReimbursableAccount,
+  connectToSageIntacct,
+  updateSageIntacctExporter,
+  updateSageIntacctExportDate,
+  updateSageIntacctExportReimbursableExpense,
+  updateSageIntacctDefaultVendor,
+  updateSageIntacctExportNonReimbursableExpense,
+  updateSageIntacctExportNonReimbursableAccount,
 };
