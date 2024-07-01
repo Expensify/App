@@ -8,7 +8,7 @@ function requestLocationPermission(): Promise<PermissionStatus> {
                 () => resolve(RESULTS.GRANTED),
                 (error) => resolve(error.TIMEOUT || error.POSITION_UNAVAILABLE ? RESULTS.BLOCKED : RESULTS.DENIED),
                 {
-                    timeout: 2000,
+                    timeout: 5000,
                     enableHighAccuracy: true,
                 },
             );
