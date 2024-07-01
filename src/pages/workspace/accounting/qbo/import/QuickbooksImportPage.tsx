@@ -17,35 +17,35 @@ import ROUTES from '@src/ROUTES';
 function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections = [
         {
             description: translate('workspace.accounting.accounts'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.enableNewCategories),
+            hasError: !!policy?.errors?.enableNewCategories,
             title: translate('workspace.accounting.importAsCategory'),
             pendingAction: pendingFields?.enableNewCategories,
         },
         {
             description: translate('workspace.qbo.classes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncClasses),
+            hasError: !!policy?.errors?.syncClasses,
             title: translate(`workspace.accounting.importTypes.${syncClasses ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             pendingAction: pendingFields?.syncClasses,
         },
         {
             description: translate('workspace.qbo.customers'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncCustomers),
+            hasError: !!policy?.errors?.syncCustomers,
             title: translate(`workspace.accounting.importTypes.${syncCustomers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             pendingAction: pendingFields?.syncCustomers,
         },
         {
             description: translate('workspace.qbo.locations'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncLocations),
+            hasError: !!policy?.errors?.syncLocations,
             title: translate(`workspace.accounting.importTypes.${syncLocations ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`),
             pendingAction: pendingFields?.syncLocations,
         },
@@ -55,7 +55,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         sections.push({
             description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncTax),
+            hasError: !!policy?.errors?.syncTax,
             title: translate(syncTax ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
             pendingAction: pendingFields?.syncTax,
         });

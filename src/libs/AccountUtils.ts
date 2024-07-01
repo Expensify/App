@@ -5,4 +5,7 @@ import type {Account} from '@src/types/onyx';
 const isValidateCodeFormSubmitting = (account: OnyxEntry<Account>) =>
     !!account?.isLoading && account.loadingForm === (account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
 
-export default {isValidateCodeFormSubmitting};
+/** Whether the accound ID is an odd number, useful for A/B testing. */
+const isAccountIDOddNumber = (accountID: number) => accountID % 2 === 1;
+
+export default {isValidateCodeFormSubmitting, isAccountIDOddNumber};

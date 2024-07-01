@@ -18,7 +18,6 @@ function BaseListItem<TItem extends ListItem>({
     wrapperStyle,
     containerStyle,
     isDisabled = false,
-    shouldPreventDefaultFocusOnSelectRow = false,
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
@@ -42,7 +41,7 @@ function BaseListItem<TItem extends ListItem>({
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
     const handleMouseUp = (e: React.MouseEvent<Element, MouseEvent>) => {
         e.stopPropagation();
         setMouseUp();
@@ -88,7 +87,7 @@ function BaseListItem<TItem extends ListItem>({
                 hoverDimmingValue={1}
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
+                onMouseDown={(e) => e.preventDefault()}
                 id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}

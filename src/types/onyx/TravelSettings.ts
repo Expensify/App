@@ -1,3 +1,4 @@
+/** Model of user travel information to connect with Spotnana */
 type TravelSettings = {
     /** UUIDs that spotnana provides us with when we provision users in their system, and the spotnanaCompanyIDs as the values */
     accountIDs: Record<string, string>;
@@ -6,6 +7,7 @@ type TravelSettings = {
     hasAcceptedTerms: boolean;
 };
 
+/** Model of workspace travel information to connect with Spotnana */
 type WorkspaceTravelSettings = {
     /** The UUID that spotnana provides us when we create a “company” in their system */
     spotnanaCompanyID: string;

@@ -23,7 +23,7 @@ function TravelTerms() {
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
     const [error, setError] = useState(false);
 
-    const errorMessage = error ? 'travel.termsAndConditions.error' : '';
+    const errorMessage = error ? translate('travel.termsAndConditions.error') : '';
 
     const toggleTravelTerms = () => {
         setHasAcceptedTravelTerms(!hasAcceptedTravelTerms);
@@ -92,10 +92,10 @@ function TravelTerms() {
 
                                     Travel.acceptSpotnanaTerms();
                                     setError(false);
-                                    Navigation.resetToHome();
+                                    Navigation.goBack();
                                 }}
                                 message={errorMessage}
-                                isAlertVisible={error || Boolean(errorMessage)}
+                                isAlertVisible={error || !!errorMessage}
                                 containerStyles={[styles.mh0, styles.mt5]}
                             />
                         </ScrollView>

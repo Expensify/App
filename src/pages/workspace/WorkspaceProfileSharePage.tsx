@@ -34,7 +34,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const session = useSession();
 
     const policyName = policy?.name ?? '';
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const adminEmail = session?.email ?? '';
     const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
 

@@ -5,6 +5,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -38,7 +39,7 @@ const getMockedReportsMap = (length = 100) => {
     return mockReports;
 };
 
-const mockedResponseMap = getMockedReportsMap(500);
+const mockedResponseMap = getMockedReportsMap(5);
 
 describe('SidebarLinks', () => {
     beforeAll(() => {
@@ -46,6 +47,24 @@ describe('SidebarLinks', () => {
             keys: ONYXKEYS,
             safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
+    });
+
+    beforeEach(() => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+
+        // Initialize the network key for OfflineWithFeedback
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
+        const scenario = async () => {
+            // Query for the sidebar
+            await screen.findByTestId('lhn-options-list');
+        };
+
+        await waitForBatchedUpdates();
 
         Onyx.multiSet({
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
@@ -54,22 +73,12 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
+
+        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario, runs: 1});
     });
 
-    // Initialize the network key for OfflineWithFeedback
-    beforeEach(() => {
-        wrapOnyxWithWaitForBatchedUpdates(Onyx);
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-    });
-
-    afterAll(() => {
-        Onyx.clear();
-    });
-
-    test('[SidebarLinks] should render Sidebar with 500 reports stored', async () => {
+    test('[SidebarLinks] should render list itmes', async () => {
         const scenario = async () => {
-            // Query for the sidebar
-            await screen.findByTestId('lhn-options-list');
             /**
              * Query for display names of participants [1, 2].
              * This will ensure that the sidebar renders a list of items.
@@ -78,10 +87,19 @@ describe('SidebarLinks', () => {
         };
 
         await waitForBatchedUpdates();
+
+        Onyx.multiSet({
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            ...mockedResponseMap,
+        });
+
         await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });
 
-    test('[SidebarLinks] should scroll and click some of the items', async () => {
+    test('[SidebarLinks] should scroll through the list of items ', async () => {
         const scenario = async () => {
             const eventData = {
                 nativeEvent: {
@@ -104,14 +122,36 @@ describe('SidebarLinks', () => {
             const lhnOptionsList = await screen.findByTestId('lhn-options-list');
 
             fireEvent.scroll(lhnOptionsList, eventData);
-            // find elements that are currently visible in the viewport
-            const button1 = await screen.findByTestId('7');
-            const button2 = await screen.findByTestId('8');
-            fireEvent.press(button1);
-            fireEvent.press(button2);
         };
 
         await waitForBatchedUpdates();
+
+        Onyx.multiSet({
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            ...mockedResponseMap,
+        });
+
+        await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+    });
+
+    test('[SidebarLinks] should click on list item', async () => {
+        const scenario = async () => {
+            const button = await screen.findByTestId('1');
+            fireEvent.press(button);
+        };
+
+        await waitForBatchedUpdates();
+
+        Onyx.multiSet({
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
+            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            ...mockedResponseMap,
+        });
 
         await measurePerformance(<LHNTestUtils.MockedSidebarLinks />, {scenario});
     });

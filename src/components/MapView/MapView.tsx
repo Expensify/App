@@ -4,18 +4,15 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Icon from '@components/Icon';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserLocation from '@libs/actions/UserLocation';
-import compose from '@libs/compose';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
@@ -28,7 +25,7 @@ import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
+    ({accessToken, style, mapPadding, userLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -37,7 +34,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);
         const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
-        const [currentPosition, setCurrentPosition] = useState(cachedUserLocation ?? initialLocation);
+        const currentPosition = userLocation ?? initialLocation;
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
         const shouldInitializeCurrentPosition = useRef(true);
 
@@ -53,7 +50,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
                 UserLocation.clearUserLocation();
-                setCurrentPosition(initialLocation);
             },
             [initialLocation],
         );
@@ -77,7 +73,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                 getCurrentPosition((params) => {
                     const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                    setCurrentPosition(currentCoords);
                     UserLocation.setUserLocation(currentCoords);
                 }, setCurrentPositionToInitialState);
             }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
@@ -169,8 +164,41 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             });
         }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
 
-        const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
-        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+        const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
+
+        const waypointsBounds = useMemo(() => {
+            if (!waypoints) {
+                return undefined;
+            }
+            const {northEast, southWest} = utils.getBounds(
+                waypoints.map((waypoint) => waypoint.coordinate),
+                directionCoordinates,
+            );
+            return {ne: northEast, sw: southWest};
+        }, [waypoints, directionCoordinates]);
+
+        const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
+            if (interactive) {
+                if (!centerCoordinate) {
+                    return undefined;
+                }
+                return {
+                    zoomLevel: initialState?.zoom,
+                    centerCoordinate,
+                };
+            }
+            if (!waypointsBounds) {
+                return undefined;
+            }
+            return {
+                bounds: waypointsBounds,
+            };
+        }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+
+        const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
+        const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
+
+        return !isOffline && !!accessToken && !!defaultSettings ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     style={{flex: 1}}
@@ -186,43 +214,43 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 >
                     <Mapbox.Camera
                         ref={cameraRef}
-                        defaultSettings={{
-                            centerCoordinate,
-                            zoomLevel: initialState?.zoom,
-                        }}
+                        defaultSettings={defaultSettings}
                         // Include centerCoordinate here as well to address the issue of incorrect coordinates
                         // displayed after the first render when the app's storage is cleared.
-                        centerCoordinate={centerCoordinate}
+                        centerCoordinate={initCenterCoordinate}
+                        bounds={initBounds}
                     />
-                    <Mapbox.ShapeSource
-                        id="user-location"
-                        shape={{
-                            type: 'FeatureCollection',
-                            features: [
-                                {
-                                    type: 'Feature',
-                                    geometry: {
-                                        type: 'Point',
-                                        coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                    {interactive && (
+                        <Mapbox.ShapeSource
+                            id="user-location"
+                            shape={{
+                                type: 'FeatureCollection',
+                                features: [
+                                    {
+                                        type: 'Feature',
+                                        geometry: {
+                                            type: 'Point',
+                                            coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                                        },
+                                        properties: {},
                                     },
-                                    properties: {},
-                                },
-                            ],
-                        }}
-                    >
-                        <Mapbox.CircleLayer
-                            id="user-location-layer"
-                            sourceID="user-location"
-                            style={{
-                                circleColor: colors.blue400,
-                                circleRadius: 8,
+                                ],
                             }}
-                        />
-                    </Mapbox.ShapeSource>
+                        >
+                            <Mapbox.CircleLayer
+                                id="user-location-layer"
+                                sourceID="user-location"
+                                style={{
+                                    circleColor: colors.blue400,
+                                    circleRadius: 8,
+                                }}
+                            />
+                        </Mapbox.ShapeSource>
+                    )}
 
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
-                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0])) {
+                        if (utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) && interactive) {
                             return null;
                         }
                         return (
@@ -238,22 +266,18 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
-                    <PressableWithoutFeedback
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        onPress={centerMap}
-                        accessibilityLabel={translate('common.center')}
-                    >
-                        <View style={styles.primaryMediumIcon}>
-                            <Icon
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                                src={Expensicons.Crosshair}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </PressableWithoutFeedback>
-                </View>
+                {interactive && (
+                    <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                        <Button
+                            onPress={centerMap}
+                            iconFill={theme.icon}
+                            iconStyles={styles.ml1}
+                            medium
+                            icon={Expensicons.Crosshair}
+                            accessibilityLabel={translate('common.center')}
+                        />
+                    </View>
+                )}
             </View>
         ) : (
             <PendingMapView
@@ -265,11 +289,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
     },
 );
 
-export default compose(
-    withOnyx<ComponentProps, MapViewOnyxProps>({
-        userLocation: {
-            key: ONYXKEYS.USER_LOCATION,
-        },
-    }),
-    memo,
-)(MapView);
+export default withOnyx<ComponentProps, MapViewOnyxProps>({
+    userLocation: {
+        key: ONYXKEYS.USER_LOCATION,
+    },
+})(memo(MapView));

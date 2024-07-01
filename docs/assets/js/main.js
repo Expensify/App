@@ -200,8 +200,10 @@ function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClass
     newExpensifyTab.classList.add('active');
     newExpensifyContent.classList.remove('hidden');
 
-    expensifyClassicTab.classList.remove('active');
-    expensifyClassicContent.classList.add('hidden');
+    if (expensifyClassicTab && expensifyClassicContent) {
+        expensifyClassicTab.classList.remove('active');
+        expensifyClassicContent.classList.add('hidden');
+    }
     window.tocbot.refresh({
         ...tocbotOptions,
         contentSelector: '#new-expensify',
@@ -212,8 +214,11 @@ function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyC
     expensifyClassicTab.classList.add('active');
     expensifyClassicContent.classList.remove('hidden');
 
-    newExpensifyTab.classList.remove('active');
-    newExpensifyContent.classList.add('hidden');
+    if (newExpensifyTab && newExpensifyContent) {
+        newExpensifyTab.classList.remove('active');
+        newExpensifyContent.classList.add('hidden');
+    }
+
     window.tocbot.refresh({
         ...tocbotOptions,
         contentSelector: '#expensify-classic',

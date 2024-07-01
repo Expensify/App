@@ -23,7 +23,7 @@ type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendi
 function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const policyOwner = policy?.owner ?? '';
     const {
         export: exportConfiguration,
@@ -54,7 +54,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         {
             description: translate('workspace.qbo.exportExpenses'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            brickRoadIndicator: Boolean(errorFields?.exportEntity) || Boolean(errorFields?.reimbursableExpensesAccount) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: !!errorFields?.exportEntity || !!errorFields?.reimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             pendingAction: pendingFields?.reimbursableExpensesExportDestination || pendingFields?.reimbursableExpensesAccount,

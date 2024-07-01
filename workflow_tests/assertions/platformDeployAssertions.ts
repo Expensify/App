@@ -63,8 +63,9 @@ function assertAndroidJobExecuted(workflowResult: Step[], didExecute = true, isP
     }
     steps.push(
         createStepAssertion('Archive Android sourcemaps', true, null, 'ANDROID', 'Archiving Android sourcemaps', [
-            {key: 'name', value: 'android-sourcemap'},
-            {key: 'path', value: 'android/app/build/generated/sourcemaps/react/release/*.map'},
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'android-sourcemap-1.2.3'},
+            {key: 'path', value: 'android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map'},
         ]),
     );
     if (!isProduction) {
@@ -187,7 +188,8 @@ function assertIOSJobExecuted(workflowResult: Step[], didExecute = true, isProdu
     }
     steps.push(
         createStepAssertion('Archive iOS sourcemaps', true, null, 'IOS', 'Archiving sourcemaps', [
-            {key: 'name', value: 'ios-sourcemap'},
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'ios-sourcemap-1.2.3'},
             {key: 'path', value: 'main.jsbundle.map'},
         ]),
     );
@@ -376,18 +378,6 @@ function assertPostGithubCommentJobExecuted(workflowResult: Step[], didExecute =
     });
 }
 
-function assertHybridAppJobExecuted(workflowResult: Step[], didExecute = true) {
-    const steps = [createStepAssertion('Deploy HybridApp', true, null, 'HYBRID_APP', 'Deploy HybridApp')] as const;
-
-    steps.forEach((expectedStep) => {
-        if (didExecute) {
-            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-        } else {
-            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
-        }
-    });
-}
-
 export default {
     assertVerifyActorJobExecuted,
     assertDeployChecklistJobExecuted,
@@ -395,7 +385,6 @@ export default {
     assertDesktopJobExecuted,
     assertIOSJobExecuted,
     assertWebJobExecuted,
-    assertHybridAppJobExecuted,
     assertPostSlackOnFailureJobExecuted,
     assertPostSlackOnSuccessJobExecuted,
     assertPostGithubCommentJobExecuted,

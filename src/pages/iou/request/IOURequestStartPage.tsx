@@ -151,7 +151,14 @@ function IOURequestStartPage({
                                     onTabSelected={resetIOUTypeIfChanged}
                                     tabBar={TabSelector}
                                 >
-                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
+                                        {() => (
+                                            <IOURequestStepAmount
+                                                shouldKeepUserInput
+                                                route={route}
+                                            />
+                                        )}
+                                    </TopTab.Screen>
                                     <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
                                     {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
                                 </OnyxTabNavigator>
@@ -179,7 +186,7 @@ export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>(
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? -1}`,
     },
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,

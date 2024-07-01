@@ -1,4 +1,4 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {FlatList} from 'react-native';
 import type {FlatListProps} from 'react-native';

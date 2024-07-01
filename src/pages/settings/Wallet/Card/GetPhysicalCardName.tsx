@@ -43,15 +43,15 @@ function GetPhysicalCardName({
         const errors: OnValidateResult = {};
 
         if (values?.legalFirstName && !ValidationUtils.isValidLegalName(values.legalFirstName)) {
-            errors.legalFirstName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            errors.legalFirstName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (!values?.legalFirstName) {
-            errors.legalFirstName = 'common.error.fieldRequired';
+            errors.legalFirstName = translate('common.error.fieldRequired');
         }
 
         if (values?.legalLastName && !ValidationUtils.isValidLegalName(values.legalLastName)) {
-            errors.legalLastName = 'privatePersonalDetails.error.hasInvalidCharacter';
+            errors.legalLastName = translate('privatePersonalDetails.error.hasInvalidCharacter');
         } else if (!values?.legalLastName) {
-            errors.legalLastName = 'common.error.fieldRequired';
+            errors.legalLastName = translate('common.error.fieldRequired');
         }
 
         return errors;
