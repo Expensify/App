@@ -331,6 +331,7 @@ type OptimisticTaskReport = Pick<
     | 'notificationPreference'
     | 'parentReportActionID'
     | 'lastVisibleActionCreated'
+    | 'hasParentAccess'
 >;
 
 type TransactionDetails = {
@@ -2279,7 +2280,15 @@ function getLastVisibleMessage(reportID: string | undefined, actionsToMerge: Rep
  * @param [parentReportAction] - The parent report action of the report (Used to check if the task has been canceled)
  */
 function isWaitingForAssigneeToCompleteTask(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
-    return isTaskReport(report) && isReportManager(report) && isOpenTaskReport(report, parentReportAction);
+    if (report?.hasOutstandingChildTask) {
+        return true;
+    }
+
+    if (isOpenTaskReport(report, parentReportAction) && !report?.hasParentAccess && isReportManager(report)) {
+        return true;
+    }
+
+    return false;
 }
 
 function isUnreadWithMention(reportOrOption: OnyxEntry<Report> | OptionData): boolean {
@@ -5105,6 +5114,7 @@ function buildOptimisticTaskReport(
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         notificationPreference,
         lastVisibleActionCreated: DateUtils.getDBTime(),
+        hasParentAccess: true,
     };
 }
 
