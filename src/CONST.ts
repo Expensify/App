@@ -601,6 +601,10 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
+    PRICING: `https://www.expensify.com/pricing`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1333,6 +1337,10 @@ const CONST = {
         },
     },
 
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -1788,6 +1796,13 @@ const CONST = {
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'intacct',
+            },
+            NAME_USER_FRIENDLY: {
+                netsuite: 'NetSuite',
+                quickbooksOnline: 'Quickbooks Online',
+                xero: 'Xero',
+                intacct: 'Sage Intacct',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -1835,6 +1850,12 @@ const CONST = {
                 NETSUITE_SYNC_UPDATE_DATA: 'netSuiteSyncUpdateConnectionData',
                 NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
+                SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
+                SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
+                SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
+                SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
+                SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
+                SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
