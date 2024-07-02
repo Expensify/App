@@ -2000,6 +2000,7 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            expensifyCard: 'Tarjeta Expensify',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
@@ -2015,7 +2016,6 @@ export default {
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
-            expensifyCard: 'Tarjeta Expensify',
             members: 'Miembros',
             accounting: 'Contabilidad',
             plan: 'Plan',
@@ -2341,6 +2341,21 @@ export default {
             free: 'Gratis',
             control: 'Control',
             collect: 'Recolectar',
+        },
+        expensifyCard: {
+            issueCard: 'Emitir tarjeta',
+            name: 'Nombre',
+            lastFour: '4 últimos',
+            limit: 'Limite',
+            currentBalance: 'Saldo actual',
+            currentBalanceDescription:
+                'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            remainingLimit: 'Límite restante',
+            requestLimitIncrease: 'Solicitar aumento de límite',
+            remainingLimitDescription:
+                'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
+            cashBack: 'Reembolso',
+            cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',

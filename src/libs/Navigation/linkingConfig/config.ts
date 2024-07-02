@@ -827,6 +827,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.CARD]: {
                     path: ROUTES.WORKSPACE_CARD.route,
                 },
+                [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
+                    path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
+                },
                 [SCREENS.WORKSPACE.WORKFLOWS]: {
                     path: ROUTES.WORKSPACE_WORKFLOWS.route,
                 },
@@ -862,9 +865,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.REPORT_FIELDS]: {
                     path: ROUTES.WORKSPACE_REPORT_FIELDS.route,
-                },
-                [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-                    path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
