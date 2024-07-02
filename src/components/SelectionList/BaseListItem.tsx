@@ -18,7 +18,6 @@ function BaseListItem<TItem extends ListItem>({
     wrapperStyle,
     containerStyle,
     isDisabled = false,
-    isInteractive = true,
     shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
@@ -83,7 +82,7 @@ function BaseListItem<TItem extends ListItem>({
                     onSelectRow(item);
                 }}
                 disabled={isDisabled && !item.isSelected}
-                interactive={isInteractive}
+                interactive={item.isInteractive}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}

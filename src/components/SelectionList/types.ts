@@ -26,9 +26,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Whether this item is disabled */
     isDisabled?: boolean | null;
 
-    /** Whether this item should be interactive at all */
-    isInteractive?: boolean;
-
     /** Whether this item should show Tooltip */
     showTooltip: boolean;
 

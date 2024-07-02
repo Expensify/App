@@ -437,7 +437,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     item={item}
                     isFocused={isItemFocused}
                     isDisabled={isDisabled}
-                    isInteractive={item.isInteractive}
                     showTooltip={showTooltip}
                     canSelectMultiple={canSelectMultiple}
                     onSelectRow={() => selectRow(item)}
