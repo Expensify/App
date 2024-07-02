@@ -55,7 +55,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         key={importField}
                         errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}
                         errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
-                        pendingAction={config?.syncOptions?.mapping?.pendingFields?.[importField]}
+                        pendingAction={config?.syncOptions?.pendingFields?.[importField]}
                         onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
                     >
                         <MenuItemWithTopDescription

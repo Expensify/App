@@ -68,7 +68,7 @@ function NetSuiteImportMappingPage({
                             isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
                             switchAccessibilityLabel={translate('common.tax')}
                             onToggle={(isEnabled: boolean) => {
-                                updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
+                                // updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
                             }}
                             pendingAction={netsuiteConfig?.syncOptions?.pendingFields?.syncTax}
                             errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
