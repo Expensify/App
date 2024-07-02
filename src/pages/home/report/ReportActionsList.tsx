@@ -328,6 +328,30 @@ function ReportActionsList({
         };
     }, [report.reportID]);
 
+    const clearHighLight = () => {
+        if (!linkedReportActionID || linkedReportActionID === '-1') {
+            return;
+        }
+        Navigation.setParams({reportActionID: '-1'});
+    };
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const handleBeforeUnload = () => {
+            clearHighLight();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     useEffect(() => {
         if (linkedReportActionID) {
             return;
@@ -345,8 +369,12 @@ function ReportActionsList({
             if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
-            InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
+            InteractionManager.runAfterInteractions(() => {
+                clearHighLight();
+                reportScrollManager.scrollToBottom();
+            });
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [reportScrollManager],
     );
     useEffect(() => {
