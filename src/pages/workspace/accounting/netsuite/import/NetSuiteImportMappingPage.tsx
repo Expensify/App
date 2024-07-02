@@ -63,7 +63,7 @@ function NetSuiteImportMappingPage({
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
                 {importField === 'jobs' && (
-                    <View style={[styles.flex1, styles.mb8]}>
+                    <View style={[styles.mb4]}>
                         <ToggleSettingOptionRow
                             title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
                             isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
@@ -78,12 +78,15 @@ function NetSuiteImportMappingPage({
                     </View>
                 )}
 
-                <RenderHTML
+                <View style={[styles.flexRow]}>
+                    <RenderHTML
                     html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</muted-text></comment>`}
                 />
+                </View>
+
             </View>
         ),
-        [styles.ph5, styles.mt2, styles.mb4, styles.flex1, styles.mb8, importField, translate, netsuiteConfig, policyID],
+        [styles.ph5, styles.mt2, styles.mb4, styles.flexRow, importField, translate, netsuiteConfig, policyID],
     );
 
     const inputOptions = useMemo(() => {
