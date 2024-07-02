@@ -6,10 +6,10 @@ import type {MeasureParentContainerAndCursorCallback} from '@components/AutoComp
 import type {TextSelection} from '@components/Composer/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
+import type {HandleComposerUpdateCallback} from './ComposerWithSuggestions/types';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
-import type { HandleComposerUpdateCallback } from './ComposerWithSuggestions/types';
 
 type SuggestionProps = {
     /** The current input value */

@@ -12,4 +12,3 @@ type HandleComposerUpdateArgs = {
 type HandleComposerUpdateCallback = (args: HandleComposerUpdateArgs) => void;
 
 export type {HandleComposerUpdateArgs, HandleComposerUpdateCallback};
-

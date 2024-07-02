@@ -168,7 +168,7 @@ function SuggestionMention(
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
 
-            const replaceUntil = suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1
+            const replaceUntil = suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1;
             const updateCommentArgs = SuggestionsUtils.getComposerUpdateArgsForSuggestionToInsert(value, mentionCode, {
                 start: suggestionValues.atSignIndex,
                 end: replaceUntil,

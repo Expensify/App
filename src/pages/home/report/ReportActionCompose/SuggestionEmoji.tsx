@@ -82,7 +82,7 @@ function SuggestionEmoji(
         (highlightedEmojiIndexInner: number) => {
             const emojiObject = suggestionValues.suggestedEmojis[highlightedEmojiIndexInner];
             const emojiCode = emojiObject.types?.[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
-        
+
             const updateCommentArgs = SuggestionsUtils.getComposerUpdateArgsForSuggestionToInsert(value, emojiCode, {
                 start: suggestionValues.colonIndex,
                 end: selection.end,

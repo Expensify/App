@@ -1,5 +1,5 @@
-import type { TextSelection } from '@components/Composer/types';
-import type { HandleComposerUpdateArgs } from '@pages/home/report/ReportActionCompose/ComposerWithSuggestions/types';
+import type {TextSelection} from '@components/Composer/types';
+import type {HandleComposerUpdateArgs} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestions/types';
 import CONST from '@src/CONST';
 
 /**
