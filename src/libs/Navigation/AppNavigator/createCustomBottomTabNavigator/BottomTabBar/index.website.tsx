@@ -98,7 +98,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.Inbox}
-                            fill={activeRoute?.name.includes('Report') ? theme.iconMenu : theme.icon}
+                            fill={activeRoute?.name.includes('Report') || !activeRoute?.name ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
