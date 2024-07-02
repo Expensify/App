@@ -339,8 +339,8 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
     // Add initial empty waypoints when starting a distance expense
     if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         comment.waypoints = {
-            waypoint0: {},
-            waypoint1: {},
+            waypoint0: {keyForList: 'start_waypoint'},
+            waypoint1: {keyForList: 'stop_waypoint'},
         };
         if (!isFromGlobalCreate) {
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(reportID);
