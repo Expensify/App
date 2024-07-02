@@ -1,13 +1,13 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import CONST from './src/CONST';
+import type {Country} from './src/CONST';
+import type {ConnectionName} from './src/types/onyx/Policy';
 import type {
     ActiveMembersParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
-    AmountSavedParams,
+    AmountWithCurrency,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -17,12 +17,16 @@ import type {
     CardInfoParams,
     CardNumberParams,
     CategoryNameParams,
+    ChangeFieldParams,
+    ChangePolicyParams,
+    ChangeTypeParams,
     CharacterLimitParams,
     CommitmentParams,
     ConfirmThatParams,
     DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
+    DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
@@ -31,7 +35,9 @@ import type {
     EmailAmountParams,
     EmailWorkspaceParams,
     EnterMagicCodeParams,
+    ExportedToIntegrationParams,
     FormattedMaxLengthParams,
+    ForwardedParams,
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
@@ -41,6 +47,8 @@ import type {
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     NextPaymentDateParams,
+    MarkedReimbursedParams,
+    MarkReimbursedFromIntegrationParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -60,6 +68,7 @@ import type {
     PriceRangeParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
+    RemoveMembersWarningPrompt,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
@@ -76,11 +85,13 @@ import type {
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
     SettleExpensifyCardParams,
+    ShareParams,
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
     SyncStageNameParams,
+    StripePaidParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -89,6 +100,8 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TranslationBase,
+    UnapprovedParams,
+    UnshareParams,
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
@@ -357,6 +370,8 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        companyID: 'Company ID',
+        userID: 'User ID',
         disable: 'Disable',
     },
     location: {
@@ -1073,6 +1088,18 @@ export default {
             genericFailureMessage: "Private notes couldn't be saved.",
         },
     },
+    billingCurrency: {
+        error: {
+            securityCode: 'Please enter a valid security code.',
+        },
+        securityCode: 'Security code',
+        changeBillingCurrency: 'Change billing currency',
+        changePaymentCurrency: 'Change payment currency',
+        paymentCurrency: 'Payment currency',
+        note: 'Note: Changing your payment currency can impact how much you’ll pay for Expensify. Refer to our',
+        noteLink: 'pricing page',
+        noteDetails: 'for full details.',
+    },
     addDebitCardPage: {
         addADebitCard: 'Add a debit card',
         nameOnCard: 'Name on card',
@@ -1313,7 +1340,7 @@ export default {
     },
     priorityModePage: {
         priorityMode: 'Priority mode',
-        explainerText: 'Choose whether to show all chats by default sorted with most recent with pinned items at the top, or #focus on unread pinned items, sorted alphabetically.',
+        explainerText: 'Choose whether to #focus on unread and pinned chats only, or show everything with the most recent and pinned chats at the top.',
         priorityModes: {
             default: {
                 label: 'Most recent',
@@ -1419,6 +1446,12 @@ export default {
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
     onboarding: {
+        welcome: 'Welcome!',
+        explanationModal: {
+            title: 'Welcome to Expensify',
+            description: 'Request and send money is just as easy as sending a message. The new era of expensing is upon us.',
+            secondaryDescription: 'To switch back to Expensify Classic, just tap your profile picture > Go to Expensify Classic.',
+        },
         welcomeVideo: {
             title: 'Welcome to Expensify',
             description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
@@ -2004,6 +2037,7 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
+            expensifyCard: 'Expensify Card',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
@@ -2025,10 +2059,7 @@ export default {
             outOfPocketLocationEnabledDescription:
                 'QuickBooks Online doesn’t support locations on vendor bills or checks. As you have locations enabled on your workspace, these export options are unavailable.',
             taxesJournalEntrySwitchNote: "QuickBooks Online doesn't support taxes on journal entries. Please change your export option to vendor bill or check.",
-            export: 'Export',
-            exportAs: 'Export as',
             exportDescription: 'Configure how Expensify data exports to QuickBooks Online.',
-            preferredExporter: 'Preferred exporter',
             date: 'Export date',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportInvoices: 'Export invoices to',
@@ -2059,23 +2090,19 @@ export default {
             exportInvoicesDescription: 'Use this account when exporting invoices to QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             vendor: 'Vendor',
-            defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            exportPreferredExporterNote:
-                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
-            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportCheckDescription: "We'll create an itemized check for each Expensify report and send it from the bank account below.",
             exportJournalEntryDescription: "We'll create an itemized journal entry for each Expensify report and post it to the account below.",
             exportVendorBillDescription:
                 "We'll create an itemized vendor bill for each Expensify report and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
             account: 'Account',
-            accountDescription: 'Choose where to post journal entry offsets.',
+            accountDescription: 'Choose where to post journal entries.',
             accountsPayable: 'Accounts payable',
             accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
-            optionBelow: 'Choose an option below:',
+            creditCardAccount: 'Credit card account',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -2085,7 +2112,7 @@ export default {
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
-                autoSyncDescription: 'Sync QuickBooks Online and Expensify automatically, every day.',
+                autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
@@ -2094,8 +2121,8 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                accountSelectDescription: "Choose a bank account for reimbursements and we'll create the payment in QuickBooks Online.",
-                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to QuickBooks Online, it’ll appear against the account below.',
+                accountSelectDescription: "Choose where to pay bills from and we'll create the payment in QuickBooks Online.",
+                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in QuickBooks Online.",
             },
             accounts: {
                 [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
@@ -2111,8 +2138,8 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create an itemized vendor bill for each Expensify report with the date of the last expense, and add it to the account below. If this period is closed, we'll post to the 1st of the next open period.",
 
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.',
-                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Choose where to export debit card transactions.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Choose where to export credit card transactions.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Choose a vendor to apply to all credit card transactions.',
 
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
@@ -2141,7 +2168,6 @@ export default {
                 default: 'Xero contact default',
                 tag: 'Tags',
             },
-            export: 'Export',
             exportDescription: 'Configure how Expensify data exports to Xero.',
             exportCompanyCard: 'Export company card expenses as',
             purchaseBill: 'Purchase bill',
@@ -2149,7 +2175,6 @@ export default {
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero bank account',
             xeroBankAccountDescription: 'Choose where expenses will post as bank transactions.',
-            preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
             exportExpensesDescription: 'Reports will export as a purchase bill with the date and status selected below.',
             purchaseBillDate: 'Purchase bill date',
@@ -2159,28 +2184,28 @@ export default {
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-sync',
-                autoSyncDescription: 'Sync Xero and Expensify automatically, every day.',
+                autoSyncDescription: 'Expensify will automatically sync with Xero every day.',
                 purchaseBillStatusTitle: 'Purchase bill status',
                 reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero bill payment account',
                 xeroInvoiceCollectionAccount: 'Xero invoice collections account',
-                invoiceAccountSelectorDescription: 'Once an invoice is marked as paid in Expensify and exported to Xero, it’ll appear against the account below.',
-                xeroBillPaymentAccountDescription: "Choose a bank account for reimbursements and we'll create the payment in Xero.",
+                xeroBillPaymentAccountDescription: "Choose where to pay bills from and we'll create the payment in Xero.",
+                invoiceAccountSelectorDescription: "Choose where to receive invoice payments and we'll create the payment in Xero.",
             },
             exportDate: {
-                label: 'Export date',
-                description: 'Use this date when exporting purchase bills to Xero.',
+                label: 'Purchase bill date',
+                description: 'Use this date when exporting reports to Xero.',
                 values: {
-                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Date of last expense',
                         description: 'Date of the most recent expense on the report.',
                     },
-                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
                         label: 'Export date',
                         description: 'Date the report was exported to Xero.',
                     },
-                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
                         label: 'Submitted date',
                         description: 'Date the report was submitted for approval.',
                     },
@@ -2195,17 +2220,110 @@ export default {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
-            exportPreferredExporterNote:
-                'The preferred exporter can be any workspace admin, but must be a domain admin if you set different export accounts for individual company cards in domain settings.',
-            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
         },
         netsuite: {
             subsidiary: 'Subsidiary',
             subsidiarySelectDescription: "Choose the subsidiary in NetSuite that you'd like to import data from.",
+            exportDescription: 'Configure how Expensify data exports to NetSuite.',
+            exportReimbursable: 'Export reimbursable expenses as',
+            exportNonReimbursable: 'Export non-reimbursable expenses as',
+            exportInvoices: 'Export invoices to',
+            journalEntriesTaxPostingAccount: 'Journal entries tax posting account',
+            journalEntriesProvTaxPostingAccount: 'Journal entries provincial tax posting account',
+            foreignCurrencyAmount: 'Export foreign currency amount',
+            exportToNextOpenPeriod: 'Export to next open period',
+            nonReimbursableJournalPostingAccount: 'Non-reimbursable journal posting account',
+            reimbursableJournalPostingAccount: 'Reimbursable journal posting account',
+            journalPostingPreference: {
+                label: 'Journal entries posting preference',
+                values: {
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each individual expense',
+                },
+            },
+            invoiceItem: {
+                label: 'Invoice item',
+                values: {
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: {
+                        label: 'Create one for me',
+                        description: 'We\'ll create an "Expensify invoice line item" for you upon export (if one doesn’t exist already).',
+                    },
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
+                        label: 'Select existing',
+                        description: "We'll tie invoices from Expensify to the item selected below.",
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to NetSuite.',
+                values: {
+                    [CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportDestination: {
+                values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
+                        label: 'Expense reports',
+                        reimbursableDescription: 'Reimbursable expenses will export as expense reports to NetSuite.',
+                        nonReimbursableDescription: 'Non-reimbursable expenses will export as expense reports to NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
+                        label: 'Vendor bills',
+                        reimbursableDescription:
+                            'Reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        nonReimbursableDescription:
+                            'Non-reimbursable expenses will export as bills payable to the NetSuite vendor specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
+                        label: 'Journal Entries',
+                        reimbursableDescription:
+                            'Reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                        nonReimbursableDescription:
+                            'Non-reimbursable expenses will export as journal entries to the NetSuite account specified below.\n' +
+                            '\n' +
+                            'If you’d like to set a specific vendor for each card, go to *Settings > Domains > Company Cards*.',
+                    },
+                },
+            },
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
+            noItemsFound: 'No invoice items found',
+            noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+        },
+        intacct: {
+            sageIntacctSetup: 'Sage Intacct setup',
+            prerequisitesTitle: 'Before you connect...',
+            downloadExpensifyPackage: 'Download the Expensify package for Sage Intacct',
+            followSteps: 'Follow the steps in our How-to: Connect to Sage Intacct instructions',
+            enterCredentials: 'Enter your Sage Intacct credentials',
+            createNewConnection: 'Create new connection',
+            reuseExistingConnection: 'Reuse existing connection',
+            existingConnections: 'Existing connections',
+            sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
         },
         type: {
             free: 'Free',
@@ -2256,6 +2374,13 @@ export default {
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
+            },
+            expensifyCard: {
+                title: 'Expensify Card',
+                subtitle: 'Gain insights and control over spend',
+                disableCardTitle: 'Disable Expensify Card',
+                disableCardPrompt: 'You can’t disable the Expensify Card because it’s already in use. Reach out to Concierge for next steps.',
+                disableCardButton: 'Chat with Concierge',
             },
             workflows: {
                 title: 'Workflows',
@@ -2379,6 +2504,8 @@ export default {
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove these members?',
+            removeMembersWarningPrompt: ({memberName, ownerName}: RemoveMembersWarningPrompt) =>
+                `${memberName} is an approver in this workspace. When you unshare this workspace with them, we’ll replace them in the approval workflow with the workspace owner, ${ownerName}`,
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
             removeMemberGroupButtonTitle: 'Remove from group',
@@ -2409,6 +2536,34 @@ export default {
             benefit4: 'Customizable limits and spend controls',
             addWorkEmail: 'Add work email address',
             checkingDomain: "Hang tight! We're still working on enabling your Expensify Cards. Check back here in a few minutes.",
+            issueCard: 'Issue card',
+            issueNewCard: {
+                whoNeedsCard: 'Who needs a card?',
+                findMember: 'Find member',
+                chooseCardType: 'Choose a card type',
+                physicalCard: 'Physical card',
+                physicalCardDescription: 'Great for the frequent spender',
+                virtualCard: 'Virtual card',
+                virtualCardDescription: 'Instant and flexible',
+                chooseLimitType: 'Choose a limit type',
+                smartLimit: 'Smart Limit',
+                smartLimitDescription: 'Spend up to a certain amount before requiring approval',
+                monthly: 'Monthly',
+                monthlyDescription: 'Spend up to a certain amount per month',
+                fixedAmount: 'Fixed amount',
+                fixedAmountDescription: 'Spend up to a certain amount once',
+                setLimit: 'Set a limit',
+                giveItName: 'Give it a name',
+                giveItNameInstruction: 'Make it unique enough to tell apart from the other. Specific use cases are even better!',
+                cardName: 'Card name',
+                letsDoubleCheck: 'Let’s double check that everything looks right.',
+                willBeReady: 'This card will be ready to use immediately.',
+                cardholder: 'Cardholder',
+                cardType: 'Card type',
+                limit: 'Limit',
+                limitType: 'Limit type',
+                name: 'Name',
+            },
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
@@ -2436,8 +2591,9 @@ export default {
             qbo: 'Quickbooks Online',
             xero: 'Xero',
             netsuite: 'NetSuite',
+            intacct: 'Sage Intacct',
             setup: 'Connect',
-            lastSync: 'Last synced just now',
+            lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
@@ -2445,22 +2601,19 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (integration?: ConnectionName): string => {
-                switch (integration) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Disconnect QuickBooks Online';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Disconnect Xero';
-                    default: {
-                        return 'Disconnect integration';
-                    }
-                }
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+                return `Disconnect ${integrationName}`;
             },
+            connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
+
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return "Can't connect to QuickBooks Online.";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
                         return "Can't connect to Xero.";
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return "Can't connect to NetSuite.";
                     default: {
                         return "Can't connect to integration.";
                     }
@@ -2470,34 +2623,26 @@ export default {
             taxes: 'Taxes',
             imported: 'Imported',
             notImported: 'Not imported',
-            importAsCategory: 'Imported, displayed as categories',
+            importAsCategory: 'Imported as categories',
             importTypes: {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Imported',
-                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Imported as tags',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
-                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
             },
-            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
-                switch (integrationToConnect) {
-                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
-                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
-                    default: {
-                        switch (currentIntegration) {
-                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                                return 'Are you sure you want to disconnect QuickBooks Online?';
-                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                                return 'Are you sure you want to disconnect Xero?';
-                            default: {
-                                return 'Are you sure you want to disconnect this integration?';
-                            }
-                        }
-                    }
-                }
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
+                const integrationName =
+                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
+                        : 'this integration';
+                return `Are you sure you want to disconnect ${integrationName}?`;
             },
+            connectPrompt: (integrationToConnect: ConnectionName): string =>
+                `Are you sure you want to connect ${
+                    CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'
+                }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: ({stage}: SyncStageNameParams) => {
@@ -2505,6 +2650,8 @@ export default {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
                         case 'quickbooksOnlineImportEmployees':
+                        case 'netSuiteSyncImportEmployees':
+                        case 'intacctImportEmployees':
                             return 'Importing employees';
                         case 'quickbooksOnlineImportAccounts':
                             return 'Importing accounts';
@@ -2515,6 +2662,7 @@ export default {
                         case 'quickbooksOnlineImportProcessing':
                             return 'Processing imported data';
                         case 'quickbooksOnlineSyncBillPayments':
+                        case 'intacctImportSyncBillPayments':
                             return 'Syncing reimbursed reports and bill payments';
                         case 'quickbooksOnlineSyncTaxCodes':
                             return 'Importing tax codes';
@@ -2529,6 +2677,8 @@ export default {
                         case 'quickbooksOnlineSyncTitle':
                             return 'Syncing QuickBooks Online data';
                         case 'quickbooksOnlineSyncLoadData':
+                        case 'xeroSyncStep':
+                        case 'intacctImportData':
                             return 'Loading data';
                         case 'quickbooksOnlineSyncApplyCategories':
                             return 'Updating categories';
@@ -2558,8 +2708,6 @@ export default {
                             return 'Checking Xero connection';
                         case 'xeroSyncTitle':
                             return 'Syncing Xero data';
-                        case 'xeroSyncStep':
-                            return 'Loading data';
                         case 'netSuiteSyncConnection':
                             return 'Initializing connection to NetSuite';
                         case 'netSuiteSyncCustomers':
@@ -2578,8 +2726,6 @@ export default {
                             return 'Syncing currencies';
                         case 'netSuiteSyncCategories':
                             return 'Syncing categories';
-                        case 'netSuiteSyncImportEmployees':
-                            return 'Importing employees';
                         case 'netSuiteSyncReportFields':
                             return 'Importing data as Expensify report fields';
                         case 'netSuiteSyncTags':
@@ -2590,12 +2736,22 @@ export default {
                             return 'Marking Expensify reports as reimbursed';
                         case 'netSuiteSyncExpensifyReimbursedReports':
                             return 'Marking NetSuite bills and invoices as paid';
+                        case 'intacctCheckConnection':
+                            return 'Checking Sage Intacct connection';
+                        case 'intacctImportTitle':
+                            return 'Importing Sage Intacct data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
                     }
                 },
             },
+            preferredExporter: 'Preferred exporter',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            exportAs: 'Export as',
+            defaultVendor: 'Default vendor',
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -3004,6 +3160,34 @@ export default {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReporNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        actions: {
+            type: {
+                changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} from ${oldValue} to ${newValue}`,
+                changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `changed ${fieldName} to ${newValue}`,
+                changePolicy: ({fromPolicy, toPolicy}: ChangePolicyParams) => `changed policy from ${fromPolicy} to ${toPolicy}`,
+                changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
+                delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
+                exportedToCSV: `exported this report to CSV`,
+                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
+                forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
+                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
+                managerAttachReceipt: `added a receipt`,
+                managerDetachReceipt: `removed the receipt`,
+                markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
+                markedReimbursedFromIntegration: ({amount, currency}: MarkReimbursedFromIntegrationParams) => `paid ${currency}${amount} via integration`,
+                outdatedBankAccount: `couldn’t process the payment due to a problem with the payer’s bank account`,
+                reimbursementACHBounce: `couldn’t process the payment, as the payer doesn’t have sufficient funds`,
+                reimbursementACHCancelled: `canceled the payment`,
+                reimbursementAccountChanged: `couldn’t process the payment, as the payer changed bank accounts`,
+                reimbursementDelayed: `processed the payment but it’s delayed by 1-2 more business days`,
+                selectedForRandomAudit: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
+                share: ({to}: ShareParams) => `invited user ${to}`,
+                unshare: ({to}: UnshareParams) => `removed user ${to}`,
+                stripePaid: ({amount, currency}: StripePaidParams) => `paid ${currency}${amount}`,
+                takeControl: `took control`,
+                unapproved: ({amount, currency}: UnapprovedParams) => `unapproved ${currency}${amount}`,
+            },
+        },
     },
     chronos: {
         oooEventSummaryFullDay: ({summary, dayCount, date}: OOOEventSummaryFullDayParams) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
@@ -3317,6 +3501,55 @@ export default {
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         billingBanner: {
+            policyOwnerAmountOwed: {
+                title: 'Your payment info is outdated',
+                subtitle: ({date}) => `Update your payment card by ${date} to continue using all of your favorite features.`,
+            },
+            policyOwnerAmountOwedOverdue: {
+                title: 'Your payment info is outdated',
+                subtitle: 'Please update your payment information.',
+            },
+            policyOwnerUnderInvoicing: {
+                title: 'Your payment info is outdated',
+                subtitle: ({date}) => `Your payment is past due. Please pay your invoice by ${date} to avoid service interruption.`,
+            },
+            policyOwnerUnderInvoicingOverdue: {
+                title: 'Your payment info is outdated',
+                subtitle: 'Your payment is past due. Please pay your invoice.',
+            },
+            billingDisputePending: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({amountOwed, cardEnding}) =>
+                    `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
+            },
+            cardAuthenticationRequired: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({cardEnding}) =>
+                    `Your payment card hasn’t been fully authenticated. Please complete the authentication process to activate your payment card ending in ${cardEnding}.`,
+            },
+            insufficientFunds: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({amountOwed}) =>
+                    `Your payment card was declined due to insufficient funds. Please retry or add a new payment card to clear your ${amountOwed} outstanding balance.`,
+            },
+            cardExpired: {
+                title: 'Your card couldn’t be charged',
+                subtitle: ({amountOwed}) => `Your payment card expired. Please add a new payment card to clear your ${amountOwed} outstanding balance.`,
+            },
+            cardExpireSoon: {
+                title: 'Your card is expiring soon',
+                subtitle: 'Your payment card will expire at the end of this month. Click the three-dot menu below to update it and continue using all your favorite features.',
+            },
+            retryBillingSuccess: {
+                title: 'Success!',
+                subtitle: 'Your card has been billed successfully.',
+            },
+            retryBillingError: {
+                title: 'Your card couldn’t be charged',
+                subtitle: 'Before retrying, please call your bank directly to authorize Expensify charges and remove any holds. Otherwise, try adding a different payment card.',
+            },
+            cardOnDispute: ({amountOwed, cardEnding}) =>
+                `You disputed the ${amountOwed} charge on the card ending in ${cardEnding}. Your account will be locked until the dispute is resolved with your bank.`,
             preTrial: {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',
@@ -3402,7 +3635,7 @@ export default {
             title: 'Subscription settings',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
-            saveUpTo: ({amountSaved}: AmountSavedParams) => `Save up to $${amountSaved}/month per active member`,
+            saveUpTo: ({amountWithCurrency}: AmountWithCurrency) => `Save up to ${amountWithCurrency}/month per active member`,
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',

@@ -1,46 +1,48 @@
-import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import CollapsibleSection from '@components/CollapsibleSection';
-import ConfirmModal from '@components/ConfirmModal';
-import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
-import ConnectToXeroButton from '@components/ConnectToXeroButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import type {MenuItemProps} from '@components/MenuItem';
-import MenuItem from '@components/MenuItem';
-import MenuItemList from '@components/MenuItemList';
-import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Section from '@components/Section';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
-import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
-import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import type {AnchorPosition} from '@styles/index';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
+import CollapsibleSection from './src/components/CollapsibleSection';
+import ConfirmModal from './src/components/ConfirmModal';
+import ConnectToNetSuiteButton from './src/components/ConnectToNetSuiteButton';
+import ConnectToQuickbooksOnlineButton from './src/components/ConnectToQuickbooksOnlineButton';
+import ConnectToSageIntacctButton from './src/components/ConnectToSageIntacctButton';
+import ConnectToXeroButton from './src/components/ConnectToXeroButton';
+import HeaderWithBackButton from './src/components/HeaderWithBackButton';
+import * as Expensicons from './src/components/Icon/Expensicons';
+import * as Illustrations from './src/components/Icon/Illustrations';
+import type {LocaleContextProps} from './src/components/LocaleContextProvider';
+import type {MenuItemProps} from './src/components/MenuItem';
+import MenuItem from './src/components/MenuItem';
+import MenuItemList from './src/components/MenuItemList';
+import type {OfflineWithFeedbackProps} from './src/components/OfflineWithFeedback';
+import OfflineWithFeedback from './src/components/OfflineWithFeedback';
+import ScreenWrapper from './src/components/ScreenWrapper';
+import ScrollView from './src/components/ScrollView';
+import Section from './src/components/Section';
+import ThreeDotsMenu from './src/components/ThreeDotsMenu';
+import type ThreeDotsMenuProps from './src/components/ThreeDotsMenu/types';
+import useLocalize from './src/hooks/useLocalize';
+import useNetwork from './src/hooks/useNetwork';
+import usePermissions from './src/hooks/usePermissions';
+import useTheme from './src/hooks/useTheme';
+import useThemeStyles from './src/hooks/useThemeStyles';
+import useWindowDimensions from './src/hooks/useWindowDimensions';
+import {hasSynchronizationError, removePolicyConnection, syncConnection} from './src/libs/actions/connections';
+import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from './src/libs/PolicyUtils';
+import Navigation from './src/libs/Navigation/Navigation';
+import AccessOrNotFoundWrapper from './src/pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from './src/pages/workspace/withPolicyConnections';
+import withPolicyConnections from './src/pages/workspace/withPolicyConnections';
+import type {AnchorPosition} from './src/styles';
+import CONST from './src/CONST';
+import ONYXKEYS from './src/ONYXKEYS';
+import ROUTES from './src/ROUTES';
+import type {Policy, PolicyConnectionSyncProgress} from './src/types/onyx';
+import type {PolicyConnectionName} from './src/types/onyx/Policy';
+import {isEmptyObject} from './src/types/utils/EmptyObject';
+import type IconAsset from './src/types/utils/IconAsset';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 
@@ -105,8 +107,7 @@ function accountingIntegrationData(
                 title: translate('workspace.accounting.netsuite'),
                 icon: Expensicons.NetSuiteSquare,
                 setupConnectionButton: (
-                    // TODO: Will be updated in the Token Input PR
-                    <ConnectToXeroButton
+                    <ConnectToNetSuiteButton
                         policyID={policyID}
                         shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
@@ -114,6 +115,21 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => {},
                 onExportPagePress: () => {},
+                onAdvancedPagePress: () => {},
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return {
+                title: translate('workspace.accounting.intacct'),
+                icon: Expensicons.IntacctSquare,
+                setupConnectionButton: (
+                    <ConnectToSageIntacctButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => {},
             };
         default:
@@ -124,7 +140,7 @@ function accountingIntegrationData(
 function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseNetSuiteIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -140,11 +156,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration));
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
+        (name) => !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE || name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) && !canUseNetSuiteIntegration),
+    );
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
-    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
-    const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
+    const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
     const policyConnectedToNetSuite = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
@@ -174,8 +191,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     );
 
     useEffect(() => {
-        setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
-    }, [formattedDate]);
+        if (successfulDate) {
+            setDateTimeToRelative(getDatetimeToRelative(successfulDate));
+            return;
+        }
+        setDateTimeToRelative('');
+    }, [getDatetimeToRelative, successfulDate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
@@ -209,7 +230,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress}) : datetimeToRelative,
+                description: isSyncInProgress
+                    ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
+                    : translate('workspace.accounting.lastSync', datetimeToRelative),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
@@ -388,10 +411,13 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                             childrenStyles={styles.pt5}
                         >
                             {connectionsMenuItems.map((menuItem) => (
-                                <OfflineWithFeedback pendingAction={menuItem.pendingAction}>
+                                <OfflineWithFeedback
+                                    pendingAction={menuItem.pendingAction}
+                                    key={menuItem.title}
+                                >
                                     <MenuItem
-                                        key={menuItem.title}
                                         brickRoadIndicator={menuItem.brickRoadIndicator}
+                                        key={menuItem.title}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...menuItem}
                                     />
@@ -423,7 +449,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

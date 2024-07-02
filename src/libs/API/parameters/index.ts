@@ -32,7 +32,6 @@ export type {default as OpenAppParams} from './OpenAppParams';
 export type {default as OpenOldDotLinkParams} from './OpenOldDotLinkParams';
 export type {default as OpenPlaidBankAccountSelectorParams} from './OpenPlaidBankAccountSelectorParams';
 export type {default as OpenPlaidBankLoginParams} from './OpenPlaidBankLoginParams';
-export type {default as OpenProfileParams} from './OpenProfileParams';
 export type {default as OpenPublicProfilePageParams} from './OpenPublicProfilePageParams';
 export type {default as OpenReimbursementAccountPageParams} from './OpenReimbursementAccountPageParams';
 export type {default as OpenReportParams} from './OpenReportParams';
@@ -97,6 +96,7 @@ export type {default as UpdateRoomVisibilityParams} from './UpdateRoomVisibility
 export type {default as UpdateReportWriteCapabilityParams} from './UpdateReportWriteCapabilityParams';
 export type {default as AddWorkspaceRoomParams} from './AddWorkspaceRoomParams';
 export type {default as UpdatePolicyRoomNameParams} from './UpdatePolicyRoomNameParams';
+export type {default as UpdateBillingCurrencyParams} from './UpdateBillingCurrencyParams';
 export type {default as AddEmojiReactionParams} from './AddEmojiReactionParams';
 export type {default as RemoveEmojiReactionParams} from './RemoveEmojiReactionParams';
 export type {default as LeaveRoomParams} from './LeaveRoomParams';
@@ -122,6 +122,7 @@ export type {default as AddMembersToWorkspaceParams} from './AddMembersToWorkspa
 export type {default as DeleteMembersFromWorkspaceParams} from './DeleteMembersFromWorkspaceParams';
 export type {default as OpenWorkspaceParams} from './OpenWorkspaceParams';
 export type {default as OpenWorkspaceViewParams} from './OpenWorkspaceViewParams';
+export type {default as ConnectPolicyToSageIntacctParams} from './ConnectPolicyToSageIntacctParams';
 export type {default as OpenWorkspaceReimburseViewParams} from './OpenWorkspaceReimburseViewParams';
 export type {default as OpenWorkspaceInvitePageParams} from './OpenWorkspaceInvitePageParams';
 export type {default as OpenWorkspaceMembersPageParams} from './OpenWorkspaceMembersPageParams';
@@ -182,6 +183,7 @@ export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
+export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
@@ -191,8 +193,6 @@ export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDis
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
-export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
-export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetPolicyDistanceRatesDefaultCategoryParams} from './SetPolicyDistanceRatesDefaultCategoryParams';
@@ -234,3 +234,4 @@ export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from '
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
+export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';

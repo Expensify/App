@@ -364,15 +364,15 @@ type CommitmentParams = {
     date: string;
 };
 
-type AmountSavedParams = {
-    amountSaved: number;
+type AmountWithCurrency = {
+    amountWithCurrency: number;
 };
 
 type DateParams = {
     date: string;
 };
 
-interface RequestCountParams {
+type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
 }
@@ -394,6 +394,47 @@ type LogSizeParams = {size: number};
 type HeldRequestParams = {comment: string};
 
 type ReimbursementRateParams = {unit: Unit};
+
+type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
+
+type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+
+type ChangeTypeParams = {oldType: string; newType: string};
+
+type DelegateSubmitParams = {delegateUser: string; originalManager: string};
+
+type ExportedToIntegrationParams = {label: string};
+
+type ForwardedParams = {amount: string; currency: string};
+
+type IntegrationsMessageParams = {
+    label: string;
+    result: {
+        code?: number;
+        messages?: string[];
+        title?: string;
+        link?: {
+            url: string;
+            text: string;
+        };
+    };
+};
+
+type MarkedReimbursedParams = {amount: string; currency: string};
+
+type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
+
+type ShareParams = {to: string};
+
+type UnshareParams = {to: string};
+
+type StripePaidParams = {amount: string; currency: string};
+
+type UnapprovedParams = {amount: string; currency: string};
+type RemoveMembersWarningPrompt = {
+    memberName: string;
+    ownerName: string;
+};
 
 export type {
     AddressLineParams,
@@ -524,8 +565,22 @@ export type {
     PriceRangeParams,
     ActiveMembersParams,
     CommitmentParams,
-    AmountSavedParams,
+    AmountWithCurrency as AmountSavedParams,
     DateParams,
     TranslationBaseValue,
     SecondaryLoginParams,
+    ChangeFieldParams,
+    ChangePolicyParams,
+    ChangeTypeParams,
+    ExportedToIntegrationParams,
+    DelegateSubmitParams,
+    ForwardedParams,
+    IntegrationsMessageParams,
+    MarkedReimbursedParams,
+    MarkReimbursedFromIntegrationParams,
+    ShareParams,
+    UnshareParams,
+    StripePaidParams,
+    UnapprovedParams,
+    RemoveMembersWarningPrompt,
 };
