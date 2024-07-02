@@ -20,6 +20,11 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
 }));
+jest.mock('../../src/libs/Navigation/navigationRef', () => ({
+    getState: () => ({
+        routes: [],
+    }),
+}));
 jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
