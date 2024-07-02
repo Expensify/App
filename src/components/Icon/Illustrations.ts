@@ -76,6 +76,7 @@ import PiggyBank from '@assets/images/simple-illustrations/simple-illustration__
 import Profile from '@assets/images/simple-illustrations/simple-illustration__profile.svg';
 import QRCode from '@assets/images/simple-illustrations/simple-illustration__qr-code.svg';
 import ReceiptEnvelope from '@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg';
+import ReceiptLocationMarker from '@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg';
 import ReceiptWrangler from '@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg';
 import ReceiptUpload from '@assets/images/simple-illustrations/simple-illustration__receiptupload.svg';
 import SanFrancisco from '@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
@@ -184,6 +185,7 @@ export {
     Pencil,
     Tag,
     CarIce,
+    ReceiptLocationMarker,
     Lightbulb,
     EmptyStateTravel,
     SubscriptionAnnual,
