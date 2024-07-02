@@ -15,7 +15,7 @@ asMutable(translations).default = {
         testKey2: 'Test Word 2',
         testKey3: 'Test Word 3',
         testKeyGroup: {
-            testFunction: ({testVariable}) => `With variable ${testVariable}`,
+            testFunction: ({testVariable}: {testVariable: string}) => `With variable ${testVariable}`,
         },
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
