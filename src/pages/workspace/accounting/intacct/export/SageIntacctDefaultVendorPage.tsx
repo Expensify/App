@@ -101,6 +101,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             }
             title="workspace.sageIntacct.defaultVendor"
             listEmptyContent={listEmptyContent}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         />
     );

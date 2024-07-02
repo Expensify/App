@@ -1,15 +1,13 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
@@ -42,15 +40,6 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         keyForList: expenseType,
         isSelected: config?.export.nonReimbursable === expenseType,
     }));
-
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.nonReimbursableExpenses.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
-    );
 
     const selectNonReimbursableExpense = useCallback(
         (row: MenuListItem) => {
@@ -116,17 +105,19 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={SageIntacctNonReimbursableExpensesPage.displayName}
+        <ConnectionLayout
+            headerTitle="workspace.sageIntacct.nonReimbursableExpenses.label"
+            title="workspace.sageIntacct.nonReimbursableExpenses.description"
+            titleStyle={[styles.ph5, styles.pb5]}
+            onBackButtonPressRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={SageIntacctNonReimbursableExpensesPage.displayName}
+            policyID={policyID}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.sageIntacct.nonReimbursableExpenses.label')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
-            />
             <SelectionList
                 onSelectRow={(selection: SelectorType) => selectNonReimbursableExpense(selection as MenuListItem)}
-                headerContent={headerContent}
                 sections={[{data}]}
                 ListItem={RadioListItem}
                 showScrollIndicator
@@ -156,7 +147,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                     </View>
                 }
             />
-        </ScreenWrapper>
+        </ConnectionLayout>
     );
 }
 

@@ -1,15 +1,13 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import type {SelectorType} from '@components/SelectionScreen';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
@@ -42,15 +40,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
         keyForList: expenseType,
         isSelected: reimbursable === expenseType,
     }));
-
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.reimbursableExpenses.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
-    );
 
     const selectReimbursableDestination = useCallback(
         (row: MenuListItem) => {
@@ -90,17 +79,19 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={SageIntacctReimbursableExpensesPage.displayName}
+        <ConnectionLayout
+            headerTitle="workspace.sageIntacct.reimbursableExpenses.label"
+            title="workspace.sageIntacct.reimbursableExpenses.description"
+            titleStyle={[styles.ph5, styles.pb5]}
+            onBackButtonPressRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={SageIntacctReimbursableExpensesPage.displayName}
+            policyID={policyID}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
-            <HeaderWithBackButton
-                title={translate('workspace.sageIntacct.reimbursableExpenses.label')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
-            />
             <SelectionList
                 onSelectRow={(selection: SelectorType) => selectReimbursableDestination(selection as MenuListItem)}
-                headerContent={headerContent}
                 sections={[{data}]}
                 ListItem={RadioListItem}
                 showScrollIndicator
@@ -126,7 +117,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                     ) : undefined
                 }
             />
-        </ScreenWrapper>
+        </ConnectionLayout>
     );
 }
 

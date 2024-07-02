@@ -73,6 +73,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID))}
             title="workspace.sageIntacct.creditCardAccount"
             listEmptyContent={listEmptyContent}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         />
     );
