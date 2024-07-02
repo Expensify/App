@@ -122,9 +122,25 @@ const esEmojis: EmojisList = {
         name: 'cara_con_mano_sobre_boca',
         keywords: ['ostras', 'uy', 'vaya', 'cara con mano sobre la boca'],
     },
+    '🫣': {
+        name: 'cara_espiando',
+        keywords: ['cara', 'espiar', 'ojo', 'curioso', 'tímido'],
+    },
+    '🫢': {
+        name: 'cara_con_ojos_abiertos_y_mano_sobre_boca',
+        keywords: ['cara', 'ojos abiertos', 'mano sobre boca', 'sorprendido', 'choque'],
+    },
+    '🫡': {
+        name: 'cara_saludando',
+        keywords: ['cara', 'saludo', 'respeto', 'militar', 'honor'],
+    },
     '🤫': {
         name: 'calla',
         keywords: ['callado', 'silencio', 'cara pidiendo silencio'],
+    },
+    '🫠': {
+        name: 'cara_derritiéndose',
+        keywords: ['calor', 'cara', 'derritiéndose', 'derretido', 'derretirse', 'desaparecer', 'fundirse', 'líquido'],
     },
     '🤔': {
         name: 'cara_pensativa',
@@ -138,9 +154,17 @@ const esEmojis: EmojisList = {
         name: 'cara_con_ceja_levantada',
         keywords: ['desconfiado', 'escéptico', 'cara con ceja alzada'],
     },
+    '🫥': {
+        name: 'cara_invisible',
+        keywords: ['cara', 'invisible', 'oculto', 'línea discontinua', 'desaparecer'],
+    },
     '😐': {
         name: 'cara_neutra',
         keywords: ['cara', 'inexpresivo', 'neutral'],
+    },
+    '🫤': {
+        name: 'cara_con_boca_diagonal',
+        keywords: ['cara', 'boca diagonal', 'meh', 'neutral', 'incierto'],
     },
     '😑': {
         name: 'inexpresivo',
@@ -321,6 +345,10 @@ const esEmojis: EmojisList = {
     '😰': {
         name: 'sudor_frío',
         keywords: ['ansiedad', 'cara', 'frío', 'sudor', 'cara con ansiedad y sudor'],
+    },
+    '🥹': {
+        name: 'cara_con_lágrimas',
+        keywords: ['cara', 'lágrimas', 'emocional', 'contener', 'llorando'],
     },
     '😥': {
         name: 'decepcionado_aliviado',
@@ -590,6 +618,10 @@ const esEmojis: EmojisList = {
         name: 'gotas_de_sudor',
         keywords: ['cómic', 'emoción', 'sudor', 'gotas de sudor'],
     },
+    '🫧': {
+        name: 'burbujas',
+        keywords: ['burbujas', 'jabón', 'agua', 'flotar'],
+    },
     '💨': {
         name: 'guión',
         keywords: ['carrera', 'cómic', 'correr', 'humo', 'salir corriendo'],
@@ -658,6 +690,14 @@ const esEmojis: EmojisList = {
         name: 'mano_pellizcando',
         keywords: ['pellizco', 'poco', 'poquito', 'mano pellizcando'],
     },
+    '🫳': {
+        name: 'mano_con_palma_hacia_abajo',
+        keywords: ['mano', 'palma abajo', 'gesto'],
+    },
+    '🫴': {
+        name: 'mano_con_palma_hacia_arriba',
+        keywords: ['mano', 'palma arriba', 'gesto'],
+    },
     '✌️': {
         name: 'v',
         keywords: ['mano', 'señal de victoria', 'victoria', 'mano con señal de victoria'],
@@ -665,6 +705,10 @@ const esEmojis: EmojisList = {
     '🤞': {
         name: 'dedos_cruzados',
         keywords: ['cruzar', 'dedos', 'mano', 'suerte', 'dedos cruzados'],
+    },
+    '🫰': {
+        name: 'mano_con_dedos_cruzados',
+        keywords: ['mano', 'dedo', 'pulgar', 'cruzado', 'gesto'],
     },
     '🤟': {
         name: 'te_amo_en_lenguaje_de_señas',
@@ -677,6 +721,14 @@ const esEmojis: EmojisList = {
     '🤙': {
         name: 'mano_llámame',
         keywords: ['llamar', 'mano', 'meñique', 'pulgar', 'mano haciendo el gesto de llamar'],
+    },
+    '🫱': {
+        name: 'mano_derecha',
+        keywords: ['mano', 'derecha', 'apuntar', 'gesto'],
+    },
+    '🫲': {
+        name: 'mano_izquierda',
+        keywords: ['mano', 'izquierda', 'apuntar', 'gesto'],
     },
     '👈': {
         name: 'apuntando_hacia_la_izquierda',
@@ -734,6 +786,10 @@ const esEmojis: EmojisList = {
         name: 'manos_levantadas',
         keywords: ['celebración', 'gesto', 'hurra', 'mano', 'manos levantadas celebrando'],
     },
+    '🫶': {
+        name: 'manos_haciendo_corazón',
+        keywords: ['mano', 'corazón', 'gesto', 'amor'],
+    },
     '👐': {
         name: 'manos_abiertas',
         keywords: ['abiertas', 'manos'],
@@ -749,6 +805,10 @@ const esEmojis: EmojisList = {
     '🙏': {
         name: 'rezo',
         keywords: ['gracias', 'mano', 'oración', 'orar', 'por favor', 'rezar', 'manos en oración'],
+    },
+    '🫵': {
+        name: 'mano_apuntando',
+        keywords: ['mano', 'apuntar', 'espectador', 'gesto'],
     },
     '✍️': {
         name: 'mano_escribiendo',
@@ -829,6 +889,10 @@ const esEmojis: EmojisList = {
     '👄': {
         name: 'labios',
         keywords: ['labios', 'boca'],
+    },
+    '🫦': {
+        name: 'labios_mordiendo',
+        keywords: ['mordiendo', 'labio', 'nervioso', 'coqueteo'],
     },
     '👶': {
         name: 'bebé',
@@ -1290,6 +1354,7 @@ const esEmojis: EmojisList = {
         name: 'guardia_mujer',
         keywords: ['guardia', 'mujer', 'vigilante'],
     },
+
     '🥷': {
         name: 'ninja',
         keywords: ['furtivo', 'guerrero', 'luchador', 'oculto', 'sigilo', 'ninja'],
@@ -1309,6 +1374,10 @@ const esEmojis: EmojisList = {
     '🤴': {
         name: 'príncipe',
         keywords: ['corona', 'príncipe'],
+    },
+    '🫅': {
+        name: 'persona_con_corona',
+        keywords: ['persona', 'corona', 'realeza', 'rey', 'reina'],
     },
     '👸': {
         name: 'princesa',
@@ -1361,6 +1430,14 @@ const esEmojis: EmojisList = {
     '🤰': {
         name: 'embarazada',
         keywords: ['embarazada', 'mujer'],
+    },
+    '🫄': {
+        name: 'persona_embarazada',
+        keywords: ['embarazado', 'persona', 'esperando', 'padre'],
+    },
+    '🫃': {
+        name: 'hombre_embarazado',
+        keywords: ['embarazado', 'hombre', 'esperando', 'padre'],
     },
     '🤱': {
         name: 'amamantar',
@@ -1477,6 +1554,10 @@ const esEmojis: EmojisList = {
     '🧝‍♀️': {
         name: 'elfa',
         keywords: ['mágico', 'mujer', 'elfa'],
+    },
+    '🧌': {
+        name: 'trol',
+        keywords: ['trol', 'mítico', 'criatura', 'fantasía'],
     },
     '🧞': {
         name: 'genio',
@@ -2426,6 +2507,10 @@ const esEmojis: EmojisList = {
         name: 'caracola',
         keywords: ['concha', 'mar', 'concha de mar'],
     },
+    '🪸': {
+        name: 'coral',
+        keywords: ['coral', 'arrecife', 'mar', 'océano', 'marino'],
+    },
     '🐌': {
         name: 'caracol',
         keywords: ['caracola', 'molusco', 'caracol'],
@@ -2514,6 +2599,10 @@ const esEmojis: EmojisList = {
         name: 'flor_marchita',
         keywords: ['flor', 'marchita', 'marchitada', 'marchitarse'],
     },
+    '🪷': {
+        name: 'flor_de_loto',
+        keywords: ['loto', 'flor', 'florecer', 'planta'],
+    },
     '🌺': {
         name: 'hibisco',
         keywords: ['flor', 'hibisco', 'flor de hibisco'],
@@ -2581,6 +2670,14 @@ const esEmojis: EmojisList = {
     '🍃': {
         name: 'hojas',
         keywords: ['hoja', 'revolotear', 'soplar', 'viento', 'hojas revoloteando al viento'],
+    },
+    '🪺': {
+        name: 'nido_con_huevos',
+        keywords: ['nido', 'huevos', 'pájaro', 'hogar'],
+    },
+    '🪹': {
+        name: 'nido_vacío',
+        keywords: ['nido', 'vacío', 'pájaro', 'hogar'],
     },
     '🍇': {
         name: 'uvas',
@@ -2713,6 +2810,10 @@ const esEmojis: EmojisList = {
     '🥜': {
         name: 'cacahuetes',
         keywords: ['cacahuete', 'comida', 'fruto seco', 'verdura', 'cacahuetes'],
+    },
+    '🫘': {
+        name: 'frijoles',
+        keywords: ['frijoles', 'comida', 'legumbre'],
     },
     '🌰': {
         name: 'castaña',
@@ -2853,6 +2954,10 @@ const esEmojis: EmojisList = {
     '🥫': {
         name: 'comida_enlatada',
         keywords: ['conserva', 'lata', 'comida enlatada'],
+    },
+    '🫙': {
+        name: 'jarra',
+        keywords: ['jarra', 'contenedor', 'almacenamiento'],
     },
     '🍱': {
         name: 'bento',
@@ -3005,6 +3110,10 @@ const esEmojis: EmojisList = {
     '🥛': {
         name: 'vaso_de_leche',
         keywords: ['bebida', 'leche', 'vaso', 'vaso de leche'],
+    },
+    '🫗': {
+        name: 'vertiendo_líquido',
+        keywords: ['vertiendo', 'líquido', 'bebida', 'agua'],
     },
     '☕': {
         name: 'café',
@@ -3494,6 +3603,10 @@ const esEmojis: EmojisList = {
         name: 'silla_de_ruedas_eléctrica',
         keywords: ['accesibilidad', 'silla de ruedas eléctrica'],
     },
+    '🩼': {
+        name: 'muleta',
+        keywords: ['muleta', 'soporte', 'lesión', 'ayuda'],
+    },
     '🛺': {
         name: 'mototaxi',
         keywords: ['rickshaw', 'tuk tuk', 'mototaxi'],
@@ -3513,6 +3626,10 @@ const esEmojis: EmojisList = {
     '🛼': {
         name: 'patines',
         keywords: ['patín', 'patín de 4 ruedas', 'patín de cuatro ruedas', 'patines'],
+    },
+    '🛞': {
+        name: 'rueda',
+        keywords: ['rueda', 'vehículo', 'transporte'],
     },
     '🚏': {
         name: 'parada_de_autobús',
@@ -3585,6 +3702,10 @@ const esEmojis: EmojisList = {
     '🚢': {
         name: 'barco',
         keywords: ['vehículo', 'barco'],
+    },
+    '🛟': {
+        name: 'aro_salvavidas',
+        keywords: ['aro', 'salvavidas', 'seguridad'],
     },
     '✈️': {
         name: 'avión',
@@ -4014,6 +4135,10 @@ const esEmojis: EmojisList = {
         name: 'campanilla_de_viento',
         keywords: ['campanilla', 'furin', 'viento', 'campanilla de viento'],
     },
+    '🪩': {
+        name: 'bola_de_disco',
+        keywords: ['bola', 'espejo', 'disco', 'fiesta'],
+    },
     '🎑': {
         name: 'espiga_de_arroz',
         keywords: ['celebración', 'contemplación', 'luna', 'tsukimi', 'ceremonia de contemplación de la luna'],
@@ -4186,6 +4311,10 @@ const esEmojis: EmojisList = {
         name: 'cometa',
         keywords: ['juguete', 'planear', 'viento', 'volar', 'cometa'],
     },
+    '🛝': {
+        name: 'resbaladilla',
+        keywords: ['parque', 'resbaladilla', 'jugar', 'parque'],
+    },
     '🎱': {
         name: 'bola_ocho',
         keywords: ['8', 'billar', 'bola ocho', 'juego', 'bola negra de billar'],
@@ -4201,6 +4330,10 @@ const esEmojis: EmojisList = {
     '🧿': {
         name: 'ojo_turco',
         keywords: ['amuleto', 'mal de ojo', 'nazar', 'talismán', 'ojo turco'],
+    },
+    '🪬': {
+        name: 'hamsa',
+        keywords: ['hamsa', 'mano', 'protección', 'suerte'],
     },
     '🎮': {
         name: 'videojuego',
@@ -4610,6 +4743,10 @@ const esEmojis: EmojisList = {
         name: 'batería',
         keywords: ['batería', 'pila'],
     },
+    '🪫': {
+        name: 'batería_baja',
+        keywords: ['bajo', 'batería', 'poder', 'carga'],
+    },
     '🔌': {
         name: 'enchufe_eléctrico',
         keywords: ['corriente', 'electricidad', 'eléctrico', 'enchufe'],
@@ -4821,6 +4958,10 @@ const esEmojis: EmojisList = {
     '💳': {
         name: 'tarjeta_de_crédito',
         keywords: ['crédito', 'tarjeta', 'tarjeta de crédito'],
+    },
+    '🪪': {
+        name: 'tarjeta_de_identificación',
+        keywords: ['identificación', 'tarjeta', 'ID', 'documento'],
     },
     '🧾': {
         name: 'recibo',
@@ -5149,6 +5290,10 @@ const esEmojis: EmojisList = {
     '🔭': {
         name: 'telescopio',
         keywords: ['astronomía', 'instrumento', 'telescopio'],
+    },
+    '🩻': {
+        name: 'rayos_x',
+        keywords: ['rayos x', 'médico', 'escáner', 'radiología'],
     },
     '📡': {
         name: 'antena_de_satélite',
@@ -5705,6 +5850,10 @@ const esEmojis: EmojisList = {
     '➗': {
         name: 'signo_de_división_grueso',
         keywords: ['÷', 'signo', 'signo de división', 'división'],
+    },
+    '🟰': {
+        name: 'signo_igual',
+        keywords: ['igual', 'signo', 'matemáticas', 'símbolo'],
     },
     '♾️': {
         name: 'infinito',
