@@ -212,6 +212,7 @@ describe('CardSectionUtils', () => {
             title: 'subscription.billingBanner.retryBillingError.title',
             subtitle: 'subscription.billingBanner.retryBillingError.subtitle',
             isError: true,
+            isRetryAvailable: false,
         });
     });
 });
