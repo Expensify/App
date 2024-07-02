@@ -33,6 +33,7 @@ function CardSection() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const subscriptionPlan = useSubscriptionPlan();
+    const [network] = useOnyx(ONYXKEYS.NETWORK);
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
