@@ -7,12 +7,14 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -40,7 +42,8 @@ function NetSuiteImportMappingPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const importMappings = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
+    const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
+    const importMappings = netsuiteConfig?.syncOptions?.mapping;
 
     const importValue = importMappings?.[importField as keyof typeof importMappings] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
@@ -56,15 +59,42 @@ function NetSuiteImportMappingPage({
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
+                
+                {importField === 'jobs' && (
+                    <View style={[styles.flex1, styles.mb4]}>
+                        <ToggleSettingOptionRow
+                            title={'Cross-subsidiary customer/projects'}
+                            isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                            switchAccessibilityLabel={translate('common.tax')}
+                            onToggle={(isEnabled: boolean) => {
+                                updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
+                            }}
+                            pendingAction={netsuiteConfig?.syncOptions?.pendingFields?.syncTax}
+                            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                            onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                        />
+                    </View>
+                )}
+
                 <RenderHTML
                     html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</muted-text></comment>`}
                 />
             </View>
         ),
-        [styles.ph5, styles.mt2, styles.mb4, translate, importField],
+        [styles.ph5, styles.mt2, styles.mb4, styles.flex1, importField, netsuiteConfig, translate, policyID],
     );
 
-    const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
+    const inputOptions = useMemo(() => {
+        switch (importField) {
+            case 'departments': 
+            case 'classes': 
+            case 'locations': 
+                return [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
+            
+            default:
+                return [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
+        }
+    }, [importField]);
 
     const inputSectionData: ImportListItem[] =
         inputOptions.map((inputOption) => ({
