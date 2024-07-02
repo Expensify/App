@@ -73,7 +73,7 @@ function NewContactMethodPage({loginList, route}: NewContactMethodPageProps) {
         // We don't need `loginList` because when submitting this form
         // the loginList gets updated, causing this function to run again.
         // https://github.com/Expensify/App/issues/20610
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [translate],
     );
 

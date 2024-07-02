@@ -111,6 +111,7 @@ const useTapGestures = ({
                 offsetAfterZooming.y = 0;
             }
 
+            // eslint-disable-next-line react-compiler/react-compiler
             offsetX.value = withSpring(offsetAfterZooming.x, SPRING_CONFIG);
             offsetY.value = withSpring(offsetAfterZooming.y, SPRING_CONFIG);
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG, callback);

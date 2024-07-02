@@ -56,6 +56,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
 
     useEffect(() => {
         if (measuredHeightOfSuggestionRows === prevRowHeightRef.current) {
+            // eslint-disable-next-line react-compiler/react-compiler
             fadeInOpacity.value = withTiming(1, {
                 duration: 70,
                 easing: Easing.inOut(Easing.ease),

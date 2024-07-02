@@ -36,6 +36,7 @@ function OpacityView({shouldDim, children, style = [], dimmingValue = variables.
 
     React.useEffect(() => {
         if (shouldDim) {
+            // eslint-disable-next-line react-compiler/react-compiler
             opacity.value = withTiming(dimmingValue, {duration: 50});
         } else {
             opacity.value = withTiming(1, {duration: 50});

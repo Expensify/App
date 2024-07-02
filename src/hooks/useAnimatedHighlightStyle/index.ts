@@ -82,6 +82,7 @@ export default function useAnimatedHighlightStyle({
                             return;
                         }
 
+                        // eslint-disable-next-line react-compiler/react-compiler
                         repeatableProgress.value = withSequence(
                             withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
                             withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),

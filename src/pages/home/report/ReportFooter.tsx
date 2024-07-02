@@ -161,7 +161,7 @@ function ReportFooter({
             }
             Report.addComment(report.reportID, text);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
     );
 

@@ -68,7 +68,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     useEffect(() => {
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {

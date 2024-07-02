@@ -180,7 +180,7 @@ function IOURequestStepConfirmation({
         }
         IOU.setMoneyRequestCategory(transactionID, defaultCategory);
         // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [transactionID, requestType, defaultCategory]);
 
     const navigateBack = useCallback(() => {

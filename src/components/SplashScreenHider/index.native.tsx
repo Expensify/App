@@ -34,6 +34,7 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
         hideHasBeenCalled.current = true;
 
         BootSplash.hide().then(() => {
+            // eslint-disable-next-line react-compiler/react-compiler
             scale.value = withTiming(0, {
                 duration: 200,
                 easing: Easing.back(2),
