@@ -274,6 +274,17 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
 
     optimization: {
+        /*minimize: true,
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    sourceMap: {
+                        filename: 'out.js',
+                        url: 'out.js.map',
+                    },
+                },
+            }),
+        ],*/
         runtimeChunk: 'single',
         splitChunks: {
             cacheGroups: {

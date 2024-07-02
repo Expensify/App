@@ -342,6 +342,8 @@ function FloatingActionButtonAndPopover(
     }));
 
     const toggleCreateMenu = () => {
+        const now = new Date().getTime();
+        while (new Date().getTime() - now < 500) {}
         if (isCreateMenuActive) {
             hideCreateMenu();
         } else {
