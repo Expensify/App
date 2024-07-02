@@ -435,7 +435,7 @@ const ONYXKEYS = {
          * Stores the card list for a given fundID and feed in the format: card_<fundID>_<bankName>
          * So for example: card_12345_Expensify Card
          */
-        EXPENSIFY_CARDS_LIST: 'card_',
+        WORKSPACE_CARDS_LIST: 'card_',
     },
 
     /** List of Form ids */
@@ -660,7 +660,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
-    [ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST]: OnyxTypes.ExpensifyCardsList;
+    [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.ExpensifyCardsList;
 };
 
 type OnyxValuesMapping = {

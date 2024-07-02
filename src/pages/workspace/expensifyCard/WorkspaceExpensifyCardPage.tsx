@@ -71,7 +71,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
     // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
-    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARDS_LIST}${policyID}_Expensify Card`);
+    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_Expensify Card`);
     const cardsList = mockedCards;
 
     const fetchExpensifyCards = useCallback(() => {
