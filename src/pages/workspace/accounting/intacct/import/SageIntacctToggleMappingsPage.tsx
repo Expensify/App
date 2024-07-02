@@ -78,6 +78,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             </Text>
             <OfflineWithFeedback
                 pendingAction={config?.pendingFields?.[mappingName]}
+                errorRowStyles={[styles.ph5]}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onClose={() => clearSageIntacctErrorField(policyID, mappingName)}
             >

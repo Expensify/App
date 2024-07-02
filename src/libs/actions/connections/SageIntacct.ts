@@ -7,14 +7,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {
-    SageIntacctConnectiosConfig,
-    SageIntacctDimension,
-    SageIntacctMappingType,
-    SageIntacctMappingValue,
-    SageIntacctOfflineStateEntries,
-    SageIntacctOfflineStateKeys,
-} from '@src/types/onyx/Policy';
+import type {SageIntacctConnectiosConfig, SageIntacctDimension, SageIntacctMappingType, SageIntacctMappingValue, SageIntacctOfflineStateKeys} from '@src/types/onyx/Policy';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -28,7 +21,7 @@ function connectToSageIntacct(policyID: string, credentials: SageIntacctCredenti
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
 }
 
-function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: boolean | SageIntacctMappingValue) {
+function prepareOnyxDataForMappingUpdate(policyID: string, mappingName: keyof SageIntacctMappingType, mappingValue: boolean | SageIntacctMappingValue) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -109,7 +102,7 @@ function updateSageIntacctBillable(policyID: string, enabled: boolean) {
         policyID,
         enabled,
     };
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE, parameters, prepareOnyxDataForUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS, enabled));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE, parameters, prepareOnyxDataForMappingUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS, enabled));
 }
 
 function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>) {
@@ -135,7 +128,7 @@ function updateSageIntacctMappingValue(policyID: string, mappingName: ValueOf<ty
         return;
     }
 
-    const onyxData = prepareOnyxDataForUpdate(policyID, mappingName, mappingValue);
+    const onyxData = prepareOnyxDataForMappingUpdate(policyID, mappingName, mappingValue);
     API.write(
         command,
         {
@@ -221,12 +214,7 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function addSageIntacctUserDimensions(
-    policyID: string,
-    name: string,
-    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
-    existingUserDimensions: SageIntacctDimension[],
-) {
+function prepareOnyxDataForUserDimensionUpdate(policyID: string, dimensionName: string, newDimensions: SageIntacctDimension[]) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -236,10 +224,10 @@ function addSageIntacctUserDimensions(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [...existingUserDimensions, {name, mapping}],
+                                dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${name}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                            errorFields: {[`dimension_${name}`]: null},
+                            pendingFields: {[`dimension_${dimensionName}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[`${dimensionName}`]: null},
                         },
                     },
                 },
@@ -256,10 +244,10 @@ function addSageIntacctUserDimensions(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [...existingUserDimensions, {name, mapping}],
+                                dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${name}`]: null},
-                            errorFields: {[`dimension_${name}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                            pendingFields: {[`dimension_${dimensionName}`]: null},
+                            errorFields: {[`dimension_${dimensionName}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
                     },
                 },
@@ -276,10 +264,10 @@ function addSageIntacctUserDimensions(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [...existingUserDimensions, {name, mapping}],
+                                dimensions: newDimensions,
                             },
-                            pendingFields: {[`dimension_${name}`]: null},
-                            errorFields: {[`dimension_${name}`]: null},
+                            pendingFields: {[`dimension_${dimensionName}`]: null},
+                            errorFields: {[`${dimensionName}`]: null},
                         },
                     },
                 },
@@ -287,7 +275,18 @@ function addSageIntacctUserDimensions(
         },
     ];
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, {optimisticData, successData, failureData});
+    return {optimisticData, failureData, successData};
+}
+
+function addSageIntacctUserDimensions(
+    policyID: string,
+    name: string,
+    mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
+    existingUserDimensions: SageIntacctDimension[],
+) {
+    const newDimensions = [...existingUserDimensions, {mapping, name}];
+
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
 }
 
 function editSageIntacctUserDimensions(
@@ -297,82 +296,20 @@ function editSageIntacctUserDimensions(
     mapping: typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.TAG | typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.REPORT_FIELD,
     existingUserDimensions: SageIntacctDimension[],
 ) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    intacct: {
-                        config: {
-                            mappings: {
-                                dimensions: existingUserDimensions.map((userDimension) => {
-                                    if (userDimension.name === previousName) {
-                                        return {name, mapping, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: undefined};
-                                    }
-                                    return userDimension;
-                                }),
-                            },
-                            pendingFields: {[`dimension_${name}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                            errorFields: {[`dimension_${name}`]: null},
-                        },
-                    },
-                },
-            },
-        },
-    ];
+    const newDimensions = existingUserDimensions.map((userDimension) => {
+        if (userDimension.name === previousName) {
+            return {name, mapping, pendingAction: null, errors: undefined};
+        }
+        return userDimension;
+    });
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    intacct: {
-                        config: {
-                            mappings: {
-                                dimensions: existingUserDimensions.map((userDimension) => {
-                                    if (userDimension.name === previousName) {
-                                        return {name, mapping, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')};
-                                    }
-                                    return userDimension;
-                                }),
-                            },
-                            pendingFields: {[`dimension_${name}`]: null},
-                            errorFields: {[`dimension_${name}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-                        },
-                    },
-                },
-            },
-        },
-    ];
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+}
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    intacct: {
-                        config: {
-                            mappings: {
-                                dimensions: existingUserDimensions.map((userDimension) => {
-                                    if (userDimension.name === previousName) {
-                                        return {name, mapping, pendingAction: null, errors: undefined};
-                                    }
-                                    return userDimension;
-                                }),
-                            },
-                            pendingFields: {[`dimension_${name}`]: null},
-                            errorFields: {[`dimension_${name}`]: null},
-                        },
-                    },
-                },
-            },
-        },
-    ];
+function removeSageIntacctUserDimensions(policyID: string, name: string, existingUserDimensions: SageIntacctDimension[]) {
+    const newDimensions = existingUserDimensions.filter((userDimension) => name !== userDimension.name);
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
 }
 
 function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectiosConfig) {
@@ -387,4 +324,5 @@ export {
     updateSageIntacctMappingValue,
     editSageIntacctUserDimensions,
     clearSageIntacctErrorField,
+    removeSageIntacctUserDimensions,
 };

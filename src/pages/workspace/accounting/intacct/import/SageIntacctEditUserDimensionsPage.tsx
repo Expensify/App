@@ -13,7 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctErrorField, editSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
+import {clearSageIntacctErrorField, editSageIntacctUserDimensions, removeSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -83,7 +83,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                 shouldValidateOnChange
             >
                 <OfflineWithFeedback
-                    pendingAction={config?.pendingAction?.[`dimension_${editedUserDimensionName}`]}
+                    pendingAction={config?.pendingFields?.[`dimension_${editedUserDimensionName}`]}
                     errors={config?.errorFields?.[`dimension_${editedUserDimensionName}`]}
                     onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
                 >
@@ -119,6 +119,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                     isVisible={isDeleteModalOpen}
                     onConfirm={() => {
                         setIsDeleteModalOpen(false);
+                        removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions);
                         Navigation.goBack();
                     }}
                     onCancel={() => setIsDeleteModalOpen(false)}

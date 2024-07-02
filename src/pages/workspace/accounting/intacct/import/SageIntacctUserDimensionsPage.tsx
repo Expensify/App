@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -52,20 +53,22 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         </View>
 
                         <View style={[styles.ph5]}>
-                            <Text>
+                            <Text style={styles.emptySageIntacctUserDimensionsSubtitle}>
                                 <TextLink
                                     style={styles.link}
-                                    onPress={() => {}}
+                                    onPress={() => {
+                                        Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                    }}
                                 >
                                     {translate('workspace.intacct.detailedInstructionsLink')}
                                 </TextLink>
-                                <Text style={[styles.textNormal, styles.emptySageIntacctUserDimensionsSubtitle]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
+                                <Text style={[styles.textNormal]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                             </Text>
                         </View>
                     </View>
                 </View>
             ) : (
-                <View>
+                <>
                     <View style={[styles.ph5]}>
                         <Text>
                             <TextLink
@@ -79,24 +82,25 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <Text style={[styles.textNormal, styles.sageIntacctUserDimensionsSubtitle]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                         </Text>
                     </View>
-
-                    {userDimensions.map((userDimension) => (
-                        <OfflineWithFeedback
-                            key={userDimension.name}
-                            pendingAction={config?.pendingFields?.[`dimension_${userDimension.name}`]}
-                        >
-                            <MenuItemWithTopDescription
-                                title={userDimension.name}
-                                description="User-defined dimension"
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.name))}
-                                brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.name}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
-                </View>
+                    <ScrollView>
+                        {userDimensions.map((userDimension) => (
+                            <OfflineWithFeedback
+                                key={userDimension.name}
+                                pendingAction={config?.pendingFields?.[`dimension_${userDimension.name}`]}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={userDimension.name}
+                                    description="User-defined dimension"
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.name))}
+                                    brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.name}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        ))}
+                    </ScrollView>
+                </>
             )}
-            <FixedFooter style={[styles.mtAuto]}>
+            <FixedFooter style={[styles.mt5]}>
                 <Button
                     success
                     text={translate('workspace.intacct.addUserDefinedDimension')}
