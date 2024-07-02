@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,7 +12,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import Text from '@components/Text';
 
 const parser = new ExpensiMark();
 
@@ -37,13 +37,14 @@ function NetSuiteImportMappingPage({
 
     const importValue = importMappings?.[importField as keyof typeof importMappings] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
-    const listFooterContent = useMemo(() => (
+    const listFooterContent = useMemo(
+        () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
-                <Text>
-                    {translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent` as TranslationPaths, importField)}
-                </Text>
+                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent` as TranslationPaths, importField)}</Text>
             </View>
-        ), [importField, importValue, styles.mb4, styles.mt2, styles.ph5, translate]);
+        ),
+        [importField, importValue, styles.mb4, styles.mt2, styles.ph5, translate],
+    );
 
     const listHeaderComponent = useMemo(
         () => (

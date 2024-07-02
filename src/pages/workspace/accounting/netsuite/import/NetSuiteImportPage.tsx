@@ -59,7 +59,9 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <MenuItemWithTopDescription
                             description={translate(`workspace.netsuite.import.importFields.${importField}.title`)}
-                            title={translate(`workspace.netsuite.import.importTypes.${config?.syncOptions?.mapping?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}.label`)}
+                            title={translate(
+                                `workspace.netsuite.import.importTypes.${config?.syncOptions?.mapping?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}.label`,
+                            )}
                             shouldShowRightIcon
                             onPress={() => {
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING.getRoute(policyID, importField));

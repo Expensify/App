@@ -2342,11 +2342,11 @@ export default {
                     },
                     customers: {
                         title: 'Clientes',
-                        subtitle: "Importa *clientes* a Expensify y elige cómo se mostrarán.",
+                        subtitle: 'Importa *clientes* a Expensify y elige cómo se mostrarán.',
                     },
                     jobs: {
                         title: 'Proyectos (trabajos)',
-                        subtitle: "Importa *proyectos (trabajos)* a Expensify y elige cómo se mostrarán.",
+                        subtitle: 'Importa *proyectos (trabajos)* a Expensify y elige cómo se mostrarán.',
                     },
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
@@ -2358,7 +2358,8 @@ export default {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Predeterminado del empleado NetSuite',
                         description: 'No importado a Expensify, aplicado en exportación',
-                        footerContent: (importField: string) => `Si usa ${importField} en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.`,
+                        footerContent: (importField: string) =>
+                            `Si usa ${importField} en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Etiquetas',

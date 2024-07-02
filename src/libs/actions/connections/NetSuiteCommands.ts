@@ -177,6 +177,107 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY, params, onyxData);
 }
 
+function updateNetSuiteImportMapping<TMappingName extends keyof Connections['netsuite']['options']['config']['syncOptions']['mapping']>(
+    policyID: string,
+    mappingName: TMappingName,
+    mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
+    oldMappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
+) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            [mappingName]: mappingValue,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            [mappingName]: mappingValue,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    connections: {
+                        netsuite: {
+                            options: {
+                                config: {
+                                    syncOptions: {
+                                        mapping: {
+                                            [mappingName]: oldMappingValue,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const params = {
+        policyID,
+        mapping: mappingValue,
+    };
+
+    let commandName;
+    switch (mappingName) {
+        case 'departments':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_DEPARTMENTS_MAPPING;
+            break;
+        case 'classes':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_CLASSES_MAPPING;
+            break;
+        case 'locations':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_LOCATIONS_MAPPING;
+            break;
+        case 'customers':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOMERS_MAPPING;
+            break;
+        case 'jobs':
+            commandName = WRITE_COMMANDS.UPDATE_NETSUITE_JOBS_MAPPING;
+            break;
+        default:
+            return;
+    }
+
+    API.write(commandName, params, onyxData);
+}
+
 function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -447,4 +548,5 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    updateNetSuiteImportMapping,
 };
