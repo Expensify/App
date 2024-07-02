@@ -42,6 +42,7 @@ function CardSection() {
     const requestRefund = useCallback(() => {
         User.requestRefund();
         setIsRequestRefundModalVisible(false);
+        Navigation.resetToHome();
     }, []);
 
     const billingStatus = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
