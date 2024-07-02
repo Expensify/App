@@ -7,7 +7,7 @@ import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
-import type {CardList, ExpensifyCardsList, IssueNewCard} from './Card';
+import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -109,7 +109,7 @@ export type {
     CustomStatusDraft,
     DismissedReferralBanners,
     Download,
-    ExpensifyCardsList,
+    WorkspaceCardsList,
     ExpensifyCardSettings,
     FrequentlyUsedEmoji,
     Fund,

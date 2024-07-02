@@ -96,7 +96,7 @@ type IssueNewCard = {
 };
 
 /** List of Expensify cards */
-type ExpensifyCardsList = Record<string, Card>;
+type WorkspaceCardsList = Record<string, Card>;
 
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, ExpensifyCardsList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, WorkspaceCardsList};

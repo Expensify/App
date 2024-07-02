@@ -660,7 +660,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
-    [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.ExpensifyCardsList;
+    [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
 };
 
 type OnyxValuesMapping = {

@@ -23,14 +23,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Card, ExpensifyCardsList} from '@src/types/onyx';
+import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 // TODO: remove when Onyx data is available
-const mockedCards: OnyxEntry<ExpensifyCardsList> = {
+const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test1: {
         // @ts-expect-error TODO: change cardholder to accountID
         cardholder: {accountID: 1, lastName: 'Smith', firstName: 'Bob', displayName: 'Bob Smith'},
@@ -71,7 +71,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
     // TODO: uncomment the code line below to use cardsList data from Onyx when it's supported
-    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_Expensify Card`);
+    // const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
     const cardsList = mockedCards;
 
     const fetchExpensifyCards = useCallback(() => {
@@ -176,6 +176,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     );
 }
 
-WorkspaceExpensifyCardPage.displayName = 'WorkspacesListPage';
+WorkspaceExpensifyCardPage.displayName = 'WorkspaceExpensifyCardPage';
 
 export default WorkspaceExpensifyCardPage;
