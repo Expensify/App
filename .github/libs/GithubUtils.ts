@@ -559,7 +559,4 @@ class GithubUtils {
 }
 
 export default GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-
 export type {ListForRepoMethod, InternalOctokit, CreateCommentResponse, StagingDeployCashData};
