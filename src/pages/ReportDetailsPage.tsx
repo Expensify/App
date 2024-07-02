@@ -88,9 +88,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         canEvict: false,
         selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
-    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.guideCalendarLink,
-    });
 
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
@@ -248,8 +245,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowWriteCapability = !isMoneyRequestReport;
     const shouldShowMenuItem = shouldShowNotificationPref || shouldShowWriteCapability || (!!report?.visibility && report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE);
 
-    const isConcierge = ReportUtils.isConciergeChatReport(report);
-
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
 
@@ -343,18 +338,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             }
         }
 
-        if (isConcierge && guideCalendarLink) {
-            items.push({
-                key: CONST.REPORT_DETAILS_MENU_ITEM.BOOK_A_CALL,
-                icon: Expensicons.Phone,
-                translationKey: 'videoChatButtonAndMenu.tooltip',
-                isAnonymousAction: false,
-                action: Session.checkIfActionIsAllowed(() => {
-                    Link.openExternalLink(guideCalendarLink);
-                }),
-            });
-        }
-
         if (shouldShowLeaveButton) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
@@ -393,8 +376,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         shouldShowLeaveButton,
         activeChatMembers.length,
         isPolicyAdmin,
-        isConcierge,
-        guideCalendarLink,
         session,
         leaveChat,
     ]);
