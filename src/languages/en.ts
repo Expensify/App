@@ -3390,7 +3390,7 @@ export default {
             },
             trialEnded: {
                 title: 'Your free trial has ended',
-                subtitle: 'Add a payment card below to continue using all of your favorite features.',
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },
         cardSection: {

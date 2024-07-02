@@ -396,10 +396,6 @@ function ReportActionItem({
     const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
-        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || ReportActionsUtils.getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
-            return [];
-        }
-
         if (ReportActionsUtils.isActionableAddPaymentCard(action) && shouldRenderAddPaymentCard()) {
             return [
                 {
@@ -412,6 +408,10 @@ function ReportActionItem({
                     isPrimary: true,
                 },
             ];
+        }
+
+        if (!isActionableWhisper && (!ReportActionsUtils.isActionableJoinRequest(action) || ReportActionsUtils.getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
+            return [];
         }
 
         if (ReportActionsUtils.isActionableTrackExpense(action)) {

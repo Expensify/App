@@ -1459,7 +1459,11 @@ function getTrackExpenseActionableWhisper(transactionID: string, chatReportID: s
     return Object.values(chatReportActions).find((action: ReportAction) => isActionableTrackExpense(action) && getOriginalMessage(action)?.transactionID === transactionID);
 }
 
-function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction & OriginalMessage<'ACTIONABLEADDPAYMENTCARD'> {
+/**
+ * Checks if a given report action corresponds to a add payment card action.
+ * @param reportAction
+ */
+function isActionableAddPaymentCard(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD> {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD;
 }
 

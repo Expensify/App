@@ -1,4 +1,4 @@
-type ShouldRenderAddPaymentCard = () => boolean;
+import type ShouldRenderAddPaymentCard from './types';
 
 const shouldRenderAddPaymentCard: ShouldRenderAddPaymentCard = () => true;
 
