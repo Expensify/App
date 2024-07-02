@@ -51,6 +51,7 @@ import AccountUtils from './AccountUtils';
 import * as IOU from './actions/IOU';
 import * as PolicyActions from './actions/Policy/Policy';
 import * as store from './actions/ReimbursementAccount/store';
+import * as SessionUtils from './actions/Session';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -6883,6 +6884,10 @@ function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, 
  * Whether the user can join a report
  */
 function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>): boolean {
+    if (report && isPublicRoom(report) && SessionUtils.isAnonymousUser()) {
+        return true;
+    }
+
     // We disabled thread functions for whisper action
     // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (ReportActionsUtils.isWhisperAction(parentReportAction)) {
@@ -6912,6 +6917,10 @@ function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxI
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (isPublicRoom(report) && SessionUtils.isAnonymousUser()) {
+        return false;
+    }
+
     if (report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         return false;
     }
