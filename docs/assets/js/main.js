@@ -50,21 +50,22 @@ function isInRange(num, min, max) {
  * back to the relevant hub page of that article.
  */
 function navigateBack() {
-    const currentHost = window.location.host;
     const referrer = document.referrer;
+    var currentPath = window.location.pathname;
+    var pathSegments = currentPath.split('/');
+    let newPath;
 
-    if (referrer.includes(currentHost) && window.history.length > 1) {
+    if (referrer && new URL(referrer).pathname === currentPath && window.history.length > 1) {
         window.history.back();
         return;
+    } else if (pathSegments.length > 4 && (pathSegments[2] === 'new-expensify' || pathSegments[2] === 'expensify-classic')) {
+        newPath = `/${pathSegments[2]}/hubs/`;
+    } else {
+        newPath = '/';
     }
 
-    // Path name is of the form /articles/[platform]/[hub]/[resource]
-    const path = window.location.pathname.split('/');
-    if (path[2] && path[3]) {
-        window.location.href = `/${path[2]}/hubs/${path[3]}`;
-    } else {
-        window.location.href = '/';
-    }
+    // Navigate to the new path
+    window.location.href = newPath;
 
     // Add a little delay to avoid showing the previous content in a fraction of a time
     setTimeout(toggleHeaderMenu, 250);
@@ -273,8 +274,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
-    // Back button doesn't exist on all the pages
     const backButton = document.getElementById('back-button');
+
     if (backButton) {
         backButton.addEventListener('click', navigateBack);
     }
