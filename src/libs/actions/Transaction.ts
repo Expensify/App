@@ -358,15 +358,15 @@ function dismissDuplicateTransactionViolation(transactionIDs: string[], dissmiss
     failureData.push(...failureDataTransaction);
     failureData.push(...failureReportActions);
 
-    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index)=>({
+    const successData: OnyxUpdate[] = transactionsReportActions.map((action, index) => ({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${action?.childReportID ?? '-1'}`,
         value: {
             [optimisticDissmidedViolationReportActions[index].reportActionID]: {
-                pendingAction: null
+                pendingAction: null,
             },
         },
-    }))
+    }));
 
     const params: DismissViolationParams = {
         name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
