@@ -3463,6 +3463,9 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        badge: {
+            freeTrial: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
+        },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'Your payment info is outdated',
@@ -3517,6 +3520,10 @@ export default {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',
                 subtitleLink: 'complete your setup checklist here.',
+            },
+            trialStarted: {
+                title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },
         cardSection: {
