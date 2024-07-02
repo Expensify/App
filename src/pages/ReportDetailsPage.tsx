@@ -127,6 +127,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
     const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+    const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
