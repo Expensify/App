@@ -4,10 +4,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 
@@ -36,7 +38,16 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
                 isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1)}
                 medium
                 text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
+                onPress={Session.checkIfActionIsAllowed(() => {
+                    if (Navigation.isActiveRoute(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID)) || Navigation.isActiveRoute(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))) {
+                        return;
+                    }
+                    if (ReportUtils.isCompletedTaskReport(report)) {
+                        Task.reopenTask(report);
+                    } else {
+                        Task.completeTask(report);
+                    }
+                })}
                 style={styles.flex1}
             />
         </View>
