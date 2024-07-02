@@ -3183,8 +3183,7 @@ export default {
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Receipt required';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (formattedLimit || category) {
+            if (formattedLimit ?? category) {
                 message += ' over';
                 if (formattedLimit) {
                     message += ` ${formattedLimit}`;
@@ -3193,7 +3192,6 @@ export default {
                     message += ' category limit';
                 }
             }
-
             return message;
         },
         reviewRequired: 'Review required',

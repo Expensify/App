@@ -3685,8 +3685,7 @@ export default {
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
         receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
             let message = 'Recibo obligatorio';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (formattedLimit || category) {
+            if (formattedLimit ?? category) {
                 message += ' para importes sobre';
                 if (formattedLimit) {
                     message += ` ${formattedLimit}`;
@@ -3695,7 +3694,6 @@ export default {
                     message += ' el límite de la categoría';
                 }
             }
-
             return message;
         },
         reviewRequired: 'Revisión requerida',
