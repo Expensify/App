@@ -1243,6 +1243,7 @@ PODS:
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
+    - React-Core
   - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
