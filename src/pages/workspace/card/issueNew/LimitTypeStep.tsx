@@ -1,5 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -11,43 +13,63 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function LimitTypeStep() {
+type LimitTypeStepProps = {
+    // The policy that the card will be issued under
+    policy: OnyxEntry<OnyxTypes.Policy>;
+};
+
+function LimitTypeStep({policy}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType);
 
-    const submit = ({value}) => {
-        Card.setIssueNewCardData({limitType: value});
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT);
-    };
+    const submit = useCallback(() => {
+        Card.setIssueNewCardDataAndGoToStep({limitType: typeSelected}, CONST.EXPENSIFY_CARD.STEP.LIMIT);
+    }, [typeSelected]);
 
-    const handleBackButtonPress = () => {
+    const handleBackButtonPress = useCallback(() => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
-    };
+    }, []);
 
-    const data = useMemo(
-        () => [
-            {
+    const areApprovalsConfigured = !isEmptyObject(policy?.approver) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
+    const data = useMemo(() => {
+        const options = [];
+
+        if (areApprovalsConfigured) {
+            options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
                 text: translate('workspace.card.issueNewCard.smartLimit'),
                 alternateText: translate('workspace.card.issueNewCard.smartLimitDescription'),
                 keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
-            },
+                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART,
+            });
+        }
+
+        options.push(
             {
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
                 text: translate('workspace.card.issueNewCard.fixedAmount'),
                 alternateText: translate('workspace.card.issueNewCard.fixedAmountDescription'),
                 keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
             },
             {
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
                 text: translate('workspace.card.issueNewCard.monthly'),
                 alternateText: translate('workspace.card.issueNewCard.monthlyDescription'),
-                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
             },
-        ],
-        [translate],
-    );
+        );
+
+        return options;
+    }, [areApprovalsConfigured, translate, typeSelected]);
 
     return (
         <ScreenWrapper
@@ -67,16 +89,17 @@ function LimitTypeStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
-
             <SelectionList
                 ListItem={RadioListItem}
-                onSelectRow={submit}
+                onSelectRow={({value}) => setTypeSelected(value)}
                 sections={[{data}]}
+                shouldDebounceRowSelect
             />
             <Button
                 success
                 large
                 pressOnEnter
+                // TODO: change the text to 'common.confirm' when editing and navigate to ConfirmationStep
                 text={translate('common.next')}
                 onPress={submit}
                 style={styles.m5}

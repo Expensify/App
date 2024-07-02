@@ -31,14 +31,13 @@ function CardNameStep() {
         [translate],
     );
 
-    const submit = (values) => {
-        Card.setIssueNewCardData({cardTitle: values.cardName});
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
-    };
+    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+        Card.setIssueNewCardDataAndGoToStep({cardTitle: values.cardTitle}, CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
+    }, []);
 
-    const handleBackButtonPress = () => {
+    const handleBackButtonPress = useCallback(() => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT);
-    };
+    }, []);
 
     return (
         <ScreenWrapper
@@ -60,6 +59,7 @@ function CardNameStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
+                // TODO: change the submitButtonText to 'common.confirm' when editing and navigate to ConfirmationStep
                 submitButtonText={translate('common.next')}
                 onSubmit={submit}
                 validate={validate}
@@ -72,6 +72,7 @@ function CardNameStep() {
                     hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
                     aria-label={translate('workspace.card.issueNewCard.cardName')}
                     role={CONST.ROLE.PRESENTATION}
+                    // TODO: default value for card name
                     defaultValue=""
                     containerStyles={[styles.mb6]}
                 />

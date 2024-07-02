@@ -10,12 +10,27 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
+
+function getTranslationKeyForLimitType(limitType: string | undefined) {
+    switch (limitType) {
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART:
+            return 'workspace.card.issueNewCard.smartLimit';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED:
+            return 'workspace.card.issueNewCard.fixedAmount';
+        case CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY:
+            return 'workspace.card.issueNewCard.monthly';
+        default:
+            return '';
+    }
+}
 
 function ConfirmationStep() {
     const {translate} = useLocalize();
@@ -24,12 +39,10 @@ function ConfirmationStep() {
 
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
-    const data = issueNewCard?.data ?? {};
-
-    console.log(issueNewCard);
+    const data = issueNewCard?.data;
 
     const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
+        // TODO: the logic will be created when CreateExpensifyCard is ready
         Navigation.navigate(ROUTES.SETTINGS);
     };
 
@@ -40,6 +53,8 @@ function ConfirmationStep() {
     const handleBackButtonPress = () => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME);
     };
+
+    const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
 
     return (
         <ScreenWrapper
@@ -62,31 +77,31 @@ function ConfirmationStep() {
             <Text style={[styles.textLabelSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.cardholder')}
-                title={data.assigneeEmail}
+                title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.cardType')}
-                title={data.cardType}
+                title={data?.cardType ? translate(`workspace.card.issueNewCard.${data?.cardType}Card`) : ''}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.limit')}
-                title={data.limit}
+                title={CurrencyUtils.convertToDisplayString(data?.limit)}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.limitType')}
-                title={data.limitType}
+                title={translationForLimitType ? translate(translationForLimitType) : ''}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.name')}
-                title={data.cardTitle}
+                title={data?.cardTitle}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
             />

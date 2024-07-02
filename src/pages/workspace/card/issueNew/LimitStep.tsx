@@ -1,14 +1,16 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,14 +20,14 @@ function LimitStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = (value) => {
-        Card.setIssueNewCardData({value});
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TITLE);
-    };
+    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+        const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
+        Card.setIssueNewCardDataAndGoToStep({limit}, CONST.EXPENSIFY_CARD.STEP.CARD_NAME);
+    }, []);
 
-    const handleBackButtonPress = () => {
+    const handleBackButtonPress = useCallback(() => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
-    };
+    }, []);
 
     return (
         <ScreenWrapper
@@ -47,6 +49,7 @@ function LimitStep() {
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.setLimit')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
+                // TODO: change the submitButtonText to 'common.confirm' when editing and navigate to ConfirmationStep
                 submitButtonText={translate('common.next')}
                 onSubmit={submit}
                 style={[styles.mh5, styles.flexGrow1]}

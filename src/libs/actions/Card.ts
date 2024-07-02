@@ -5,7 +5,7 @@ import type {ActivatePhysicalExpensifyCardParams, ReportVirtualExpensifyCardFrau
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExpensifyCardDetails, IssueNewCard, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -193,8 +193,8 @@ function setIssueNewCardData(data: IssueNewCardData) {
     Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data});
 }
 
-function clearIssueNewCardFlow() {
-    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {});
+function setIssueNewCardDataAndGoToStep(data: Partial<IssueNewCardData>, step: IssueNewCardStep) {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, currentStep: step});
 }
 
 export {
@@ -205,5 +205,6 @@ export {
     revealVirtualCardDetails,
     setIssueNewCardStep,
     setIssueNewCardData,
+    setIssueNewCardDataAndGoToStep,
 };
 export type {ReplacementReason};

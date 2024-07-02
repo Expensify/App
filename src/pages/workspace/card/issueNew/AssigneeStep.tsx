@@ -6,6 +6,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -28,9 +29,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
 
-    const submit = (value) => {
-        Card.setIssueNewCardData({assigneeEmail: value.login});
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
+    const submit = (assignee: ListItem) => {
+        Card.setIssueNewCardDataAndGoToStep({assigneeEmail: assignee?.login ?? ''}, CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
     };
 
     const handleBackButtonPress = () => {

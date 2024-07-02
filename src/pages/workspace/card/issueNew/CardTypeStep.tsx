@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -16,9 +17,8 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = (value) => () => {
-        Card.setIssueNewCardData({cardType: value});
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
+    const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
+        Card.setIssueNewCardDataAndGoToStep({cardType: value}, CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
     };
 
     const handleBackButtonPress = () => {
@@ -49,7 +49,7 @@ function CardTypeStep() {
                     title={translate('workspace.card.issueNewCard.physicalCard')}
                     description={translate('workspace.card.issueNewCard.physicalCardDescription')}
                     shouldShowRightIcon
-                    onPress={submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL)}
+                    onPress={() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL)}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
@@ -61,7 +61,7 @@ function CardTypeStep() {
                     title={translate('workspace.card.issueNewCard.virtualCard')}
                     description={translate('workspace.card.issueNewCard.virtualCardDescription')}
                     shouldShowRightIcon
-                    onPress={submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL)}
+                    onPress={() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL)}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
