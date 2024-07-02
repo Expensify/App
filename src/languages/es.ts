@@ -969,6 +969,8 @@ export default {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
+            maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
+            exportOnyxState: 'Exportar estado Onyx',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
