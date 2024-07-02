@@ -17,6 +17,7 @@ import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
 import type {Message} from '@src/types/onyx/ReportAction';
 import RenderCommentHTML from './RenderCommentHTML';
 import shouldRenderAsText from './shouldRenderAsText';
+import TextWithEmojiFragment from './TextWithEmojiFragment';
 
 type TextCommentFragmentProps = {
     /** The reportAction's source */
@@ -44,7 +45,7 @@ type TextCommentFragmentProps = {
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {html = '', text} = fragment ?? {};
+    const {html = '', text = ''} = fragment ?? {};
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
@@ -72,6 +73,7 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
     }
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
+    const emojisRegex = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g'));
 
     return (
         <Text style={[containsOnlyEmojis && styles.onlyEmojisText, styles.ltr, style]}>
@@ -79,33 +81,47 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                 text={text}
                 displayAsGroup={displayAsGroup}
             />
-            <Text
-                style={[
-                    containsOnlyEmojis ? styles.onlyEmojisText : undefined,
-                    styles.ltr,
-                    style,
-                    styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
-                    styleAsMuted ? styles.colorMuted : undefined,
-                    !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
-                ]}
-            >
-                {convertToLTR(message ?? '')}
-            </Text>
-            {fragment?.isEdited && (
+            {emojisRegex.test(message ?? '') && !containsOnlyEmojis ? (
+                <TextWithEmojiFragment
+                    message={message}
+                    passedStyles={style}
+                    styleAsDeleted={styleAsDeleted}
+                    styleAsMuted={styleAsMuted}
+                    isEdited={fragment?.isEdited}
+                    emojisOnly={containsOnlyEmojis}
+                />
+            ) : (
                 <>
                     <Text
-                        style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        style={[
+                            styles.enhancedLineHeight,
+                            containsOnlyEmojis ? styles.onlyEmojisText : undefined,
+                            styles.ltr,
+                            style,
+                            styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                            styleAsMuted ? styles.colorMuted : undefined,
+                            !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
+                        ]}
                     >
-                        {' '}
+                        {convertToLTR(message ?? '')}
                     </Text>
-                    <Text
-                        fontSize={variables.fontSizeSmall}
-                        color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
-                    >
-                        {translate('reportActionCompose.edited')}
-                    </Text>
+                    {fragment?.isEdited && (
+                        <>
+                            <Text
+                                style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                {' '}
+                            </Text>
+                            <Text
+                                fontSize={variables.fontSizeSmall}
+                                color={theme.textSupporting}
+                                style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
+                            >
+                                {translate('reportActionCompose.edited')}
+                            </Text>
+                        </>
+                    )}
                 </>
             )}
         </Text>

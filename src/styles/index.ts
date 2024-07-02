@@ -407,7 +407,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
+            lineHeight: variables.lineHeightNormal,
         },
 
         textMicroSupporting: {
@@ -1676,7 +1676,34 @@ const styles = (theme: ThemeColors) =>
         },
 
         onlyEmojisTextLineHeight: {
-            lineHeight: variables.fontSizeOnlyEmojisHeight,
+            lineHeight: variables.lineHeightEmojisOnlyComposer,
+        },
+
+        emojisWithTextLineHeight: {
+            lineHeight: variables.lineHeightEmojisWithTextComposer,
+        },
+
+        emojisWithinText: {
+            fontSize: variables.fontSizeEmojisWithinText,
+            lineHeight: variables.lineHeightComment,
+        },
+
+        emojisWithinDisplayName: {
+            fontSize: variables.fontSizeEmojisWithinText,
+            lineHeight: variables.lineHeightDisplayName,
+        },
+
+        emojisOnlyComposer: {
+            paddingTop: variables.emojiOnlyComposerPaddingTop,
+            paddingBottom: variables.emojiOnlyComposerPaddingBottom,
+        },
+
+        enhancedLineHeight: {
+            lineHeight: variables.lineHeightComment,
+        },
+
+        initialSettingsUsernameEmoji: {
+            fontSize: variables.fontSizeUsernameEmoji,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>
@@ -2001,7 +2028,7 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeNormal,
             fontWeight: FontUtils.fontWeight.bold,
-            lineHeight: variables.lineHeightXLarge,
+            lineHeight: variables.lineHeightXXLarge,
             ...wordBreak.breakWord,
         },
 

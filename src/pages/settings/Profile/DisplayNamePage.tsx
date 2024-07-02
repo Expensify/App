@@ -114,6 +114,7 @@ function DisplayNamePage({isLoadingApp = true, currentUserPersonalDetails}: Disp
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>
