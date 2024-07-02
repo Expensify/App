@@ -53,7 +53,6 @@ import * as EmojiPickerActions from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Modal from '@userActions/Modal';
 import * as Report from '@userActions/Report';
-import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -312,15 +311,6 @@ function ComposerWithSuggestions(
     const isCommentPendingSaved = useRef(false);
 
     /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
-        insertedEmojisRef.current = [];
-    }, []);
-
-    /**
      * Set the TextInput Ref
      */
     const setTextInputRef = useCallback(
@@ -422,7 +412,6 @@ function ComposerWithSuggestions(
                         suggestionsRef.current.resetSuggestions();
                     }
                     insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
@@ -461,18 +450,7 @@ function ComposerWithSuggestions(
                 debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [
-            debouncedUpdateFrequentlyUsedEmojis,
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
-            raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-            selection.end,
-        ],
+        [findNewlyAddedChars, preferredLocale, preferredSkinTone, reportID, setIsCommentEmpty, suggestionsRef, raiseIsScrollLikelyLayoutTriggered, debouncedSaveReportComment, selection.end],
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {
