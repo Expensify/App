@@ -6,6 +6,7 @@ import type {MeasureParentContainerAndCursorCallback} from '@components/AutoComp
 import type {TextSelection} from '@components/Composer/types';
 import {DragAndDropContext} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
+import type {HandleComposerUpdateCallback} from './ComposerWithSuggestions/types';
 import type {SuggestionsRef} from './ReportActionCompose';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
@@ -14,9 +15,6 @@ type SuggestionProps = {
     /** The current input value */
     value: string;
 
-    /** Callback to update the current input value */
-    setValue: (newValue: string) => void;
-
     /** The current selection value */
     selection: TextSelection;
 
@@ -24,7 +22,7 @@ type SuggestionProps = {
     setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
-    updateComment: (newComment: string, shouldDebounceSaveComment?: boolean) => void;
+    updateComposer: HandleComposerUpdateCallback;
 
     /** Measures the parent container's position and dimensions. Also add cursor coordinates */
     measureParentContainerAndReportCursor: (callback: MeasureParentContainerAndCursorCallback) => void;
@@ -56,10 +54,9 @@ type SuggestionProps = {
 function Suggestions(
     {
         value,
-        setValue,
         selection,
         setSelection,
-        updateComment,
+        updateComposer,
         resetKeyboardInput,
         measureParentContainerAndReportCursor,
         isAutoSuggestionPickerLarge = true,
@@ -147,10 +144,9 @@ function Suggestions(
 
     const baseProps = {
         value,
-        setValue,
         setSelection,
         selection,
-        updateComment,
+        updateComposer,
         isAutoSuggestionPickerLarge,
         measureParentContainerAndReportCursor,
         isComposerFocused,

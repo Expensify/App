@@ -7,6 +7,7 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
+    TextInputChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
@@ -58,15 +59,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-
-type SyncSelection = {
-    position: number;
-    value: string;
-};
+import type {HandleComposerUpdateCallback} from './types';
 
 type AnimatedRef = ReturnType<typeof useAnimatedRef>;
-
-type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
     /** The parent report actions for the report */
@@ -275,15 +270,18 @@ function ComposerWithSuggestions(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const draftComment = getDraftComment(reportID) ?? '';
-    const [value, setValue] = useState(() => {
+    const [value, setValueInternal] = useState(() => {
+        const draftComment = getDraftComment(reportID) ?? '';
         if (draftComment) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftComment);
         }
         return draftComment;
     });
-    const commentRef = useRef(value);
-    const lastTextRef = useRef(value);
+    const valueRef = useRef(value);
+    const setValue = useCallback((newValue: string) => {
+        valueRef.current = newValue;
+        setValueInternal(newValue);
+    }, []);
 
     const {isSmallScreenWidth} = useWindowDimensions();
     const maxComposerLines = isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
@@ -296,17 +294,12 @@ function ComposerWithSuggestions(
         (shouldFocusInputOnScreenFocus || (isEmptyChat && !ReportActionsUtils.isTransactionThread(parentReportAction))) &&
         shouldShowComposeInput;
 
-    const valueRef = useRef(value);
-    valueRef.current = value;
-
     const [selection, setSelection] = useState<TextSelection>(() => ({start: 0, end: 0, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
 
     const textInputRef = useRef<TextInput | null>(null);
     const insertedEmojisRef = useRef<Emoji[]>([]);
-
-    const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
 
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
@@ -316,6 +309,7 @@ function ComposerWithSuggestions(
      * API is not called too often.
      */
     const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
+        // TODO: this function isn't even debounced if you look closely...
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojisRef.current));
         insertedEmojisRef.current = [];
     }, []);
@@ -352,11 +346,11 @@ function ComposerWithSuggestions(
 
     useEffect(() => {
         const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
-            if (!commentRef.current) {
+            if (!valueRef.current) {
                 callback();
                 return;
             }
-            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+            Report.saveReportDraftComment(preexistingReportID, valueRef.current, callback);
         });
 
         return () => {
@@ -364,119 +358,13 @@ function ComposerWithSuggestions(
         };
     }, [reportID]);
 
-    /**
-     * Find the newly added characters between the previous text and the new text based on the selection.
-     *
-     * @param prevText - The previous text.
-     * @param newText - The new text.
-     * @returns An object containing information about the newly added characters.
-     * @property startIndex - The start index of the newly added characters in the new text.
-     * @property endIndex - The end index of the newly added characters in the new text.
-     * @property diff - The newly added characters.
-     */
-    const findNewlyAddedChars = useCallback(
-        (prevText: string, newText: string): NewlyAddedChars => {
-            let startIndex = -1;
-            let endIndex = -1;
-            let currentIndex = 0;
-
-            // Find the first character mismatch with newText
-            while (currentIndex < newText.length && prevText.charAt(currentIndex) === newText.charAt(currentIndex) && selection.start > currentIndex) {
-                currentIndex++;
-            }
-
-            if (currentIndex < newText.length) {
-                startIndex = currentIndex;
-                const commonSuffixLength = ComposerUtils.findCommonSuffixLength(prevText, newText, selection?.end ?? 0);
-                // if text is getting pasted over find length of common suffix and subtract it from new text length
-                if (commonSuffixLength > 0 || (selection?.end ?? 0) - selection.start > 0) {
-                    endIndex = newText.length - commonSuffixLength;
-                } else {
-                    endIndex = currentIndex + newText.length;
-                }
-            }
-            return {
-                startIndex,
-                endIndex,
-                diff: newText.substring(startIndex, endIndex),
-            };
-        },
-        [selection.start, selection.end],
-    );
-
-    /**
-     * Update the value of the comment in Onyx
-     */
-    const updateComment = useCallback(
-        (commentValue: string, shouldDebounceSaveComment?: boolean) => {
-            raiseIsScrollLikelyLayoutTriggered();
-            const {startIndex, endIndex, diff} = findNewlyAddedChars(lastTextRef.current, commentValue);
-            const isEmojiInserted = diff.length && endIndex > startIndex && diff.trim() === diff && EmojiUtils.containsOnlyEmojis(diff);
-            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(commentValue, endIndex) : commentValue;
-            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
-            if (emojis.length) {
-                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
-                if (newEmojis.length) {
-                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
-                    if (suggestionsRef.current) {
-                        suggestionsRef.current.resetSuggestions();
-                    }
-                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
-                    debouncedUpdateFrequentlyUsedEmojis();
-                }
-            }
-            const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
-
-            /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
-                setIsCommentEmpty(isNewCommentEmpty);
-            }
-            emojisPresentBefore.current = emojis;
-            setValue(newCommentConverted);
-            if (commentValue !== newComment) {
-                const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), cursorPosition ?? 0);
-
-                if (commentWithSpaceInserted !== newComment && isIOSNative) {
-                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
-                }
-
-                setSelection((prevSelection) => ({
-                    start: position,
-                    end: position,
-                    positionX: prevSelection.positionX,
-                    positionY: prevSelection.positionY,
-                }));
-            }
-
-            commentRef.current = newCommentConverted;
-            if (shouldDebounceSaveComment) {
-                isCommentPendingSaved.current = true;
-                debouncedSaveReportComment(reportID, newCommentConverted);
-            } else {
-                Report.saveReportDraftComment(reportID, newCommentConverted);
-            }
-            if (newCommentConverted) {
-                debouncedBroadcastUserIsTyping(reportID);
-            }
-        },
-        [
-            debouncedUpdateFrequentlyUsedEmojis,
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            setIsCommentEmpty,
-            suggestionsRef,
-            raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-            selection.end,
-        ],
-    );
+    useEffect(() => {
+        const isCommentEmpty = !!value.match(/^(\s)*$/);
+        setIsCommentEmpty(isCommentEmpty);
+    }, [setIsCommentEmpty, value]);
 
     const prepareCommentAndResetComposer = useCallback((): string => {
-        const trimmedComment = commentRef.current.trim();
+        const trimmedComment = valueRef.current.trim();
         const commentLength = ReportUtils.getCommentLength(trimmedComment, {reportID});
 
         // Don't submit empty comments or comments that exceed the character limit
@@ -491,26 +379,16 @@ function ComposerWithSuggestions(
         isCommentPendingSaved.current = false;
 
         setSelection({start: 0, end: 0, positionX: 0, positionY: 0});
-        updateComment('');
+        setValue('');
         setTextInputShouldClear(true);
         if (isComposerFullSize) {
             Report.setIsComposerFullSize(reportID, false);
         }
         setIsFullComposerAvailable(false);
-        return trimmedComment;
-    }, [updateComment, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable, reportID, debouncedSaveReportComment]);
+        Report.saveReportDraftComment(reportID, '');
 
-    /**
-     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
-     */
-    const replaceSelectionWithText = useCallback(
-        (text: string) => {
-            // selection replacement should be debounced to avoid conflicts with text typing
-            // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(ComposerUtils.insertText(commentRef.current, selection, text), true);
-        },
-        [selection, updateComment],
-    );
+        return trimmedComment;
+    }, [reportID, debouncedSaveReportComment, setValue, setTextInputShouldClear, isComposerFullSize, setIsFullComposerAvailable]);
 
     const triggerHotkeyActions = useCallback(
         (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
@@ -550,23 +428,129 @@ function ComposerWithSuggestions(
         [isSmallScreenWidth, isKeyboardShown, suggestionsRef, includeChronos, handleSendMessage, lastReportAction, reportID],
     );
 
-    const onChangeText = useCallback(
-        (commentValue: string) => {
-            updateComment(commentValue, true);
+    /**
+     * Composer updates are partial text updates. Meaning if a event occurs (such as inserting an emoji, or the user pressing a character on their keyboard),
+     * we only append/insert the text that has changed. This is to avoid descynchronization issues where text updates are coming from another thread (RN), see issue #37896.
+     */
+    const handleComposerUpdate: HandleComposerUpdateCallback = useCallback(
+        ({fullNewText, diffText, endPositionOfNewAddedText, shouldDebounceSaveComment}) => {
+            raiseIsScrollLikelyLayoutTriggered();
+            // Check for emojis:
+            // - Either add a whitespace if the user typed an emoji
+            // - Or insert an emoji when the user types :emojiCode:
+            // - Extract all emojis from the updated text and update the frequently used emojis
+            const isEmojiInserted = diffText.trim() === diffText && EmojiUtils.containsOnlyEmojis(diffText);
+            const commentWithSpaceInserted = isEmojiInserted ? ComposerUtils.insertWhiteSpaceAtIndex(fullNewText, endPositionOfNewAddedText) : fullNewText;
+            const {text: newComment, emojis, cursorPosition} = EmojiUtils.replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
+            if (emojis.length) {
+                const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
+                if (newEmojis.length) {
+                    // Ensure emoji suggestions are hidden after inserting emoji even when the selection is not changed
+                    if (suggestionsRef.current) {
+                        suggestionsRef.current.resetSuggestions();
+                    }
+                    insertedEmojisRef.current = [...insertedEmojisRef.current, ...newEmojis];
+                    debouncedUpdateFrequentlyUsedEmojis();
+                }
+            }
+            emojisPresentBefore.current = emojis;
 
-            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
-                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-                syncSelectionWithOnChangeTextRef.current = null;
+            // Make LTR compatible if needed
+            const newCommentConverted = convertToLTRForComposer(newComment);
 
-                // ensure that selection is set imperatively after all state changes are effective
-                InteractionManager.runAfterInteractions(() => {
-                    // note: this implementation is only available on non-web RN, thus the wrapping
-                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
-                });
+            // Update state
+            setValue(newCommentConverted);
+
+            // Update selection eventually
+            if (newComment !== fullNewText) {
+                const position = Math.max((endPositionOfNewAddedText ?? 0) + (newComment.length - fullNewText.length), cursorPosition ?? 0);
+                setSelection((prevSelection) => ({
+                    start: position,
+                    end: position,
+                    positionX: prevSelection.positionX,
+                    positionY: prevSelection.positionY,
+                }));
+                if (isIOSNative) {
+                    // ensure that selection is set imperatively after all state changes are effective
+                    InteractionManager.runAfterInteractions(() => {
+                        // note: this implementation is only available on non-web RN, thus the wrapping
+                        // 'if' block contains a redundant (since the ref is only used on iOS) platform check
+                        textInputRef.current?.setSelection(position, position);
+                    });
+                }
+            }
+
+            // Update onyx related state:
+            if (shouldDebounceSaveComment) {
+                isCommentPendingSaved.current = true;
+                debouncedSaveReportComment(reportID, newCommentConverted);
+            } else {
+                Report.saveReportDraftComment(reportID, newCommentConverted);
+            }
+            if (newCommentConverted) {
+                debouncedBroadcastUserIsTyping(reportID);
             }
         },
-        [updateComment],
+        [debouncedSaveReportComment, debouncedUpdateFrequentlyUsedEmojis, preferredLocale, preferredSkinTone, raiseIsScrollLikelyLayoutTriggered, reportID, setValue, suggestionsRef],
+    );
+
+    // This contains the previous value that we receive directly from the native text input (not our formatted value)
+    const prevNativeTextRef = useRef(value);
+    /**
+     * This is called by the input when the input value changes. It prepares the diff update for calling handleComposerUpdate.
+     */
+    const handleInputChange = useCallback(
+        ({nativeEvent, target}: NativeSyntheticEvent<TextInputChangeEventData>) => {
+            const {count, start, before} = nativeEvent;
+            let nativeText = nativeEvent.text;
+            if (nativeText === undefined) {
+                // Assume we are on a platform where the text is stored in another field called value (e.g. web)
+                // @ts-expect-error Not properly typed
+                nativeText = target.value;
+            }
+
+            const previousNativeText = prevNativeTextRef.current;
+            prevNativeTextRef.current = nativeText;
+
+            if (nativeText === valueRef.current || nativeText === previousNativeText) {
+                // The text hasn't changed (note: the handler gets called for selection changes as well)
+                return;
+            }
+
+            // Within "nativeText", the "count" characters beginning at "start" have just replaced old text (valueRef.current) that had length "before".
+            const endPosition = start + count;
+            const diffText = nativeText.substring(start, endPosition);
+            // Replace newText in the original text:
+            const currentText = valueRef.current;
+            const fullNewText = currentText.substring(0, start) + diffText + currentText.substring(start + before);
+
+            handleComposerUpdate({
+                fullNewText,
+                diffText,
+                endPositionOfNewAddedText: endPosition,
+                shouldDebounceSaveComment: true,
+            });
+        },
+        [handleComposerUpdate],
+    );
+
+    /**
+     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
+     */
+    const replaceSelectionWithText = useCallback(
+        (text: string) => {
+            const newFullText = ComposerUtils.insertText(valueRef.current, selection, text);
+            const endPositionOfNewAddedText = selection.start + text.length;
+            handleComposerUpdate({
+                fullNewText: newFullText,
+                diffText: text,
+                endPositionOfNewAddedText,
+                // selection replacement should be debounced to avoid conflicts with text typing
+                // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
+                shouldDebounceSaveComment: true,
+            });
+        },
+        [selection, handleComposerUpdate],
     );
 
     const onSelectionChange = useCallback(
@@ -721,11 +705,6 @@ function ComposerWithSuggestions(
         }),
         [blur, focus, prepareCommentAndResetComposer, replaceSelectionWithText],
     );
-
-    useEffect(() => {
-        lastTextRef.current = value;
-    }, [value]);
-
     useEffect(() => {
         onValueChange(value);
     }, [onValueChange, value]);
@@ -794,7 +773,7 @@ function ComposerWithSuggestions(
                     ref={setTextInputRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
-                    onChangeText={onChangeText}
+                    onChange={handleInputChange}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
                     style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
@@ -825,13 +804,12 @@ function ComposerWithSuggestions(
             <Suggestions
                 ref={suggestionsRef}
                 isComposerFocused={textInputRef.current?.isFocused()}
-                updateComment={updateComment}
+                updateComposer={handleComposerUpdate}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input
                 value={value}
-                setValue={setValue}
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
@@ -841,9 +819,11 @@ function ComposerWithSuggestions(
                 <SilentCommentUpdater
                     reportID={reportID}
                     value={value}
-                    updateComment={updateComment}
-                    commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
+                    // Update comment is called for example when the comment value has changed from another tab.
+                    // In this case we only want to update the text displayed for this active composer instance,
+                    // thus we just directly update the state:
+                    updateComment={setValue}
                 />
             )}
 

@@ -51,7 +51,7 @@ function SuggestionEmoji(
         value,
         selection,
         setSelection,
-        updateComment,
+        updateComposer,
         isAutoSuggestionPickerLarge,
         resetKeyboardInput,
         measureParentContainerAndReportCursor,
@@ -80,12 +80,14 @@ function SuggestionEmoji(
      */
     const insertSelectedEmoji = useCallback(
         (highlightedEmojiIndexInner: number) => {
-            const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
             const emojiObject = suggestionValues.suggestedEmojis[highlightedEmojiIndexInner];
             const emojiCode = emojiObject.types?.[preferredSkinTone] ? emojiObject.types[preferredSkinTone] : emojiObject.code;
-            const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
 
-            updateComment(`${commentBeforeColon}${emojiCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+            const updateCommentArgs = SuggestionsUtils.getComposerUpdateArgsForSuggestionToInsert(value, emojiCode, {
+                start: suggestionValues.colonIndex,
+                end: selection.end,
+            });
+            updateComposer(updateCommentArgs);
 
             // In some Android phones keyboard, the text to search for the emoji is not cleared
             // will be added after the user starts typing again on the keyboard. This package is
@@ -98,7 +100,7 @@ function SuggestionEmoji(
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
         },
-        [preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
+        [preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComposer, value],
     );
 
     /**
