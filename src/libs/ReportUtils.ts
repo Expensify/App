@@ -1115,7 +1115,9 @@ function shouldDisableDetailPage(report: OnyxEntry<Report>): boolean {
         return false;
     }
     if (isOneOnOneChat(report)) {
-        const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number).filter((accountID) => accountID !== currentUserAccountID);
+        const participantAccountIDs = Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
         return isOptimisticPersonalDetail(participantAccountIDs[0]);
     }
     return false;
