@@ -139,6 +139,10 @@ function hasDetectedFraud(cardList: Record<string, Card>): boolean {
     return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
 }
 
+function getMCardNumberString(cardNumber: string): string {
+    return cardNumber.replace(/\s/g, '');
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -150,4 +154,5 @@ export {
     getCardDescription,
     findPhysicalCard,
     hasDetectedFraud,
+    getMCardNumberString,
 };
