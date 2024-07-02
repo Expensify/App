@@ -142,7 +142,7 @@ function WorkspacesListRow({
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const ThreeDotMenuOrPendingIcon = (
-        <View style={[styles.flexRow]}>
+        <View style={[styles.flexRow, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
             {isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Badge
@@ -154,7 +154,7 @@ function WorkspacesListRow({
                 </View>
             )}
             {!isJoinRequestPending && (
-                <View style={[styles.flexRow, styles.ml2, styles.gap1, !isSmallScreenWidth && styles.workspaceThreeDotMenu]}>
+                <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
                         <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                     </View>

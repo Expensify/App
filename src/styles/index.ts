@@ -3359,7 +3359,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 84,
+            justifyContent: 'flex-end',
+            width: 124,
         },
 
         workspaceListRBR: {
