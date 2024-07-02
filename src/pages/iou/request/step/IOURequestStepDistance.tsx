@@ -114,7 +114,7 @@ function IOURequestStepDistance({
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
-            buttonText = translate('iou.split');
+            buttonText = translate('iou.splitIOU');
         } else if (iouType === CONST.IOU.TYPE.TRACK) {
             buttonText = translate('iou.trackExpense');
         } else {

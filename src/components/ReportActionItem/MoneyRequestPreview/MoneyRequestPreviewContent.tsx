@@ -177,7 +177,7 @@ function MoneyRequestPreviewContent({
         } else if (isScanning) {
             message = translate('common.receipt');
         } else if (isBillSplit) {
-            message = translate('iou.split');
+            message = translate('iou.splitIOU');
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
@@ -391,7 +391,7 @@ function MoneyRequestPreviewContent({
             onPressOut={() => ControlSelection.unblock()}
             onLongPress={showContextMenu}
             shouldUseHapticsOnLongPress
-            accessibilityLabel={isBillSplit ? translate('iou.split') : showCashOrCard}
+            accessibilityLabel={isBillSplit ? translate('iou.splitIOU') : showCashOrCard}
             accessibilityHint={CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,

@@ -61,7 +61,7 @@ function SearchPageBottomTab() {
             >
                 <TopBar
                     activeWorkspaceID={policyIDs}
-                    breadcrumbLabel={translate('common.search')}
+                    breadcrumbLabel={translate('common.searchText')}
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />

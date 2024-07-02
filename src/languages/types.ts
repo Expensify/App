@@ -1,13 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncStage, Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
     lineNumber: number;
-};
-
-type CharacterLimitParams = {
-    limit: number;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -28,6 +25,10 @@ type WelcomeEnterMagicCodeParams = {
 
 type AlreadySignedInParams = {
     email: string;
+};
+
+type CommonSelectedParams = {
+    selectedNumber: number;
 };
 
 type GoBackMessageParams = {
@@ -92,12 +93,6 @@ type ReportArchiveReasonsRemovedFromPolicyParams = {
 
 type ReportArchiveReasonsPolicyDeletedParams = {
     policyName: string;
-};
-
-type RequestCountParams = {
-    count: number;
-    scanningReceipts: number;
-    pendingReceipts: number;
 };
 
 type SettleExpensifyCardParams = {
@@ -200,6 +195,8 @@ type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
 type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
 
+type SyncStageNameParams = {stage: PolicyConnectionSyncStage};
+
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
@@ -248,9 +245,8 @@ type PaySomeoneParams = {name?: string};
 
 type TaskCreatedActionParams = {title: string};
 
-/* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
+type TranslationBaseValue = string | string[] | ((...args: any[]) => string) | ((...args: any[]) => PluralFormPhrase);
 
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
@@ -269,21 +265,124 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
         : `${TPrefix}${TKey & string}`;
 }[keyof TObject];
 
-// Retrieves a type for a given key path (calculated from the type above)
-type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
-    ? TObject[TPath]
-    : TPath extends `${infer TKey}.${infer TRest}`
-    ? TKey extends keyof TObject
-        ? TranslateType<TObject[TKey], TRest>
-        : never
-    : never;
+type PluralFormPhrase = {
+    zero: string;
+    one: string;
+    other: string;
+    two?: string;
+    few?: string;
+    many?: string;
+};
+
+type TranslationPhraseRecord = Record<string, string | number | boolean | null | OnyxEntry<ReportAction> | undefined>;
+type TranslationPhraseArg = number | string | undefined | TranslationPhraseRecord;
+type TranslationPhraseFunction = (...args: TranslationPhraseArg[]) => string;
+type PluralTranslationPhraseFunction = (count: number, record: TranslationPhraseRecord) => PluralFormPhrase;
+
+type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [number, TranslationPhraseRecord] : T extends TranslationPhraseFunction ? Parameters<T> : TranslationPhraseArg[];
+
+type TranslateType<TObject, K extends keyof TObject> = TObject[K] extends PluralTranslationPhraseFunction
+    ? PluralTranslationPhraseFunction
+    : TObject[K] extends TranslationPhraseFunction
+    ? TranslationPhraseFunction
+    : string;
+
+type CharacterLimitParams = {
+    length: number;
+    limit: number;
+};
+
+type PolicyNameParams = {
+    policyName: string;
+};
+
+type CategoryNameParams = {
+    categoryName: string;
+};
+
+type SecondaryLoginParams = {
+    secondaryLogin: string;
+};
+
+type TaxAmountParams = {
+    taxAmount: number;
+};
+
+type EmailAmountParams = {
+    email: string;
+    amount: number;
+};
+
+type UsersCountParams = {
+    usersCount: number;
+    finalCount: number;
+};
+
+type EmailWorkspaceParams = {
+    email: string;
+    workspaceName: string;
+};
+
+type WorkspaceNameParams = {
+    workspaceName: string;
+};
+
+type WorkspaceOwnerNameParams = {
+    workspaceOwnerName: string;
+};
+
+type YearMonthParams = {
+    year: number;
+    monthName: string;
+};
+
+type NextPaymentDateParams = {
+    nextPaymentDate: string;
+};
+
+type CardNumberParams = {
+    cardNumber: string;
+};
+
+type CardInfoParams = {
+    name: string;
+    expiration: string;
+    currency: string;
+};
+
+type PriceRangeParams = {
+    lower: string;
+    upper: string;
+};
+
+type ActiveMembersParams = {
+    size: number;
+};
+
+type CommitmentParams = {
+    size: number;
+    date: string;
+};
+
+type AmountWithCurrency = {
+    amountWithCurrency: number;
+};
+
+type DateParams = {
+    date: string;
+};
+
+type RequestCountParams = {
+    scanningReceipts: number;
+    pendingReceipts: number;
+}
 
 type EnglishTranslation = typeof en;
 
 type TranslationPaths = FlattenObject<EnglishTranslation>;
 
 type TranslationFlatObject = {
-    [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
+    [TKey in Extract<TranslationPaths, string>]: TranslateType<EnglishTranslation, any>;
 };
 
 type TermsParams = {amount: string};
@@ -293,8 +392,6 @@ type ElectronicFundsParams = {percentage: string; amount: string};
 type LogSizeParams = {size: number};
 
 type HeldRequestParams = {comment: string};
-
-type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
@@ -350,13 +447,13 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    CommonSelectedParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -371,7 +468,6 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    SignUpNewFaceCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -387,6 +483,9 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PluralFormPhrase,
+    PluralTranslationPhraseFunction,
+    PhraseParameters,
     ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
@@ -404,18 +503,24 @@ export type {
     SetTheRequestParams,
     SettleExpensifyCardParams,
     SettledAfterAddedBankAccountParams,
+    SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
+    SyncStageNameParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
     ToValidateLoginParams,
     TransferParams,
+    TranslateType,
     TranslationBase,
     TranslationFlatObject,
     TranslationPaths,
+    TranslationPhraseArg,
+    TranslationPhraseFunction,
+    TranslationPhraseRecord,
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
@@ -443,6 +548,27 @@ export type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
+
+    // Newly added types
+    PolicyNameParams,
+    CategoryNameParams,
+    TaxAmountParams,
+    EmailAmountParams,
+    UsersCountParams,
+    EmailWorkspaceParams,
+    WorkspaceNameParams,
+    WorkspaceOwnerNameParams,
+    YearMonthParams,
+    NextPaymentDateParams,
+    CardNumberParams,
+    CardInfoParams,
+    PriceRangeParams,
+    ActiveMembersParams,
+    CommitmentParams,
+    AmountWithCurrency as AmountSavedParams,
+    DateParams,
+    TranslationBaseValue,
+    SecondaryLoginParams,
     ChangeFieldParams,
     ChangePolicyParams,
     ChangeTypeParams,

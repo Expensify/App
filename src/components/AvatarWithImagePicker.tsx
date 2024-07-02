@@ -415,7 +415,7 @@ function AvatarWithImagePicker({
                 <DotIndicatorMessage
                     style={[styles.mt6]}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
+                    messages={{0: translate(errorData.validationError)}}
                     type="error"
                 />
             )}

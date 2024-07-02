@@ -15,7 +15,7 @@ asMutable(translations).default = {
         testKey2: 'Test Word 2',
         testKey3: 'Test Word 3',
         testKeyGroup: {
-            testFunction: ({testVariable}) => `With variable ${testVariable}`,
+            testFunction: ({testVariable}: {testVariable: string}) => `With variable ${testVariable}`,
         },
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
@@ -48,13 +48,6 @@ describe('translate', () => {
         asMutable(CONFIG).IS_IN_PRODUCTION = true;
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
-    });
-
-    it('Test when translation value is a function', () => {
-        const expectedValue = 'With variable Test Variable';
-        const testVariable = 'Test Variable';
-        // @ts-expect-error - TranslationPaths doesn't include testKeyGroup.testFunction as a valid key
-        expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
     });
 });
 

@@ -1,6 +1,8 @@
-import {Str} from 'expensify-common';
+import '@formatjs/intl-locale/polyfill';
+import '@formatjs/intl-pluralrules/locale-data/es';
+import '@formatjs/intl-pluralrules/polyfill';
 import CONST from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -22,7 +24,6 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -78,6 +79,7 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
+    SyncStageNameParams,
     StripePaidParams,
     TaskCreatedActionParams,
     TermsParams,
@@ -133,7 +135,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         center: 'Centrar',
-        search: 'Buscar',
+        searchText: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -304,8 +306,8 @@ export default {
         nonBillable: 'No facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
+        replaceText: 'Sustituir',
         verified: 'Verificado',
-        replace: 'Sustituir',
         distance: 'Distancia',
         mile: 'milla',
         miles: 'millas',
@@ -473,16 +475,13 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Añadir archivo adjunto',
         writeSomething: 'Escribe algo...',
-        conciergePlaceholderOptions: [
-            '¡Pide ayuda!',
-            '¡Pregúntame lo que sea!',
-            '¡Pídeme que te reserve un viaje!',
-            '¡Pregúntame qué puedo hacer!',
-            '¡Pregúntame cómo pagar a la gente!',
-            '¡Pregúntame cómo enviar una factura!',
-            '¡Pregúntame cómo escanear un recibo!',
-            '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
-        ],
+        conciergePlaceholderOptions: ({isSmallScreenWidth}): string => {
+            const options = ['¡Pide ayuda!', '¡Pregúntame lo que sea!', '¡Pídeme que te reserve un viaje!', '¡Pregúntame qué puedo hacer!', '¡Pregúntame cómo pagar a la gente!'];
+            if (!isSmallScreenWidth) {
+                options.push('¡Pregúntame cómo enviar una factura!', '¡Pregúntame cómo escanear un recibo!', '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!');
+            }
+            return options[Math.floor(Math.random() * options.length)];
+        },
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: ({user, time}: LocalTimeParams) => `Son las ${time} para ${user}`,
@@ -650,7 +649,7 @@ export default {
         cash: 'Efectivo',
         card: 'Tarjeta',
         original: 'Original',
-        split: 'Dividir',
+        splitIOU: 'Dividir',
         splitExpense: 'Dividir gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
@@ -683,11 +682,13 @@ export default {
         receiptStatusTitle: 'Escaneando…',
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
-        transactionPendingDescription: 'Transacción pendiente. Puede tardar unos días en contabilizarse.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
-            }`,
+        transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
+        transactionPendingDescription: 'Transacción pendiente. La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
+        expenseCount: (count: number, {scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+            zero: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+            one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+            other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+        }),
         deleteExpense: 'Eliminar gasto',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
@@ -2026,7 +2027,11 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}) => `${selectedNumber} seleccionados`,
+            selected: (count: number) => ({
+                zero: `${count} seleccionados`,
+                one: `${count} seleccionado`,
+                other: `${count} seleccionados`,
+            }),
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2594,7 +2599,7 @@ export default {
                 }? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
-                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                syncStageName: ({stage}: SyncStageNameParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importando clientes';
@@ -2831,9 +2836,26 @@ export default {
             rate: 'Tasa',
             addRate: 'Agregar tasa',
             trackTax: 'Impuesto de seguimiento',
-            deleteRates: ({count}: DistanceRateOperationsParams) => `Eliminar ${Str.pluralize('tasa', 'tasas', count)}`,
-            enableRates: ({count}: DistanceRateOperationsParams) => `Activar ${Str.pluralize('tasa', 'tasas', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Desactivar ${Str.pluralize('tasa', 'tasas', count)}`,
+            deleteRates: (count: number) => ({
+                zero: `Eliminar ${count} tasas`,
+                one: `Eliminar ${count} tasa`,
+                other: `Eliminar ${count} tasas`,
+            }),
+            enableRates: (count: number) => ({
+                zero: `Activar ${count} tasas`,
+                one: `Activar ${count} tasa`,
+                other: `Activar ${count} tasas`,
+            }),
+            disableRates: (count: number) => ({
+                zero: `Desactivar ${count} tasas`,
+                one: `Desactivar ${count} tasa`,
+                other: `Desactivar ${count} tasas`,
+            }),
+            areYouSureDelete: (count: number) => ({
+                zero: `¿Estás seguro de que quieres eliminar ${count} tasas?`,
+                one: `¿Estás seguro de que quieres eliminar ${count} tasa?`,
+                other: `¿Estás seguro de que quieres eliminar ${count} tasas?`,
+            }),
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
@@ -2841,7 +2863,6 @@ export default {
             changePromptMessage: ' para hacer ese cambio.',
             defaultCategory: 'Categoría predeterminada',
             deleteDistanceRate: 'Eliminar tasa de distancia',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `¿Estás seguro de que quieres eliminar ${Str.pluralize('esta tasa', 'estas tasas', count)}?`,
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -3031,7 +3052,7 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     statementPage: {
-        title: (year, monthName) => `Estado de cuenta de ${monthName} ${year}`,
+        title: ({year, monthName}) => `Estado de cuenta de ${monthName} ${year}`,
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
     },
     keyboardShortcutsPage: {

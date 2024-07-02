@@ -313,8 +313,7 @@ function ReportPreview({
             return {supportText: formattedMerchant};
         }
         return {
-            supportText: translate('iou.expenseCount', {
-                count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
+            supportText: translate('iou.expenseCount', numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests, {
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
             }),

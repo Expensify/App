@@ -1,31 +1,39 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
-import CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import CONST from './src/CONST';
+import type {Country} from './src/CONST';
+import type {ConnectionName} from './src/types/onyx/Policy';
 import type {
+    ActiveMembersParams,
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
+    AmountWithCurrency,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
+    CardInfoParams,
+    CardNumberParams,
+    CategoryNameParams,
     ChangeFieldParams,
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
+    CommitmentParams,
     ConfirmThatParams,
+    DateParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DelegateSubmitParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
+    EmailAmountParams,
+    EmailWorkspaceParams,
     EnterMagicCodeParams,
     ExportedToIntegrationParams,
     FormattedMaxLengthParams,
@@ -38,6 +46,7 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
+    NextPaymentDateParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
     NoLongerHaveAccessParams,
@@ -55,6 +64,8 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PolicyNameParams,
+    PriceRangeParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
     RemoveMembersWarningPrompt,
@@ -69,6 +80,7 @@ import type {
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    SecondaryLoginParams,
     SetTheDistanceParams,
     SetTheRequestParams,
     SettledAfterAddedBankAccountParams,
@@ -78,8 +90,10 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
+    SyncStageNameParams,
     StripePaidParams,
     TaskCreatedActionParams,
+    TaxAmountParams,
     TermsParams,
     ThreadRequestReportNameParams,
     ThreadSentMoneyReportNameParams,
@@ -93,6 +107,7 @@ import type {
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
+    UsersCountParams,
     UserSplitParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
@@ -113,6 +128,9 @@ import type {
     WelcomeNoteParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkspaceNameParams,
+    WorkspaceOwnerNameParams,
+    YearMonthParams,
     ZipCodeExampleFormatParams,
 } from './types';
 
@@ -142,7 +160,7 @@ export default {
         to: 'To',
         optional: 'Optional',
         new: 'New',
-        search: 'Search',
+        searchText: 'Search',
         find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
@@ -247,7 +265,7 @@ export default {
             fieldRequired: 'This field is required.',
             requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
-            characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
+            characterLimitExceedCounter: ({length, limit}: CharacterLimitParams) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date.',
             invalidDateShouldBeFuture: 'Please choose today or a future date.',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead.',
@@ -313,8 +331,8 @@ export default {
         nonBillable: 'Non-billable',
         tag: 'Tag',
         receipt: 'Receipt',
+        replaceText: 'Replace',
         verified: 'Verified',
-        replace: 'Replace',
         distance: 'Distance',
         mile: 'mile',
         miles: 'miles',
@@ -481,16 +499,14 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        conciergePlaceholderOptions: [
-            'Ask for help!',
-            'Ask me anything!',
-            'Ask me to book travel!',
-            'Ask me what I can do!',
-            'Ask me how to pay people!',
-            'Ask me how to send an invoice!',
-            'Ask me how to scan a receipt!',
-            'Ask me how to get a free corporate card!',
-        ],
+        conciergePlaceholderOptions: ({isSmallScreenWidth}: Record<string, boolean>): string => {
+            // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
+            const options = ['Ask for help!', 'Ask me anything!', 'Ask me to book travel!', 'Ask me what I can do!', 'Ask me how to pay people!'];
+            if (!isSmallScreenWidth) {
+                options.push('Ask me how to send an invoice!', 'Ask me how to scan a receipt!', 'Ask me how to get a free corporate card!');
+            }
+            return options[Math.floor(Math.random() * options.length)];
+        },
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
@@ -656,7 +672,7 @@ export default {
         cash: 'Cash',
         card: 'Card',
         original: 'Original',
-        split: 'Split',
+        splitIOU: 'Split',
         splitExpense: 'Split expense',
         paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
@@ -688,12 +704,14 @@ export default {
         missingMerchant: 'Missing merchant',
         receiptStatusTitle: 'Scanning…',
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
-        receiptScanningFailed: 'Receipt scanning failed. Please enter the details manually.',
-        transactionPendingDescription: 'Transaction pending. It may take a few days to post.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
-            }`,
+        receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
+        transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
+        transactionPendingDescription: 'Transaction pending. It can take a few days from the date the card was used for the transaction to post.',
+        expenseCount: (count: number, {scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+            zero: `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+            one: `${count} expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+            other: `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+        }),
         deleteExpense: 'Delete expense',
         deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
@@ -1335,7 +1353,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        inWorkspace: ({policyName}) => `in ${policyName}`,
+        inWorkspace: ({policyName}: PolicyNameParams) => `in ${policyName}`,
     },
     reportDescriptionPage: {
         roomDescription: 'Room description',
@@ -2001,7 +2019,11 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
+            selected: (count: number) => ({
+                zero: `${count} selected`,
+                one: `${count} selected`,
+                other: `${count} selected`,
+            }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             unavailable: 'Unavailable workspace',
@@ -2137,8 +2159,8 @@ export default {
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
             trackingCategories: 'Tracking categories',
             trackingCategoriesDescription: 'Choose how to handle Xero tracking categories in Expensify.',
-            mapTrackingCategoryTo: ({categoryName}) => `Map Xero ${categoryName} to`,
-            mapTrackingCategoryToDescription: ({categoryName}) => `Choose where to map ${categoryName} when exporting to Xero.`,
+            mapTrackingCategoryTo: ({categoryName}: CategoryNameParams) => `Map Xero ${categoryName} to`,
+            mapTrackingCategoryToDescription: ({categoryName}: CategoryNameParams) => `Choose where to map ${categoryName} when exporting to Xero.`,
             customers: 'Re-bill customers',
             customersDescription: 'Choose whether to re-bill customers in Expensify. Your Xero customer contacts can be tagged to expenses, and will export to Xero as a sales invoice.',
             taxesDescription: 'Choose how to handle Xero taxes in Expensify.',
@@ -2448,7 +2470,7 @@ export default {
                 updateTaxClaimableFailureMessage: 'The reclaimable portion must be less than the distance rate amount.',
             },
             deleteTaxConfirmation: 'Are you sure you want to delete this tax?',
-            deleteMultipleTaxConfirmation: ({taxAmount}) => `Are you sure you want to delete ${taxAmount} taxes?`,
+            deleteMultipleTaxConfirmation: ({taxAmount}: TaxAmountParams) => `Are you sure you want to delete ${taxAmount} taxes?`,
             actions: {
                 delete: 'Delete rate',
                 deleteMultiple: 'Delete rates',
@@ -2500,7 +2522,7 @@ export default {
                 genericRemove: 'There was a problem removing that workspace member.',
             },
             addedWithPrimary: 'Some members were added with their primary logins.',
-            invitedBySecondaryLogin: ({secondaryLogin}) => `Added by secondary login ${secondaryLogin}.`,
+            invitedBySecondaryLogin: ({secondaryLogin}: SecondaryLoginParams) => `Added by secondary login ${secondaryLogin}.`,
             membersListTitle: 'Directory of all workspace members.',
         },
         card: {
@@ -2624,7 +2646,7 @@ export default {
                 }? This will remove any existing acounting connections.`,
             enterCredentials: 'Enter your credentials',
             connections: {
-                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                syncStageName: ({stage}: SyncStageNameParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
@@ -2798,9 +2820,26 @@ export default {
             rate: 'Rate',
             addRate: 'Add rate',
             trackTax: 'Track tax',
-            deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
-            enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
+            deleteRates: (count: number) => ({
+                zero: `Delete ${count} rates`,
+                one: `Delete ${count} rate`,
+                other: `Delete ${count} rates`,
+            }),
+            enableRates: (count: number) => ({
+                zero: `Enable ${count} rates`,
+                one: `Enable ${count} rate`,
+                other: `Enable ${count} rates`,
+            }),
+            disableRates: (count: number) => ({
+                zero: `Disable ${count} rates`,
+                one: `Disable ${count} rate`,
+                other: `Disable ${count} rates`,
+            }),
+            areYouSureDelete: (count: number) => ({
+                zero: `Are you sure you want to delete ${count} rates?`,
+                one: `Are you sure you want to delete ${count} rate?`,
+                other: `Are you sure you want to delete ${count} rates?`,
+            }),
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
@@ -2808,7 +2847,6 @@ export default {
             changePromptMessage: ' to make that change.',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -2867,19 +2905,19 @@ export default {
             amountOwedText: 'This account has an outstanding balance from a previous month.\n\nDo you want to clear the balance and take over billing of this workspace?',
             ownerOwesAmountTitle: 'Outstanding balance',
             ownerOwesAmountButtonText: 'Transfer balance',
-            ownerOwesAmountText: ({email, amount}) =>
+            ownerOwesAmountText: ({email, amount}: EmailAmountParams) =>
                 `The account owning this workspace (${email}) has an outstanding balance from a previous month.\n\nDo you want to transfer this amount (${amount}) in order to take over billing for this workspace? Your payment card will be charged immediately.`,
             subscriptionTitle: 'Take over annual subscription',
             subscriptionButtonText: 'Transfer subscription',
-            subscriptionText: ({usersCount, finalCount}) =>
+            subscriptionText: ({usersCount, finalCount}: UsersCountParams) =>
                 `Taking over this workspace will merge its annual subscription with your current subscription. This will increase your subscription size by ${usersCount} members making your new subscription size ${finalCount}. Would you like to continue?`,
             duplicateSubscriptionTitle: 'Duplicate subscription alert',
             duplicateSubscriptionButtonText: 'Continue',
-            duplicateSubscriptionText: ({email, workspaceName}) =>
+            duplicateSubscriptionText: ({email, workspaceName}: EmailWorkspaceParams) =>
                 `It looks like you may be trying to take over billing for ${email}'s workspaces, but to do that, you need to be an admin on all their workspaces first.\n\nClick "Continue" if you only want to take over billing for the workspace ${workspaceName}.\n\nIf you want to take over billing for their entire subscription, please have them add you as an admin to all their workspaces first before taking over billing.`,
             hasFailedSettlementsTitle: 'Cannot transfer ownership',
             hasFailedSettlementsButtonText: 'Got it',
-            hasFailedSettlementsText: ({email}) =>
+            hasFailedSettlementsText: ({email}: {email: string}) =>
                 `You can't take over billing because ${email} has an overdue expensify Expensify Card settlement. Please ask them to reach out to concierge@expensify.com to resolve the issue. Then, you can take over billing for this workspace.`,
             failedToClearBalanceTitle: 'Failed to clear balance',
             failedToClearBalanceButtonText: 'OK',
@@ -2893,8 +2931,8 @@ export default {
         },
         restrictedAction: {
             restricted: 'Restricted',
-            actionsAreCurrentlyRestricted: ({workspaceName}) => `Actions on the ${workspaceName} workspace are currently restricted`,
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}) =>
+            actionsAreCurrentlyRestricted: ({workspaceName}: WorkspaceNameParams) => `Actions on the ${workspaceName} workspace are currently restricted`,
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: ({workspaceOwnerName}: WorkspaceOwnerNameParams) =>
                 `Workspace owner, ${workspaceOwnerName} will need to add or update the payment card on file to unlock new workspace activity.`,
             youWillNeedToAddOrUpdatePaymentCard: "You'll need to add or update the payment card on file to unlock new workspace activity.",
             addPaymentCardToUnlock: 'Add a payment card to unlock!',
@@ -2996,7 +3034,7 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this task?',
     },
     statementPage: {
-        title: (year, monthName) => `${monthName} ${year} statement`,
+        title: ({year, monthName}: YearMonthParams) => `${monthName} ${year} statement`,
         generatingPDF: "We're generating your PDF right now. Please check back soon!",
     },
     keyboardShortcutsPage: {
@@ -3523,9 +3561,9 @@ export default {
             title: 'Payment',
             subtitle: 'Add a payment card to pay for your Expensify subscription.',
             addCardButton: 'Add payment card',
-            cardNextPayment: ({nextPaymentDate}) => `Your next payment date is ${nextPaymentDate}.`,
-            cardEnding: ({cardNumber}) => `Card ending in ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
+            cardNextPayment: ({nextPaymentDate}: NextPaymentDateParams) => `Your next payment date is ${nextPaymentDate}.`,
+            cardEnding: ({cardNumber}: CardNumberParams) => `Card ending in ${cardNumber}`,
+            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Name: ${name}, Expiration: ${expiration}, Currency: ${currency}`,
             changeCard: 'Change payment card',
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
@@ -3543,8 +3581,8 @@ export default {
             title: 'Your plan',
             collect: {
                 title: 'Collect',
-                priceAnnual: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
-                pricePayPerUse: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                priceAnnual: ({lower, upper}: PriceRangeParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                pricePayPerUse: ({lower, upper}: PriceRangeParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Unlimited SmartScans and distance tracking',
                 benefit2: 'Expensify Cards with Smart Limits',
                 benefit3: 'Bill pay and invoicing',
@@ -3555,8 +3593,8 @@ export default {
             },
             control: {
                 title: 'Control',
-                priceAnnual: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
-                pricePayPerUse: ({lower, upper}) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                priceAnnual: ({lower, upper}: PriceRangeParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
+                pricePayPerUse: ({lower, upper}: PriceRangeParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 benefit1: 'Everything in Collect, plus:',
                 benefit2: 'NetSuite and Sage Intacct integrations',
                 benefit3: 'Certinia and Workday sync',
@@ -3585,10 +3623,10 @@ export default {
             note: 'Note: An active member is anyone who has created, edited, submitted, approved, reimbursed, or exported expense data tied to your company workspace.',
             confirmDetails: 'Confirm your new annual subscription details:',
             subscriptionSize: 'Subscription size',
-            activeMembers: ({size}) => `${size} active members/month`,
+            activeMembers: ({size}: ActiveMembersParams) => `${size} active members/month`,
             subscriptionRenews: 'Subscription renews',
             youCantDowngrade: 'You can’t downgrade during your annual subscription.',
-            youAlreadyCommitted: ({size, date}) =>
+            youAlreadyCommitted: ({size, date}: CommitmentParams) =>
                 `You already committed to an annual subscription size of ${size} active members per month until ${date}. You can switch to a pay-per-use subscription on ${date} by disabling auto-renew.`,
             error: {
                 size: 'Please enter a valid subscription size.',
@@ -3605,13 +3643,13 @@ export default {
             title: 'Subscription settings',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
-            saveUpTo: ({amountWithCurrency}) => `Save up to ${amountWithCurrency}/month per active member`,
+            saveUpTo: ({amountWithCurrency}: AmountWithCurrency) => `Save up to ${amountWithCurrency}/month per active member`,
             automaticallyIncrease:
                 'Automatically increase your annual seats to accommodate for active members that exceed your subscription size. Note: This will extend your annual subscription end date.',
             disableAutoRenew: 'Disable auto-renew',
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
-            renewsOn: ({date}) => `Renews on ${date}.`,
+            renewsOn: ({date}: DateParams) => `Renews on ${date}.`,
         },
     },
     feedbackSurvey: {
