@@ -1866,6 +1866,8 @@ function getOptions(
             isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
+            login: option.login,
+            includeDomainEmail,
         });
     });
 
@@ -1912,10 +1914,6 @@ function getOptions(
         }
 
         if (isSelfDM && !includeSelfDM) {
-            return;
-        }
-
-        if (Str.isDomainEmail(option.login ?? '') && !includeDomainEmail) {
             return;
         }
 
@@ -2194,7 +2192,6 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includeInvoiceRooms = false,
-    includeDomainEmail = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2222,7 +2219,6 @@ function getFilteredOptions(
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
-            includeDomainEmail,
         },
     );
 }
