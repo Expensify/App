@@ -1,23 +1,24 @@
 import React from 'react';
 import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
+    const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
+        Card.setIssueNewCardDataAndGoToStep({cardType: value}, CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
     };
 
     const handleBackButtonPress = () => {
@@ -42,15 +43,32 @@ function CardTypeStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                submitButtonText={translate('common.next')}
-                onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
-            >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
-            </FormProvider>
+            <View style={styles.mh5}>
+                <MenuItem
+                    icon={Illustrations.HandCard}
+                    title={translate('workspace.card.issueNewCard.physicalCard')}
+                    description={translate('workspace.card.issueNewCard.physicalCardDescription')}
+                    shouldShowRightIcon
+                    onPress={() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL)}
+                    displayInDefaultIconColor
+                    iconStyles={[styles.ml3, styles.mr2]}
+                    iconWidth={variables.menuIconSize}
+                    iconHeight={variables.menuIconSize}
+                    wrapperStyle={styles.purposeMenuItem}
+                />
+                <MenuItem
+                    icon={Illustrations.VirtualCard}
+                    title={translate('workspace.card.issueNewCard.virtualCard')}
+                    description={translate('workspace.card.issueNewCard.virtualCardDescription')}
+                    shouldShowRightIcon
+                    onPress={() => submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL)}
+                    displayInDefaultIconColor
+                    iconStyles={[styles.ml3, styles.mr2]}
+                    iconWidth={variables.menuIconSize}
+                    iconHeight={variables.menuIconSize}
+                    wrapperStyle={styles.purposeMenuItem}
+                />
+            </View>
         </ScreenWrapper>
     );
 }

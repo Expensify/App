@@ -1,29 +1,90 @@
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import FormProvider from '@components/Form/FormProvider';
+import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/types';
+import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 
-function AssigneeStep() {
+type AssigneeStepProps = {
+    // The policy that the card will be issued under
+    policy: OnyxEntry<OnyxTypes.Policy>;
+};
+
+function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [searchTerm, setSearchTerm] = useState('');
 
-    const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
+    const submit = (assignee: ListItem) => {
+        Card.setIssueNewCardDataAndGoToStep({assigneeEmail: assignee?.login ?? ''}, CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
     };
 
     const handleBackButtonPress = () => {
         Navigation.goBack();
     };
+
+    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length > 8;
+    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
+
+    const membersDetails = useMemo(() => {
+        if (!policy?.employeeList) {
+            return [];
+        }
+
+        return Object.keys(policy.employeeList)
+            .map(PersonalDetailsUtils.getPersonalDetailByEmail)
+            .map((detail) => ({
+                keyForList: detail?.login,
+                text: detail?.displayName,
+                alternateText: detail?.login,
+                login: detail?.login,
+                accountID: detail?.accountID,
+                icons: [
+                    {
+                        source: detail?.avatar ?? Expensicons.FallbackAvatar,
+                        name: formatPhoneNumber(detail?.login ?? ''),
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: detail?.accountID,
+                    },
+                ],
+            }));
+    }, [policy?.employeeList]);
+
+    const sections = useMemo(() => {
+        if (!searchTerm) {
+            return [
+                {
+                    data: membersDetails,
+                    shouldShow: true,
+                },
+            ];
+        }
+
+        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm).toLowerCase();
+        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+
+        return [
+            {
+                title: undefined,
+                data: filteredOptions,
+                shouldShow: true,
+            },
+        ];
+    }, [membersDetails, searchTerm]);
 
     return (
         <ScreenWrapper
@@ -43,15 +104,14 @@ function AssigneeStep() {
                 />
             </View>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
-            <FormProvider
-                formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
-                submitButtonText={translate('common.next')}
-                onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
-            >
-                {/* TODO: the content will be created in https://github.com/Expensify/App/issues/44309 */}
-                <View />
-            </FormProvider>
+            <SelectionList
+                textInputLabel={textInputLabel}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                sections={sections}
+                ListItem={UserListItem}
+                onSelectRow={submit}
+            />
         </ScreenWrapper>
     );
 }
