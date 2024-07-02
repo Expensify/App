@@ -528,7 +528,7 @@ function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCoun
         }));
 }
 
-function isSyncTaxEnabled(policy: Policy | undefined) {
+function isSyncTaxEnabled(policy: Policy | undefined): boolean {
     const netSuiteConfg = policy?.connections?.netsuite?.options?.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
     if (!netSuiteConfg || !subsidiaryList) {
@@ -536,7 +536,7 @@ function isSyncTaxEnabled(policy: Policy | undefined) {
     }
 
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netSuiteConfg?.subsidiaryID);
-    return !isUSASubsidiaryNetSuite(selectedSubsidiary?.country);
+    return !!selectedSubsidiary?.country && CONST.NETSUITE_TAX_COUNTRIES.includes(selectedSubsidiary?.country);
 }
 
 function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
@@ -545,10 +545,6 @@ function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: s
 
 function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
-}
-
-function isUSASubsidiaryNetSuite(subsidiaryCountry?: string) {
-    return subsidiaryCountry === '_unitedStates';
 }
 
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
