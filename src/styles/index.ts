@@ -3362,12 +3362,6 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 84,
         },
 
-        workspaceListBadge: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 6,
-        },
-
         workspaceListRBR: {
             flexDirection: 'column',
             justifyContent: 'flex-start',
