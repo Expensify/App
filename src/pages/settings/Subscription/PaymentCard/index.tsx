@@ -62,7 +62,7 @@ function AddPaymentCard() {
             cardCVV: values.securityCode,
             addressName: values.nameOnCard,
             addressZip: values.addressZipCode,
-            currency: values.currency ?? CONST.CURRENCY.USD,
+            currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
         };
         PaymentMethods.addSubscriptionPaymentCard(cardData);
     }, []);

@@ -32,9 +32,12 @@ type BillingBannerProps = {
 
     /** Styles to apply to the subtitle. */
     subtitleStyle?: StyleProp<TextStyle>;
+
+    /** An icon to be rendered instead of the RBR / GBR indicator. */
+    rightIcon?: IconAsset;
 };
 
-function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleStyle, subtitleStyle}: BillingBannerProps) {
+function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleStyle, subtitleStyle, rightIcon}: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -50,12 +53,18 @@ function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleS
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                 {typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle}
             </View>
-
-            {!!brickRoadIndicator && (
+            {rightIcon ? (
                 <Icon
-                    src={Expensicons.DotIndicator}
-                    fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+                    src={rightIcon}
+                    fill={theme.icon}
                 />
+            ) : (
+                !!brickRoadIndicator && (
+                    <Icon
+                        src={Expensicons.DotIndicator}
+                        fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+                    />
+                )
             )}
         </View>
     );
@@ -64,3 +73,4 @@ function BillingBanner({title, subtitle, icon, brickRoadIndicator, style, titleS
 BillingBanner.displayName = 'BillingBanner';
 
 export default BillingBanner;
+export type {BillingBannerProps};

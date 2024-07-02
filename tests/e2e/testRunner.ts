@@ -17,7 +17,7 @@
 import {execSync} from 'child_process';
 import fs from 'fs';
 import type {TestResult} from '@libs/E2E/client';
-import type {TestConfig} from '@libs/E2E/types';
+import type {TestConfig, Unit} from '@libs/E2E/types';
 import compare from './compare/compare';
 import defaultConfig from './config';
 import createServerInstance from './server';
@@ -96,21 +96,19 @@ const runTests = async (): Promise<void> => {
 
     // Create a dict in which we will store the run durations for all tests
     const results: Record<string, Result> = {};
+    const metricForTest: Record<string, Unit> = {};
 
     const attachTestResult = (testResult: TestResult) => {
         let result = 0;
 
-        if (testResult?.duration !== undefined) {
-            if (testResult.duration < 0) {
+        if (testResult?.metric !== undefined) {
+            if (testResult.metric < 0) {
                 return;
             }
-            result = testResult.duration;
-        }
-        if (testResult?.renderCount !== undefined) {
-            result = testResult.renderCount;
+            result = testResult.metric;
         }
 
-        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}`);
+        Logger.log(`[LISTENER] Test '${testResult?.name}' on '${testResult?.branch}' measured ${result}${testResult.unit}`);
 
         if (testResult?.branch && !results[testResult.branch]) {
             results[testResult.branch] = {};
@@ -118,6 +116,10 @@ const runTests = async (): Promise<void> => {
 
         if (testResult?.branch && testResult?.name) {
             results[testResult.branch][testResult.name] = (results[testResult.branch][testResult.name] ?? []).concat(result);
+        }
+
+        if (!metricForTest[testResult.name] && testResult.unit) {
+            metricForTest[testResult.name] = testResult.unit;
         }
     };
 
@@ -161,27 +163,32 @@ const runTests = async (): Promise<void> => {
                         attachTestResult({
                             name: `${test.name} (CPU)`,
                             branch,
-                            duration: metrics.cpu,
+                            metric: metrics.cpu,
+                            unit: '%',
                         });
                         attachTestResult({
                             name: `${test.name} (FPS)`,
                             branch,
-                            duration: metrics.fps,
+                            metric: metrics.fps,
+                            unit: 'FPS',
                         });
                         attachTestResult({
                             name: `${test.name} (RAM)`,
                             branch,
-                            duration: metrics.ram,
+                            metric: metrics.ram,
+                            unit: 'MB',
                         });
                         attachTestResult({
                             name: `${test.name} (CPU/JS)`,
                             branch,
-                            duration: metrics.jsThread,
+                            metric: metrics.jsThread,
+                            unit: '%',
                         });
                         attachTestResult({
                             name: `${test.name} (CPU/UI)`,
                             branch,
-                            duration: metrics.uiThread,
+                            metric: metrics.uiThread,
+                            unit: '%',
                         });
                     }
                     removeListener();
@@ -282,7 +289,7 @@ const runTests = async (): Promise<void> => {
 
     // Calculate statistics and write them to our work file
     Logger.info('Calculating statics and writing results');
-    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`);
+    compare(results.main, results.delta, `${config.OUTPUT_DIR}/output.md`, 'all', metricForTest);
 
     await server.stop();
 };

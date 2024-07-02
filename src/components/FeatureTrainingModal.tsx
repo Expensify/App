@@ -51,6 +51,9 @@ type FeatureTrainingModalProps = {
     /** Describe what is showing */
     description?: string;
 
+    /** Secondary description rendered with additional space */
+    secondaryDescription?: string;
+
     /** Whether to show `Don't show me this again` option */
     shouldShowDismissModalOption?: boolean;
 
@@ -73,6 +76,7 @@ function FeatureTrainingModal({
     videoAspectRatio: videoAspectRatioProp,
     title = '',
     description = '',
+    secondaryDescription = '',
     shouldShowDismissModalOption = false,
     confirmText = '',
     onConfirm = () => {},
@@ -199,6 +203,7 @@ function FeatureTrainingModal({
                                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                         <Text style={styles.textSupporting}>{description}</Text>
+                                        {secondaryDescription.length > 0 && <Text style={[styles.textSupporting, styles.mt4]}>{secondaryDescription}</Text>}
                                     </View>
                                 )}
                                 {shouldShowDismissModalOption && (

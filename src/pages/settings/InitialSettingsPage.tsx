@@ -2,7 +2,7 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -225,45 +225,46 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
      */
     const generalMenuItemsData: Menu = useMemo(() => {
         const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+        const commonItems: MenuData[] = [
+            {
+                translationKey: 'initialSettingsPage.help',
+                icon: Expensicons.QuestionMark,
+                action: () => {
+                    Link.openExternalLink(CONST.NEWHELP_URL);
+                },
+                iconRight: Expensicons.NewWindow,
+                shouldShowRightIcon: true,
+                link: CONST.NEWHELP_URL,
+            },
+            {
+                translationKey: 'initialSettingsPage.about',
+                icon: Expensicons.Info,
+                routeName: ROUTES.SETTINGS_ABOUT,
+            },
+            {
+                translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                icon: Expensicons.Lightbulb,
+                routeName: ROUTES.SETTINGS_TROUBLESHOOT,
+            },
+            {
+                translationKey: 'sidebarScreen.saveTheWorld',
+                icon: Expensicons.Heart,
+                routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+            },
+        ];
+        const signOutItem: MenuData = {
+            translationKey: signOutTranslationKey,
+            icon: Expensicons.Exit,
+            action: () => {
+                signOut(false);
+            },
+        };
         const defaultMenu: Menu = {
             sectionStyle: {
                 ...styles.pt4,
             },
             sectionTranslationKey: 'initialSettingsPage.general',
-            items: [
-                {
-                    translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
-                    action: () => {
-                        Link.openExternalLink(CONST.NEWHELP_URL);
-                    },
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
-                    link: CONST.NEWHELP_URL,
-                },
-                {
-                    translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
-                    routeName: ROUTES.SETTINGS_ABOUT,
-                },
-                {
-                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
-                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
-                },
-                {
-                    translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
-                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                },
-                {
-                    translationKey: signOutTranslationKey,
-                    icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
-            ],
+            items: NativeModules.HybridAppModule ? commonItems : [...commonItems, signOutItem],
         };
 
         return defaultMenu;

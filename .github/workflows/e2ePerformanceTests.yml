@@ -184,6 +184,9 @@ jobs:
 
       - name: Copy e2e code into zip folder
         run: cp tests/e2e/dist/index.js zip/testRunner.ts
+      
+      - name: Copy profiler binaries into zip folder
+        run: cp -r node_modules/@perf-profiler/android/cpp-profiler/bin zip/bin
 
       - name: Zip everything in the zip directory up
         run: zip -qr App.zip ./zip

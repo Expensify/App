@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
+import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -32,6 +33,8 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
     const initialURL = useContext(InitialURLContext);
+    const {navigateToExitUrl} = useHybridAppMiddleware();
+
     useEffect(() => {
         const sessionEmail = session?.email;
         const transitionURL = NativeModules.HybridAppModule ? `${CONST.DEEPLINK_BASE_URL}${initialURL ?? ''}` : initialURL;
@@ -80,7 +83,7 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
                 // remove this screen and navigate to exit route
                 const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                 Navigation.goBack();
-                Navigation.navigate(exitUrl);
+                navigateToExitUrl(exitUrl);
             });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

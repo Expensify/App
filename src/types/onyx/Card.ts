@@ -83,5 +83,14 @@ type ExpensifyCardDetails = {
 /** Record of Expensify cards, indexed by cardID */
 type CardList = Record<string, Card>;
 
+/** Issue new card flow steps */
+type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
+
+/** Model of Issue new card flow */
+type IssueNewCard = {
+    /** The current step of the flow */
+    currentStep: IssueNewCardStep;
+};
+
 export default Card;
-export type {ExpensifyCardDetails, CardList};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep};

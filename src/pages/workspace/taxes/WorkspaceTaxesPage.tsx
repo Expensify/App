@@ -58,7 +58,7 @@ function WorkspaceTaxesPage({
     const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
 
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -252,7 +252,7 @@ function WorkspaceTaxesPage({
                         style={[styles.textNormal, styles.link]}
                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                     >
-                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
                     </TextLink>
                     <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                 </Text>

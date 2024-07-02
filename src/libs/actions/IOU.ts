@@ -1704,13 +1704,16 @@ function getDeleteTrackExpenseInformation(
     }
 
     if (actionableWhisperReportActionID) {
+        const actionableWhisperReportAction = ReportActionsUtils.getReportAction(chatReportID, actionableWhisperReportActionID);
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
                 [actionableWhisperReportActionID]: {
                     originalMessage: {
-                        resolution: null,
+                        resolution: ReportActionsUtils.isActionableTrackExpense(actionableWhisperReportAction)
+                            ? ReportActionsUtils.getOriginalMessage(actionableWhisperReportAction)?.resolution ?? null
+                            : null,
                     },
                 },
             },
@@ -5584,7 +5587,17 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
         return deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
     }
 
-    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(chatReportID, transactionID, reportAction);
+    const whisperAction = ReportActionsUtils.getTrackExpenseActionableWhisper(transactionID, chatReportID);
+    const actionableWhisperReportActionID = whisperAction?.reportActionID;
+    const {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread} = getDeleteTrackExpenseInformation(
+        chatReportID,
+        transactionID,
+        reportAction,
+        undefined,
+        undefined,
+        actionableWhisperReportActionID,
+        CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+    );
 
     // STEP 6: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});

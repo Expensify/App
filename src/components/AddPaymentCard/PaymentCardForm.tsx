@@ -32,7 +32,7 @@ type PaymentCardFormProps = {
     showCurrencyField?: boolean;
     showStateSelector?: boolean;
     isDebitCard?: boolean;
-    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>, currency?: ValueOf<typeof CONST.CURRENCY>) => void;
+    addPaymentCard: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>, currency?: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>) => void;
     submitButtonText: string;
     /** Custom content to display in the footer after card form */
     footerContent?: ReactNode;
@@ -295,7 +295,7 @@ function PaymentCardForm({
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
                             currencySelectorRoute={currencySelectorRoute}
-                            value={data?.currency ?? CONST.CURRENCY.USD}
+                            value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
                             InputComponent={CurrencySelector}
                             inputID={INPUT_IDS.CURRENCY}
                         />

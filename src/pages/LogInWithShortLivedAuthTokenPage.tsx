@@ -9,6 +9,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {navigateToExitUrl} = useHybridAppMiddleware();
     const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
@@ -65,7 +67,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
-                Navigation.navigate(url);
+                navigateToExitUrl(url);
             });
         }
         // The only dependencies of the effect are based on props.route

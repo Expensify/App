@@ -11,13 +11,13 @@ const tableHeader = ['Name', 'Duration'];
 
 const collapsibleSection = (title: string, content: string) => `<details>\n<summary>${title}</summary>\n\n${content}\n</details>\n\n`;
 
-const buildDurationDetails = (title: string, entry: Stats) => {
+const buildDurationDetails = (title: string, entry: Stats, unit: string) => {
     const relativeStdev = entry.stdev / entry.mean;
 
     return [
         `**${title}**`,
-        `Mean: ${format.formatDuration(entry.mean)}`,
-        `Stdev: ${format.formatDuration(entry.stdev)} (${format.formatPercent(relativeStdev)})`,
+        `Mean: ${format.formatMetric(entry.mean, unit)}`,
+        `Stdev: ${format.formatMetric(entry.stdev, unit)} (${format.formatPercent(relativeStdev)})`,
         entry.entries ? `Runs: ${entry.entries.join(' ')}` : '',
     ]
         .filter(Boolean)
@@ -25,7 +25,7 @@ const buildDurationDetails = (title: string, entry: Stats) => {
 };
 
 const buildDurationDetailsEntry = (entry: Entry) =>
-    ['baseline' in entry ? buildDurationDetails('Baseline', entry.baseline) : '', 'current' in entry ? buildDurationDetails('Current', entry.current) : '']
+    ['baseline' in entry ? buildDurationDetails('Baseline', entry.baseline, entry.unit) : '', 'current' in entry ? buildDurationDetails('Current', entry.current, entry.unit) : '']
         .filter(Boolean)
         .join('<br/><br/>');
 
@@ -33,15 +33,15 @@ const formatEntryDuration = (entry: Entry): string => {
     let formattedDuration = '';
 
     if ('baseline' in entry && 'current' in entry) {
-        formattedDuration = format.formatDurationDiffChange(entry);
+        formattedDuration = format.formatMetricDiffChange(entry);
     }
 
     if ('baseline' in entry) {
-        formattedDuration = format.formatDuration(entry.baseline.mean);
+        formattedDuration = format.formatMetric(entry.baseline.mean, entry.unit);
     }
 
     if ('current' in entry) {
-        formattedDuration = format.formatDuration(entry.current.mean);
+        formattedDuration = format.formatMetric(entry.current.mean, entry.unit);
     }
 
     return formattedDuration;

@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
@@ -45,6 +45,7 @@ function GenericPressable(
     const {isExecuting, singleExecution} = useSingleExecution();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
+    const [isHovered, setIsHovered] = useState(false);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -153,7 +154,7 @@ function GenericPressable(
                 StyleUtils.parseStyleFromFunction(style, state),
                 isScreenReaderActive && StyleUtils.parseStyleFromFunction(screenReaderActiveStyle, state),
                 state.focused && StyleUtils.parseStyleFromFunction(focusStyle, state),
-                state.hovered && StyleUtils.parseStyleFromFunction(hoverStyle, state),
+                (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
             ]}
@@ -170,8 +171,23 @@ function GenericPressable(
             accessible={accessible}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
+            onHoverOut={(event) => {
+                if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {
+                    return;
+                }
+                setIsHovered(false);
+                if (rest.onHoverOut) {
+                    rest.onHoverOut(event);
+                }
+            }}
+            onHoverIn={(event) => {
+                setIsHovered(true);
+                if (rest.onHoverIn) {
+                    rest.onHoverIn(event);
+                }
+            }}
         >
-            {(state) => (typeof children === 'function' ? children({...state, isScreenReaderActive, isDisabled}) : children)}
+            {(state) => (typeof children === 'function' ? children({...state, isScreenReaderActive, hovered: state.hovered || isHovered, isDisabled}) : children)}
         </Pressable>
     );
 }
