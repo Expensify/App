@@ -3158,9 +3158,9 @@ function getModifiedExpenseOriginalMessage(
 
     if ('customUnitRateID' in transactionChanges) {
         const mileageRates = DistanceRequestUtils.getMileageRates(policy);
-        const oldRate = mileageRates[TransactionUtils.getRateID(oldTransaction) ?? ''];
-        const newRate = mileageRates[transactionChanges?.customUnitRateID ?? ''];
-        originalMessage.oldCustomUnitRate = oldRate.name ?? 'TODO';
+        const oldRate = mileageRates[TransactionUtils.getRateID(oldTransaction) ?? '-1'];
+        const newRate = mileageRates[transactionChanges?.customUnitRateID ?? '-1'];
+        originalMessage.oldCustomUnitRate = oldRate.name ?? 'TODO'; // todo
         originalMessage.customUnitRate = newRate.name ?? 'TODO';
     }
 
