@@ -217,8 +217,8 @@ function PaymentCardForm({
                     role={CONST.ROLE.PRESENTATION}
                     ref={cardNumberRef}
                     inputMode={CONST.INPUT_MODE.NUMERIC}
-                    onChangeText={onChangeCardNumber}
-                    value={cardNumber}
+                    // onChangeText={onChangeCardNumber}
+                    // value={cardNumber}
                 />
                 <InputWrapper
                     InputComponent={TextInput}
