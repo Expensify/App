@@ -50,8 +50,8 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
                 icon={Illustrations.TeleScope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+                title={translate('workspace.common.noAccountsFound')}
+                subtitle={translate('workspace.common.noAccountsFoundDescription', CONST.POLICY.CONNECTIONS.NAME.NETSUITE)}
                 containerStyle={styles.pb10}
             />
         ),

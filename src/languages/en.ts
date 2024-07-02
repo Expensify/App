@@ -125,6 +125,10 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
+function integrationName(fallbackName: string, integration?: ConnectionName): string {
+    return integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : fallbackName;
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2020,6 +2024,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Add the account in ${integrationName('this integration', integration)} and sync the connection again.`,
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2125,8 +2131,6 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Checks are unavailable when locations are enabled. Please choose a different export option.',
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             },
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Quickbooks Online and sync the connection again.',
         },
         xero: {
             organization: 'Xero organization',
@@ -2199,8 +2203,55 @@ export default {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Awaiting payment',
                 },
             },
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in Xero and sync the connection again.',
+        },
+        sageIntacct: {
+            preferredExporter: 'Preferred exporter',
+            notConfigured: 'Not configured',
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            reimbursableExpenses: {
+                label: 'Export reimbursable expenses as',
+                description: 'Reimbursable expenses will export as expense reports to Sage Intacct. Bills will export as vendor bills.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Expense reports',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
+                },
+            },
+            nonReimbursableExpenses: {
+                label: 'Export non-reimbursable expenses as',
+                description:
+                    'Non-reimbursable expenses will export to Sage Intacct as either credit card transactions or vendor bills and credit the account selected below. Learn more about assigning cards to individual accounts.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Credit card transactions',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
+                },
+            },
+            creditCardAccount: 'Credit card account',
+            // TODO: verify if we need description
+            creditCardAccountDescription: 'We should have some description here, right?',
+            defaultVendor: 'Default vendor',
+            defaultVendorDescription: (isReimbursable: boolean): string =>
+                `Set a default vendor that will apply to ${isReimbursable ? '' : 'non-'}reimbursable expenses that don't have a matching vendor in Sage Intacct.`,
+            exportDescription: 'Configure how data in Expensify gets exported to Sage Inacct.',
+            exportPreferredExporterNote:
+                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
         },
         netsuite: {
             subsidiary: 'Subsidiary',
@@ -2284,8 +2335,6 @@ export default {
                     },
                 },
             },
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
             noItemsFound: 'No invoice items found',
@@ -2579,10 +2628,7 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
-                return `Disconnect ${integrationName}`;
-            },
+            disconnectTitle: (integration?: ConnectionName): string => `Disconnect ${integrationName('integration', integration)}`,
             connectTitle: (integrationToConnect: ConnectionName): string => `Connect ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
 
             syncError: (integration?: ConnectionName): string => {
@@ -2611,13 +2657,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported as report fields',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
-                        ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration]
-                        : 'this integration';
-                return `Are you sure you want to disconnect ${integrationName}?`;
-            },
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => `Are you sure you want to disconnect ${integrationName('this integration', currentIntegration)}?`,
             connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `Are you sure you want to connect ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'this accounting integration'

@@ -116,6 +116,10 @@ import type {
     ZipCodeExampleFormatParams,
 } from './types';
 
+function integrationName(fallbackName: string, integration?: ConnectionName): string {
+    return integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : fallbackName;
+}
+
 /* eslint-disable max-len */
 export default {
     common: {
@@ -2044,6 +2048,8 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
             subscription: 'Suscripción',
+            noAccountsFound: 'No se ha encontrado ninguna cuenta',
+            noAccountsFoundDescription: (integration: ConnectionName) => `Añade la cuenta en ${integrationName('esta integración', integration)} y sincroniza de nuevo la conexión.`,
         },
         qbo: {
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
@@ -2155,8 +2161,6 @@ export default {
                 [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.',
             },
-            noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en Quickbooks Online y sincroniza de nuevo la conexión.',
         },
         xero: {
             organization: 'Organización Xero',
@@ -2232,8 +2236,55 @@ export default {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
                 },
             },
-            noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en Xero y sincroniza de nuevo la conexión.',
+        },
+
+        sageIntacct: {
+            preferredExporter: 'Exportador preferido',
+            notConfigured: 'No configurado',
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Utilice esta fecha cuando exporte informes a Sage Intacct.',
+                values: {
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en la que se exportó el informe a Sage Intacct.',
+                    },
+                    [CONST.SAGE_INTACCT_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha de presentación del informe para su aprobación.',
+                    },
+                },
+            },
+            reimbursableExpenses: {
+                label: 'Gastos reembolsables de exportación como',
+                description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
+                values: {
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
+                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            nonReimbursableExpenses: {
+                label: 'Exportar gastos no reembolsables como',
+                description:
+                    'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
+                values: {
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
+                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+                },
+            },
+            creditCardAccount: 'Cuenta de tarjeta de crédito',
+            creditCardAccountDescription: '!!!!!!!!',
+            defaultVendor: 'Proveedor por defecto',
+            defaultVendorDescription: (isReimbursable: boolean): string =>
+                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
+            exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Inacct.',
+            exportPreferredExporterNote:
+                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
         },
         netsuite: {
             subsidiary: 'Subsidiaria',
@@ -2317,8 +2368,6 @@ export default {
                     },
                 },
             },
-            noAccountsFound: 'No se han encontrado cuentas',
-            noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo.',
             noVendorsFound: 'No se han encontrado proveedores',
             noVendorsFoundDescription: 'Añade proveedores en NetSuite y sincroniza la conexión de nuevo.',
             noItemsFound: 'No se han encontrado artículos de factura',
@@ -2552,10 +2601,7 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: (integration?: ConnectionName): string => {
-                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integración';
-                return `Desconectar ${integrationName}`;
-            },
+            disconnectTitle: (integration?: ConnectionName): string => `Desconectar ${integrationName('integración', integration)}`,
             connectTitle: (integrationToConnect: ConnectionName): string => `Conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'accounting integration'}`,
             syncError: (integration?: ConnectionName): string => {
                 switch (integration) {
@@ -2583,11 +2629,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
             },
-            disconnectPrompt: (currentIntegration?: ConnectionName): string => {
-                const integrationName =
-                    currentIntegration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[currentIntegration] : 'integración';
-                return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
-            },
+            disconnectPrompt: (currentIntegration?: ConnectionName): string => `¿Estás seguro de que quieres desconectar ${integrationName('integración', currentIntegration)}?`,
             connectPrompt: (integrationToConnect: ConnectionName): string =>
                 `¿Estás seguro de que quieres conectar a ${
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integrationToConnect] ?? 'esta integración contable'
