@@ -197,6 +197,12 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                         mapping: {
                                             [mappingName]: mappingValue,
                                         },
+                                        pendingFields: {
+                                            [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                        },
+                                    },
+                                    errorFields: {
+                                        [mappingName]: null
                                     },
                                 },
                             },
@@ -218,6 +224,12 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                         mapping: {
                                             [mappingName]: mappingValue,
                                         },
+                                        pendingFields: {
+                                            [mappingName]: null,
+                                        },
+                                    },
+                                    errorFields: {
+                                        [mappingName]: null
                                     },
                                 },
                             },
@@ -239,6 +251,12 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                         mapping: {
                                             [mappingName]: oldMappingValue,
                                         },
+                                        pendingFields: {
+                                            [mappingName]: null,
+                                        },
+                                    },
+                                    errorFields: {
+                                        [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')
                                     },
                                 },
                             },

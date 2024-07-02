@@ -742,7 +742,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     subsidiary: string;
 
     /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
-    syncOptions: {
+    syncOptions: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
         mapping: {
             /** A general type of classification category in NetSuite */
@@ -759,7 +759,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
             /** A type of classification category in NetSuite linked to departments within the company */
             departments: NetSuiteMappingValues;
-        };
+        }
 
         /** Whether we want to import customers into NetSuite from across all subsidiaries */
         crossSubsidiaryCustomers: boolean;
@@ -838,7 +838,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** The approval level we set for a Journal Entry record created in NetSuite */
         exportJournalsTo: NetSuiteJournalApprovalLevels;
-    };
+    }>;
 
     /** Whther to automatically create employees and vendors upon export in NetSuite if they don't exist */
     autoCreateEntities: boolean;
