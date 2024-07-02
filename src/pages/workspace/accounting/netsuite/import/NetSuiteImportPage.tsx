@@ -70,7 +70,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 ))}
             </View>
 
-            {canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary) && (
+            {canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (
                 <View style={[styles.flex1, styles.ph5, styles.mb4]}>
                     <ToggleSettingOptionRow
                         title={translate('common.tax')}
