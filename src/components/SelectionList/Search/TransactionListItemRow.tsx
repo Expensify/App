@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
@@ -43,9 +44,13 @@ type TransactionListItemRowProps = {
     item: TransactionListItemType;
     showTooltip: boolean;
     onButtonPress: () => void;
+    onCheckboxPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     isChildListItem?: boolean;
+    isDisabled: boolean;
+    canSelectMultiple: boolean;
+    isButtonSelected?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -209,7 +214,18 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
     );
 }
 
-function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
+function TransactionListItemRow({
+    item,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onButtonPress,
+    onCheckboxPress,
+    showItemHeaderOnNarrowLayout = true,
+    containerStyle,
+    isChildListItem = false,
+    isButtonSelected = false,
+}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
@@ -280,7 +296,16 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            {canSelectMultiple && (
+                <Checkbox
+                    isChecked={item.isSelected}
+                    onPress={onCheckboxPress}
+                    disabled={!!item.isDisabled || isDisabled}
+                    accessibilityLabel={item.text ?? ''}
+                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                />
+            )}
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
@@ -361,6 +386,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <ActionCell
                         onButtonPress={onButtonPress}
                         action={item.action}
+                        isSelected={isButtonSelected}
                     />
                 </View>
             </View>

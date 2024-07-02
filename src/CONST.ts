@@ -5022,6 +5022,14 @@ const CONST = {
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
     },
 
     REFERRER: {

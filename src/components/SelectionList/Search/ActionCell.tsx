@@ -14,9 +14,10 @@ type ActionCellProps = {
     onButtonPress: () => void;
     action?: string;
     isLargeScreenWidth?: boolean;
+    isSelected?: boolean;
 };
 
-function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true}: ActionCellProps) {
+function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -53,6 +54,7 @@ function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isL
             small
             pressOnEnter
             style={[styles.w100]}
+            innerStyles={isSelected ? styles.buttonDefaultHovered : {}}
         />
     );
 }
