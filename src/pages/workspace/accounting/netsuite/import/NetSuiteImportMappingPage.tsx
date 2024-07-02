@@ -3,7 +3,9 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type { SelectorType } from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,7 +42,7 @@ function NetSuiteImportMappingPage({
     const listFooterContent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
-                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent` as TranslationPaths, importField)}</Text>
+                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
             </View>
         ),
         [importField, importValue, styles.mb4, styles.mt2, styles.ph5, translate],
@@ -70,6 +72,20 @@ function NetSuiteImportMappingPage({
 
     const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
 
+    const updateImportMapping = ({keyForList}: SelectorType) => {
+        if (!keyForList || keyForList === importValue) {
+            return;
+        }
+
+        updateNetSuiteImportMapping(
+            policyID,
+            importField as keyof typeof importMappings,
+            keyForList,
+            importValue
+        );
+        Navigation.goBack();
+    };
+
     return (
         <SelectionScreen
             policyID={policyID}
@@ -79,7 +95,7 @@ function NetSuiteImportMappingPage({
             sections={inputSectionData.length > 0 ? [{data: inputSectionData}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onSelectRow={() => {}}
+            onSelectRow={updateImportMapping}
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
