@@ -535,7 +535,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
     const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
 
-    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled;
+    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerOrParticipantOfPolicyExpenseChat(report, policy);
 
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
