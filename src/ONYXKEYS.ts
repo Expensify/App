@@ -431,7 +431,10 @@ const ONYXKEYS = {
         /** Expensify cards settings */
         SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS: 'sharedNVP_private_expensifyCardSettings_',
 
-        /** Expensify cards list */
+        /**
+         * Stores the card list for a given fundID and feed in the format: card_<fundID>_<bankName>
+         * So for example: card_12345_ExpensifyCard
+         */
         EXPENSIFY_CARDS_LIST: 'card_',
     },
 
