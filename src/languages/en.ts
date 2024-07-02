@@ -2081,6 +2081,7 @@ export default {
             accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
+            creditCardAccount: 'Credit card account',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
