@@ -6967,6 +6967,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
+    backToParam?: string,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -6974,8 +6975,8 @@ function navigateToStartStepIfScanFileCannotBeRead(
 
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
-        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL || requestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToParam ?? Navigation.getActiveRouteWithoutParams()));
             return;
         }
         IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);

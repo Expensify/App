@@ -1,4 +1,5 @@
 import {useIsFocused} from '@react-navigation/core';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -81,12 +82,29 @@ function IOURequestStepParticipants({
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
-    useEffect(() => {
-        if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-            return;
-        }
-        IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
-    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
+    useFocusEffect(
+        useCallback(() => {
+            if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+                return;
+            }
+            const backToParam = ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, action);
+            if (!receiptPath && iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToParam));
+                return;
+            }
+            IOU.navigateToStartStepIfScanFileCannotBeRead(
+                receiptFilename ?? '',
+                receiptPath ?? '',
+                () => {},
+                iouRequestType,
+                iouType,
+                transactionID,
+                reportID,
+                receiptType ?? '',
+                backToParam,
+            );
+        }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]),
+    );
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
