@@ -1,7 +1,7 @@
 import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -21,10 +21,12 @@ import type {TranslationPaths} from '@src/languages/types';
 
 const parser = new ExpensiMark();
 
+type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
+
 type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
     route: {
         params: {
-            importField: string;
+            importField: ImportFieldsKeys;
         };
     };
 };
@@ -46,7 +48,7 @@ function NetSuiteImportMappingPage({
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const importMappings = netsuiteConfig?.syncOptions?.mapping;
 
-    const importValue = importMappings?.[importField as keyof typeof importMappings] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importValue = importMappings?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
     const listFooterContent = useMemo(
         () => (
