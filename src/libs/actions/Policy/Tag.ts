@@ -363,7 +363,7 @@ function clearPolicyTagErrors(policyID: string, tagName: string, tagListIndex: n
     });
 }
 
-function clearPolicyTagListError(policyID: string, tagListIndex: number, errorField: string) {
+function clearPolicyTagListErrorField(policyID: string, tagListIndex: number, errorField: string) {
     const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
 
     if (!policyTag.name) {
@@ -375,6 +375,20 @@ function clearPolicyTagListError(policyID: string, tagListIndex: number, errorFi
             errorFields: {
                 [errorField]: null,
             },
+        },
+    });
+}
+
+function clearPolicyTagListErrors(policyID: string, tagListIndex: number) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[tagListIndex] ?? {};
+
+    if (!policyTag.name) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [policyTag.name]: {
+            errors: null,
         },
     });
 }
@@ -569,7 +583,7 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null},
                     [oldName]: null,
                 },
             },
@@ -589,12 +603,12 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    errors: {
-                        [oldName]: oldName,
-                        [newName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                    },
                     [newName]: null,
-                    [oldName]: oldPolicyTags,
+                    [oldName]: {
+                        ...oldPolicyTags,
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                    },
                 },
             },
         ],
@@ -725,7 +739,8 @@ export {
     setPolicyTagsRequired,
     createPolicyTag,
     clearPolicyTagErrors,
-    clearPolicyTagListError,
+    clearPolicyTagListErrors,
+    clearPolicyTagListErrorField,
     deletePolicyTags,
     enablePolicyTags,
     openPolicyTagsPage,

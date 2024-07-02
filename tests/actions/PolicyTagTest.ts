@@ -262,7 +262,7 @@ describe('actions/Policy', () => {
 
                                     expect(policyTags?.[newTagListName]).toBeFalsy();
                                     expect(policyTags?.[oldTagListName]).toBeTruthy();
-                                    expect(policyTags?.errors).toBeTruthy();
+                                    expect(policyTags?.[oldTagListName]?.errors).toBeTruthy();
 
                                     resolve();
                                 },
