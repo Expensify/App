@@ -34,7 +34,6 @@ function SilentCommentUpdater({comment, reportID, value, updateComment, isCommen
         }
 
         updateComment(comment ?? '');
-        console.log('SilentCommentUpdater: Comment updated', comment);
     }, [prevCommentProp, prevPreferredLocale, prevReportId, comment, preferredLocale, reportID, updateComment, value, isCommentPendingSaved]);
 
     return null;
