@@ -1,15 +1,46 @@
 import {addDays, addMinutes, format as formatDate, getUnixTime, subDays} from 'date-fns';
 import Onyx from 'react-native-onyx';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BillingGraceEndPeriod} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, BillingStatus, FundList, StripeCustomerID} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 
 const billingGraceEndPeriod: BillingGraceEndPeriod = {
     name: 'owner@email.com',
     permissions: 'read',
     value: 0,
+};
+
+const GRACE_PERIOD_DATE = new Date().getTime() + 1000;
+const GRACE_PERIOD_DATE_OVERDUE = new Date().getTime() - 1000;
+
+const AMOUNT_OWED = 100;
+const STRIPE_CUSTOMER_ID: StripeCustomerID = {
+    paymentMethodID: '1',
+    intentsID: '2',
+    currency: 'USD',
+    status: 'authentication_required',
+};
+const BILLING_STATUS_INSUFFICIENT_FUNDS: BillingStatus = {
+    action: 'action',
+    periodMonth: 'periodMonth',
+    periodYear: 'periodYear',
+    declineReason: 'insufficient_funds',
+};
+const BILLING_STATUS_EXPIRED_CARD: BillingStatus = {
+    ...BILLING_STATUS_INSUFFICIENT_FUNDS,
+    declineReason: 'expired_card',
+};
+const FUND_LIST: FundList = {
+    defaultCard: {
+        isDefault: true,
+        accountData: {
+            cardYear: new Date().getFullYear(),
+            cardMonth: new Date().getMonth() + 1,
+        },
+    },
 };
 
 Onyx.init({keys: ONYXKEYS});
@@ -151,7 +182,7 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.SESSION]: null,
                 [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: null,
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
                 [ONYXKEYS.COLLECTION.POLICY]: null,
             });
         });
@@ -237,7 +268,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 0,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID: accountID,
@@ -254,7 +285,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 8010,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID: accountID,
@@ -271,7 +302,7 @@ describe('SubscriptionUtils', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: '', accountID},
                 [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: getUnixTime(subDays(new Date(), 3)), // past due
-                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWNED]: 8010,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
                 [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
                     ...createRandomPolicy(Number(policyID)),
                     ownerAccountID: 2, // not the user
@@ -279,6 +310,135 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(SubscriptionUtils.shouldRestrictUserBillableActions(policyID)).toBeFalsy();
+        });
+    });
+
+    describe('getSubscriptionStatus', () => {
+        it('should return undefined by default', () => {
+            expect(SubscriptionUtils.getSubscriptionStatus()).toBeUndefined();
+        });
+
+        it('should return POLICY_OWNER_WITH_AMOUNT_OWED status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
+                isError: true,
+            });
+        });
+
+        it('should return POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE_OVERDUE,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
+            });
+        });
+
+        it('should return OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING_OVERDUE,
+            });
+        });
+
+        it('should return OWNER_OF_POLICY_UNDER_INVOICING status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: GRACE_PERIOD_DATE,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
+            });
+        });
+
+        it('should return BILLING_DISPUTE_PENDING status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: 0,
+                [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
+            });
+        });
+
+        it('should return CARD_AUTHENTICATION_REQUIRED status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
+                [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: STRIPE_CUSTOMER_ID,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED,
+            });
+        });
+
+        it('should return INSUFFICIENT_FUNDS status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+                [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: {},
+                [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_INSUFFICIENT_FUNDS,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
+            });
+        });
+
+        it('should return CARD_EXPIRED status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: BILLING_STATUS_EXPIRED_CARD,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.CARD_EXPIRED,
+            });
+        });
+
+        it('should return CARD_EXPIRE_SOON status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 0,
+                [ONYXKEYS.NVP_PRIVATE_BILLING_STATUS]: {},
+                [ONYXKEYS.FUND_LIST]: FUND_LIST,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
+            });
+        });
+
+        it('should return RETRY_BILLING_SUCCESS status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.FUND_LIST]: {},
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
+                isError: false,
+            });
+        });
+
+        it('should return RETRY_BILLING_ERROR status', async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.FUND_LIST]: {},
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
+                [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: true,
+            });
+
+            expect(SubscriptionUtils.getSubscriptionStatus()).toEqual({
+                status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
+                isError: true,
+            });
         });
     });
 });
