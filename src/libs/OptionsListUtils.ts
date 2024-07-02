@@ -297,7 +297,7 @@ Onyx.connect({
             const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, actions[reportActions[0]]);
             if (transactionThreadReportID) {
                 const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                sortedReportActions = ReportActionUtils.getCombinedReportActions(reportActionsArray, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
+                sortedReportActions = ReportActionUtils.getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
             }
 
             lastReportActions[reportID] = sortedReportActions[0];
@@ -1100,7 +1100,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : true,
+                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : !selectedOptionsName.includes(searchText),
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
                 pendingAction: option.pendingAction,
             });
@@ -1741,6 +1741,26 @@ function getUserToInviteOption({
 }
 
 /**
+ * Check whether report has violations
+ */
+function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    if (!Permissions.canUseViolations(betas)) {
+        return false;
+    }
+    const {parentReportID, parentReportActionID} = report ?? {};
+    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    if (!canGetParentReport) {
+        return false;
+    }
+    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
+    if (!parentReportAction) {
+        return false;
+    }
+    return ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+}
+
+/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1847,13 +1867,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-
-        const {parentReportID, parentReportActionID} = report ?? {};
-        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
-        const doesReportHaveViolations =
-            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
+        const doesReportHaveViolations = shouldShowViolations(report, betas, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -2581,6 +2595,7 @@ export {
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
+    shouldShowViolations,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
