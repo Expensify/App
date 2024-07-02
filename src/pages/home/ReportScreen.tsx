@@ -236,6 +236,7 @@ function ReportScreen({
             avatarUrl: reportOnyx?.avatarUrl,
             permissions,
             invoiceReceiver: reportOnyx?.invoiceReceiver,
+            policyAvatar: reportOnyx?.policyAvatar,
         }),
         [
             reportOnyx?.lastReadTime,
@@ -277,6 +278,7 @@ function ReportScreen({
             reportOnyx?.avatarUrl,
             permissions,
             reportOnyx?.invoiceReceiver,
+            reportOnyx?.policyAvatar,
         ],
     );
 
