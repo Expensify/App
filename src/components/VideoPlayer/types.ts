@@ -30,6 +30,7 @@ type VideoPlayerProps = {
     controlsStatus?: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
     shouldPlay?: boolean;
     isPreview?: boolean;
+    canToggleControlOnTap?: boolean;
 };
 
 export type {VideoPlayerProps, VideoWithOnFullScreenUpdate};
