@@ -173,6 +173,7 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYear: boolean;
 
+        /** Key used internally by React */
         keyForList: string;
     };
 
