@@ -374,6 +374,14 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
 }
 
 /**
+ * Returns filtered list for one transaction view
+ * Separated it from getCombinedReportActions, so it can be reused
+ */
+function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
+    return reportActions.filter((action) => !isSentMoneyReportAction(action));
+}
+
+/**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
@@ -1545,6 +1553,7 @@ export {
     getTextFromHtml,
     isTripPreview,
     getIOUActionForReportID,
+    getFilteredForOneTransactionView,
 };
 
 export type {LastVisibleMessage};
