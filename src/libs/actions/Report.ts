@@ -2535,35 +2535,47 @@ function openReportFromDeepLink(url: string) {
     // Navigate to the report after sign-in/sign-up.
     InteractionManager.runAfterInteractions(() => {
         Session.waitForUserSignIn().then(() => {
-            Navigation.waitForProtectedRoutes().then(() => {
-                if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
-                    Session.signOutAndRedirectToSignIn(true);
-                    return;
-                }
+            Onyx.connect({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (onboarding) => {
+                    Navigation.waitForProtectedRoutes().then(() => {
+                        if (route && Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(route)) {
+                            Session.signOutAndRedirectToSignIn(true);
+                            return;
+                        }
 
-                // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
-                // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
-                // which is already called when AuthScreens mounts.
-                if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
-                    return;
-                }
+                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                        // which is already called when AuthScreens mounts.
+                        if (new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            return;
+                        }
 
-                const state = navigationRef.getRootState();
-                const currentFocusedRoute = findFocusedRoute(state);
-                if (shouldSkipDeepLinkNavigation(route)) {
-                    return;
-                }
+                        if (shouldSkipDeepLinkNavigation(route)) {
+                            return;
+                        }
 
-                if (isOnboardingFlowName(currentFocusedRoute?.name)) {
-                    Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
-                    return;
-                }
+                        const state = navigationRef.getRootState();
+                        const currentFocusedRoute = findFocusedRoute(state);
+                        const hasCompletedGuidedSetupFlow = Array.isArray(onboarding) || onboarding?.hasCompletedGuidedSetupFlow;
 
-                if (isAuthenticated) {
-                    return;
-                }
+                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
+                        if (!hasCompletedGuidedSetupFlow) {
+                            return;
+                        }
 
-                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                        if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                            Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+                            return;
+                        }
+
+                        if (isAuthenticated) {
+                            return;
+                        }
+
+                        Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                    });
+                },
             });
         });
     });
