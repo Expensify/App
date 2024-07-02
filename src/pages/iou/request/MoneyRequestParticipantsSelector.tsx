@@ -72,7 +72,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-
+    const isCategorizeAction = action === CONST.IOU.ACTION.CATEGORIZE;
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
     useEffect(() => {
@@ -124,6 +124,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             undefined,
             undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
+            isCategorizeAction,
         );
 
         return optionList;
@@ -135,6 +136,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         didScreenTransitionEnd,
         iouRequestType,
         iouType,
+        isCategorizeAction,
         isCategorizeOrShareAction,
         options.personalDetails,
         options.reports,
@@ -210,7 +212,6 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
                 shouldShow: true,
             });
         }
-
         const headerMessage = OptionsListUtils.getHeaderMessage(
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
@@ -219,7 +220,17 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         );
 
         return [newSections, headerMessage];
-    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, personalDetails, translate]);
+    }, [
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        debouncedSearchTerm,
+        participants,
+        chatOptions.recentReports,
+        chatOptions.personalDetails,
+        chatOptions.userToInvite,
+        personalDetails,
+        translate,
+    ]);
 
     /**
      * Adds a single participant to the expense

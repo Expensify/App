@@ -175,6 +175,7 @@ type GetOptionsConfig = {
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
+    isCategorizeAction?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -269,6 +270,13 @@ Onyx.connect({
 
         policies[key] = policy;
     },
+});
+
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
 });
 
 const lastReportActions: ReportActions = {};
@@ -1802,6 +1810,7 @@ function getOptions(
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
+        isCategorizeAction = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -2036,8 +2045,15 @@ function getOptions(
             }
 
             reportOption.isSelected = isReportSelected(reportOption, selectedOptions);
-
-            recentReportOptions.push(reportOption);
+            if (isCategorizeAction) {
+                const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${reportOption.policyID}`] ?? {};
+                const count = getEnabledCategoriesCount(policyCategories);
+                if (count !== 0) {
+                    recentReportOptions.push(reportOption);
+                }
+            } else {
+                recentReportOptions.push(reportOption);
+            }
 
             // Add this login to the exclude list so it won't appear when we process the personal details
             if (reportOption.login) {
@@ -2094,7 +2110,6 @@ function getOptions(
         personalDetailsOptions = [];
         recentReportOptions = orderOptions(recentReportOptions, searchValue, {preferChatroomsOverThreads: true});
     }
-
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -2200,6 +2215,7 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includeInvoiceRooms = false,
+    isCategorizeAction = false,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2227,6 +2243,7 @@ function getFilteredOptions(
             policyReportFieldOptions,
             recentlyUsedPolicyReportFieldOptions,
             includeInvoiceRooms,
+            isCategorizeAction,
         },
     );
 }
