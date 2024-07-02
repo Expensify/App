@@ -1,8 +1,8 @@
 diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
-index 7be4e5c..b0892f8 100644
+index 7be4e5c..0dbeb05 100644
 --- a/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
 +++ b/node_modules/@expensify/react-native-live-markdown/lib/module/MarkdownTextInput.web.js
-@@ -245,16 +245,19 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+@@ -245,16 +245,20 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
        });
      }
    }, [multiline, onContentSizeChange]);
@@ -12,6 +12,7 @@ index 7be4e5c..b0892f8 100644
        return;
      }
 +    const prevSelection = contentSelection.current;
++    const prevTextLength = CursorUtils.getPrevTextLength()
      const changedText = e.target.innerText;
      if (compositionRef.current && !BrowserUtils.isMobile) {
        updateTextColor(divRef.current, changedText);
@@ -22,7 +23,7 @@ index 7be4e5c..b0892f8 100644
      let text = '';
      const nativeEvent = e.nativeEvent;
      switch (nativeEvent.inputType) {
-@@ -275,6 +278,8 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+@@ -275,6 +279,8 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
        default:
          text = parseText(divRef.current, changedText, processedMarkdownStyle).text;
      }
@@ -31,7 +32,7 @@ index 7be4e5c..b0892f8 100644
      if (pasteRef !== null && pasteRef !== void 0 && pasteRef.current) {
        pasteRef.current = false;
        updateSelection(e);
-@@ -283,10 +288,35 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+@@ -283,10 +289,36 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
      if (onChange) {
        const event = e;
        setEventProps(event);
@@ -45,16 +46,17 @@ index 7be4e5c..b0892f8 100644
 +      let start = prevSelection.start;
 +      
 +      const prevSelectionRange = prevSelection.end - prevSelection.start;
-+      if (nativeEvent.inputType === 'deleteContentBackward' && start > 0 && prevSelectionRange === 0) {
-+        // if the user pressed backspace, we need to adjust the start index to be before the selection
-+        start -= 1;
-+      }
-+      
 +      // The length the deleted text had before
 +      let before = prevSelectionRange;
 +      if (prevSelectionRange === 0 && (nativeEvent.inputType === 'deleteContentBackward' || nativeEvent.inputType === 'deleteContentForward')) {
-+        // its possible the user pressed a delete key without a selection range, so we need to adjust the before value
-+        before = 1;
++        // its possible the user pressed a delete key without a selection range, so we need to adjust the before value to have the length of the deleted text
++        before = prevTextLength - normalizedText.length;
++      }
++
++      if (nativeEvent.inputType === 'deleteContentBackward')  {
++        // When the user does a backspace delete he expects the content before the cursor to be removed.
++        // For this the start value needs to be adjusted (its as if the selection was before the text that we want to delete)
++        start -= before
 +      }
 +
 +      nativeEvent.count = count;
@@ -68,3 +70,26 @@ index 7be4e5c..b0892f8 100644
        onChangeText(normalizedText);
      }
      handleContentSizeChange();
+@@ -418,6 +450,7 @@ const MarkdownTextInput = /*#__PURE__*/React.forwardRef(({
+     }
+     divRef.current = r;
+   };
++  // Sync the input with the user provided value
+   useClientEffect(function parseAndStyleValue() {
+     if (!divRef.current || processedValue === divRef.current.innerText) {
+       return;
+diff --git a/node_modules/@expensify/react-native-live-markdown/lib/module/web/cursorUtils.js b/node_modules/@expensify/react-native-live-markdown/lib/module/web/cursorUtils.js
+index 6a4b510..4907967 100644
+--- a/node_modules/@expensify/react-native-live-markdown/lib/module/web/cursorUtils.js
++++ b/node_modules/@expensify/react-native-live-markdown/lib/module/web/cursorUtils.js
+@@ -136,5 +136,8 @@ function scrollCursorIntoView(target) {
+     target.scrollTo(0, topToCaret + target.scrollTop + inputOffset);
+   }
+ }
+-export { getCurrentCursorPosition, moveCursorToEnd, setCursorPosition, setPrevText, removeSelection, scrollCursorIntoView };
++function getPrevTextLength() {
++  return prevTextLength;
++}
++export { getCurrentCursorPosition, moveCursorToEnd, setCursorPosition, setPrevText, removeSelection, scrollCursorIntoView, getPrevTextLength };
+ //# sourceMappingURL=cursorUtils.js.map
+\ No newline at end of file
