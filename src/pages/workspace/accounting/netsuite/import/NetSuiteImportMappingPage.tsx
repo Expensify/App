@@ -80,10 +80,11 @@ function NetSuiteImportMappingPage({
 
                 <View style={[styles.flexRow]}>
                     <RenderHTML
-                    html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</muted-text></comment>`}
-                />
+                        html={`<comment><muted-text>${parser.replace(
+                            translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths),
+                        )}</muted-text></comment>`}
+                    />
                 </View>
-
             </View>
         ),
         [styles.ph5, styles.mt2, styles.mb4, styles.flexRow, importField, translate, netsuiteConfig, policyID],
