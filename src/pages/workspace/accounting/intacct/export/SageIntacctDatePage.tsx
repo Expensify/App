@@ -69,6 +69,6 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctDatePage.displayName = 'PolicySageIntacctDatePage';
+SageIntacctDatePage.displayName = 'SageIntacctDatePage';
 
 export default withPolicyConnections(SageIntacctDatePage);

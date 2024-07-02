@@ -160,6 +160,6 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctNonReimbursableExpensesPage.displayName = 'PolicySageIntacctNonReimbursableExpensesPage';
+SageIntacctNonReimbursableExpensesPage.displayName = 'SageIntacctNonReimbursableExpensesPage';
 
 export default withPolicyConnections(SageIntacctNonReimbursableExpensesPage);

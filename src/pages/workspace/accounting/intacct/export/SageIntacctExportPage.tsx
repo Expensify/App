@@ -86,6 +86,6 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctExportPage.displayName = 'PolicySageIntacctExportPage';
+SageIntacctExportPage.displayName = 'SageIntacctExportPage';
 
 export default withPolicyConnections(SageIntacctExportPage);

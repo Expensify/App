@@ -106,6 +106,6 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     );
 }
 
-SageIntacctDefaultVendorPage.displayName = 'PolicySageIntacctDefaultVendorPage';
+SageIntacctDefaultVendorPage.displayName = 'SageIntacctDefaultVendorPage';
 
 export default SageIntacctDefaultVendorPage;
