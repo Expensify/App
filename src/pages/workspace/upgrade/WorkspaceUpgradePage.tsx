@@ -44,7 +44,12 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 title={translate('common.upgrade')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
             />
-            {isUpgraded && <UpgradeConfirmation policyName={policy.name} />}
+            {isUpgraded && (
+                <UpgradeConfirmation
+                    policyID={policy.id}
+                    policyName={policy.name}
+                />
+            )}
             {!isUpgraded && (
                 <UpgradeIntro
                     title={translate(feature.title)}
