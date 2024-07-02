@@ -246,6 +246,7 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
+    CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -449,6 +450,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
     [WRITE_COMMANDS.ENABLE_DISTANCE_REQUEST_TAX]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
+    [WRITE_COMMANDS.CLEAR_OUTSTANDING_BALANCE]: null;
 
     [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
     [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;
