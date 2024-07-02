@@ -408,6 +408,7 @@ function SuggestionMention(
     );
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const checkIfSuggestionVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(
         ref,
@@ -417,8 +418,9 @@ function SuggestionMention(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            checkIfSuggestionVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, checkIfSuggestionVisible],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
