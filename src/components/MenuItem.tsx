@@ -304,7 +304,6 @@ type MenuItemBaseProps = {
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
-
 function MenuItem(
     {
         interactive = true,
@@ -503,6 +502,9 @@ function MenuItem(
         }
     };
 
+    const maxDescLength = 100;
+    const parser = new ExpensiMark();
+
     return (
         <View onBlur={onBlur}>
             {!!label && !isLabelHoverable && (
@@ -654,7 +656,7 @@ function MenuItem(
                                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                                     <View style={styles.renderHTMLTitle}>
-                                                                        <RenderHTML html={processedTitle} />
+                                                                        <RenderHTML html={parser.truncateHTML(processedTitle, maxDescLength)} />
                                                                     </View>
                                                                 )}
                                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
