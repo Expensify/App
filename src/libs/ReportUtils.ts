@@ -1609,7 +1609,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     return welcomeMessage;
 }
 
-function getWelcomMessage(report: OnyxEntry<Report>): WelcomeMessage {
+function getWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {showReportName: true};
     if (isChatRoom(report)) {
         return getRoomWelcomeMessage(report);
@@ -7178,7 +7178,7 @@ export {
     getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
-    getWelcomMessage,
+    getWelcomeMessage,
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,

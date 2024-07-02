@@ -42,7 +42,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report);
+    const welcomeMessage = ReportUtils.getWelcomeMessage(report);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
     const additionalText = moneyRequestOptions
         .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
@@ -101,11 +101,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         </PressableWithoutFeedback>
                     ) : (
                         <Text>
-                            <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
+                            <Text>{welcomeMessage.phrase1}</Text>
                             <Text style={[styles.textStrong]}>{ReportUtils.getDisplayNameForParticipant(report?.ownerAccountID)}</Text>
-                            <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
+                            <Text>{welcomeMessage.phrase2}</Text>
                             <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(report)}</Text>
-                            <Text>{translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree')}</Text>
+                            <Text>{welcomeMessage.phrase3}</Text>
                         </Text>
                     ))}
                 {isChatRoom &&
@@ -125,8 +125,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         </PressableWithoutFeedback>
                     ) : (
                         <Text>
-                            <Text>{roomWelcomeMessage.phrase1}</Text>
-                            {roomWelcomeMessage.showReportName && (
+                            <Text>{welcomeMessage.phrase1}</Text>
+                            {welcomeMessage.showReportName && (
                                 <Text
                                     style={[styles.textStrong]}
                                     onPress={navigateToReport}
@@ -135,22 +135,22 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                                     {ReportUtils.getReportName(report)}
                                 </Text>
                             )}
-                            {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
+                            {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
                         </Text>
                     ))}
                 {isSelfDM && (
                     <Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
+                        <Text>{welcomeMessage.phrase1}</Text>
                     </Text>
                 )}
                 {isSystemChat && (
                     <Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistorySystemDM')}</Text>
+                        <Text>{welcomeMessage.phrase1}</Text>
                     </Text>
                 )}
                 {isDefault && (
                     <Text>
-                        <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>
+                        <Text>{welcomeMessage.phrase1}</Text>
                         {displayNamesWithTooltips.map(({displayName, accountID}, index) => (
                             // eslint-disable-next-line react/no-array-index-key
                             <Text key={`${displayName}${index}`}>

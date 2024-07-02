@@ -460,7 +460,7 @@ function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): stri
         return Localize.translateLocal('report.noActivityYet');
     }
 
-    const welcomeMessage = ReportUtils.getWelcomMessage(report);
+    const welcomeMessage = ReportUtils.getWelcomeMessage(report);
     if (ReportUtils.isPolicyExpenseChat(report)) {
         if (report?.description) {
             return parseHtmlToText(report.description);
