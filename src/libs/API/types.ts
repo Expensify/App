@@ -231,6 +231,7 @@ const WRITE_COMMANDS = {
     UPDATE_SUBSCRIPTION_SIZE: 'UpdateSubscriptionSize',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
     UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION: 'UpdateNetSuiteSyncTaxConfiguration',
+    UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION: 'UpdateNetSuiteCrossSubsidiaryCustomerConfiguration',
     UPDATE_NETSUITE_DEPARTMENTS_MAPPING: 'UpdateNetSuiteDepartmentsMapping',
     UPDATE_NETSUITE_CLASSES_MAPPING: 'UpdateNetSuiteClassesMapping',
     UPDATE_NETSUITE_LOCATIONS_MAPPING: 'UpdateNetSuiteLocationsMapping',
@@ -486,6 +487,7 @@ type WriteCommandParameters = {
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_DEPARTMENTS_MAPPING]: Parameters.UpdateNetSuiteGenericTypeParams<'mapping', ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CLASSES_MAPPING]: Parameters.UpdateNetSuiteGenericTypeParams<'mapping', ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_LOCATIONS_MAPPING]: Parameters.UpdateNetSuiteGenericTypeParams<'mapping', ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>>;

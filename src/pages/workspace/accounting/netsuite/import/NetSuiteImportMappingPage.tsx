@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteImportMapping, updateNetSuiteCrossSubsidiaryCustomersConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -66,13 +66,13 @@ function NetSuiteImportMappingPage({
                         <ToggleSettingOptionRow
                             title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
                             isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
-                            switchAccessibilityLabel={translate('common.tax')}
+                            switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
                             onToggle={(isEnabled: boolean) => {
-                                // updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
+                                updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
                             }}
-                            pendingAction={netsuiteConfig?.syncOptions?.pendingFields?.syncTax}
-                            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
-                            onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
+                            pendingAction={netsuiteConfig?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                            onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
                         />
                     </View>
                 )}
