@@ -433,7 +433,7 @@ const ONYXKEYS = {
 
         /**
          * Stores the card list for a given fundID and feed in the format: card_<fundID>_<bankName>
-         * So for example: card_12345_ExpensifyCard
+         * So for example: card_12345_Expensify Card
          */
         EXPENSIFY_CARDS_LIST: 'card_',
     },
