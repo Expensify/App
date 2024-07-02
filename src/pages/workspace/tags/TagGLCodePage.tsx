@@ -26,9 +26,9 @@ type WorkspaceEditTagGLCodePageOnyxProps = {
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type EditCategoryPageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
+type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
 
-function TagGLCodePage({route, policyTags}: EditCategoryPageProps) {
+function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const tagName = route.params.tagName;
@@ -37,7 +37,7 @@ function TagGLCodePage({route, policyTags}: EditCategoryPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const editGLCode = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
                 Tag.setPolicyTagGLCode(route.params.policyID, tagName, orderWeight, newGLCode);
@@ -88,7 +88,7 @@ function TagGLCodePage({route, policyTags}: EditCategoryPageProps) {
 
 TagGLCodePage.displayName = 'TagGLCodePage';
 
-export default withOnyx<EditCategoryPageProps, WorkspaceEditTagGLCodePageOnyxProps>({
+export default withOnyx<EditTagGLCodePageProps, WorkspaceEditTagGLCodePageOnyxProps>({
     policyTags: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`,
     },
