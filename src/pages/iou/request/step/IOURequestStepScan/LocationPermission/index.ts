@@ -1,5 +1,6 @@
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
+import CONST from '@src/CONST';
 
 function requestLocationPermission(): Promise<PermissionStatus> {
     return new Promise((resolve) => {
@@ -8,7 +9,7 @@ function requestLocationPermission(): Promise<PermissionStatus> {
                 () => resolve(RESULTS.GRANTED),
                 (error) => resolve(error.TIMEOUT || error.POSITION_UNAVAILABLE ? RESULTS.BLOCKED : RESULTS.DENIED),
                 {
-                    timeout: 5000,
+                    timeout: CONST.GPS.TIMEOUT,
                     enableHighAccuracy: true,
                 },
             );
