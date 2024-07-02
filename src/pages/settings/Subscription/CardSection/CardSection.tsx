@@ -61,7 +61,7 @@ function CardSection() {
     let BillingBanner: React.ReactNode | undefined;
     if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
-    } else if (billingStatus?.title && billingStatus?.subtitle) {
+    } else if (billingStatus) {
         BillingBanner = (
             <SubscriptionBillingBanner
                 title={billingStatus.title}
@@ -110,14 +110,13 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
-            {billingStatus?.isRetryAvailable && (
+            {billingStatus?.isRetryAvailable !== undefined && (
                 <Button
                     text={translate('subscription.cardSection.retryPaymentButton')}
-                    isDisabled={isOffline}
+                    isDisabled={isOffline || !billingStatus?.isRetryAvailable}
                     isLoading={subscriptionRetryBillingStatusPending}
                     onPress={handleRetryPayment}
                     style={[styles.w100, styles.mt5]}
-                    success
                     large
                 />
             )}

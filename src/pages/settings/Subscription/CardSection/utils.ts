@@ -116,6 +116,7 @@ function getBillingStatus(
                 title: translate('subscription.billingBanner.retryBillingError.title'),
                 subtitle: translate('subscription.billingBanner.retryBillingError.subtitle'),
                 isError: true,
+                isRetryAvailable: false,
             };
 
         default:
