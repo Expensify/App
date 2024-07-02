@@ -70,6 +70,10 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
         Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
     };
 
+    const navigateToEditGlCode = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_GL_CODE.getRoute(route.params.policyID, route.params.orderWeight, currentPolicyTag.name));
+    };
+
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
@@ -130,8 +134,8 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                     <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.glCode}>
                         <MenuItemWithTopDescription
                             title={currentPolicyTag.glCode}
-                            description={translate(`workspace.tags.tagName`)}
-                            onPress={navigateToEditTag}
+                            description={translate(`workspace.tags.glCode`)}
+                            onPress={navigateToEditGlCode}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
