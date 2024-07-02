@@ -16,6 +16,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
+import * as Policy from '@userActions/Policy/Policy';
 import type {TranslationPaths} from '@src/languages/types';
 
 const parser = new ExpensiMark();
@@ -63,7 +64,7 @@ function NetSuiteImportMappingPage({
                 {importField === 'jobs' && (
                     <View style={[styles.flex1, styles.mb4]}>
                         <ToggleSettingOptionRow
-                            title={'Cross-subsidiary customer/projects'}
+                            title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
                             isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
                             switchAccessibilityLabel={translate('common.tax')}
                             onToggle={(isEnabled: boolean) => {

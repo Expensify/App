@@ -2295,6 +2295,7 @@ export default {
             import: {
                 expenseCategories: `Expense categories`,
                 expenseCategoriesDescription: `NetSuite expense categories import into Expensify as categories.`,
+                crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
                 importFields: {
                     departments: {
                         title: 'Departments',
