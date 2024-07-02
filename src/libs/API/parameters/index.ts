@@ -183,6 +183,7 @@ export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
 export type {default as EnablePolicyReportFieldsParams} from './EnablePolicyReportFieldsParams';
+export type {default as EnablePolicyExpensifyCardsParams} from './EnablePolicyExpensifyCardsParams';
 export type {default as AcceptJoinRequestParams} from './AcceptJoinRequest';
 export type {default as DeclineJoinRequestParams} from './DeclineJoinRequest';
 export type {default as JoinPolicyInviteLinkParams} from './JoinPolicyInviteLink';
@@ -192,8 +193,6 @@ export type {default as OpenPolicyDistanceRatesPageParams} from './OpenPolicyDis
 export type {default as OpenPolicyTaxesPageParams} from './OpenPolicyTaxesPageParams';
 export type {default as EnablePolicyTaxesParams} from './EnablePolicyTaxesParams';
 export type {default as OpenPolicyMoreFeaturesPageParams} from './OpenPolicyMoreFeaturesPageParams';
-export type {default as OpenPolicyProfilePageParams} from './OpenPolicyProfilePageParams';
-export type {default as OpenPolicyInitialPageParams} from './OpenPolicyInitialPageParams';
 export type {default as CreatePolicyDistanceRateParams} from './CreatePolicyDistanceRateParams';
 export type {default as SetPolicyDistanceRatesUnitParams} from './SetPolicyDistanceRatesUnitParams';
 export type {default as SetPolicyDistanceRatesDefaultCategoryParams} from './SetPolicyDistanceRatesDefaultCategoryParams';
@@ -235,6 +234,7 @@ export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from '
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
+export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
 export type {default as UpdateSageIntacctMapping} from './UpdateSageIntacctMapping';
 export type {default as UpdateSageIntacctImportBooleanValues} from './UpdateSageIntacctImportBooleanValues';
 export type {default as UpdateSageIntacctUserDimension} from './UpdateSageIntacctUserDimension';
