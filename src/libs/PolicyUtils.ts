@@ -536,7 +536,7 @@ function isSyncTaxEnabled(policy: Policy | undefined) {
     }
 
     const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netSuiteConfg?.subsidiaryID);
-    return !!netSuiteConfg?.suiteTaxEnabled && !isUSASubsidiaryNetSuite(selectedSubsidiary?.country);
+    return !isUSASubsidiaryNetSuite(selectedSubsidiary?.country);
 }
 
 function canUseTaxNetSuite(canUseNetSuiteUSATax?: boolean, subsidiaryCountry?: string) {
