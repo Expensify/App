@@ -112,6 +112,9 @@ function Expensify({
     const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
     const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
 
+    const isAuthenticatedRef = useRef(false);
+    isAuthenticatedRef.current = isAuthenticated;
+
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
     const shouldHideSplash = shouldInit && !isSplashHidden;
 
@@ -199,7 +202,7 @@ function Expensify({
 
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
+            Report.openReportFromDeepLink(state.url, !isAuthenticatedRef.current);
         });
 
         return () => {
