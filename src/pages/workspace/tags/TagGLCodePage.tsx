@@ -12,6 +12,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Tag from '@userActions/Policy/Tag';
@@ -31,10 +32,13 @@ type EditTagGLCodePageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenP
 function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
-    const glCode = policyTags?.[tagName];
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
+    const glCode = tags?.[route.params.tagName]?.glCode;
+    console.log('[glCode]: ', glCode);
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -73,7 +77,7 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
-                        defaultValue={glCode}
+                        // defaultValue={glCode}
                         label={translate('workspace.tags.glCode')}
                         accessibilityLabel={translate('workspace.tags.glCode')}
                         inputID={INPUT_IDS.TAG_GL_CODE}

@@ -3,7 +3,7 @@ import type Form from './Form';
 
 const INPUT_IDS = {
     TAG_NAME: 'tagName',
-    TAG_GL_CODE: 'tagGLCode',
+    TAG_GL_CODE: 'glCode',
 } as const;
 
 type InputID = ValueOf<typeof INPUT_IDS>;
