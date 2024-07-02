@@ -1544,7 +1544,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-release-profiler (0.1.6):
+  - react-native-release-profiler (0.2.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2747,7 +2747,7 @@ SPEC CHECKSUMS:
   react-native-performance: b0fbe5a6f07abba144600ca39c231204be6371e8
   react-native-plaid-link-sdk: edfa882aea6c2da16b5ef483c5523c84227fab35
   react-native-quick-sqlite: 31975de368a0b72ad74af19b43f5b865984c7d4d
-  react-native-release-profiler: 0f195f839f5ad37cf92464b2480ac4701de86edd
+  react-native-release-profiler: 845c82f86b92b2b78b781a6e00231af97a568538
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: fad48266ac1ec47fd1374b624697216e16875f77
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
