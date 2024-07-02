@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,6 +30,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useResponsiveLayout();
     const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
@@ -114,9 +116,10 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
                 customText={translate('workspace.common.selected', {selectedNumber: selectedItemsKeys.length})}
                 options={options}
                 isSplitButton={false}
+                isDisabled={isOffline}
             />
         );
-    }, [clearSelectedItems, hash, selectedItems, styles.colorMuted, styles.fontWeightNormal, theme.icon, translate]);
+    }, [clearSelectedItems, hash, isOffline, selectedItems, styles.colorMuted, styles.fontWeightNormal, theme.icon, translate]);
 
     if (isSmallScreenWidth) {
         return null;
