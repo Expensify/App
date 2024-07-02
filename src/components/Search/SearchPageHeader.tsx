@@ -66,6 +66,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
                 text: translate('search.bulkActions.hold'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
                 onSelected: () => {
+                    clearSelectedItems?.();
                     SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
                 },
             });
@@ -79,6 +80,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
                 text: translate('search.bulkActions.unhold'),
                 value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
                 onSelected: () => {
+                    clearSelectedItems?.();
                     SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
                 },
             });
