@@ -1,7 +1,7 @@
 type UpdatePolicyTagGLCodeParams = {
     policyID: string;
     tagListName: string;
-    tagListOrderWeight: number;
+    tagListIndex: number;
     tagName: string;
     glCode: string;
 };

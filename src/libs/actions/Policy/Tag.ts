@@ -727,8 +727,8 @@ function setPolicyTagsRequired(policyID: string, requiresTag: boolean, tagListIn
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
-function setPolicyTagGLCode(policyID: string, tagName: string, tagListOrderWeight: number, glCode: string) {
-    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[tagListOrderWeight];
+function setPolicyTagGLCode(policyID: string, tagName: string, tagListIndex: number, glCode: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[tagListIndex];
     const policyTagToUpdate = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[tagName] ?? {};
     const onyxData: OnyxData = {
         optimisticData: [
@@ -792,7 +792,7 @@ function setPolicyTagGLCode(policyID: string, tagName: string, tagListOrderWeigh
         policyID,
         tagName,
         tagListName,
-        tagListOrderWeight,
+        tagListIndex,
         glCode,
     };
 
