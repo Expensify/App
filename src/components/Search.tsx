@@ -26,7 +26,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
-import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
+import SearchRowSkeleton from './Skeletons/SearchRowSkeleton';
 
 type SearchProps = {
     query: SearchQuery;
@@ -97,7 +97,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingItems) {
-        return <TableListItemSkeleton shouldAnimate />;
+        return <SearchRowSkeleton shouldAnimate />;
     }
 
     if (shouldShowEmptyState) {
@@ -189,7 +189,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             onEndReached={fetchMoreResults}
             listFooterContent={
                 isLoadingMoreItems ? (
-                    <TableListItemSkeleton
+                    <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={5}
                     />
