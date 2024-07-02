@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
