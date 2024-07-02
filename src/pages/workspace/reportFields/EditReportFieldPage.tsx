@@ -52,32 +52,34 @@ function EditReportFieldPage({
                 />
 
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
                     title={reportField.name}
                     description={translate('common.name')}
+                    interactive={false}
+                />
+
+                <MenuItemWithTopDescription
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_NAME.getRoute(`${policyID}`, reportFieldName))}
-                />
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
                     title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
                     description={translate('common.type')}
+                    interactive={false}
+                />
+
+                <MenuItemWithTopDescription
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_TYPE.getRoute(`${policyID}`, reportFieldName))}
-                />
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
                     title={getReportFieldInitialValue(reportField)}
                     description={translate('common.initialValue')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
+                    shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(`${policyID}`, reportFieldName))}
                 />
 
                 {reportField.type === CONST.REPORT_FIELD_TYPES.LIST && (
                     <MenuItemWithTopDescription
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
                         description={translate('workspace.reportFields.listValues')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID))}

@@ -545,18 +545,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
                             },
                         },
-                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_NAME]: {
-                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_NAME.route,
-                            parse: {
-                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
-                            },
-                        },
-                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_TYPE]: {
-                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_TYPE.route,
-                            parse: {
-                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
-                            },
-                        },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.route,
                             parse: {
