@@ -87,16 +87,20 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
         }
 
         if (options.length === 0) {
-            options.push({
-                icon: Expensicons.Exclamation,
-                text: translate('search.bulkActions.noOptionsAvailable'),
-                value: undefined,
+            const emptyOptionStyle = {
                 interactive: false,
                 iconFill: theme.icon,
                 iconHeight: variables.iconSizeLarge,
                 iconWidth: variables.iconSizeLarge,
                 numberOfLinesTitle: 2,
                 titleStyle: {...styles.colorMuted, ...styles.fontWeightNormal},
+            };
+
+            options.push({
+                icon: Expensicons.Exclamation,
+                text: translate('search.bulkActions.noOptionsAvailable'),
+                value: undefined,
+                ...emptyOptionStyle,
             });
         }
 
