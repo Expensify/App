@@ -69,9 +69,9 @@ import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
-import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -94,8 +94,8 @@ import type {
     ReportUserIsTyping,
 } from '@src/types/onyx';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
+import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -1621,6 +1621,7 @@ function updateNotificationPreference(
     parentReportID?: string,
     parentReportActionID?: string,
     report?: OnyxEntry<Report>,
+    isJoiningRoom?: boolean,
 ) {
     if (previousValue === newValue) {
         if (navigate && !isEmptyObject(report) && report.reportID) {
@@ -1655,6 +1656,20 @@ function updateNotificationPreference(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[parentReportActionID]: {childReportNotificationPreference: previousValue}},
+        });
+    }
+
+    if (isJoiningRoom) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants: {
+                    [currentUserAccountID]: {
+                        hidden: false,
+                    },
+                },
+            },
         });
     }
 
@@ -2577,7 +2592,16 @@ function joinRoom(report: OnyxEntry<Report>) {
     if (!report) {
         return;
     }
-    updateNotificationPreference(report.reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID);
+    updateNotificationPreference(
+        report.reportID,
+        report.notificationPreference,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        false,
+        report.parentReportID,
+        report.parentReportActionID,
+        report,
+        true,
+    );
 }
 
 function leaveGroupChat(reportID: string) {
@@ -2632,6 +2656,11 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
                 isWorkspaceMemberLeavingWorkspaceRoom || isChatThread
                     ? {
                           notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                          participants: {
+                              [currentUserAccountID]: {
+                                  hidden: true,
+                              },
+                          },
                       }
                     : {
                           reportID: null,
@@ -2700,6 +2729,9 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
 
+    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
+
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
             const participant: ReportParticipant = {
@@ -2713,10 +2745,14 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
         {...report.participants},
     );
 
-    const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
     const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+    const newParticipantAccountCleanUp = newAccountIDs.reduce<Record<number, null>>((participantCleanUp, newAccountID) => {
+        // eslint-disable-next-line no-param-reassign
+        participantCleanUp[newAccountID] = null;
+        return participantCleanUp;
+    }, {});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2741,6 +2777,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingChatMembers: successPendingChatMembers,
+                participants: newParticipantAccountCleanUp,
             },
         },
     ];
@@ -3722,86 +3759,86 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 }
 
 export {
-    searchInServer,
-    addComment,
     addAttachment,
-    updateDescription,
-    updateWriteCapabilityAndNavigate,
-    updateNotificationPreference,
-    subscribeToReportTypingEvents,
-    subscribeToReportLeavingEvents,
-    unsubscribeFromReportChannel,
-    unsubscribeFromLeavingRoomReportChannel,
-    saveReportDraftComment,
-    broadcastUserIsTyping,
-    broadcastUserIsLeavingRoom,
-    togglePinnedState,
-    editReportComment,
-    handleUserDeletedLinksInHtml,
-    deleteReportActionDraft,
-    saveReportActionDraft,
-    deleteReportComment,
-    navigateToConciergeChat,
-    navigateToSystemChat,
+    addComment,
     addPolicyReport,
-    deleteReport,
-    navigateToConciergeChatAndDeleteReport,
-    setIsComposerFullSize,
-    expandURLPreview,
-    markCommentAsUnread,
-    readNewestAction,
-    openReport,
-    openReportFromDeepLink,
-    navigateToAndOpenReport,
-    navigateToAndOpenReportWithAccountIDs,
-    navigateToAndOpenChildReport,
-    toggleSubscribeToChildReport,
-    updatePolicyRoomNameAndNavigate,
-    clearPolicyRoomNameErrors,
-    clearIOUError,
-    subscribeToNewActionEvent,
-    notifyNewAction,
-    showReportActionNotification,
-    toggleEmojiReaction,
-    shouldShowReportActionNotification,
-    joinRoom,
-    leaveRoom,
-    inviteToRoom,
-    inviteToGroupChat,
-    removeFromRoom,
-    getCurrentUserAccountID,
-    setLastOpenedPublicRoom,
-    flagComment,
-    openLastOpenedPublicRoom,
-    updatePrivateNotes,
-    getReportPrivateNote,
-    clearPrivateNotesError,
-    hasErrorInPrivateNotes,
-    getOlderActions,
-    getNewerActions,
-    openRoomMembersPage,
-    savePrivateNotesDraft,
-    getDraftPrivateNote,
-    updateLastVisitTime,
-    clearNewRoomFormError,
-    updateReportField,
-    updateReportName,
-    deleteReportField,
-    clearReportFieldErrors,
-    resolveActionableMentionWhisper,
-    resolveActionableReportMentionWhisper,
-    updateRoomVisibility,
-    dismissTrackExpenseActionableWhisper,
-    setGroupDraft,
-    clearGroupChat,
-    startNewChat,
-    completeOnboarding,
-    updateGroupChatName,
-    updateGroupChatAvatar,
-    leaveGroupChat,
-    removeFromGroupChat,
-    updateGroupChatMemberRoles,
-    updateLoadingInitialReportAction,
+    broadcastUserIsLeavingRoom,
+    broadcastUserIsTyping,
     clearAddRoomMemberError,
     clearAvatarErrors,
+    clearGroupChat,
+    clearIOUError,
+    clearNewRoomFormError,
+    clearPolicyRoomNameErrors,
+    clearPrivateNotesError,
+    clearReportFieldErrors,
+    completeOnboarding,
+    deleteReport,
+    deleteReportActionDraft,
+    deleteReportComment,
+    deleteReportField,
+    dismissTrackExpenseActionableWhisper,
+    editReportComment,
+    expandURLPreview,
+    flagComment,
+    getCurrentUserAccountID,
+    getDraftPrivateNote,
+    getNewerActions,
+    getOlderActions,
+    getReportPrivateNote,
+    handleUserDeletedLinksInHtml,
+    hasErrorInPrivateNotes,
+    inviteToGroupChat,
+    inviteToRoom,
+    joinRoom,
+    leaveGroupChat,
+    leaveRoom,
+    markCommentAsUnread,
+    navigateToAndOpenChildReport,
+    navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs,
+    navigateToConciergeChat,
+    navigateToConciergeChatAndDeleteReport,
+    navigateToSystemChat,
+    notifyNewAction,
+    openLastOpenedPublicRoom,
+    openReport,
+    openReportFromDeepLink,
+    openRoomMembersPage,
+    readNewestAction,
+    removeFromGroupChat,
+    removeFromRoom,
+    resolveActionableMentionWhisper,
+    resolveActionableReportMentionWhisper,
+    savePrivateNotesDraft,
+    saveReportActionDraft,
+    saveReportDraftComment,
+    searchInServer,
+    setGroupDraft,
+    setIsComposerFullSize,
+    setLastOpenedPublicRoom,
+    shouldShowReportActionNotification,
+    showReportActionNotification,
+    startNewChat,
+    subscribeToNewActionEvent,
+    subscribeToReportLeavingEvents,
+    subscribeToReportTypingEvents,
+    toggleEmojiReaction,
+    togglePinnedState,
+    toggleSubscribeToChildReport,
+    unsubscribeFromLeavingRoomReportChannel,
+    unsubscribeFromReportChannel,
+    updateDescription,
+    updateGroupChatAvatar,
+    updateGroupChatMemberRoles,
+    updateGroupChatName,
+    updateLastVisitTime,
+    updateLoadingInitialReportAction,
+    updateNotificationPreference,
+    updatePolicyRoomNameAndNavigate,
+    updatePrivateNotes,
+    updateReportField,
+    updateReportName,
+    updateRoomVisibility,
+    updateWriteCapabilityAndNavigate,
 };
