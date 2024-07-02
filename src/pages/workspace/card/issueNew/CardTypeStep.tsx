@@ -16,15 +16,14 @@ function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
+    const submit = (value) => () => {
+        Card.setIssueNewCardData({cardType: value});
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
     };
 
     const handleBackButtonPress = () => {
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE);
     };
-    const isSelected = false;
 
     return (
         <ScreenWrapper
@@ -50,24 +49,24 @@ function CardTypeStep() {
                     title={translate('workspace.card.issueNewCard.physicalCard')}
                     description={translate('workspace.card.issueNewCard.physicalCardDescription')}
                     shouldShowRightIcon
-                    onPress={submit}
+                    onPress={submit(CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL)}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
                     iconHeight={variables.menuIconSize}
-                    wrapperStyle={[styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected]}
+                    wrapperStyle={styles.purposeMenuItem}
                 />
                 <MenuItem
                     icon={Illustrations.VirtualCard}
                     title={translate('workspace.card.issueNewCard.virtualCard')}
                     description={translate('workspace.card.issueNewCard.virtualCardDescription')}
                     shouldShowRightIcon
-                    onPress={submit}
+                    onPress={submit(CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL)}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}
                     iconHeight={variables.menuIconSize}
-                    wrapperStyle={[styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected]}
+                    wrapperStyle={styles.purposeMenuItem}
                 />
             </View>
         </ScreenWrapper>

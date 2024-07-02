@@ -28,7 +28,8 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const [searchTerm, setSearchTerm] = useState('');
 
-    const submit = () => {
+    const submit = (value) => {
+        Card.setIssueNewCardData({assigneeEmail: value.login});
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
     };
 

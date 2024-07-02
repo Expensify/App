@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
@@ -19,6 +21,12 @@ function ConfirmationStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+
+    const data = issueNewCard?.data ?? {};
+
+    console.log(issueNewCard);
 
     const submit = () => {
         // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
@@ -54,31 +62,31 @@ function ConfirmationStep() {
             <Text style={[styles.textLabelSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.cardholder')}
-                title=""
+                title={data.assigneeEmail}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.cardType')}
-                title=""
+                title={data.cardType}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.limit')}
-                title=""
+                title={data.limit}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.limitType')}
-                title=""
+                title={data.limitType}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.name')}
-                title=""
+                title={data.cardTitle}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
             />

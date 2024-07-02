@@ -16,8 +16,8 @@ function LimitTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
+    const submit = ({value}) => {
+        Card.setIssueNewCardData({limitType: value});
         Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT);
     };
 
@@ -70,7 +70,7 @@ function LimitTypeStep() {
 
             <SelectionList
                 ListItem={RadioListItem}
-                onSelectRow={() => {}}
+                onSelectRow={submit}
                 sections={[{data}]}
             />
             <Button

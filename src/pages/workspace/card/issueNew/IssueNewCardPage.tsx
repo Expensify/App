@@ -25,7 +25,7 @@ function IssueNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             return <LimitTypeStep />;
         case CONST.EXPENSIFY_CARD.STEP.LIMIT:
             return <LimitStep />;
-        case CONST.EXPENSIFY_CARD.STEP.CARD_NAME:
+        case CONST.EXPENSIFY_CARD.STEP.CARD_TITLE:
             return <CardNameStep />;
         case CONST.EXPENSIFY_CARD.STEP.CONFIRMATION:
             return <ConfirmationStep />;

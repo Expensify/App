@@ -18,9 +18,9 @@ function LimitStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = () => {
-        // TODO: the logic will be created in https://github.com/Expensify/App/issues/44309
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME);
+    const submit = (value) => {
+        Card.setIssueNewCardData({value});
+        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TITLE);
     };
 
     const handleBackButtonPress = () => {
@@ -53,6 +53,7 @@ function LimitStep() {
             >
                 <InputWrapper
                     InputComponent={AmountForm}
+                    isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
                 />
             </FormProvider>
