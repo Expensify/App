@@ -22,6 +22,8 @@ type BillingStatusResult = {
 function getBillingStatus(
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     cardEnding: string,
+    cardMonth: number,
+    cardYear: number,
 ): BillingStatusResult | undefined {
     const amountOwed = SubscriptionUtils.getAmountOwed();
 
@@ -30,6 +32,8 @@ function getBillingStatus(
     const endDate = SubscriptionUtils.getOverdueGracePeriodDate();
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
+
+    const isCurrentCardExpired = DateUtils.isCardExpired(cardMonth, cardYear);
 
     switch (subscriptionStatus?.status) {
         case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
@@ -92,7 +96,7 @@ function getBillingStatus(
                 title: translate('subscription.billingBanner.cardExpired.title'),
                 subtitle: translate('subscription.billingBanner.cardExpired.subtitle', {amountOwed}),
                 isError: true,
-                isRetryAvailable: true,
+                isRetryAvailable: !isCurrentCardExpired,
             };
 
         case SubscriptionUtils.PAYMENT_STATUS.CARD_EXPIRE_SOON:

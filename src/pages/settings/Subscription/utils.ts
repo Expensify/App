@@ -19,4 +19,11 @@ function getNewSubscriptionRenewalDate(): string {
     return format(startOfMonth(addMonths(new Date(), 12)), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
 }
 
-export {getNewSubscriptionRenewalDate, formatSubscriptionEndDate};
+function isCardExpired(expiryMonth: number, expiryYear: number): boolean {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    return expiryYear < currentYear || (expiryYear === currentYear && expiryMonth < currentMonth);
+}
+
+export {getNewSubscriptionRenewalDate, formatSubscriptionEndDate, isCardExpired};
