@@ -1,11 +1,16 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {findNodeHandle, InteractionManager, Keyboard, View} from 'react-native';
 import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, TextInputScrollEventData} from 'react-native';
+import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useOnyx} from 'react-native-onyx';
+import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
+import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
+import type {TextSelection} from '@components/Composer/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
@@ -41,6 +46,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import getCursorPosition from './ReportActionCompose/getCursorPosition';
+import getScrollPosition from './ReportActionCompose/getScrollPosition';
+import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
+import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
 type ReportActionItemMessageEditProps = {
@@ -80,11 +89,16 @@ function ReportActionItemMessageEdit(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const containerRef = useRef<View>(null);
     const reportScrollManager = useReportScrollManager();
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
+    const suggestionsRef = useRef<SuggestionsRef>(null);
+    const mobileInputScrollPosition = useRef(0);
+    const cursorPositionValue = useSharedValue({x: 0, y: 0});
+    const tag = useSharedValue(-1);
 
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
@@ -93,7 +107,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
+    const [selection, setSelection] = useState<TextSelection>({start: draft.length, end: draft.length, positionX: 0, positionY: 0});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -247,10 +261,12 @@ function ReportActionItemMessageEdit(
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
+                    positionX: 0,
+                    positionY: 0,
                 });
             }
 
@@ -317,6 +333,8 @@ function ReportActionItemMessageEdit(
         const newSelection = {
             start: selection.start + emoji.length + CONST.SPACE_LENGTH,
             end: selection.start + emoji.length + CONST.SPACE_LENGTH,
+            positionX: 0,
+            positionY: 0,
         };
         setSelection(newSelection);
 
@@ -350,6 +368,68 @@ function ReportActionItemMessageEdit(
         [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
+    const measureContainer = useCallback(
+        (callback: MeasureInWindowOnSuccessCallback) => {
+            if (!containerRef.current) {
+                return;
+            }
+            containerRef.current.measureInWindow(callback);
+        },
+        // We added isComposerFullSize in dependencies so that when this value changes, we recalculate the position of the popup
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [isFocused],
+    );
+
+    const measureParentContainerAndReportCursor = useCallback(
+        (callback: MeasureParentContainerAndCursorCallback) => {
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.value, positionOnWeb: selection});
+            measureContainer((x, y, width, height) => {
+                callback({
+                    x,
+                    y,
+                    width,
+                    height,
+                    scrollValue,
+                    cursorCoordinates: {x: xPosition, y: yPosition},
+                });
+            });
+        },
+        [cursorPositionValue.value, measureContainer, selection],
+    );
+
+    const hideSuggestionMenu = useCallback(
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+
+            if (!suggestionsRef.current) {
+                return;
+            }
+            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+        },
+        [suggestionsRef],
+    );
+
+    useEffect(() => {
+        tag.value = findNodeHandle(textInputRef.current) ?? -1;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    useFocusedInputHandler(
+        {
+            onSelectionChange: (event) => {
+                'worklet';
+
+                if (event.target === tag.value) {
+                    cursorPositionValue.value = {
+                        x: event.selection.end.x,
+                        y: event.selection.end.y,
+                    };
+                }
+            },
+        },
+        [],
+    );
+
     /**
      * Focus the composer text input
      */
@@ -361,7 +441,10 @@ function ReportActionItemMessageEdit(
 
     return (
         <>
-            <View style={[styles.chatItemMessage, styles.flexRow]}>
+            <View
+                style={[styles.chatItemMessage, styles.flexRow]}
+                ref={containerRef}
+            >
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -438,8 +521,24 @@ function ReportActionItemMessageEdit(
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
+                            shouldCalculateCaretPosition
+                            onScroll={hideSuggestionMenu}
                         />
                     </View>
+
+                    <Suggestions
+                        ref={suggestionsRef}
+                        isComposerFocused={textInputRef.current?.isFocused()}
+                        updateComment={updateDraft}
+                        measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                        isGroupPolicyReport={false}
+                        // Input
+                        value={draft}
+                        setValue={setDraft}
+                        selection={selection}
+                        setSelection={setSelection}
+                    />
+
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={shouldDisableEmojiPicker}

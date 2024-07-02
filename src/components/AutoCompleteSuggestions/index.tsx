@@ -83,8 +83,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            const isEnoughSpaceAboveForBig = windowHeight - bottomValue - contentMaxHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
-            const isEnoughSpaceAboveForSmall = windowHeight - bottomValue - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            const isEnoughSpaceAboveForBig = windowHeight - (bottomValue + keyboardHeight) - contentMaxHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            const isEnoughSpaceAboveForSmall = windowHeight - (bottomValue + keyboardHeight) - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
 
             const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
@@ -106,7 +106,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
             }
             setSuggestionHeight(measuredHeight);
             setContainerState({
