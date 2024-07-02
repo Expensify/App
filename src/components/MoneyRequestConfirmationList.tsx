@@ -814,6 +814,7 @@ function MoneyRequestConfirmationList({
             isTypeInvoice={isTypeInvoice}
             onToggleBillable={onToggleBillable}
             policy={policy}
+            policyTags={policyTags}
             policyTagLists={policyTagLists}
             rate={rate}
             receiptFilename={receiptFilename}
