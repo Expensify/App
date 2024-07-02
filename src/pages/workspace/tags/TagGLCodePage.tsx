@@ -26,7 +26,7 @@ type WorkspaceEditTagGLCodePageOnyxProps = {
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type EditCategoryPageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE>;
+type EditCategoryPageProps = WorkspaceEditTagGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>;
 
 function TagGLCodePage({route, policyTags}: EditCategoryPageProps) {
     const styles = useThemeStyles();
