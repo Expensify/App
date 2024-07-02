@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -36,7 +36,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
         finished: {icon: Illustrations.CheckmarkCircle, title: translate('common.finished')},
     };
 
-    const getHeaderButtons = () => {
+    const getHeaderButtons = useCallback(() => {
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const selectedItemsKeys = Object.keys(selectedItems ?? []);
 
@@ -109,7 +109,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
                 isSplitButton={false}
             />
         );
-    };
+    }, [clearSelectedItems, hash, selectedItems, styles.colorMuted, styles.fontWeightNormal, theme.icon, translate]);
 
     if (isSmallScreenWidth) {
         return null;
