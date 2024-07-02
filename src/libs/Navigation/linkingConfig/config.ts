@@ -539,6 +539,30 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
                             path: ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.route,
                         },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT]: {
+                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD.route,
+                            parse: {
+                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_NAME]: {
+                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_NAME.route,
+                            parse: {
+                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_TYPE]: {
+                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_TYPE.route,
+                            parse: {
+                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
+                            },
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
+                            path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.route,
+                            parse: {
+                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
+                            },
+                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,

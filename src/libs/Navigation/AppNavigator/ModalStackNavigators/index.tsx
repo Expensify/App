@@ -365,6 +365,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/WorkspaceAddValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/ValueSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/EditValuePage').default,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/EditReportFieldPage').default,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/NamePage').default,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_TYPE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/TypePage').default,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/InitialValuePage').default,
 });
 
 const EnablePaymentsStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
