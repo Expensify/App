@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldsForm} from '@src/types/form/WorkspaceReportFieldsForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let listValues: string[];
@@ -176,6 +177,37 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
 }
 
+/**
+ * Renames a report field.
+ */
+function renameReportField(policyID: string, reportFieldName: string, newName: string) {
+    console.debug('renameReportField', policyID, reportFieldName, newName);
+}
+
+/**
+ * Updates the type of a report field.
+ */
+function updatePolicyReportFieldType(policyID: string, reportFieldName: string, newType: PolicyReportFieldType) {
+    console.debug('updatePolicyReportFieldType', policyID, reportFieldName, newType);
+}
+
+/**
+ * Updates the initial value of a report field.
+ */
+function updatePolicyReportFieldInitialValue(policyID: string, reportFieldName: string, newInitialValue: string) {
+    console.debug('updatePolicyReportFieldInitialValue', policyID, reportFieldName, newInitialValue);
+}
+
 export type {CreateReportFieldArguments};
 
-export {setInitialCreateReportFieldsForm, createReportFieldsListValue, renameReportFieldsListValue, setReportFieldsListValueEnabled, deleteReportFieldsListValue, createReportField};
+export {
+    setInitialCreateReportFieldsForm,
+    createReportFieldsListValue,
+    renameReportFieldsListValue,
+    setReportFieldsListValueEnabled,
+    deleteReportFieldsListValue,
+    createReportField,
+    renameReportField,
+    updatePolicyReportFieldType,
+    updatePolicyReportFieldInitialValue,
+};
