@@ -92,7 +92,7 @@ const createAddListenerMock = (): ListenerMock => {
 };
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav: jest.Mocked<typeof NativeNavigation> = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     const {triggerTransitionEnd, addListener} = createAddListenerMock();
     transitionEndCB = triggerTransitionEnd;
 
@@ -111,7 +111,7 @@ jest.mock('@react-navigation/native', () => {
         getState: () => ({
             routes: [],
         }),
-    } as typeof NativeNavigation;
+    };
 });
 
 beforeAll(() => {
@@ -322,7 +322,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('4');
                 // Scroll up and verify that the "New messages" badge appears
                 scrollUpToRevealNewMessagesBadge();
@@ -479,7 +479,7 @@ describe('Unread Indicators', () => {
                 const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
-                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
+                const reportActionID = unreadIndicator[0]?.props?.['data-action-id'] as string;
                 expect(reportActionID).toBe('3');
                 // Scroll up and verify the new messages badge appears
                 scrollUpToRevealNewMessagesBadge();

@@ -141,7 +141,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWin
 
     autoUpdater
         .checkForUpdates()
-        .catch((error) => {
+        .catch((error: unknown) => {
             isSilentUpdating = false;
             return {error};
         })
@@ -617,7 +617,7 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 const downloadQueue = createDownloadQueue();
-                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
+                ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData: DownloadItem) => {
                     const downloadItem: DownloadItem = {
                         ...downloadData,
                         win: browserWindow,

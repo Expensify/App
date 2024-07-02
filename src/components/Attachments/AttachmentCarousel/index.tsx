@@ -121,7 +121,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 return;
             }
 
-            const item: Attachment = entry.item;
+            const item = entry.item as Attachment;
             if (entry.index !== null) {
                 setPage(entry.index);
                 setActiveSource(item.source);

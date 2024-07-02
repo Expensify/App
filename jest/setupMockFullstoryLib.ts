@@ -15,7 +15,7 @@ export default function mockFSLibrary() {
         return {
             FSPage(): FSPageInterface {
                 return {
-                    start: jest.fn(),
+                    start: jest.fn(() => {}),
                 };
             },
             default: Fullstory,

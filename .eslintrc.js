@@ -109,7 +109,6 @@ module.exports = {
     },
     rules: {
         // TypeScript specific rules
-        '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'error',
         '@typescript-eslint/no-var-requires': 'off',
         '@typescript-eslint/no-non-null-assertion': 'error',

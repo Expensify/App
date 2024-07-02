@@ -63,13 +63,13 @@ jest.mock('react-native', () => {
 });
 
 jest.mock('react-native-reanimated', () => {
-    const actualNav = jest.requireActual('react-native-reanimated/mock');
+    const actualNav = jest.requireActual<typeof Animated>('react-native-reanimated/mock');
     return {
         ...actualNav,
         useSharedValue: jest.fn,
         useAnimatedStyle: jest.fn,
         useAnimatedRef: jest.fn,
-    } as typeof Animated;
+    };
 });
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
@@ -111,7 +111,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
@@ -123,7 +123,7 @@ jest.mock('@react-navigation/native', () => {
         }),
         useNavigationState: () => {},
         createNavigationContainerRef: jest.fn(),
-    } as typeof Navigation;
+    };
 });
 
 // mock PortalStateContext
@@ -154,7 +154,7 @@ beforeEach(() => {
     mockListener.remove.mockClear();
 
     // Mock the implementation of addEventListener to return the mockListener
-    (Dimensions.addEventListener as jest.Mock).mockImplementation((event, callback) => {
+    (Dimensions.addEventListener as jest.Mock).mockImplementation((event: string, callback: () => void) => {
         if (event === 'change') {
             mockListener.callback = callback;
             return mockListener;

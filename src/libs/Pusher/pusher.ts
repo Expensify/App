@@ -170,7 +170,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
 
         let data: EventData<EventName>;
         try {
-            data = isObject(eventData) ? eventData : JSON.parse(eventData as string);
+            data = isObject(eventData) ? eventData : (JSON.parse(eventData) as EventData<EventName>);
         } catch (err) {
             Log.alert('[Pusher] Unable to parse single JSON event data from Pusher', {error: err, eventData});
             return;

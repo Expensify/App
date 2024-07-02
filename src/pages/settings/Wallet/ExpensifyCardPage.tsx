@@ -122,7 +122,7 @@ function ExpensifyCardPage({
                     [revealedCardID]: '',
                 }));
             })
-            .catch((error) => {
+            .catch((error: string) => {
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
                     [revealedCardID]: error,

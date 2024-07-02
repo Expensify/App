@@ -251,7 +251,7 @@ function Composer(
     }, []);
 
     useEffect(() => {
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
             isReportFlatListScrolling.current = scrolling;
         });
 
