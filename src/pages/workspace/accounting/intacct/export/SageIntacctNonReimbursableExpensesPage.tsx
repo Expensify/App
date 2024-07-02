@@ -65,7 +65,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
     const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
     const defaultVendorSection = {
         description: translate('workspace.sageIntacct.defaultVendor'),
-        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, 'non-reimbursable')),
+        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
         title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
         hasError:
             config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL

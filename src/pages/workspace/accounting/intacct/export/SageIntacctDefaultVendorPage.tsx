@@ -30,7 +30,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
     const policyID = route.params.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const isReimbursable = route.params.reimbursable === 'reimbursable';
+    const isReimbursable = route.params.reimbursable === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
 
     let defaultVendor;
     let settingName: keyof Connections['intacct']['config']['export'];

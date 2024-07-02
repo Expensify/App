@@ -66,7 +66,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
 
     const defaultVendorSection = {
         description: translate('workspace.sageIntacct.defaultVendor'),
-        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, 'reimbursable')),
+        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)),
         title: reimbursableExpenseReportDefaultVendor
             ? getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors ?? [])
             : translate('workspace.sageIntacct.notConfigured'),
