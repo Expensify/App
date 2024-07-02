@@ -48,7 +48,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {keyboardHeight} = useKeyboardState();
-    const {paddingBottom: bottomInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -77,15 +77,13 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
                     : xCoordinatesOfCursor;
-
-            let bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - (keyboardHeight || bottomInset);
-            const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
-
             const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
             const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            const isEnoughSpaceAboveForBig = windowHeight - (bottomValue + keyboardHeight) - contentMaxHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
-            const isEnoughSpaceAboveForSmall = windowHeight - (bottomValue + keyboardHeight) - contentMinHeight > CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
+            const isEnoughSpaceAboveForBig = y + (cursorCoordinates.y - scrollValue) > contentMaxHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            const isEnoughSpaceAboveForSmall = y + (cursorCoordinates.y - scrollValue) > contentMinHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
             const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - leftValueForBigScreen) > 150;
@@ -106,7 +104,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight - 0;
             }
             setSuggestionHeight(measuredHeight);
             setContainerState({
@@ -115,7 +113,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 width: widthValue,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset]);
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset, topInset]);
 
     if (containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) {
         return null;
