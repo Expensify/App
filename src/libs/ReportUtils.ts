@@ -276,6 +276,23 @@ type OptimisticChatReport = Pick<
     isOptimisticReport: true;
 };
 
+type OptimisticExportAction = Pick<
+    ReportAction,
+    | 'reportActionID'
+    | 'actionName'
+    | 'actorAccountID'
+    | 'avatar'
+    | 'created'
+    | 'lastModified'
+    | 'message'
+    | 'originalMessage'
+    | 'person'
+    | 'shouldShow'
+    | 'pendingAction'
+    | 'errors'
+    | 'automatic'
+>;
+
 type OptimisticTaskReportAction = Pick<
     ReportAction,
     | 'reportActionID'
@@ -5109,6 +5126,60 @@ function buildOptimisticTaskReport(
     };
 }
 
+// function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime()): OptimisticCreatedReportAction {
+//     return {
+//         reportActionID: NumberUtils.rand64(),
+//         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+//         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+//         actorAccountID: currentUserAccountID,
+//         message: [
+//             {
+//                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+//                 style: 'strong',
+//                 text: emailCreatingAction,
+//             },
+//             {
+//                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+//                 style: 'normal',
+//                 text: ' created this report',
+//             },
+//         ],
+//         person: [
+//             {
+//                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+//                 style: 'strong',
+//                 text: getCurrentUserDisplayNameOrEmail(),
+//             },
+//         ],
+//         automatic: false,
+//         avatar: getCurrentUserAvatar(),
+//         created,
+//         shouldShow: true,
+//     };
+// }
+
+// Manual export
+function buildOptimisticExportIntegrationAction(label = '', markedManually = false): OptimisticExportAction {
+    return {
+        reportActionID: NumberUtils.rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID: currentUserAccountID,
+        message: [],
+        person: [],
+        automatic: false,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        shouldShow: true,
+        originalMessage: {
+            automaticAction: false,
+            label,
+            lastModified: DateUtils.getDBTime(),
+            markedManually,
+        },
+    };
+}
+
 /**
  * A helper method to create transaction thread
  *
@@ -7341,6 +7412,7 @@ export {
     changeMoneyRequestHoldStatus,
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
+    buildOptimisticExportIntegrationAction,
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     getIntegrationIcon,

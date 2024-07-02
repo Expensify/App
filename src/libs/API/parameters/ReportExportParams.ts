@@ -5,6 +5,7 @@ type ReportExportParams = {
     reportIDList: string;
     connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     type: 'MANUAL';
+    optimisticReportActionID: string;
 };
 
 export default ReportExportParams;

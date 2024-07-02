@@ -3059,7 +3059,13 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
+                exportedToIntegration: ({label, markedManually}: ExportedToIntegrationParams) => {
+                    if (markedManually) {
+                        // TODO: Verify translation - it was taken from the backend response, and it is needed here for the optimistic response
+                        return `You marked this report as manually exported to`;
+                    }
+                    return `exported this report to ${label}`;
+                },
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `failed to export this report to ${label}. ${errorMessage}`,
                 managerAttachReceipt: `added a receipt`,
