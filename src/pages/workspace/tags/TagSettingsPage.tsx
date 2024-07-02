@@ -127,6 +127,14 @@ function TagSettingsPage({route, policyTags, navigation}: TagSettingsPageProps) 
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.glCode}>
+                        <MenuItemWithTopDescription
+                            title={currentPolicyTag.glCode}
+                            description={translate(`workspace.tags.tagName`)}
+                            onPress={navigateToEditTag}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
                     {shouldShowDeleteMenuItem && (
                         <MenuItem
                             icon={Expensicons.Trashcan}
