@@ -744,7 +744,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration options pertaining to sync. This subset of configurations is a legacy object. New configurations should just go directly under the config */
     syncOptions: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Different NetSuite records that can be mapped to either Report Fields or Tags in Expensify */
-        mapping:{
+        mapping: {
             /** A general type of classification category in NetSuite */
             classes: NetSuiteMappingValues;
 

@@ -7,16 +7,16 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteImportMapping, updateNetSuiteCrossSubsidiaryCustomersConfiguration} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import CONST from '@src/CONST';
 import * as Policy from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 const parser = new ExpensiMark();
@@ -60,7 +60,6 @@ function NetSuiteImportMappingPage({
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
-                
                 {importField === 'jobs' && (
                     <View style={[styles.flex1, styles.mb8]}>
                         <ToggleSettingOptionRow
@@ -87,11 +86,11 @@ function NetSuiteImportMappingPage({
 
     const inputOptions = useMemo(() => {
         switch (importField) {
-            case 'departments': 
-            case 'classes': 
-            case 'locations': 
+            case 'departments':
+            case 'classes':
+            case 'locations':
                 return [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
-            
+
             default:
                 return [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
         }

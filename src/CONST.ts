@@ -1372,7 +1372,7 @@ const CONST = {
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         SYNC_OPTIONS: {
             SYNC_TAX: 'syncTax',
-            CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers'
+            CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
         },
     },
 

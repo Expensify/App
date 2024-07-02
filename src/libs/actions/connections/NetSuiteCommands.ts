@@ -393,7 +393,12 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
 }
 
 function updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID: string, isCrossSubsidiaryCustomersEnabled: boolean) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS, isCrossSubsidiaryCustomersEnabled, !isCrossSubsidiaryCustomersEnabled);
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(
+        policyID,
+        CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+        isCrossSubsidiaryCustomersEnabled,
+        !isCrossSubsidiaryCustomersEnabled,
+    );
 
     const params = {
         policyID,
@@ -587,5 +592,5 @@ export {
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
     updateNetSuiteImportMapping,
-    updateNetSuiteCrossSubsidiaryCustomersConfiguration
+    updateNetSuiteCrossSubsidiaryCustomersConfiguration,
 };
