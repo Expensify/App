@@ -2328,16 +2328,48 @@ export default {
                 expenseCategories: 'Categorías de gastos',
                 expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
                 importFields: {
-                    departments: 'Departamentos',
-                    classes: 'Clases',
-                    locations: 'Ubicaciones',
-                    customers: 'Clientes',
-                    jobs: 'Proyectos (trabajos)',
+                    departments: {
+                        title: 'Departamentos',
+                        subtitle: 'Elige cómo manejar los *departamentos* de NetSuite en Expensify.',
+                    },
+                    classes: {
+                        title: 'Clases',
+                        subtitle: 'Elige cómo manejar las *clases* en Expensify.',
+                    },
+                    locations: {
+                        title: 'Ubicaciones',
+                        subtitle: 'Elija cómo manejar *ubicaciones* en Expensify.',
+                    },
+                    customers: {
+                        title: 'Clientes',
+                        subtitle: "Importa *clientes* a Expensify y elige cómo se mostrarán.",
+                    },
+                    jobs: {
+                        title: 'Proyectos (trabajos)',
+                        subtitle: "Importa *proyectos (trabajos)* a Expensify y elige cómo se mostrarán.",
+                    },
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
                     customSegments: 'Segmentos/registros personalizado',
                     customLists: 'Listas personalizado',
+                },
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'Predeterminado del empleado NetSuite',
+                        description: 'No importado a Expensify, aplicado en exportación',
+                        footerContent: (importField: string) => `Si usa ${importField} en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Etiquetas',
+                        description: 'Nivel de línea de pedido',
+                        footerContent: (importField: string) => `Se podrán seleccionar ${importField} para cada gasto individual en el informe de un empleado.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Campos de informe',
+                        description: 'Nivel de informe',
+                        footerContent: (importField: string) => `La selección de ${importField} se aplicará a todos los gastos en el informe de un empleado.`,
+                    },
                 },
             },
         },
