@@ -58,33 +58,31 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
             });
         }
 
-        // @TODO: Uncomment when actions are ready
+        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
 
-        // const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
+        if (itemsToHold.length > 0) {
+            options.push({
+                icon: Expensicons.Stopwatch,
+                text: translate('search.bulkActions.hold'),
+                value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
+                onSelected: () => {
+                    SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
+                },
+            });
+        }
 
-        // if (itemsToHold.length > 0) {
-        //     options.push({
-        //         icon: Expensicons.Stopwatch,
-        //         text: translate('search.bulkActions.hold'),
-        //         value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
-        //         onSelected: () => {
-        //             SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
-        //         },
-        //     });
-        // }
+        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD);
 
-        // const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD);
-
-        // if (itemsToUnhold.length > 0) {
-        //     options.push({
-        //         icon: Expensicons.Stopwatch,
-        //         text: translate('search.bulkActions.unhold'),
-        //         value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
-        //         onSelected: () => {
-        //             SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
-        //         },
-        //     });
-        // }
+        if (itemsToUnhold.length > 0) {
+            options.push({
+                icon: Expensicons.Stopwatch,
+                text: translate('search.bulkActions.unhold'),
+                value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
+                onSelected: () => {
+                    SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
+                },
+            });
+        }
 
         if (options.length === 0) {
             options.push({
