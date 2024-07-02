@@ -116,22 +116,19 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
-    // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
-    if (policy === undefined) {
-        return null;
-    }
-
     return (
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
             route={route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_PROFILE}
-            shouldShowLoading={false}
+            // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
+            shouldShowLoading={policy === undefined}
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             icon={Illustrations.House}
             shouldSkipVBBACall={false}
+            shouldShowNotFoundPage={policy === undefined}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
