@@ -1,4 +1,5 @@
 import type {Meta} from '@storybook/react';
+// eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import React, {useState} from 'react';
 import {Image, View} from 'react-native';
