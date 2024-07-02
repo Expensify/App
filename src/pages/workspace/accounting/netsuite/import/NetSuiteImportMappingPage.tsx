@@ -1,20 +1,20 @@
 import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type { SelectorType } from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
-import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {ValueOf} from 'type-fest';
 
 const parser = new ExpensiMark();
 
@@ -28,7 +28,7 @@ type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
 
 type ImportListItem = SelectorType & {
     value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
-}
+};
 
 function NetSuiteImportMappingPage({
     policy,
@@ -77,19 +77,17 @@ function NetSuiteImportMappingPage({
 
     const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
 
-    const updateImportMapping = useCallback(({value}: ImportListItem) => {
-        if (!value || value === importValue) {
-            return;
-        }
+    const updateImportMapping = useCallback(
+        ({value}: ImportListItem) => {
+            if (!value || value === importValue) {
+                return;
+            }
 
-        updateNetSuiteImportMapping(
-            policyID,
-            importField as keyof typeof importMappings,
-            value,
-            importValue
-        );
-        Navigation.goBack();
-    },[importField, importValue, policyID]);
+            updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
+            Navigation.goBack();
+        },
+        [importField, importValue, policyID],
+    );
 
     return (
         <SelectionScreen

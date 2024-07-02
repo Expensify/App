@@ -202,7 +202,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                         },
                                     },
                                     errorFields: {
-                                        [mappingName]: null
+                                        [mappingName]: null,
                                     },
                                 },
                             },
@@ -229,7 +229,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                         },
                                     },
                                     errorFields: {
-                                        [mappingName]: null
+                                        [mappingName]: null,
                                     },
                                 },
                             },
@@ -256,7 +256,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                         },
                                     },
                                     errorFields: {
-                                        [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')
+                                        [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                     },
                                 },
                             },
@@ -357,16 +357,14 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                         netsuite: {
                             options: {
                                 config: {
-                                    config: {
-                                        syncOptions: {
-                                            syncTax: !isSyncTaxEnabled,
-                                            pendingFields: {
-                                                syncTax: null,
-                                            },
+                                    syncOptions: {
+                                        syncTax: !isSyncTaxEnabled,
+                                        pendingFields: {
+                                            syncTax: null,
                                         },
-                                        errorFields: {
-                                            syncTax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                        },
+                                    },
+                                    errorFields: {
+                                        syncTax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                                     },
                                 },
                             },

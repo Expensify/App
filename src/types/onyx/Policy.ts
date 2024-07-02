@@ -759,7 +759,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
             /** A type of classification category in NetSuite linked to departments within the company */
             departments: NetSuiteMappingValues;
-        }
+        };
 
         /** Whether we want to import customers into NetSuite from across all subsidiaries */
         crossSubsidiaryCustomers: boolean;
