@@ -804,6 +804,11 @@ export default {
         removed: 'removed',
         transactionPending: 'Transaction pending.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
+        unapprove: 'Unapprove',
+        unapproveReport: 'Unapprove report',
+        headsUp: 'Heads up!',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
