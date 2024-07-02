@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -34,8 +33,6 @@ type NewTaskDescriptionPageOnyxProps = {
 };
 
 type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
-
-const parser = new ExpensiMark();
 
 function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
     const styles = useThemeStyles();
@@ -80,7 +77,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={Parser.htmlToMarkdown(parser.replace(task?.description ?? ''))}
+                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''))}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}

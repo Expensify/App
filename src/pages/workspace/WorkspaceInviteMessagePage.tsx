@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import lodashDebounce from 'lodash/debounce';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
@@ -59,8 +58,6 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInviteMessagePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-const parser = new ExpensiMark();
-
 function WorkspaceInviteMessagePage({
     workspaceInviteMessageDraft,
     invitedEmailsToAccountIDsDraft,
@@ -88,7 +85,7 @@ function WorkspaceInviteMessagePage({
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        parser.replace(
+        Parser.replace(
             translate('workspace.common.welcomeNote', {
                 workspaceName: policy?.name ?? '',
             }),

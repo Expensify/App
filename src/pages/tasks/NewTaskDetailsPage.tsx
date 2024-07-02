@@ -1,5 +1,4 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import {ExpensiMark} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -35,8 +34,6 @@ type NewTaskDetailsPageOnyxProps = {
 
 type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
-const parser = new ExpensiMark();
-
 function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -50,7 +47,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
 
     useEffect(() => {
         setTaskTitle(task?.title ?? '');
-        setTaskDescription(Parser.htmlToMarkdown(parser.replace(task?.description ?? '')));
+        setTaskDescription(Parser.htmlToMarkdown(Parser.replace(task?.description ?? '')));
     }, [task]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NEW_TASK_FORM> => {
@@ -136,7 +133,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        defaultValue={Parser.htmlToMarkdown(parser.replace(taskDescription))}
+                        defaultValue={Parser.htmlToMarkdown(Parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
                         isMarkdownEnabled

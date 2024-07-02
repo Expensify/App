@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import type {ImageStyle, StyleProp} from 'react-native';
 import {Image, StyleSheet, View} from 'react-native';
@@ -21,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -41,8 +41,6 @@ type WorkSpaceProfilePageOnyxProps = {
 };
 
 type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
-
-const parser = new ExpensiMark();
 
 function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
     const styles = useThemeStyles();
@@ -73,7 +71,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         // policy?.description can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         policy?.description ||
-        parser.replace(
+        Parser.replace(
             translate('workspace.common.welcomeNote', {
                 workspaceName: policy?.name ?? '',
             }),

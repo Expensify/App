@@ -1,4 +1,3 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -24,8 +23,6 @@ import type {WithPolicyProps} from './withPolicy';
 
 type Props = WithPolicyProps;
 
-const parser = new ExpensiMark();
-
 function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -34,7 +31,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.description ||
-                parser.replace(
+                Parser.replace(
                     translate('workspace.common.welcomeNote', {
                         workspaceName: policy?.name ?? '',
                     }),
