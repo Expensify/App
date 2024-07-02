@@ -119,14 +119,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
     const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
-    const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
-    const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
+    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
@@ -159,8 +159,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return CASES.DEFAULT;
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
-
-    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
 
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
