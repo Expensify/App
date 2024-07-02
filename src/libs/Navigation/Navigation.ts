@@ -3,7 +3,7 @@ import type {EventArg, NavigationContainerEventMap} from '@react-navigation/nati
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName, removePolicyIDParamFromState} from '@libs/NavigationUtils';
 import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -122,7 +122,9 @@ function getDistanceFromPathInRootNavigator(path?: string): number {
             break;
         }
 
-        const pathFromState = getPathFromState(currentState, linkingConfig.config);
+        // When comparing path and pathFromState, the policyID parameter isn't included in the comparison
+        const currentStateWithoutPolicyID = removePolicyIDParamFromState(currentState as State<RootStackParamList>);
+        const pathFromState = getPathFromState(currentStateWithoutPolicyID, linkingConfig.config);
         if (path === pathFromState.substring(1)) {
             return index;
         }

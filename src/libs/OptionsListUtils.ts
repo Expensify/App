@@ -1095,7 +1095,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : true,
+                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : !selectedOptionsName.includes(searchText),
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
                 pendingAction: option.pendingAction,
             });

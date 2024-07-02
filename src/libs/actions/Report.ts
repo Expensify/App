@@ -769,7 +769,9 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                errorFields: null,
+                errorFields: {
+                    notFound: null,
+                },
             },
         },
         {
@@ -945,6 +947,7 @@ function openReport(
 function navigateToAndOpenReport(
     userLogins: string[],
     shouldDismissModal = true,
+    actionType?: string,
     reportName?: string,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
@@ -987,7 +990,7 @@ function navigateToAndOpenReport(
         Navigation.dismissModalWithReport(report);
     } else {
         Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? '-1'), actionType);
     }
 }
 
@@ -1994,7 +1997,7 @@ function updateWriteCapabilityAndNavigate(report: Report, newValue: WriteCapabil
 /**
  * Navigates to the 1:1 report with Concierge
  */
-function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true) {
+function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageActive = () => true, actionType?: string) {
     // If conciergeChatReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
     if (!conciergeChatReportID) {
@@ -2005,12 +2008,12 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal, actionType);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModal(conciergeChatReportID);
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeChatReportID), actionType);
     }
 }
 
@@ -2236,18 +2239,6 @@ function clearPolicyRoomNameErrors(reportID: string) {
         },
         pendingFields: {
             reportName: null,
-        },
-    });
-}
-
-/**
- * @param reportID The reportID of the report.
- */
-// eslint-disable-next-line rulesdir/no-negated-variables
-function clearReportNotFoundErrors(reportID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        errorFields: {
-            notFound: null,
         },
     });
 }
@@ -2551,40 +2542,30 @@ function getCurrentUserAccountID(): number {
 }
 
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
-    const reportID = currentReport?.reportID;
-    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(ReportConnection.getAllReports() ?? {}) as Report[], reportMetadata);
+    const lastAccessedReportID = ReportUtils.findLastAccessedReport(
+        ReportConnection.getAllReports(),
+        false,
+        undefined,
+        false,
+        false,
+        reportMetadata,
+        undefined,
+        [],
+        currentReport?.reportID,
+    )?.reportID;
 
-    // We want to filter out the current report, hidden reports and empty chats
-    const filteredReportsByLastRead = sortedReportsByLastRead.filter(
-        (sortedReport) =>
-            sortedReport?.reportID !== reportID &&
-            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
-            ReportUtils.shouldReportBeInOptionList({
-                report: sortedReport,
-                currentReportId: '',
-                isInFocusMode: false,
-                betas: [],
-                policies: {},
-                excludeEmptyChats: true,
-                doesReportHaveViolations: false,
-                includeSelfDM: true,
-            }),
-    );
-    const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
-    const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '-1');
         Navigation.goBack(lastAccessedReportRoute);
     } else {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-        const chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
-        if (chat?.reportID) {
-            // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            if (!isChatThread) {
-                Navigation.goBack();
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.UP);
+        const isChatThread = ReportUtils.isChatThread(currentReport);
+
+        // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
+        if (!isChatThread) {
+            Navigation.goBack();
         }
+
+        navigateToConciergeChat(false, () => true, CONST.NAVIGATION.TYPE.UP);
     }
 }
 
@@ -3226,6 +3207,8 @@ function completeOnboarding(
         description: taskDescription ?? '',
     }));
 
+    const hasOutstandingChildTask = tasksData.some((task) => !task.completedTaskReportAction);
+
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, taskDescription, completedTaskReportAction}) => {
         acc.push(
             {
@@ -3248,6 +3231,7 @@ function completeOnboarding(
                         managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                     isOptimisticReport: true,
+                    managerID: currentUserAccountID,
                 },
             },
             {
@@ -3274,6 +3258,7 @@ function completeOnboarding(
                 value: {
                     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    managerID: currentUserAccountID,
                 },
             });
         }
@@ -3358,6 +3343,7 @@ function completeOnboarding(
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 lastMentionedTime: DateUtils.getDBTime(),
+                hasOutstandingChildTask,
             },
         },
         {
@@ -3389,6 +3375,7 @@ function completeOnboarding(
         lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
+        hasOutstandingChildTask: false,
     };
     const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID);
     if (lastMessageText || lastMessageTranslationKey) {
@@ -3767,7 +3754,6 @@ export {
     toggleSubscribeToChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
-    clearReportNotFoundErrors,
     clearIOUError,
     subscribeToNewActionEvent,
     notifyNewAction,
