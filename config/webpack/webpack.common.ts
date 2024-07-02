@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import path from 'path';
+import TerserPlugin from 'terser-webpack-plugin';
 import type {Compiler, Configuration} from 'webpack';
 import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
@@ -277,6 +278,17 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
 
     optimization: {
+        /*minimize: true,
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    sourceMap: {
+                        filename: 'out.js',
+                        url: 'out.js.map',
+                    },
+                },
+            }),
+        ],*/
         runtimeChunk: 'single',
         splitChunks: {
             cacheGroups: {
