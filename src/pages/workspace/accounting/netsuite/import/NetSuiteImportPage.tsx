@@ -103,7 +103,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                             description={translate(`workspace.netsuite.import.importCustomFields.${importField}`)}
                             shouldShowRightIcon
                             onPress={() => {
-                                // TODO: Navigation will be handled in future PRs
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField));
                             }}
                             brickRoadIndicator={config?.errorFields?.[importField] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
