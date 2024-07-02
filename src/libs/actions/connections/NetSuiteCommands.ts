@@ -191,6 +191,7 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: isSyncTaxEnabled,
                                     },
+                                    // TODO: Fixing in the future PR
                                     // pendingFields: {
                                     //     syncTax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     // },
@@ -216,6 +217,7 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: isSyncTaxEnabled,
                                     },
+                                    // TODO: Fixing in the future PR
                                     // pendingFields: {
                                     //     syncTax: null
                                     // },
