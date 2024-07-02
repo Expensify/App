@@ -2368,6 +2368,7 @@ export default {
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
+                    customSegments: 'Segmentos/registros personalizados',
                     customLists: 'Listas personalizado',
                 },
             },
