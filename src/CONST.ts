@@ -3879,6 +3879,14 @@ const CONST = {
         HOLD: 'hold',
     },
 
+    REPORT_VIOLATIONS: {
+        FIELD_REQUIRED: 'fieldRequired',
+    },
+
+    REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
+        TEXT_TITLE: 'text_title',
+    },
+
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
         LINK: 'LINK',

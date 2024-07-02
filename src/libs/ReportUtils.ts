@@ -32,6 +32,8 @@ import type {
     ReportAction,
     ReportMetadata,
     ReportNameValuePairs,
+    ReportViolationName,
+    ReportViolations,
     Session,
     Task,
     Transaction,
@@ -562,6 +564,19 @@ Onyx.connect({
         }
 
         lastUpdatedReport = value;
+    },
+});
+
+let allReportsViolations: OnyxCollection<ReportViolations>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportsViolations = value;
     },
 });
 
@@ -7062,6 +7077,44 @@ function getChatUsedForOnboarding(): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find(isChatUsedForOnboarding);
 }
 
+/**
+ * Checks if given field has any violations and returns name of the first encountered one
+ */
+function getFieldViolation(violations: OnyxEntry<ReportViolations>, reportField: PolicyReportField): ReportViolationName | undefined {
+    if (!violations || !reportField) {
+        return undefined;
+    }
+
+    return Object.values(CONST.REPORT_VIOLATIONS).find((violation) => !!violations[violation] && violations[violation][reportField.fieldID]);
+}
+
+/**
+ * Returns translation for given field violation
+ */
+function getFieldViolationTranslation(violation: ReportViolationName | undefined, reportField: PolicyReportField): string {
+    if (!violation) {
+        return '';
+    }
+
+    switch (violation) {
+        case 'fieldRequired':
+            return Localize.translateLocal('reportViolations.fieldRequired', reportField.name);
+        default:
+            return '';
+    }
+}
+
+/**
+ * Returns all violations for report
+ */
+function getReportViolations(reportID: string): ReportViolations | undefined {
+    if (!allReportsViolations) {
+        return undefined;
+    }
+
+    return allReportsViolations[`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${reportID}`];
+}
+
 function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
@@ -7341,6 +7394,9 @@ export {
     createDraftWorkspaceAndNavigateToConfirmationScreen,
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
+    getFieldViolationTranslation,
+    getFieldViolation,
+    getReportViolations,
     findPolicyExpenseChatByPolicyID,
 };
 

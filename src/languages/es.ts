@@ -3913,6 +3913,9 @@ export default {
         keepThisOne: 'Mantener éste',
         hold: 'Bloqueado',
     },
+    reportViolations: {
+        [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} es obligatorio.`,
+    },
     violationDismissal: {
         rter: {
             manual: 'marcó el recibo como pagado en efectivo.',

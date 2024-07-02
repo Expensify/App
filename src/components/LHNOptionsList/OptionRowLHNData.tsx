@@ -5,6 +5,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -26,6 +27,7 @@ function OptionRowLHNData({
     transaction,
     lastReportActionTransaction,
     transactionViolations,
+    reportViolations,
     canUseViolations,
     ...propsToForward
 }: OptionRowLHNDataProps) {
@@ -36,6 +38,11 @@ function OptionRowLHNData({
     const optionItemRef = useRef<OptionData>();
 
     const shouldDisplayViolations = canUseViolations && ReportUtils.shouldDisplayTransactionThreadViolations(fullReport, transactionViolations, parentReportAction);
+    const shouldDisplayReportViolations =
+        policy?.role !== CONST.POLICY.ROLE.ADMIN &&
+        Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations)) &&
+        parentReportAction?.childMoneyRequestCount &&
+        parentReportAction?.childMoneyRequestCount > 1;
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -46,7 +53,7 @@ function OptionRowLHNData({
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            hasViolations: !!shouldDisplayViolations,
+            hasViolations: !!shouldDisplayViolations || !!shouldDisplayReportViolations,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
@@ -70,6 +77,7 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
+        shouldDisplayReportViolations,
     ]);
 
     return (

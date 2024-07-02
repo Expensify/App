@@ -862,6 +862,30 @@ function buildOnyxDataForMoneyRequest(
         });
     }
 
+    const missingFields: OnyxTypes.ReportFieldsViolations = {};
+    const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
+
+    Object.values(policy?.fieldList ?? {}).forEach((field) => {
+        if (excludedFields.includes(field.fieldID)) {
+            return;
+        }
+        missingFields[field.fieldID] = {};
+    });
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
+        value: {
+            fieldRequired: missingFields,
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
+        value: {},
+    });
+
     return [optimisticData, successData, failureData];
 }
 

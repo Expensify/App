@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,6 +19,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
 import * as reportActions from '@src/libs/actions/Report';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 
@@ -52,6 +54,8 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report.reportID}`);
+
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
@@ -68,6 +72,9 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                             const fieldValue = isTitleField ? report.reportName : reportField.value ?? reportField.defaultValue;
                             const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, reportField, policy);
                             const fieldKey = ReportUtils.getReportFieldKey(reportField.fieldID);
+
+                            const violation = ReportUtils.getFieldViolation(violations, reportField);
+                            const violationTranslation = ReportUtils.getFieldViolationTranslation(violation, reportField);
 
                             return (
                                 <OfflineWithFeedback
@@ -91,6 +98,8 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                                         onSecondaryInteraction={() => {}}
                                         hoverAndPressStyle={false}
                                         titleWithTooltips={[]}
+                                        brickRoadIndicator={violation ? 'error' : undefined}
+                                        errorText={violationTranslation}
                                     />
                                 </OfflineWithFeedback>
                             );
