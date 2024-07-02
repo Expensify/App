@@ -38,7 +38,7 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected, onboardingErrorMessage}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
@@ -83,8 +83,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
-    const [errorMessage, setErrorMessage] = useState<string>('');
-
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
         const isSelected = selectedPurpose === choice;
@@ -103,7 +101,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             numberOfLinesTitle: 0,
             onPress: () => {
                 Welcome.setOnboardingPurposeSelected(choice);
-                setErrorMessage('');
+                Welcome.setOnboardingErrorMessage('');
             },
         };
     });
@@ -111,11 +109,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const handleOuterClick = useCallback(() => {
         if (!selectedPurpose) {
-            setErrorMessage(translate('onboarding.purpose.errorSelection'));
+            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
         } else {
-            setErrorMessage(translate('onboarding.purpose.errorContinue'));
+            Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorContinue'));
         }
-    }, [selectedPurpose, setErrorMessage, translate]);
+    }, [selectedPurpose, translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
@@ -148,14 +146,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                         buttonText={translate('common.continue')}
                         onSubmit={() => {
                             if (!selectedPurpose) {
-                                setErrorMessage(translate('onboarding.purpose.errorSelection'));
+                                Welcome.setOnboardingErrorMessage(translate('onboarding.purpose.errorSelection'));
                                 return;
                             }
-                            setErrorMessage('');
+                            Welcome.setOnboardingErrorMessage('');
                             saveAndNavigate();
                         }}
-                        message={errorMessage}
-                        isAlertVisible={!!errorMessage}
+                        message={onboardingErrorMessage}
+                        isAlertVisible={!!onboardingErrorMessage}
                         containerStyles={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}
                     />
                 </View>
@@ -169,6 +167,9 @@ BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
     onboardingPurposeSelected: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+    onboardingErrorMessage: {
+        key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
     },
 })(BaseOnboardingPurpose);
 
