@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import {getReportFieldInitialValue, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -22,13 +23,13 @@ type EditReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScree
 function EditReportFieldPage({
     policy,
     route: {
-        params: {policyID, reportFieldName},
+        params: {policyID, reportFieldID},
     },
 }: EditReportFieldPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const reportField = useMemo(() => Object.values(policy?.fieldList ?? {}).find((field) => field.name === reportFieldName) ?? null, [policy, reportFieldName]);
+    const reportField = useMemo(() => policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null, [policy, reportFieldID]);
 
     if (!reportField) {
         return <NotFoundPage />;
@@ -73,7 +74,7 @@ function EditReportFieldPage({
                     title={getReportFieldInitialValue(reportField)}
                     description={translate('common.initialValue')}
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(`${policyID}`, reportFieldName))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(`${policyID}`, reportFieldID))}
                 />
 
                 {reportField.type === CONST.REPORT_FIELD_TYPES.LIST && (

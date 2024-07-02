@@ -158,7 +158,7 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple
                         sections={[{data: reportFieldsList, isDisabled: false}]}
                         onCheckboxPress={updateSelectedReportFields}
-                        onSelectRow={(item: ReportFieldForList) => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD.getRoute(policyID, item.value))}
+                        onSelectRow={(item: ReportFieldForList) => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD.getRoute(policyID, item.fieldID))}
                         onSelectAll={() => {}}
                         ListItem={TableListItem}
                         customListHeader={getCustomListHeader()}

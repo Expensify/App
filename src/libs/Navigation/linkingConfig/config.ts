@@ -542,13 +542,13 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD.route,
                             parse: {
-                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
                         [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: {
                             path: ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.route,
                             parse: {
-                                reportFieldName: (reportFieldName: string) => decodeURIComponent(reportFieldName),
+                                reportFieldID: (reportFieldID: string) => decodeURIComponent(reportFieldID),
                             },
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
