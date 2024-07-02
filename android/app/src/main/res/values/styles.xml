@@ -24,7 +24,7 @@
     <style name="TextViewSpinnerDropDownItem" parent="Widget.AppCompat.DropDownItem.Spinner">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">@dimen/spinner_font_size</item>
-        <item name="android:fontFamily">@font/expneuebold</item>
+        <item name="android:fontFamily">@font/expensifyneue_bold</item>
     </style>
 
     <!-- Theme used by the Alert dialog -->
@@ -37,15 +37,15 @@
     </style>
 
     <style name="AlertTextAppearanceSmall" parent="TextAppearance.AppCompat.Small">
-        <item name="android:fontFamily">@font/expneueregular</item>
+        <item name="android:fontFamily">@font/expensifyneue_regular</item>
     </style>
 
     <style name="AlertTextAppearanceMedium" parent="TextAppearance.AppCompat.Medium">
-        <item name="android:fontFamily">@font/expneueregular</item>
+        <item name="android:fontFamily">@font/expensifyneue_regular</item>
     </style>
 
     <style name="AlertTextAppearanceLarge" parent="TextAppearance.AppCompat.Large">
-        <item name="android:fontFamily">@font/expneuebold</item>
+        <item name="android:fontFamily">@font/expensifyneue_bold</item>
     </style>
 
     <style name="Theme.SplashScreen.Common" parent="Theme.AppCompat.NoActionBar">

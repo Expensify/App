@@ -1,54 +1,54 @@
 @font-face {
-    font-family: ExpensifyNeue-Regular;
+    font-family: Expensify Neue;
     font-weight: 400;
     font-style: normal;
     src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Regular.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNeue-Regular;
+    font-family: Expensify Neue;
     font-weight: 700;
     font-style: normal;
     src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Bold.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNeue-Regular;
+    font-family: Expensify Neue;
     font-weight: 400;
     font-style: italic;
     src: url('/fonts/ExpensifyNeue-Italic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Italic.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNeue-Regular;
+    font-family: Expensify Neue;
     font-weight: 700;
     font-style: italic;
     src: url('/fonts/ExpensifyNeue-BoldItalic.woff2') format('woff2'), url('/fonts/ExpensifyNeue-BoldItalic.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyMono-Regular;
+    font-family: Expensify Mono;
     font-weight: 400;
     font-style: normal;
     src: url('/fonts/ExpensifyMono-Regular.woff2') format('woff2'), url('/fonts/ExpensifyMono-Regular.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyMono-Bold;
+    font-family: Expensify Mono;
     font-weight: 700;
     font-style: normal;
     src: url('/fonts/ExpensifyMono-Bold.woff2') format('woff2'),  url('/fonts/ExpensifyMono-Bold.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNewKansas-Medium;
+    font-family: Expensify New Kansas;
     font-weight: 500;
     font-style: normal;
     src: url('/fonts/ExpensifyNewKansas-Medium.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-Medium.woff') format('woff');
 }
 
 @font-face {
-    font-family: ExpensifyNewKansas-MediumItalic;
+    font-family: Expensify New Kansas;
     font-weight: 500;
     font-style: italic;
     src: url('/fonts/ExpensifyNewKansas-MediumItalic.woff2') format('woff2'),  url('/fonts/ExpensifyNewKansas-MediumItalic.woff') format('woff');
