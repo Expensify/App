@@ -3024,6 +3024,12 @@ export default {
             },
         },
         groupedExpenses: 'grouped expenses',
+        bulkActions: {
+            delete: 'Delete',
+            hold: 'Hold',
+            unhold: 'Unhold',
+            noOptionsAvailable: 'No options available for the selected group of expenses.',
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
