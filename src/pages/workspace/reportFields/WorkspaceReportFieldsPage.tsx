@@ -5,10 +5,8 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
-import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -23,6 +21,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -32,11 +31,8 @@ type ReportFieldForList = ListItem & {value: string; fieldID: string};
 
 type WorkspaceReportFieldsPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS>;
 
-function WorkspaceReportFieldsPage({
-    route: {
-        params: {policyID},
-    },
-}: WorkspaceReportFieldsPageProps) {
+function WorkspaceReportFieldsPage({route}: WorkspaceReportFieldsPageProps) {
+    const policyID = route.params.policyID;
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -116,20 +112,15 @@ function WorkspaceReportFieldsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
+            <WorkspacePageWithSections
+                headerText={translate('workspace.common.reportFields')}
+                route={route}
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_FEATURES}
+                icon={Illustrations.Pencil}
                 testID={WorkspaceReportFieldsPage.displayName}
+                headerContent={!isSmallScreenWidth && getHeaderButtons()}
                 shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    icon={Illustrations.Pencil}
-                    title={translate('workspace.common.reportFields')}
-                    shouldShowBackButton={isSmallScreenWidth}
-                >
-                    {!isSmallScreenWidth && getHeaderButtons()}
-                </HeaderWithBackButton>
                 {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!isSmallScreenWidth || reportFieldsList.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
@@ -161,7 +152,7 @@ function WorkspaceReportFieldsPage({
                         showScrollIndicator={false}
                     />
                 )}
-            </ScreenWrapper>
+            </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
     );
 }
