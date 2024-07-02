@@ -3462,6 +3462,7 @@ export default {
         mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
     subscription: {
+        authenticatePaymentCard: 'Authenticate payment card',
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
         billingBanner: {
             policyOwnerAmountOwed: {
