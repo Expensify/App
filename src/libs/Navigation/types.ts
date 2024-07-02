@@ -443,6 +443,28 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: {
+        policyID: string;
+        reimbursable: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };

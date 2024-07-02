@@ -247,6 +247,14 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_ALLOW_FOREIGN_CURRENCY: 'UpdateNetSuiteAllowForeignCurrency',
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
+    UPDATE_SAGE_INTACCT_EXPORTER: 'UpdateSageIntacctExporter',
+    UPDATE_SAGE_INTACCT_EXPORT_DATE: 'UpdateSageIntacctExportDate',
+    UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateSageIntacctReimbursableExpensesExportDestination',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'UpdateSageIntacctNonreimbursableExpensesExportDestination',
+    UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_REPORT_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctReimbursableExpensesReportExportDefaultVendor',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendor',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT: 'UpdateSageIntacctNonreimbursableExpensesExportAccount',
+    UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -478,6 +486,14 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
     [WRITE_COMMANDS.REQUEST_REFUND]: null;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT]: Parameters.ConnectPolicyToSageIntacctParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER]: Parameters.UpdateSageIntacctExporterParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORT_DATE]: Parameters.UpdateSageIntacctExportDateParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateSageIntacctReimbursableExpensesExportDestinationParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: Parameters.UpdateSageIntacctNonreimbursableExpensesExportDestinationParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_REIMBURSABLE_EXPENSES_REPORT_EXPORT_DEFAULT_VENDOR]: Parameters.UpdateSageIntacctReimbursableExpensesReportExportDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_CREDIT_CARD_CHARGE_EXPORT_DEFAULT_VENDOR]: Parameters.UpdateSageIntacctNonreimbursableExpensesCreditCardChargeExportDefaultVendorParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_ACCOUNT]: Parameters.UpdateSageIntacctNonreimbursableExpensesExportAccountParams;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR]: Parameters.UpdateSageIntacctNonreimbursableExpensesExportVendorParams;
 
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;

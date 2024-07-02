@@ -527,6 +527,10 @@ function clearXeroErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
+function clearSageIntacctExportErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {export: {errorFields: {[fieldName]: null}}}}}});
+}
+
 function clearNetSuiteErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {options: {config: {errorFields: {[fieldName]: null}}}}}});
 }
@@ -3031,6 +3035,7 @@ export {
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
+    clearSageIntacctExportErrorField,
     clearNetSuiteErrorField,
     clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,

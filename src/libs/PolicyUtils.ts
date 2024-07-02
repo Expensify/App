@@ -546,6 +546,40 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
 }
 
+function getSageIntacctVendors(policy: Policy | undefined, selectedVendorId: string | null | undefined): SelectorType[] {
+    const vendors = policy?.connections?.intacct?.data?.vendors ?? [];
+    const isMatchFound = vendors?.some(({id}) => id === selectedVendorId);
+
+    return (vendors ?? []).map(({id, value}) => ({
+        value: id,
+        text: value,
+        keyForList: id,
+        isSelected: isMatchFound && selectedVendorId === id,
+    }));
+}
+
+function getSageIntacctNonReimbursableActiveDefaultVendor(policy?: Policy): string | null | undefined {
+    const {
+        nonReimbursableCreditCardChargeDefaultVendor: creditCardDefaultVendor,
+        nonReimbursableVendor: expenseReportDefaultVendor,
+        nonReimbursable,
+    } = policy?.connections?.intacct?.config.export ?? {};
+
+    return nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
+}
+
+function getSageIntacctCreditCards(policy?: Policy, selectedAccount?: string): SelectorType[] {
+    const creditCards = policy?.connections?.intacct?.data?.creditCards ?? [];
+    const isMatchFound = creditCards?.some(({name}) => name === selectedAccount);
+
+    return (creditCards ?? []).map(({name}) => ({
+        value: name,
+        text: name,
+        keyForList: name,
+        isSelected: isMatchFound && name === selectedAccount,
+    }));
+}
+
 /**
  * Sort the workspaces by their name, while keeping the selected one at the beginning.
  * @param workspace1 Details of the first workspace to be compared.
@@ -645,6 +679,9 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
+    getSageIntacctVendors,
+    getSageIntacctNonReimbursableActiveDefaultVendor,
+    getSageIntacctCreditCards,
     getCustomUnit,
     getCustomUnitRate,
     sortWorkspacesBySelected,
