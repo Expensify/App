@@ -940,6 +940,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/net-suite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,
