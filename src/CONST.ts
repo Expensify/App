@@ -1375,6 +1375,7 @@ const CONST = {
             2: 'enableSoapServices',
             3: 'createAccessToken',
             4: 'enterCredentials',
+        },
         IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         SYNC_OPTIONS: {
