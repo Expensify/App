@@ -1,4 +1,4 @@
-import {fastMerge} from 'expensify-common';
+import {fastMerge, Str} from 'expensify-common';
 import _ from 'lodash';
 import lodashFindLast from 'lodash/findLast';
 import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -74,6 +74,7 @@ Onyx.connect({
 });
 
 let currentUserAccountID: number | undefined;
+let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -83,6 +84,7 @@ Onyx.connect({
         }
 
         currentUserAccountID = value.accountID;
+        currentEmail = value?.email ?? '';
     },
 });
 
@@ -1432,6 +1434,34 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '-1');
 }
 
+function getAccountIDsFromMessage(message: string) {
+    const regex = /<mention-user\s+accountID="(\d+)"\/>/g;
+    const matches = [];
+    let match;
+    // eslint-disable-next-line no-cond-assign
+    while ((match = regex.exec(message)) !== null) {
+        matches.push(match[1]);
+    }
+    return matches;
+}
+
+function getMentionedEmailsFromMessage(message: string) {
+    const regex = /<mention-user>(.*?)<\/mention-user>/g;
+    const matches = [];
+    let match;
+    // eslint-disable-next-line no-cond-assign
+    while ((match = regex.exec(message)) !== null) {
+        matches.push(Str.removeSMSDomain(match[1].substring(1)));
+    }
+    return matches;
+}
+
+function didMessageMentionCurrentUser(message: string) {
+    const accountIDsFromMessage = getAccountIDsFromMessage(message);
+    const emailsFromMessage = getMentionedEmailsFromMessage(message);
+    return accountIDsFromMessage.includes(String(currentUserAccountID)) || emailsFromMessage.includes(currentEmail);
+}
+
 /**
  * Check if the current user is the requestor of the action
  */
@@ -1534,6 +1564,7 @@ export {
     isActionableTrackExpense,
     getAllReportActions,
     isLinkedTransactionHeld,
+    didMessageMentionCurrentUser,
     wasActionTakenByCurrentUser,
     isResolvedActionTrackExpense,
     isClosedAction,
