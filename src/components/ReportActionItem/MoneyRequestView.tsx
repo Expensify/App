@@ -12,6 +12,7 @@ import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
+import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -115,6 +116,7 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const isReportOpenInRHP = useIsReportOpenInRHP();
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
@@ -216,17 +218,22 @@ function MoneyRequestView({
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
+
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
             if (newBillable === TransactionUtils.getBillable(transaction)) {
-                Navigation.dismissModal();
+                if (!isReportOpenInRHP) {
+                    Navigation.dismissModal();
+                }
                 return;
             }
             IOU.updateMoneyRequestBillable(transaction?.transactionID ?? '-1', report?.reportID, newBillable, policy, policyTagList, policyCategories);
-            Navigation.dismissModal();
+            if (!isReportOpenInRHP) {
+                Navigation.dismissModal();
+            }
         },
-        [transaction, report, policy, policyTagList, policyCategories],
+        [transaction, report, policy, policyTagList, policyCategories, isReportOpenInRHP],
     );
 
     if (isCardTransaction) {

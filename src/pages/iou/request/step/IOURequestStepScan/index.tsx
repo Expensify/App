@@ -230,9 +230,9 @@ function IOURequestStepScan({
             });
     }
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     const navigateToParticipantPage = useCallback(() => {
         switch (iouType) {
@@ -417,9 +417,9 @@ function IOURequestStepScan({
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
             IOU.replaceReceipt(transactionID, file as File, source);
-            Navigation.dismissModal();
+            navigateBack();
         },
-        [transactionID],
+        [transactionID, navigateBack],
     );
 
     /**
