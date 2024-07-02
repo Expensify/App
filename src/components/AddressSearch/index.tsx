@@ -24,24 +24,7 @@ import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps, PredefinedPlace} from './types';
-
-/**
- * Check if the place matches the search by the place name or description.
- * @param search The search string for a place
- * @param place The place to check for a match on the search
- * @returns true if search is related to place, otherwise it returns false.
- */
-function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean {
-    if (!search) {
-        return true;
-    }
-    if (!place) {
-        return false;
-    }
-    const fullSearchSentence = `${place.name ?? ''} ${place.description}`;
-    return search.split(' ').every((searchTerm) => !searchTerm || fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
-}
+import type {AddressSearchProps} from './types';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -322,13 +305,6 @@ function AddressSearch(
         };
     }, []);
 
-    const filteredPredefinedPlaces = useMemo(() => {
-        if (!isOffline || !searchValue) {
-            return predefinedPlaces ?? [];
-        }
-        return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [isOffline, predefinedPlaces, searchValue]);
-
     const listEmptyComponent = useCallback(
         () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
         [isTyping, styles, translate],
@@ -372,7 +348,7 @@ function AddressSearch(
                         fetchDetails
                         suppressDefaultStyles
                         enablePoweredByContainer={false}
-                        predefinedPlaces={filteredPredefinedPlaces}
+                        predefinedPlaces={predefinedPlaces ?? []}
                         listEmptyComponent={listEmptyComponent}
                         listLoaderComponent={listLoader}
                         renderHeaderComponent={renderHeaderComponent}
