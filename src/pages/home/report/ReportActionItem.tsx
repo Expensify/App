@@ -217,6 +217,8 @@ function ReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
+    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
+
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
     const prevActionResolution = usePrevious(isActionableWhisper && originalMessage && 'resolution' in originalMessage ? originalMessage?.resolution : null);
 
@@ -682,7 +684,8 @@ function ReportActionItem({
                                 shouldDisableEmojiPicker={
                                     (ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)
                                 }
-                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                isGroupPolicyReport={isGroupPolicyReport}
+                                policyID={report?.policyID}
                             />
                         )}
                     </AttachmentContext.Provider>

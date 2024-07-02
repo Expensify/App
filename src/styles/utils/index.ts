@@ -849,10 +849,10 @@ const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
+function getAutoCompleteSuggestionContainerStyles(itemsHeight: number): ViewStyle {
     'worklet';
 
-    const borderWidth = 2;
+    const borderWidth = CONST.AUTO_COMPLETE_SUGGESTER.BORDER_WIDTH;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
 
     return {
@@ -1114,7 +1114,7 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
-    getAutoCompleteSuggestionContainerStyle,
+    getAutoCompleteSuggestionContainerStyles,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
     getAvatarBorderWidth,

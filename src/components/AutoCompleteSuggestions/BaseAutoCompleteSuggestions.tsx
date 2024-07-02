@@ -51,7 +51,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
 
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: fadeInOpacity.value,
-        ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value),
+        ...StyleUtils.getAutoCompleteSuggestionContainerStyles(rowHeight.value),
     }));
 
     useEffect(() => {

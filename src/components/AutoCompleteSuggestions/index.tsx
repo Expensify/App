@@ -4,6 +4,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {useSuggestionsContext} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
@@ -49,6 +50,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const insets = useSafeAreaInsets();
     const {keyboardHeight} = useKeyboardState();
     const {paddingBottom: bottomInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {activeID} = useSuggestionsContext();
 
     useEffect(() => {
         const container = containerRef.current;
@@ -71,7 +73,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             return;
         }
 
-        measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates}: MeasureParentContainerAndCursor) => {
+        measureParentContainerAndReportCursor(({x, y, width, scrollValue, cursorCoordinates, height}: MeasureParentContainerAndCursor) => {
             const xCoordinatesOfCursor = x + cursorCoordinates.x;
             const leftValueForBigScreen =
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
@@ -106,7 +108,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - height - (activeID ? CONST.AUTO_COMPLETE_SUGGESTER.EDIT_SUGGESTER_PADDING * 2 : 0);
             }
             setSuggestionHeight(measuredHeight);
             setContainerState({
@@ -115,7 +117,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 width: widthValue,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset]);
+    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset, activeID]);
 
     if (containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) {
         return null;

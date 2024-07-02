@@ -120,6 +120,11 @@ function Suggestions(
         suggestionMentionRef.current?.updateShouldShowSuggestionMenuToFalse();
     }, []);
 
+    const updateShouldShowSuggestionMenuAfterScrolling = useCallback(() => {
+        suggestionEmojiRef.current?.updateShouldShowSuggestionMenuAfterScrolling();
+        suggestionMentionRef.current?.updateShouldShowSuggestionMenuAfterScrolling();
+    }, []);
+
     const setShouldBlockSuggestionCalc = useCallback((shouldBlock: boolean) => {
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
@@ -134,8 +139,17 @@ function Suggestions(
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
             getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [
+            onSelectionChange,
+            resetSuggestions,
+            setShouldBlockSuggestionCalc,
+            triggerHotkeyActions,
+            updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
+        ],
     );
 
     useEffect(() => {
