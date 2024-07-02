@@ -808,7 +808,7 @@ function doesDateBelongToAPastYear(date: string): boolean {
 
 /**
  * Returns a boolean value indicating whether the card has expired.
- * @param expiryMonth month when card expires
+ * @param expiryMonth month when card expires (starts from 1 so can be any number between 1 and 12)
  * @param expiryYear year when card expires
  */
 
