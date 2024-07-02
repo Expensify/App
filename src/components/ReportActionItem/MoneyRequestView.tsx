@@ -7,7 +7,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
-import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
+import ReceiptAudit from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -189,7 +189,7 @@ function MoneyRequestView({
     const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? []);
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], !isReceiptBeingScanned && ReportUtils.isPaidGroupPolicy(report));
     const hasViolations = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
             !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
@@ -341,12 +341,13 @@ function MoneyRequestView({
         CONST.VIOLATIONS.RECEIPT_REQUIRED,
         CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED,
         CONST.VIOLATIONS.MODIFIED_DATE,
+        CONST.VIOLATIONS.MODIFIED_AMOUNT,
         CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT,
         CONST.VIOLATIONS.SMARTSCAN_FAILED,
     ];
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
-    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -390,9 +391,10 @@ function MoneyRequestView({
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <>
                 {shouldShowReceiptHeader && (
-                    <ReceiptAuditHeader
+                    <ReceiptAudit
                         notes={receiptViolations}
-                        shouldShowAuditMessage={!!(shouldShowNotesViolations && didRceiptScanSucceed)}
+                        shouldShowAuditSuccess={shouldShowAuditMessage && didRceiptScanSucceed}
+                        shouldShowAuditFailure={shouldShowAuditMessage && hasReceipt}
                     />
                 )}
                 {(hasReceipt || errors) && (
@@ -448,7 +450,7 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={receiptViolations} />}
+                {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
                         title={amountTitle}
@@ -555,7 +557,6 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
                         <MenuItemWithTopDescription
