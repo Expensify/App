@@ -1,5 +1,5 @@
 import {ExpensiMark} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -14,6 +14,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {ValueOf} from 'type-fest';
 
 const parser = new ExpensiMark();
 
@@ -24,6 +25,10 @@ type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
         };
     };
 };
+
+type ImportListItem = SelectorType & {
+    value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
+}
 
 function NetSuiteImportMappingPage({
     policy,
@@ -61,30 +66,30 @@ function NetSuiteImportMappingPage({
 
     const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
 
-    const inputSectionData =
+    const inputSectionData: ImportListItem[] =
         inputOptions.map((inputOption) => ({
             text: translate(`workspace.netsuite.import.importTypes.${inputOption}.label`),
             keyForList: inputOption,
             isSelected: importValue === inputOption,
-            value: importValue,
+            value: inputOption,
             alternateText: translate(`workspace.netsuite.import.importTypes.${inputOption}.description`),
         })) ?? [];
 
     const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
 
-    const updateImportMapping = ({keyForList}: SelectorType) => {
-        if (!keyForList || keyForList === importValue) {
+    const updateImportMapping = useCallback(({value}: ImportListItem) => {
+        if (!value || value === importValue) {
             return;
         }
 
         updateNetSuiteImportMapping(
             policyID,
             importField as keyof typeof importMappings,
-            keyForList,
+            value,
             importValue
         );
         Navigation.goBack();
-    };
+    },[importField, importValue, policyID]);
 
     return (
         <SelectionScreen
@@ -95,7 +100,7 @@ function NetSuiteImportMappingPage({
             sections={inputSectionData.length > 0 ? [{data: inputSectionData}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onSelectRow={updateImportMapping}
+            onSelectRow={(selection: SelectorType) => updateImportMapping(selection as ImportListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack()}
