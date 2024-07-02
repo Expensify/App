@@ -92,7 +92,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}
                 onToggle={() => updateSageIntacctBillable(policyID, !sageIntacctConfig?.mappings?.syncItems)}
                 pendingAction={sageIntacctConfig?.pendingFields?.syncItems}
-                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig?.mappings ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
+                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
 
@@ -126,7 +126,11 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
             <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
                 <MenuItemWithTopDescription
-                    title={sageIntacctConfig?.mappings?.dimensions ? translate('workspace.intacct.userDimensionsAdded', sageIntacctConfig?.mappings?.dimensions.length) : undefined}
+                    title={
+                        sageIntacctConfig?.mappings?.dimensions && sageIntacctConfig?.mappings?.dimensions.length > 0
+                            ? translate('workspace.intacct.userDimensionsAdded', sageIntacctConfig?.mappings?.dimensions.length)
+                            : undefined
+                    }
                     description={translate('workspace.intacct.userDefinedDimensions')}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}

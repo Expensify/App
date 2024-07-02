@@ -78,7 +78,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             </Text>
             <OfflineWithFeedback
                 pendingAction={config?.pendingFields?.[mappingName]}
-                errorRowStyles={[styles.ph5]}
+                errorRowStyles={[styles.ph5, styles.pt1]}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
                 onClose={() => clearSageIntacctErrorField(policyID, mappingName)}
             >
@@ -105,7 +105,6 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                             description={translate('workspace.common.displayedAs')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                            brickRoadIndicator={config?.errorFields?.[mappingName] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         <Text
                             style={[styles.textLabelSupporting, styles.ph5]}
