@@ -1,6 +1,11 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import {withNetwork} from '@components/OnyxProvider';
+import Switch from '@components/Switch';
+import TestToolRow from '@components/TestToolRow';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
@@ -10,11 +15,6 @@ import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
-import Button from './Button';
-import {withNetwork} from './OnyxProvider';
-import Switch from './Switch';
-import TestToolRow from './TestToolRow';
-import Text from './Text';
 
 type TestToolMenuOnyxProps = {
     /** User object in Onyx */
@@ -27,7 +27,7 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
 };
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
-function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
+function BaseTestToolMenu({user = USER_DEFAULT, network, children}: React.PropsWithChildren<TestToolMenuProps>) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -88,16 +88,18 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
+
+            {children}
         </>
     );
 }
 
-TestToolMenu.displayName = 'TestToolMenu';
+BaseTestToolMenu.displayName = 'BaseTestToolMenu';
 
 export default withNetwork()(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
-    })(TestToolMenu),
+    })(BaseTestToolMenu),
 );

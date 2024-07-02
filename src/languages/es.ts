@@ -969,6 +969,7 @@ export default {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
+            nativeCrash: 'Fallo nativo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

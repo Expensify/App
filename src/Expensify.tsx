@@ -28,6 +28,7 @@ import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
 import './libs/Notification/PushNotification/subscribePushNotification';
 import Performance from './libs/Performance';
+import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
@@ -215,6 +216,10 @@ function Expensify({
     useEffect(() => {
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
     }, []);
+
+    useEffect(() => {
+        setCrashlyticsUserId({isAuthenticated, accountID: session?.accountID});
+    }, [isAuthenticated, session?.accountID]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
