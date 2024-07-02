@@ -38,7 +38,6 @@ function TagGLCodePage({route, policyTags}: EditTagGLCodePageProps) {
     const orderWeight = route.params.orderWeight;
     const {tags} = PolicyUtils.getTagList(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.glCode;
-    console.log('[glCode]: ', glCode);
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
