@@ -3516,7 +3516,7 @@ export default {
             preTrial: {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',
-                subtitleLink: 'complete your setup checklist here',
+                subtitleLink: 'complete your setup checklist here.',
             },
         },
         cardSection: {
