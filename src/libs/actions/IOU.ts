@@ -4904,7 +4904,7 @@ function createDistanceRequest(
             category ?? '',
             tag ?? '',
             splitShares,
-            '',
+            report?.reportID ?? '',
             billable,
             CONST.IOU.REQUEST_TYPE.DISTANCE,
         );
