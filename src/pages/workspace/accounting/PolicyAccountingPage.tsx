@@ -114,8 +114,8 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => {},
-                onExportPagePress: () => {},
-                onAdvancedPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
@@ -129,7 +129,7 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => {},
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => {},
                 onAdvancedPagePress: () => {},
             };
         default:
