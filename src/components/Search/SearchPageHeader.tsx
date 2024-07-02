@@ -24,7 +24,7 @@ type SearchHeaderProps = {
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES> | undefined;
 
-function SearchHeader({query, selectedItems = {}, hash, clearSelectedItems}: SearchHeaderProps) {
+function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}: SearchHeaderProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -128,6 +128,6 @@ function SearchHeader({query, selectedItems = {}, hash, clearSelectedItems}: Sea
     );
 }
 
-SearchHeader.displayName = 'SearchHeader';
+SearchPageHeader.displayName = 'SearchPageHeader';
 
-export default SearchHeader;
+export default SearchPageHeader;

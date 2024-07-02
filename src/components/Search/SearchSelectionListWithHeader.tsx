@@ -4,7 +4,7 @@ import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchDataTypes, SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
-import SearchHeader from './SearchHeader';
+import SearchPageHeader from './SearchPageHeader';
 
 type SearchSelectionListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
     query: SearchQuery;
@@ -98,7 +98,7 @@ function SearchSelectionListWithHeader({ListItem, onSelectRow, query, hash, data
 
     return (
         <>
-            <SearchHeader
+            <SearchPageHeader
                 selectedItems={selectedItems}
                 clearSelectedItems={clearSelectedItems}
                 query={query}

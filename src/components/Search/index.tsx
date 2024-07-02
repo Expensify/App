@@ -26,7 +26,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import SearchHeader from './SearchHeader';
+import SearchPageHeader from './SearchPageHeader';
 import SearchSelectionListWithHeader from './SearchSelectionListWithHeader';
 
 type SearchProps = {
@@ -95,7 +95,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     if (isLoadingItems || shouldShowEmptyState) {
         return (
             <>
-                <SearchHeader
+                <SearchPageHeader
                     selectedItems={{}}
                     query={query}
                     hash={hash}
