@@ -70,7 +70,7 @@ function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyCo
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper testID={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.qbo.defaultVendor')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.defaultVendor')} />
                 <SelectionList
                     sections={sections}
                     ListItem={RadioListItem}

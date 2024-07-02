@@ -36,7 +36,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
     } = policy?.connections?.quickbooksOnline?.config ?? {};
     const menuItems: MenuItem[] = [
         {
-            description: translate('workspace.qbo.preferredExporter'),
+            description: translate('workspace.accounting.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
@@ -93,7 +93,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                 includeSafeAreaPaddingBottom={false}
                 testID={QuickbooksExportConfigurationPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.export')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.export')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDescription')}</Text>
                     {menuItems.map((menuItem) => (

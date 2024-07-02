@@ -1,4 +1,4 @@
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import type {CentralPaneName, NavigationPartialRoute, RootStackParamList, State} from './types';
 
 // Get the name of topmost central pane route in the navigation stack.

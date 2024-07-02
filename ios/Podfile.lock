@@ -1243,7 +1243,13 @@ PODS:
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
-    - React-Core
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
@@ -1974,7 +1980,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.30.1):
+  - RNScreens (3.32.0):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1988,13 +1994,14 @@ PODS:
     - React-ImageManager
     - React-NativeModulesApple
     - React-RCTFabric
+    - React-RCTImage
     - React-rendererdebug
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.30.1)
+    - RNScreens/common (= 3.32.0)
     - Yoga
-  - RNScreens/common (3.30.1):
+  - RNScreens/common (3.32.0):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2008,6 +2015,7 @@ PODS:
     - React-ImageManager
     - React-NativeModulesApple
     - React-RCTFabric
+    - React-RCTImage
     - React-rendererdebug
     - React-utils
     - ReactCommon/turbomodule/bridging
@@ -2552,7 +2560,7 @@ SPEC CHECKSUMS:
   react-native-airship: 38e2596999242b68c933959d6145512e77937ac0
   react-native-blob-util: 1ddace5234c62e3e6e4e154d305ad07ef686599b
   react-native-cameraroll: f373bebbe9f6b7c3fd2a6f97c5171cda574cf957
-  react-native-config: 5330c8258265c1e5fdb8c009d2cabd6badd96727
+  react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
@@ -2612,7 +2620,7 @@ SPEC CHECKSUMS:
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 323436b1a5364dca3b5f8b1a13458455e0de9efe
-  RNScreens: 9ec969a95987a6caae170ef09313138abf3331e1
+  RNScreens: abd354e98519ed267600b7ee64fdcb8e060b1218
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 18f1381e046be2f1c30b4724db8d0c966238089f

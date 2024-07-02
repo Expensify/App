@@ -57,6 +57,9 @@ type ToggleSettingOptionRowProps = {
 
     /** Whether to show the lock icon even if the switch is enabled */
     showLockIcon?: boolean;
+
+    /** Callback to fire when the switch is toggled in disabled state */
+    disabledAction?: () => void;
 };
 const ICON_SIZE = 48;
 
@@ -72,6 +75,7 @@ function ToggleSettingOptionRow({
     onToggle,
     subMenuItems,
     isActive,
+    disabledAction,
     pendingAction,
     errors,
     onCloseError,
@@ -112,6 +116,7 @@ function ToggleSettingOptionRow({
                         )}
                     </View>
                     <Switch
+                        disabledAction={disabledAction}
                         accessibilityLabel={switchAccessibilityLabel}
                         onToggle={onToggle}
                         isOn={isActive}

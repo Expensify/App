@@ -93,7 +93,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.exportAs')} />
                 <View style={styles.flex1}>
                     <SelectionList
                         containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}

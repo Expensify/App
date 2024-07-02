@@ -12,7 +12,7 @@ type InputID = ValueOf<typeof INPUT_IDS>;
 type ChangeBillingCurrencyForm = Form<
     InputID,
     {
-        [INPUT_IDS.CURRENCY]: ValueOf<typeof CONST.CURRENCY>;
+        [INPUT_IDS.CURRENCY]: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
         [INPUT_IDS.SECURITY_CODE]: string;
     }
 >;

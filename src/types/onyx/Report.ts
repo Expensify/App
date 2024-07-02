@@ -77,6 +77,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
         hasOutstandingChildRequest?: boolean;
 
+        /** Whether the report has a child task that is awaiting action from the current user */
+        hasOutstandingChildTask?: boolean;
+
         /** List of icons for report participants */
         icons?: OnyxCommon.Icon[];
 
