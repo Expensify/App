@@ -1,12 +1,12 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
-import type {SelectedTransactions} from './types';
+import type {SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
     query: SearchQuery;
@@ -14,6 +14,24 @@ type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType 
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
 };
+
+function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
+    return [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}];
+}
+
+function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, selectedItems: SelectedTransactions) {
+    return {...item, isSelected: !!selectedItems[item.keyForList]?.isSelected};
+}
+
+function mapToItemWithSelectionInfo(item: TransactionListItemType | ReportListItemType, selectedItems: SelectedTransactions) {
+    return SearchUtils.isTransactionListItemType(item)
+        ? mapToTransactionItemWithSelectionInfo(item, selectedItems)
+        : {
+              ...item,
+              transactions: item.transactions?.map((tranaction) => mapToTransactionItemWithSelectionInfo(tranaction, selectedItems)),
+              isSelected: item.transactions.every((transaction) => !!selectedItems[transaction.keyForList]?.isSelected),
+          };
+}
 
 function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
@@ -54,13 +72,13 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
 
         setSelectedItems({
             ...selectedItems,
-            ...Object.fromEntries(item.transactions.map((transaction) => [transaction.keyForList, {isSelected: true, canDelete: transaction.canDelete, action: transaction.action}])),
+            ...Object.fromEntries(item.transactions.map(mapTransactionItemToSelectedEntry)),
         });
     };
 
     const toggleAllTransactions = () => {
-        const areReportItems = searchType === CONST.SEARCH.DATA_TYPES.REPORT;
-        const flattenedItems = areReportItems ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+        const areItemsOfReportType = searchType === CONST.SEARCH.DATA_TYPES.REPORT;
+        const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedItems).length;
 
         if (isAllSelected) {
@@ -68,39 +86,16 @@ function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchT
             return;
         }
 
-        if (areReportItems) {
-            setSelectedItems(
-                Object.fromEntries(
-                    (data as ReportListItemType[]).flatMap((item) =>
-                        item.transactions.map((transaction: TransactionListItemType) => [
-                            transaction.keyForList,
-                            {isSelected: true, canDelete: transaction.canDelete, action: transaction.action},
-                        ]),
-                    ),
-                ),
-            );
+        if (areItemsOfReportType) {
+            setSelectedItems(Object.fromEntries((data as ReportListItemType[]).flatMap((item) => item.transactions.map(mapTransactionItemToSelectedEntry))));
 
             return;
         }
 
-        setSelectedItems(Object.fromEntries((data as TransactionListItemType[]).map((item) => [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}])));
+        setSelectedItems(Object.fromEntries((data as TransactionListItemType[]).map(mapTransactionItemToSelectedEntry)));
     };
 
-    const mapToSelectedTransactionItem = useCallback((item: TransactionListItemType) => ({...item, isSelected: !!selectedItems[item.keyForList]?.isSelected}), [selectedItems]);
-
-    const sortedSelectedData = useMemo(
-        () =>
-            data.map((item) =>
-                SearchUtils.isTransactionListItemType(item)
-                    ? mapToSelectedTransactionItem(item)
-                    : {
-                          ...item,
-                          transactions: item.transactions?.map(mapToSelectedTransactionItem),
-                          isSelected: item.transactions.every((transaction) => !!selectedItems[transaction.keyForList]?.isSelected),
-                      },
-            ),
-        [data, mapToSelectedTransactionItem, selectedItems],
-    );
+    const sortedSelectedData = useMemo(() => data.map((item) => mapToItemWithSelectionInfo(item, selectedItems)), [data, selectedItems]);
 
     return (
         <>

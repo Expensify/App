@@ -14,4 +14,4 @@ type SelectedTransactionInfo = {
 type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 // eslint-disable-next-line import/prefer-default-export
-export type {SelectedTransactions};
+export type {SelectedTransactionInfo, SelectedTransactions};
