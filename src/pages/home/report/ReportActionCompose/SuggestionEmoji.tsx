@@ -179,9 +179,11 @@ function SuggestionEmoji(
     );
 
     useEffect(() => {
-        if (!isComposerFocused) {
+        if (!isComposerFocused || (selection.start === 0 && selection.end === 0) || selection.start !== selection.end) {
             return;
         }
+
+        // Avoid calling the function when keyboard animation running
         InteractionManager.runAfterInteractions(() => {
             calculateEmojiSuggestion(selection.start, selection.end);
         });
