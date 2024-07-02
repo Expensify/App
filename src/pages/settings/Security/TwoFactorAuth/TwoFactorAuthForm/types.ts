@@ -4,7 +4,7 @@ import type {Account, User} from '@src/types/onyx';
 
 type BaseTwoFactorAuthFormOnyxProps = {
     account: OnyxEntry<Account>;
-    user: OnyxEntry<User>;
+    user?: OnyxEntry<User>;
 };
 
 type BaseTwoFactorAuthFormRef = {
