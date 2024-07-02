@@ -3694,7 +3694,7 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
-                receipt,
+                trackedReceipt,
                 createdWorkspaceParams,
             );
             break;
@@ -3725,7 +3725,7 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
-                receipt,
+                trackedReceipt,
                 createdWorkspaceParams,
             );
             break;
@@ -3744,8 +3744,8 @@ function trackExpense(
                 createdChatReportActionID: createdChatReportActionID ?? '-1',
                 createdIOUReportActionID,
                 reportPreviewReportActionID: reportPreviewAction?.reportActionID,
-                receipt,
-                receiptState: receipt?.state,
+                receipt: trackedReceipt,
+                receiptState: trackedReceipt?.state,
                 category,
                 tag,
                 taxCode,
