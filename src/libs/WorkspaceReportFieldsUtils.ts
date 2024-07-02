@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldsForm';
-import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import * as ErrorUtils from './ErrorUtils';
 import * as Localize from './Localize';
 import * as ValidationUtils from './ValidationUtils';
@@ -67,4 +67,15 @@ function generateFieldID(name: string) {
     return `field_id_${name.replace(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 
-export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey, validateReportFieldListValueName, generateFieldID};
+/**
+ * Gets the initial value for a report field.
+ */
+function getReportFieldInitialValue(reportField: PolicyReportField): string {
+    if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST) {
+        return reportField.defaultValue ?? '';
+    }
+
+    return reportField.value ?? reportField.defaultValue;
+}
+
+export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey, validateReportFieldListValueName, generateFieldID, getReportFieldInitialValue};
