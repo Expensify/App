@@ -1369,14 +1369,6 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
-        TOKEN_INPUT_STEP_KEYS: {
-            0: 'installBundle',
-            1: 'enableTokenAuthentication',
-            2: 'enableSoapServices',
-            3: 'createAccessToken',
-            4: 'enterCredentials',
-        },
         IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         SYNC_OPTIONS: {
@@ -3476,7 +3468,7 @@ const CONST = {
         CURRENCY: 'XAF',
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
-        EXPECTED_OUTPUT: 'FCFA 123,457',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
     PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],

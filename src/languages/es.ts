@@ -2354,6 +2354,7 @@ export default {
                         },
                         netSuiteAccountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.',
                     },
+                },
             },
             import: {
                 expenseCategories: 'Categorías de gastos',
