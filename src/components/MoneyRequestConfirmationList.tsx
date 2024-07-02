@@ -287,7 +287,7 @@ function MoneyRequestConfirmationList({
     const isMerchantRequired = (isPolicyExpenseChat || isTypeInvoice) && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
 
     const isCategoryRequired = !!policy?.requiresCategory;
-
+    const [shouldResetAmount, setShouldResetAmount] = useState(false);
     useEffect(() => {
         if (shouldDisplayFieldError && didConfirmSplit) {
             setFormError('iou.error.genericSmartscanFailureMessage');
@@ -466,6 +466,8 @@ function MoneyRequestConfirmationList({
                     onFormatAmount={CurrencyUtils.convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? -1, Number(value))}
                     maxLength={formattedTotalAmount.length}
+                    shouldResetAmount={shouldResetAmount}
+                    onResetAmount={(resetValue) => setShouldResetAmount(resetValue)}
                 />
             ),
         }));
@@ -488,6 +490,7 @@ function MoneyRequestConfirmationList({
         transaction?.comment?.splits,
         transaction?.splitShares,
         onSplitShareChange,
+        shouldResetAmount,
     ]);
 
     const isSplitModified = useMemo(() => {
@@ -505,6 +508,7 @@ function MoneyRequestConfirmationList({
                     <PressableWithFeedback
                         onPress={() => {
                             IOU.resetSplitShares(transaction);
+                            setShouldResetAmount(true);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
