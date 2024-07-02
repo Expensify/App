@@ -114,11 +114,10 @@ function NetSuiteImportMappingPage({
 
     const updateImportMapping = useCallback(
         ({value}: ImportListItem) => {
-            if (!value || value === importValue) {
-                return;
+            if (value !== importValue) {
+                updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
             }
 
-            updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
             Navigation.goBack();
         },
         [importField, importValue, policyID],
