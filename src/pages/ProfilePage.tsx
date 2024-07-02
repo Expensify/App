@@ -30,11 +30,10 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
-import * as Link from '@userActions/Link';
+import * as LinkActions from '@userActions/Link';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
 import * as ReportActions from '@userActions/Report';
 import * as SessionActions from '@userActions/Session';
-import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -288,8 +287,8 @@ function ProfilePage({route}: ProfilePageProps) {
                                 title={translate('videoChatButtonAndMenu.tooltip')}
                                 icon={Expensicons.Phone}
                                 isAnonymousAction={false}
-                                onPress={Session.checkIfActionIsAllowed(() => {
-                                    Link.openExternalLink(guideCalendarLink);
+                                onPress={SessionActions.checkIfActionIsAllowed(() => {
+                                    LinkActions.openExternalLink(guideCalendarLink);
                                 })}
                             />
                         )}
