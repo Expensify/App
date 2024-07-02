@@ -17,7 +17,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportFields from '@libs/actions/Policy/ReportFields';
@@ -48,7 +47,6 @@ function WorkspaceListValuesPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
@@ -186,22 +184,20 @@ function WorkspaceListValuesPage({
                     customText={translate('workspace.common.selected', {selectedNumber: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                 />
             );
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, styles.gap2, isSmallScreenWidth && styles.mb3]}>
-                <Button
-                    style={isSmallScreenWidth && styles.flex1}
-                    medium
-                    success
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.reportFields.addValue')}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
-                />
-            </View>
+            <Button
+                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                medium
+                success
+                icon={Expensicons.Plus}
+                text={translate('workspace.reportFields.addValue')}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
+            />
         );
     };
 
