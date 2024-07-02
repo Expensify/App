@@ -48,6 +48,14 @@ function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS_FEATURE) || canUseAllBetas(betas);
 }
 
+function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
+}
+
+function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -67,4 +75,6 @@ export default {
     canUseSpotnanaTravel,
     canUseNetSuiteIntegration,
     canUseReportFieldsFeature,
+    canUseWorkspaceFeeds,
+    canUseNetSuiteUSATax,
 };
