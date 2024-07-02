@@ -4,9 +4,10 @@ import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
+import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type Card from './Card';
-import type {CardList} from './Card';
+import type {CardList, IssueNewCard} from './Card';
 import type {CapturedLogs, Log} from './Console';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
@@ -72,6 +73,7 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type StripeCustomerID from './StripeCustomerID';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -111,6 +113,7 @@ export type {
     FundList,
     IntroSelected,
     IOU,
+    IssueNewCard,
     Locale,
     Login,
     LoginList,
@@ -194,4 +197,6 @@ export type {
     ReviewDuplicates,
     PrivateSubscription,
     BillingGraceEndPeriod,
+    StripeCustomerID,
+    BillingStatus,
 };

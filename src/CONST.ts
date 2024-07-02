@@ -364,6 +364,7 @@ const CONST = {
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
+        NETSUITE_USA_TAX: 'netsuiteUsaTax',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -601,6 +602,9 @@ const CONST = {
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
+    EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -671,12 +675,12 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
-                DONATION: 'DONATION', // OldDot Action
+                DONATION: 'DONATION', // Deprecated OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
-                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTED', // Deprecated OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
                 HOLD_COMMENT: 'HOLDCOMMENT',
@@ -696,9 +700,9 @@ const CONST = {
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
                 REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
-                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
-                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
-                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // OldDot Action
+                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // Deprecated OldDot Action
+                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // Deprecated OldDot Action
+                REIMBURSEMENT_SETUP_REQUESTED: 'REIMBURSEMENTSETUPREQUESTED', // Deprecated OldDot Action
                 RENAMED: 'RENAMED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
@@ -1334,10 +1338,6 @@ const CONST = {
         },
     },
 
-    NETSUITE_CONFIG: {
-        SUBSIDIARY: 'subsidiary',
-    },
-
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -1349,6 +1349,130 @@ const CONST = {
         REPORT_EXPORTED: 'REPORT_EXPORTED',
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
+        DEFAULT_VENDOR: 'defaultVendor',
+        REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
+        PAYABLE_ACCT: 'payableAcct',
+        JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
+        INVOICE_ITEM_PREFERENCE: 'invoiceItemPreference',
+        INVOICE_ITEM: 'invoiceItem',
+        TAX_POSTING_ACCOUNT: 'taxPostingAccount',
+        PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
+        ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+    },
+
+    NETSUITE_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NETSUITE_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+    },
+
+    NETSUITE_INVOICE_ITEM_PREFERENCE: {
+        CREATE: 'create',
+        SELECT: 'select',
+    },
+
+    NETSUITE_JOURNAL_POSTING_PREFERENCE: {
+        JOURNALS_POSTING_INDIVIDUAL_LINE: 'JOURNALS_POSTING_INDIVIDUAL_LINE',
+        JOURNALS_POSTING_TOTAL_LINE: 'JOURNALS_POSTING_TOTAL_LINE',
+    },
+
+    NETSUITE_EXPENSE_TYPE: {
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonreimbursable',
+    },
+
+    /**
+     * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
+     *
+     * Should mirror the list on the OldDot.
+     */
+    NETSUITE_TAX_COUNTRIES: [
+        '_canada',
+        '_unitedKingdomGB',
+        '_unitedKingdom',
+        '_australia',
+        '_southAfrica',
+        '_india',
+        '_france',
+        '_netherlands',
+        '_germany',
+        '_singapore',
+        '_spain',
+        '_ireland',
+        '_denmark',
+        '_brazil',
+        '_japan',
+        '_philippines',
+        '_china',
+        '_argentina',
+        '_newZealand',
+        '_switzerland',
+        '_sweden',
+        '_portugal',
+        '_mexico',
+        '_israel',
+        '_thailand',
+        '_czechRepublic',
+        '_egypt',
+        '_ghana',
+        '_indonesia',
+        '_iranIslamicRepublicOf',
+        '_jordan',
+        '_kenya',
+        '_kuwait',
+        '_lebanon',
+        '_malaysia',
+        '_morocco',
+        '_myanmar',
+        '_nigeria',
+        '_pakistan',
+        '_saudiArabia',
+        '_sriLanka',
+        '_unitedArabEmirates',
+        '_vietnam',
+        '_austria',
+        '_bulgaria',
+        '_greece',
+        '_cyprus',
+        '_norway',
+        '_romania',
+        '_poland',
+        '_hongKong',
+        '_luxembourg',
+        '_lithuania',
+        '_malta',
+        '_finland',
+        '_koreaRepublicOf',
+        '_italy',
+        '_georgia',
+        '_hungary',
+        '_latvia',
+        '_estonia',
+        '_slovenia',
+        '_serbia',
+        '_croatiaHrvatska',
+        '_belgium',
+        '_turkey',
+        '_taiwan',
+        '_azerbaijan',
+        '_slovakRepublic',
+        '_costaRica',
+    ] as string[],
 
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
@@ -1725,6 +1849,7 @@ const CONST = {
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
         },
         CATEGORIES_BULK_ACTION_TYPES: {
@@ -1793,11 +1918,13 @@ const CONST = {
                 QBO: 'quickbooksOnline',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
+                SAGE_INTACCT: 'intacct',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
                 quickbooksOnline: 'Quickbooks Online',
                 xero: 'Xero',
+                intacct: 'Sage Intacct',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -1846,9 +1973,10 @@ const CONST = {
                 NETSUITE_SYNC_NETSUITE_REIMBURSED_REPORTS: 'netSuiteSyncNetSuiteReimbursedReports',
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
+                SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
-                SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
+                SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
@@ -1925,6 +2053,15 @@ const CONST = {
             SMART: 'smart',
             MONTHLY: 'monthly',
             FIXED: 'fixed',
+        },
+        STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
+        STEP: {
+            ASSIGNEE: 'Assignee',
+            CARD_TYPE: 'CardType',
+            LIMIT_TYPE: 'LimitType',
+            LIMIT: 'Limit',
+            CARD_NAME: 'CardName',
+            CONFIRMATION: 'Confirmation',
         },
     },
     AVATAR_ROW_SIZE: {
@@ -2043,6 +2180,7 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
@@ -4900,10 +5038,6 @@ const CONST = {
     },
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
-    SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
-        COLLECT_PLAN: 10,
-        CONTROL_PLAN: 18,
-    },
     FEEDBACK_SURVEY_OPTIONS: {
         TOO_LIMITED: {
             ID: 'tooLimited',
