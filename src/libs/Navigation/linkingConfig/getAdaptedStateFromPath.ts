@@ -1,5 +1,7 @@
 import type {NavigationState, PartialState, Route} from '@react-navigation/native';
 import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -8,7 +10,9 @@ import {isCentralPaneName} from '@libs/NavigationUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
 import config from './config';
 import extractPolicyIDsFromState from './extractPolicyIDsFromState';
@@ -36,6 +40,13 @@ type GetAdaptedStateReturnType = {
 };
 
 type GetAdaptedStateFromPath = (...args: Parameters<typeof getStateFromPath>) => GetAdaptedStateReturnType;
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
 
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
@@ -138,6 +149,13 @@ function getMatchingRootRouteForRHPRoute(route: NavigationPartialRoute): Navigat
         if (RHPNames.includes(route.name)) {
             return createFullScreenNavigator({name: fullScreenName as FullScreenName, params: route.params});
         }
+    }
+
+    // check for valid reportID in the route params
+    // if the reportID is valid, we should navigate back to screen report in CPN
+    const reportID = (route.params as Record<string, string | undefined>)?.reportID;
+    if (allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
+        return {name: SCREENS.REPORT, params: {reportID}};
     }
 }
 
