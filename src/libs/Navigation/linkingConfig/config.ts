@@ -869,9 +869,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
                 },
-                [SCREENS.WORKSPACE.EXPENSIFY_CARD]: {
-                    path: ROUTES.WORKSPACE_EXPENSIFY_CARD.route,
-                },
             },
         },
     },
