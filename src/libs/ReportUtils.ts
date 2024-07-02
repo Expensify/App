@@ -79,7 +79,7 @@ import * as UserUtils from './UserUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
 
-type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string};
+type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string};
 
 type SpendBreakdown = {
     nonReimbursableSpend: number;
@@ -1623,6 +1623,33 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartTwo');
     }
 
+    return welcomeMessage;
+}
+
+function getWelcomeMessage(report: OnyxEntry<Report>): WelcomeMessage {
+    const welcomeMessage: WelcomeMessage = {showReportName: true};
+    if (isChatRoom(report)) {
+        return getRoomWelcomeMessage(report);
+    }
+
+    if (isPolicyExpenseChat(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo');
+        welcomeMessage.phrase3 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartThree');
+        return welcomeMessage;
+    }
+
+    if (isSelfDM(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistorySelfDM');
+        return welcomeMessage;
+    }
+
+    if (isSystemChat(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistorySystemDM');
+        return welcomeMessage;
+    }
+
+    welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistory');
     return welcomeMessage;
 }
 
@@ -7177,6 +7204,7 @@ export {
     getPolicyExpenseChat,
     getPolicyName,
     getPolicyType,
+    getWelcomeMessage,
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
     getReportActionActorAccountID,
