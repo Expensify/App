@@ -4,6 +4,7 @@ import {Animated, View} from 'react-native';
 import type {Text as RNText, View as RNView} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
+import CONST from '@src/CONST';
 import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
@@ -25,7 +26,10 @@ function BaseGenericTooltip({
     maxWidth = 0,
     renderTooltipContent,
     shouldForceRenderingBelow = false,
-    shouldForceRenderingLeft = false,
+    anchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+    },
     wrapperStyle = {},
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
@@ -66,7 +70,7 @@ function BaseGenericTooltip({
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
                 shouldForceRenderingBelow,
-                shouldForceRenderingLeft,
+                anchorAlignment,
                 wrapperStyle,
             }),
         [
@@ -83,7 +87,7 @@ function BaseGenericTooltip({
             shiftHorizontal,
             shiftVertical,
             shouldForceRenderingBelow,
-            shouldForceRenderingLeft,
+            anchorAlignment,
             wrapperStyle,
         ],
     );
