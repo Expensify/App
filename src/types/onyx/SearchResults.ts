@@ -234,21 +234,6 @@ type SearchResults = {
     data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails> & Record<string, SearchReport>;
 };
 
-/** Model of the selected transaction */
-type SelectedTransactionInfo = {
-    /** Whether the transaction is selected */
-    isSelected: boolean;
-
-    /** If the transaction can be deleted */
-    canDelete: boolean;
-
-    /** The action that can be performed for the transaction */
-    action: string;
-};
-
-/** Model of selected results */
-type SelectedTransactions = Record<string, SelectedTransactionInfo>;
-
 export default SearchResults;
 
 export type {
@@ -262,5 +247,4 @@ export type {
     SearchTypeToItemMap,
     SearchReport,
     SectionsType,
-    SelectedTransactions,
 };

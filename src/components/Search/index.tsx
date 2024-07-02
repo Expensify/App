@@ -26,8 +26,8 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
-import SearchSelectionListWithHeader from './SearchSelectionListWithHeader';
 
 type SearchProps = {
     query: SearchQuery;
@@ -92,7 +92,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
-    if (isLoadingItems || shouldShowEmptyState) {
+    if (isLoadingItems) {
         return (
             <>
                 <SearchPageHeader
@@ -100,7 +100,20 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     query={query}
                     hash={hash}
                 />
-                {isLoadingItems ? <TableListItemSkeleton shouldAnimate /> : <EmptySearchView />}
+                <TableListItemSkeleton shouldAnimate />
+            </>
+        );
+    }
+
+    if (shouldShowEmptyState) {
+        return (
+            <>
+                <SearchPageHeader
+                    selectedItems={{}}
+                    query={query}
+                    hash={hash}
+                />
+                <EmptySearchView />
             </>
         );
     }
@@ -153,7 +166,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
     return (
-        <SearchSelectionListWithHeader
+        <SearchListWithHeader
             query={query}
             hash={hash}
             data={sortedData}

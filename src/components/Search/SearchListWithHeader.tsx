@@ -1,20 +1,21 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
-import type {SearchDataTypes, SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
+import type {SelectedTransactions} from './types';
 
-type SearchSelectionListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
+type SearchListWithHeaderProps = Omit<BaseSelectionListProps<ReportListItemType | TransactionListItemType>, 'onSelectAll' | 'onCheckboxPress' | 'sections'> & {
     query: SearchQuery;
     hash: number;
     data: TransactionListItemType[] | ReportListItemType[];
     searchType: SearchDataTypes;
 };
 
-function SearchSelectionListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchSelectionListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
+function SearchListWithHeader({ListItem, onSelectRow, query, hash, data, searchType, ...props}: SearchListWithHeaderProps, ref: ForwardedRef<SelectionListHandle>) {
     const [selectedItems, setSelectedItems] = useState<SelectedTransactions>({});
 
     const clearSelectedItems = () => setSelectedItems({});
@@ -85,16 +86,20 @@ function SearchSelectionListWithHeader({ListItem, onSelectRow, query, hash, data
         setSelectedItems(Object.fromEntries((data as TransactionListItemType[]).map((item) => [item.keyForList, {isSelected: true, canDelete: item.canDelete, action: item.action}])));
     };
 
-    const mapToSelectedTransactionItem = (item: TransactionListItemType) => ({...item, isSelected: !!selectedItems[item.keyForList]?.isSelected});
+    const mapToSelectedTransactionItem = useCallback((item: TransactionListItemType) => ({...item, isSelected: !!selectedItems[item.keyForList]?.isSelected}), [selectedItems]);
 
-    const sortedSelectedData = data.map((item) =>
-        SearchUtils.isTransactionListItemType(item)
-            ? mapToSelectedTransactionItem(item)
-            : {
-                  ...item,
-                  transactions: item.transactions?.map(mapToSelectedTransactionItem),
-                  isSelected: item.transactions.every((transaction) => !!selectedItems[transaction.keyForList]?.isSelected),
-              },
+    const sortedSelectedData = useMemo(
+        () =>
+            data.map((item) =>
+                SearchUtils.isTransactionListItemType(item)
+                    ? mapToSelectedTransactionItem(item)
+                    : {
+                          ...item,
+                          transactions: item.transactions?.map(mapToSelectedTransactionItem),
+                          isSelected: item.transactions.every((transaction) => !!selectedItems[transaction.keyForList]?.isSelected),
+                      },
+            ),
+        [data, mapToSelectedTransactionItem, selectedItems],
     );
 
     return (
@@ -119,6 +124,6 @@ function SearchSelectionListWithHeader({ListItem, onSelectRow, query, hash, data
     );
 }
 
-SearchSelectionListWithHeader.displayName = 'SearchSelectionListWithHeader';
+SearchListWithHeader.displayName = 'SearchListWithHeader';
 
-export default forwardRef(SearchSelectionListWithHeader);
+export default forwardRef(SearchListWithHeader);

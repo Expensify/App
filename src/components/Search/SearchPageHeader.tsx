@@ -11,9 +11,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
+import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SelectedTransactions} from './types';
 
 type SearchHeaderProps = {
     query: SearchQuery;
@@ -22,7 +23,7 @@ type SearchHeaderProps = {
     hash: number;
 };
 
-type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH_BULK_ACTION_TYPES> | undefined;
+type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
 function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}: SearchHeaderProps) {
     const {translate} = useLocalize();
@@ -50,7 +51,7 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
             options.push({
                 icon: Expensicons.Trashcan,
                 text: translate('search.bulkActions.delete'),
-                value: CONST.SEARCH_BULK_ACTION_TYPES.DELETE,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
                     clearSelectedItems?.();
                     SearchActions.deleteMoneyRequestOnSearch(hash, itemsToDelete);
@@ -58,13 +59,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
             });
         }
 
-        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.HOLD);
+        const itemsToHold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
 
         if (itemsToHold.length > 0) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.hold'),
-                value: CONST.SEARCH_BULK_ACTION_TYPES.HOLD,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.HOLD,
                 onSelected: () => {
                     clearSelectedItems?.();
                     SearchActions.holdMoneyRequestOnSearch(hash, itemsToHold, '');
@@ -72,13 +73,13 @@ function SearchPageHeader({query, selectedItems = {}, hash, clearSelectedItems}:
             });
         }
 
-        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD);
+        const itemsToUnhold = selectedItemsKeys.filter((id) => selectedItems[id].action === CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD);
 
         if (itemsToUnhold.length > 0) {
             options.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('search.bulkActions.unhold'),
-                value: CONST.SEARCH_BULK_ACTION_TYPES.UNHOLD,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD,
                 onSelected: () => {
                     clearSelectedItems?.();
                     SearchActions.unholdMoneyRequestOnSearch(hash, itemsToUnhold);
