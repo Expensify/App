@@ -3434,12 +3434,20 @@ export default {
             subscriptionCancelled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
-                info1: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
-                info2: 'If you’d like to prevent future activity and charges, you must delete your workspace(s). Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+                info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
+                preventFutureActivity: {
+                    part1: 'If you’d like to prevent future activity and charges, you must ',
+                    link: 'delete your workspace(s)',
+                    part2: '. Note that when you delete your workspace(s), you’ll be charged for any outstanding activity that was incurred during the current calendar month.',
+                },
             },
             requestSubmitted: {
                 title: 'Request submitted',
-                subtitle: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with Concierge.',
+                subtitle: {
+                    part1: 'Thanks for letting us know you’re interested in canceling your subscription. We’re reviewing your request and will be in touch soon via your chat with ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
             },
             submitButton: 'Done',
             acknowledgement: {

@@ -3930,23 +3930,30 @@ export default {
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelación anticipada',
-            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+            subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
             subscriptionCancelled: {
                 title: 'Suscripción cancelada',
                 subtitle: 'Tu suscripción anual ha sido cancelada.',
-                info1: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
-                info2: 'Si quieres evitar actividad y cargos futuros, debes eliminar tu(s) espacio(s) de trabajo. Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
+                info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
+                preventFutureActivity: {
+                    part1: 'Si quieres evitar actividad y cargos futuros, debes ',
+                    link: 'eliminar tu(s) espacio(s) de trabajo.',
+                    part2: ' Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.',
+                },
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',
-                subtitle:
-                    'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con Concierge.',
+                subtitle: {
+                    part1: 'Gracias por hacernos saber que deseas cancelar tu suscripción. Estamos revisando tu solicitud y nos comunicaremos contigo en breve a través de tu chat con ',
+                    link: 'Concierge',
+                    part2: '.',
+                },
             },
             submitButton: 'Listo',
             acknowledgement: {
-                part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
-                link: 'Terms of Service',
-                part2: ' or other applicable services agreement between me and Expensify and that Expensify retains sole discretion with regard to granting any such request.',
+                part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
+                link: 'Condiciones de Servicio',
+                part2: ' de Expensify u otro acuerdo de servicios aplicable entre Expensify y yo, y que Expensify se reserva el derecho exclusivo a conceder dicha solicitud.',
             },
         },
     },
