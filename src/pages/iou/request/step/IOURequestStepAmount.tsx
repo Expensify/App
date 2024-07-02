@@ -294,7 +294,7 @@ function IOURequestStepAmount({
         const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, currentTransaction, currency) ?? '';
         const taxCode = (currency !== transactionCurrency ? defaultTaxCode : transactionTaxCode) ?? defaultTaxCode;
         const taxPercentage = TransactionUtils.getTaxValue(policy, currentTransaction, taxCode) ?? '';
-        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+        const taxAmount = CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount, currency));
 
         if (isSplitBill) {
             IOU.setDraftSplitTransaction(transactionID, {amount: newAmount, currency, taxCode, taxAmount});

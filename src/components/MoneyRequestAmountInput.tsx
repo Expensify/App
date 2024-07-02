@@ -103,7 +103,7 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-const defaultOnFormatAmount = (amount: number) => CurrencyUtils.convertToFrontendAmountAsString(amount);
+const defaultOnFormatAmount = (amount: number, currency?: string) => CurrencyUtils.convertToFrontendAmountAsString(amount, currency ?? CONST.CURRENCY.USD);
 
 function MoneyRequestAmountInput(
     {
