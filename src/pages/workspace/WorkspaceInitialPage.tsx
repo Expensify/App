@@ -1,4 +1,4 @@
-import {useFocusEffect, useNavigationState} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -62,6 +62,7 @@ type WorkspaceMenuItem = {
         | typeof SCREENS.WORKSPACE.MORE_FEATURES
         | typeof SCREENS.WORKSPACE.PROFILE
         | typeof SCREENS.WORKSPACE.MEMBERS
+        | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
         | typeof SCREENS.WORKSPACE.REPORT_FIELDS;
 };
 
@@ -86,7 +87,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -106,6 +107,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         }),
         [policy],
@@ -132,18 +134,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }
         setIsCurrencyModalOpen(false);
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
-
-    const fetchPolicyData = useCallback(() => {
-        Policy.openPolicyInitialPage(route.params.policyID);
-    }, [route.params.policyID]);
-
-    useNetwork({onReconnect: fetchPolicyData});
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchPolicyData();
-        }, [fetchPolicyData]),
-    );
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -228,6 +218,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             icon: Expensicons.Car,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
+        });
+    }
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.expensifyCard',
+            icon: Expensicons.CreditCard,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
+            routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
         });
     }
 

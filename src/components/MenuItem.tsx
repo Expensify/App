@@ -254,6 +254,9 @@ type MenuItemBaseProps = {
     /** Whether should render title as HTML or as Text */
     shouldParseTitle?: boolean;
 
+    /** Whether should render helper text as HTML or as Text */
+    shouldParseHelperText?: boolean;
+
     /** Should check anonymous user in onPress function */
     shouldCheckActionAllowedOnPress?: boolean;
 
@@ -372,6 +375,7 @@ function MenuItem(
         isAnonymousAction = false,
         shouldBlockSelection = false,
         shouldParseTitle = false,
+        shouldParseHelperText = false,
         shouldCheckActionAllowedOnPress = true,
         onSecondaryInteraction,
         titleWithTooltips,
@@ -429,6 +433,14 @@ function MenuItem(
         return parser.replace(title, {shouldEscapeText});
     }, [title, shouldParseTitle, shouldEscapeText]);
 
+    const helperHtml = useMemo(() => {
+        if (!helperText || !shouldParseHelperText) {
+            return '';
+        }
+        const parser = new ExpensiMark();
+        return parser.replace(helperText, {shouldEscapeText});
+    }, [helperText, shouldParseHelperText, shouldEscapeText]);
+
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
         if (shouldRenderAsHTML) {
@@ -441,6 +453,16 @@ function MenuItem(
 
         return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
+
+    const processedHelperText = useMemo(() => {
+        let textToWrap = '';
+
+        if (shouldParseHelperText) {
+            textToWrap = helperHtml;
+        }
+
+        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
+    }, [shouldParseHelperText, helperHtml]);
 
     const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
 
@@ -767,7 +789,14 @@ function MenuItem(
                             </PressableWithSecondaryInteraction>
                         )}
                     </Hoverable>
-                    {!!helperText && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>}
+                    {!!helperText &&
+                        (shouldParseHelperText ? (
+                            <View style={[styles.flexRow, styles.renderHTML, styles.ph5, styles.pb5]}>
+                                <RenderHTML html={processedHelperText} />
+                            </View>
+                        ) : (
+                            <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>
+                        ))}
                 </View>
             </EducationalTooltip>
         </View>

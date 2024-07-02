@@ -19,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
+import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import CardSectionUtils from './utils';
@@ -28,11 +29,10 @@ function CardSection() {
     const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const subscriptionPlan = useSubscriptionPlan();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const subscriptionPlan = useSubscriptionPlan();
 
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
@@ -43,10 +43,26 @@ function CardSection() {
         setIsRequestRefundModalVisible(false);
     }, []);
 
+    const billingStatus = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
+
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
-    const BillingBanner = <PreTrialBillingBanner />;
+
+    let BillingBanner: React.ReactNode | undefined;
+    if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
+        BillingBanner = <PreTrialBillingBanner />;
+    } else if (billingStatus) {
+        BillingBanner = (
+            <SubscriptionBillingBanner
+                title={billingStatus.title}
+                subtitle={billingStatus.subtitle}
+                isError={billingStatus.isError}
+                icon={billingStatus.icon}
+                rightIcon={billingStatus.rightIcon}
+            />
+        );
+    }
 
     return (
         <>
