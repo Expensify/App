@@ -2115,14 +2115,11 @@ export default {
                 'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
 
             advancedConfig: {
-                advanced: 'Avanzado',
-                autoSync: 'Autosincronización',
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
                 inviteEmployees: 'Invitar empleados',
                 inviteEmployeesDescription: 'Importe los registros de los empleados de Quickbooks Online e invítelos a este espacio de trabajo.',
                 createEntities: 'Crear entidades automáticamente',
                 createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Online si aún no existen, y creará automáticamente clientes al exportar facturas.',
-                reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks Online indicadas a continuación.',
                 qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
@@ -2193,11 +2190,8 @@ export default {
             salesInvoice: 'Factura de venta',
             exportInvoicesDescription: 'Las facturas de venta siempre muestran la fecha en la que se envió la factura.',
             advancedConfig: {
-                advanced: 'Avanzado',
-                autoSync: 'Autosincronización',
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con Xero todos los días.',
                 purchaseBillStatusTitle: 'Estado de la factura de compra',
-                reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
                 xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
@@ -2314,6 +2308,49 @@ export default {
                             'Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
                             '\n' +
                             'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                    },
+                },
+            },
+            advancedConfig: {
+                autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the NetSuite account below.',
+                reimbursementsAccount: 'Reimbursements account',
+                collectionsAccount: 'Collections account',
+                approvalAccount: 'A/P approval account',
+                defaultApprovalAccount: 'NetSuite default',
+                inviteEmployees: 'Invite employees and set approvals',
+                inviteEmployeesDescription:
+                    'Import NetSuite employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be further configured on the *Members* page.',
+                autoCreateEntities: 'Auto-create employees/vendors',
+                enableCategories: 'Enable newly imported categories',
+                customFormID: 'Custom form ID',
+                customFormIDDescription:
+                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you have the option to designate a specific transaction form to be used.',
+                customFormIDReimbursable: 'Reimbursable expense',
+                customFormIDNonReimbursable: 'Non-reimbursable expense',
+                exportReportsTo: {
+                    label: 'Expense report approval level',
+                    values: {
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_SUPERVISOR_APPROVED]: 'Only supervisor approved',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_ACCOUNTING_APPROVED]: 'Only accounting approved',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Supervisor and accounting approved',
+                    },
+                },
+                exportVendorBillsTo: {
+                    label: 'Vendor bill approval level',
+                    values: {
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVAL_PENDING]: 'Pending approval',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED]: 'Approved for posting',
+                    },
+                },
+                exportJournalsTo: {
+                    label: 'Journal entry approval level',
+                    values: {
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVAL_PENDING]: 'Pending approval',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Approved for posting',
                     },
                 },
             },
@@ -2703,6 +2740,8 @@ export default {
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportAs: 'Exportar cómo',
             defaultVendor: 'Proveedor predeterminado',
+            autoSync: 'Autosincronización',
+            reimbursedReports: 'Sincronizar informes reembolsados',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',

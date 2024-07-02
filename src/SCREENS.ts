@@ -286,6 +286,7 @@ const SCREENS = {
             NETSUITE_INVOICE_ITEM_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Select',
             NETSUITE_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Tax_Posting_Account_Select',
             NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Provincial_Tax_Posting_Account_Select',
+            NETSUITE_ADVANCED: 'Policy_Accounting_NetSuite_Advanced',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
