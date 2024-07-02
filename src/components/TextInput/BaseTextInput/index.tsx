@@ -66,7 +66,7 @@ function BaseTextInput(
         shouldShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
-        contentWidth = undefined,
+        contentWidth,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
