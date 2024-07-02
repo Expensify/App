@@ -32,6 +32,9 @@ function useCarouselArrows() {
         }, CONST.ARROW_HIDE_DELAY);
     }, [canUseTouchScreen, cancelAutoHideArrows]);
 
+    /**
+     * Sets the visibility of the arrows.
+     */
     const setShouldShowArrows = useCallback(
         (show: SetStateAction<boolean> = true) => {
             setShouldShowArrowsInternal(show);
