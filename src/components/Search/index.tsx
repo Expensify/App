@@ -96,7 +96,6 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    selectedItems={{}}
                     query={query}
                     hash={hash}
                 />
@@ -109,7 +108,6 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         return (
             <>
                 <SearchPageHeader
-                    selectedItems={{}}
                     query={query}
                     hash={hash}
                 />
