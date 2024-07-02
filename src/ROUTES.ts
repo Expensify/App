@@ -937,8 +937,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/net-suite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary-selector` as const,
+        route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import',
