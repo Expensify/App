@@ -566,6 +566,7 @@ const CONST = {
     GOOGLE_MEET_URL_ANDROID: 'https://meet.google.com',
     GOOGLE_DOC_IMAGE_LINK_MATCH: 'googleusercontent.com',
     IMAGE_BASE64_MATCH: 'base64',
+
     DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
@@ -1195,6 +1196,8 @@ const CONST = {
         REPORT: 'r',
         NOTE: 'n',
     },
+
+    IMAGE_HIGH_RESOLUTION_THRESHOLD: 5000,
 
     IMAGE_OBJECT_POSITION: {
         TOP: 'top',

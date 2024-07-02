@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import Text from '@components/Text';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
@@ -29,18 +28,10 @@ import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
 import getImageResolution from '@libs/fileDownload/getImageResolution';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import ThumbnailImage from '@components/ThumbnailImage';
-import TextLink from '@components/TextLink';
-import Hoverable from '@components/Hoverable';
-import CONST from '@src/CONST';
-import fileDownload from '@libs/fileDownload';
-import * as Download from '@userActions/Download';
-import { ImageSource } from '@rnmapbox/maps';
-import type {Download as OnyxDownload} from '@src/types/onyx';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as Expensicons from '@components/Icon/Expensicons';
-
-
+import type {FileObject} from '@components/AttachmentModal';
+import CONST from '@src/CONST';
+import Log from '@libs/Log';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -88,7 +79,7 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
 
         downloadAttachment?: () => void;
 
-        /* Indicates that the attachment has not been uploaded yet */
+        /* Flag indicating whether the attachment has been uploaded. */
         isUploaded?: boolean;
     };
 
@@ -121,7 +112,7 @@ function AttachmentView({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
-    const [isResolutionValid, setIsResolutionValid] = useState<boolean>(false);
+    const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [isCalculatingDimension, setIsCalculatingDimension] = useState(true);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
@@ -153,7 +144,7 @@ function AttachmentView({
                     return true;
                 })
                 .catch(error => {
-                    console.error('Failed to get image resolution:', error);
+                    Log.hmmm('Failed to get image resolution:', error);
                     return false;
                 });
         }
@@ -164,8 +155,8 @@ function AttachmentView({
         setIsCalculatingDimension(true);
         isFileHaveDimension(file)
             .then(isDimensionAvailable => {
-                const isValid = (file && isDimensionAvailable && (file?.height ?? 0) <= 5000 && (file?.width ?? 0) <= 5000) ?? false;
-                setIsResolutionValid(isValid);
+                const isHighResolution = (file && isDimensionAvailable && ((file?.height ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && (file?.width ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD)) ?? false;
+                setIsHighResolution(isHighResolution);
                 setIsCalculatingDimension(false);
             })
             .catch(error => {
@@ -284,7 +275,7 @@ function AttachmentView({
         }
         let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string)
 
-        if (!isResolutionValid) {
+        if (isHighResolution) {
             if(!isUploaded) {
                 return (
                     <DefaultAttachmentView
