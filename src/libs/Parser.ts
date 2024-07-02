@@ -2,6 +2,7 @@
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Log from './Log';
 
 const reportIDToNameMap: Record<string, string> = {};
 const accountIDToNameMap: Record<string, string> = {};
@@ -55,6 +56,7 @@ class ExpensiMarkWithContext extends ExpensiMark {
     }
 }
 
+ExpensiMarkWithContext.setLogger(Log);
 const Parser = new ExpensiMarkWithContext();
 
 export default Parser;
