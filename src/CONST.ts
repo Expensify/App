@@ -1370,7 +1370,9 @@ const CONST = {
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
-        SYNC_TAX: 'syncTax',
+        SYNC_OPTIONS: {
+            SYNC_TAX: 'syncTax',
+        },
     },
 
     NETSUITE_EXPORT_DATE: {
