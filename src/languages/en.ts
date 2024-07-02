@@ -1976,6 +1976,7 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            expensifyCard: 'Expensify Card',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2016,7 +2017,6 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
-            expensifyCard: 'Expensify Card',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
@@ -2308,6 +2308,20 @@ export default {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+        },
+        expensifyCard: {
+            issueCard: 'Issue card',
+            name: 'Name',
+            lastFour: 'Last 4',
+            limit: 'Limit',
+            currentBalance: 'Current balance',
+            currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            remainingLimit: 'Remaining limit',
+            requestLimitIncrease: 'Request limit increase',
+            remainingLimitDescription:
+                'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
+            cashBack: 'Cash back',
+            cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
         },
         categories: {
             deleteCategories: 'Delete categories',
