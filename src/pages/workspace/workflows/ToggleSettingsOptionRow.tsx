@@ -120,19 +120,8 @@ function ToggleSettingOptionRow({
                 </View>
             );
         }
-        return <Text style={[styles.textLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, styles.textSupporting]}>{subtitle}</Text>;
-    }, [
-        subtitle,
-        shouldParseSubtitle,
-        styles.textLabel,
-        styles.mt1,
-        styles.mr5,
-        styles.textSupporting,
-        styles.flexRow,
-        styles.renderHTML,
-        shouldPlaceSubtitleBelowSwitch,
-        processedSubtitle,
-    ]);
+        return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>{subtitle}</Text>;
+    }, [subtitle, shouldParseSubtitle, styles.mutedNormalTextLabel, styles.mt1, styles.mr5, styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch, processedSubtitle]);
 
     return (
         <OfflineWithFeedback
