@@ -34,6 +34,7 @@ import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
@@ -518,6 +519,7 @@ function ReportActionItemMessageEdit(
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
+                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}

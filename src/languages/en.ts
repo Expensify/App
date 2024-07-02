@@ -33,7 +33,6 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
-    IntegrationsMessageParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -1463,6 +1462,7 @@ export default {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge.',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon.',
+            requiredFirstName: 'First name cannot be empty.',
         },
     },
     privatePersonalDetails: {
@@ -2081,6 +2081,7 @@ export default {
             accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
+            creditCardAccount: 'Credit card account',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -3132,7 +3133,7 @@ export default {
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
-                integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `failed to export this report to ${label}. ${errorMessage}`,
+                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed the receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
@@ -3529,6 +3530,13 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            requestRefund: 'Request refund',
+            requestRefundModal: {
+                phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',
+                phrase2:
+                    'Heads up: Downgrading your account means your workspace(s) will be deleted. This action can’t be undone, but you can always create a new workspace if you change your mind.',
+                confirm: 'Delete workspace(s) and downgrade',
+            },
             viewPaymentHistory: 'View payment history',
         },
         yourPlan: {
