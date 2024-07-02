@@ -102,7 +102,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             shouldPlaceSubtitleBelowSwitch: true,
             shouldParseSubtitle: true,
             onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
-            onToggle: () => Connections.updateNetSuiteSyncReimbursedReports(policyID, !config?.syncOptions.syncPeople, !!config?.syncOptions.syncPeople),
+            onToggle: () => Connections.updateNetSuiteSyncPeople(policyID, !config?.syncOptions.syncPeople, !!config?.syncOptions.syncPeople),
             pendingAction: config?.syncOptions.pendingFields?.syncPeople,
             errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE),
         },
