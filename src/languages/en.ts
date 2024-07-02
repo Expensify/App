@@ -34,7 +34,6 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
-    IntegrationsMessageParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -1464,6 +1463,7 @@ export default {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge.',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon.',
+            requiredFirstName: 'First name cannot be empty.',
         },
     },
     privatePersonalDetails: {
@@ -1977,6 +1977,7 @@ export default {
     workspace: {
         common: {
             card: 'Cards',
+            expensifyCard: 'Expensify Card',
             workflows: 'Workflows',
             workspace: 'Workspace',
             edit: 'Edit workspace',
@@ -2017,7 +2018,6 @@ export default {
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
-            expensifyCard: 'Expensify Card',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
@@ -2082,6 +2082,7 @@ export default {
             accountsPayableDescription: 'Choose where to create vendor bills.',
             bankAccount: 'Bank account',
             bankAccountDescription: 'Choose where to send checks from.',
+            creditCardAccount: 'Credit card account',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -2358,6 +2359,20 @@ export default {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+        },
+        expensifyCard: {
+            issueCard: 'Issue card',
+            name: 'Name',
+            lastFour: 'Last 4',
+            limit: 'Limit',
+            currentBalance: 'Current balance',
+            currentBalanceDescription: 'Current balance is the sum of all posted Expensify Card transactions that have occurred since the last settlement date.',
+            remainingLimit: 'Remaining limit',
+            requestLimitIncrease: 'Request limit increase',
+            remainingLimitDescription:
+                'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
+            cashBack: 'Cash back',
+            cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
         },
         categories: {
             deleteCategories: 'Delete categories',
@@ -3075,6 +3090,12 @@ export default {
             },
         },
         groupedExpenses: 'grouped expenses',
+        bulkActions: {
+            delete: 'Delete',
+            hold: 'Hold',
+            unhold: 'Unhold',
+            noOptionsAvailable: 'No options available for the selected group of expenses.',
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -3184,7 +3205,7 @@ export default {
                 exportedToCSV: `exported this report to CSV`,
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
-                integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `failed to export this report to ${label}. ${errorMessage}`,
+                integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
                 managerDetachReceipt: `removed the receipt`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `paid ${currency}${amount} elsewhere`,
@@ -3514,6 +3535,9 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'You can’t make changes to your subscription in the mobile app.',
+        badge: {
+            freeTrial: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left`,
+        },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'Your payment info is outdated',
@@ -3567,7 +3591,11 @@ export default {
             preTrial: {
                 title: 'Start a free trial',
                 subtitle: 'To get started, ',
-                subtitleLink: 'complete your setup checklist here',
+                subtitleLink: 'complete your setup checklist here.',
+            },
+            trialStarted: {
+                title: ({numOfDays}) => `Free trial: ${numOfDays} ${numOfDays === 1 ? 'day' : 'days'} left!`,
+                subtitle: 'Add a payment card to continue using all of your favorite features.',
             },
         },
         cardSection: {
@@ -3581,6 +3609,13 @@ export default {
             changeCurrency: 'Change payment currency',
             cardNotFound: 'No payment card added',
             retryPaymentButton: 'Retry payment',
+            requestRefund: 'Request refund',
+            requestRefundModal: {
+                phrase1: 'Getting a refund is easy, just downgrade your account before your next billing date and you’ll receive a refund.',
+                phrase2:
+                    'Heads up: Downgrading your account means your workspace(s) will be deleted. This action can’t be undone, but you can always create a new workspace if you change your mind.',
+                confirm: 'Delete workspace(s) and downgrade',
+            },
             viewPaymentHistory: 'View payment history',
         },
         yourPlan: {

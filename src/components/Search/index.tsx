@@ -3,6 +3,9 @@ import type {StackNavigationProp} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
+import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import TableListItemSkeleton from '@components/Skeletons/TableListItemSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -10,8 +13,8 @@ import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as SearchUtils from '@libs/SearchUtils';
 import type {SearchColumnType, SortOrder} from '@libs/SearchUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -19,14 +22,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SearchQuery} from '@src/types/onyx/SearchResults';
 import type SearchResults from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import SelectionList from './SelectionList';
-import SearchTableHeader from './SelectionList/SearchTableHeader';
-import type {ReportListItemType, TransactionListItemType} from './SelectionList/types';
-import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
+import SearchListWithHeader from './SearchListWithHeader';
+import SearchPageHeader from './SearchPageHeader';
 
 type SearchProps = {
     query: SearchQuery;
@@ -41,11 +42,6 @@ const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
 
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
-    const transactionListItem = item as TransactionListItemType;
-    return transactionListItem.transactionID !== undefined;
-}
-
 function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -55,7 +51,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const getItemHeight = useCallback(
         (item: TransactionListItemType | ReportListItemType) => {
-            if (isTransactionListItemType(item)) {
+            if (SearchUtils.isTransactionListItemType(item)) {
                 return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
             }
 
@@ -97,22 +93,38 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingItems) {
-        return <TableListItemSkeleton shouldAnimate />;
+        return (
+            <>
+                <SearchPageHeader
+                    query={query}
+                    hash={hash}
+                />
+                <TableListItemSkeleton shouldAnimate />
+            </>
+        );
     }
 
     if (shouldShowEmptyState) {
-        return <EmptySearchView />;
+        return (
+            <>
+                <SearchPageHeader
+                    query={query}
+                    hash={hash}
+                />
+                <EmptySearchView />
+            </>
+        );
     }
 
     const openReport = (item: TransactionListItemType | ReportListItemType) => {
-        let reportID = isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
+        let reportID = SearchUtils.isTransactionListItemType(item) ? item.transactionThreadReportID : item.reportID;
 
         if (!reportID) {
             return;
         }
 
         // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-        if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+        if (SearchUtils.isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
             reportID = ReportUtils.generateReportID();
             SearchActions.createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
         }
@@ -152,7 +164,11 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
     return (
-        <SelectionList<ReportListItemType | TransactionListItemType>
+        <SearchListWithHeader
+            query={query}
+            hash={hash}
+            data={sortedData}
+            searchType={searchResults?.search?.type as SearchDataTypes}
             customListHeader={
                 <SearchTableHeader
                     data={searchResults?.data}
@@ -164,6 +180,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     shouldShowYear={shouldShowYear}
                 />
             }
+            canSelectMultiple={isLargeScreenWidth}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
@@ -177,8 +194,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             windowSize={111}
             updateCellsBatchingPeriod={200}
             ListItem={ListItem}
-            sections={[{data: sortedData, isDisabled: false}]}
-            onSelectRow={(item) => openReport(item)}
+            onSelectRow={openReport}
             getItemHeight={getItemHeight}
             shouldDebounceRowSelect
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
