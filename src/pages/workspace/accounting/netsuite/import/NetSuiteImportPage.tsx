@@ -20,8 +20,6 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.netsuite?.options.config;
-    const importFields = CONST.NETSUITE_CONFIG.IMPORT_FIELDS;
-    const importCustomFields = CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS;
 
     return (
         <ConnectionLayout
@@ -48,7 +46,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             </View>
 
             <View style={styles.mb4}>
-                {importFields.map((importField) => (
+                {CONST.NETSUITE_CONFIG.IMPORT_FIELDS.map((importField) => (
                     <OfflineWithFeedback
                         key={importField}
                         errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}
@@ -86,7 +84,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
             )}
 
             <View style={styles.mb4}>
-                {importCustomFields.map((importField) => (
+                {CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.map((importField) => (
                     <OfflineWithFeedback
                         key={importField}
                         errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}

@@ -2292,8 +2292,8 @@ export default {
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
             import: {
-                expenseCategories: `Expense categories`,
-                expenseCategoriesDescription: `NetSuite expense categories import into Expensify as categories.`,
+                expenseCategories: 'Expense categories',
+                expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
                 importFields: {
                     departments: 'Departments',
                     classes: 'Classes',

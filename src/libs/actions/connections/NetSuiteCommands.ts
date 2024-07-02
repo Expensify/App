@@ -191,7 +191,7 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: isSyncTaxEnabled,
                                     },
-                                    // TODO: Fixing in the future PR
+                                    // TODO: Fixing in the PR for Import Mapping https://github.com/Expensify/App/pull/44743
                                     // pendingFields: {
                                     //     syncTax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                     // },
@@ -217,7 +217,7 @@ function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: 
                                     syncOptions: {
                                         syncTax: isSyncTaxEnabled,
                                     },
-                                    // TODO: Fixing in the future PR
+                                    // TODO: Fixing in the PR for Import Mapping https://github.com/Expensify/App/pull/44743
                                     // pendingFields: {
                                     //     syncTax: null
                                     // },
