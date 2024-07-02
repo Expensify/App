@@ -1,11 +1,16 @@
 import {isEmpty} from 'lodash';
 import React from 'react';
+import {StyleProp, View, ViewStyle} from 'react-native';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
+import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+import {ReceiptErrors} from '@src/types/onyx/Transaction';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
@@ -63,6 +68,15 @@ type SelectionScreenProps = {
 
     /** Name of the current connection */
     connectionName: ConnectionName;
+
+    /** The errors to display  */
+    errors?: OnyxCommon.Errors | ReceiptErrors | null;
+
+    /** Additional style object for the error row */
+    errorRowStyles?: StyleProp<ViewStyle>;
+
+    /** A function to run when the X button next to the error is clicked */
+    onClose?: () => void;
 };
 
 function SelectionScreen({
@@ -81,8 +95,12 @@ function SelectionScreen({
     featureName,
     shouldBeBlocked,
     connectionName,
+    errors,
+    errorRowStyles,
+    onClose,
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
 
     const policy = PolicyUtils.getPolicy(policyID);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
@@ -95,24 +113,32 @@ function SelectionScreen({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                includeSafeAreaPaddingBottom={true}
                 testID={displayName}
             >
                 <HeaderWithBackButton
                     title={translate(title)}
                     onBackButtonPress={onBackButtonPress}
                 />
-                <SelectionList
-                    onSelectRow={onSelectRow}
-                    headerContent={headerContent}
-                    sections={sections}
-                    ListItem={listItem}
-                    showScrollIndicator
-                    shouldShowTooltips={false}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                    listEmptyContent={listEmptyContent}
-                    listFooterContent={listFooterContent}
-                />
+                <OfflineWithFeedback
+                    errors={errors}
+                    errorRowStyles={errorRowStyles}
+                    onClose={onClose}
+                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
+                    contentContainerStyle={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
+                >
+                    <SelectionList
+                        onSelectRow={onSelectRow}
+                        headerContent={headerContent}
+                        sections={sections}
+                        ListItem={listItem}
+                        showScrollIndicator
+                        shouldShowTooltips={false}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        listEmptyContent={listEmptyContent}
+                        listFooterContent={listFooterContent}
+                    />
+                </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
