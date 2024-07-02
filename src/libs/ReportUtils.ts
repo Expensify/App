@@ -63,7 +63,7 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
-import {parseHtmlToText} from './OnyxAwareParser';
+import {Parser.htmlToText} from './OnyxAwareParser';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
@@ -3288,7 +3288,7 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     const logins = PersonalDetailsUtils.getLoginsByAccountIDs(accountIDs);
     accountIDs.forEach((id, index) => (accountIDToName[id] = logins[index]));
 
-    const textMessage = Str.removeSMSDomain(parseHtmlToText(html, reportIDToName, accountIDToName));
+    const textMessage = Str.removeSMSDomain(Parser.htmlToText(html, reportIDToName, accountIDToName));
     parsedReportActionMessageCache[key] = textMessage;
 
     return textMessage;
@@ -3660,7 +3660,7 @@ function getReportDescriptionText(report: Report): string {
         return '';
     }
 
-    return parseHtmlToText(report.description);
+    return Parser.htmlToText(report.description);
 }
 
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
@@ -3668,7 +3668,7 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
         return '';
     }
 
-    return parseHtmlToText(policy.description);
+    return Parser.htmlToText(policy.description);
 }
 
 function buildOptimisticAddCommentReportAction(
@@ -3690,10 +3690,10 @@ function buildOptimisticAddCommentReportAction(
         textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
     } else if (isTextOnly) {
         htmlForNewComment = commentText;
-        textForNewComment = parseHtmlToText(htmlForNewComment);
+        textForNewComment = Parser.htmlToText(htmlForNewComment);
     } else {
         htmlForNewComment = `${commentText}<uploading-attachment>${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}</uploading-attachment>`;
-        textForNewComment = `${parseHtmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+        textForNewComment = `${Parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
     }
 
     const isAttachment = !text && file !== undefined;

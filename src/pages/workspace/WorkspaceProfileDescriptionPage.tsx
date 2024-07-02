@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy/Policy';
@@ -30,7 +30,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [description, setDescription] = useState(() =>
-        parseHtmlToMarkdown(
+        Parser.htmlToMarkdown(
             // policy?.description can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             policy?.description ||

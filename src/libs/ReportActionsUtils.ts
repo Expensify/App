@@ -20,7 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
-import {parseHtmlToText} from './OnyxAwareParser';
+import {Parser.htmlToText} from './OnyxAwareParser';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -1142,11 +1142,11 @@ function getReportActionText(reportAction: PartialReportAction): string {
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const text = (message?.html || message?.text) ?? '';
-    return text ? parseHtmlToText(text) : '';
+    return text ? Parser.htmlToText(text) : '';
 }
 
 function getTextFromHtml(html?: string): string {
-    return html ? parseHtmlToText(html) : '';
+    return html ? Parser.htmlToText(html) : '';
 }
 
 function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): Message {

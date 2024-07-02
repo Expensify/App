@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import Parser from '@libs/Parser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
@@ -80,7 +80,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                     <View style={styles.mb5}>
                         <InputWrapperWithRef
                             InputComponent={TextInput}
-                            defaultValue={parseHtmlToMarkdown(parser.replace(task?.description ?? ''))}
+                            defaultValue={Parser.htmlToMarkdown(parser.replace(task?.description ?? ''))}
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
