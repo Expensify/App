@@ -2019,6 +2019,7 @@ export default {
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
+            expensifyCard: 'Tarjeta Expensify',
             members: 'Miembros',
             accounting: 'Contabilidad',
             plan: 'Plan',
@@ -2065,13 +2066,10 @@ export default {
             taxesJournalEntrySwitchNote: 'QuickBooks Online no permite impuestos en los asientos contables. Por favor, cambia la opción de exportación a factura de proveedor o cheque.',
             locationsAdditionalDescription:
                 'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
-            export: 'Exportar',
-            exportAs: 'Exportar cómo',
             exportExpenses: 'Exportar gastos de bolsillo como',
             exportInvoices: 'Exportar facturas a',
             exportCompany: 'Exportar tarjetas de empresa como',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
-            preferredExporter: 'Exportador preferido',
             date: 'Fecha de exportación',
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
             deepDiveExpensifyCardIntegration: 'nuestra integración.',
@@ -2101,17 +2099,14 @@ export default {
             account: 'Cuenta',
             accountDescription: 'Elige dónde contabilizar los asientos contables.',
             vendor: 'Proveedor',
-            defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
             bankAccount: 'Cuenta bancaria',
             bankAccountDescription: 'Elige desde dónde enviar los cheques.',
+            creditCardAccount: 'Cuenta de la tarjeta de crédito',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online no permite lugares en las exportaciones de facturas de proveedores. Como tienes activadas los lugares en tu espacio de trabajo, esta opción de exportación no está disponible.',
-            exportPreferredExporterNote:
-                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
-            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
             exportCheckDescription: 'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.',
             exportJournalEntryDescription: 'Crearemos una entrada contable desglosada para cada informe de Expensify y lo contabilizaremos en la cuenta a continuación.',
@@ -2187,7 +2182,6 @@ export default {
                 default: 'Contacto de Xero por defecto',
                 tag: 'Etiquetas',
             },
-            export: 'Exportar',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             purchaseBill: 'Factura de compra',
@@ -2196,7 +2190,6 @@ export default {
             bankTransactions: 'Transacciones bancarias',
             xeroBankAccount: 'Cuenta bancaria de Xero',
             xeroBankAccountDescription: 'Elige dónde se contabilizarán los gastos como transacciones bancarias.',
-            preferredExporter: 'Exportador preferido',
             exportExpenses: 'Exportar gastos por cuenta propia como',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
             purchaseBillDate: 'Fecha de la factura de compra',
@@ -2243,61 +2236,144 @@ export default {
                     [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Pendiente de pago',
                 },
             },
-            exportPreferredExporterNote:
-                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
-            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
         },
-        sageIntacct: {
-            preferredExporter: 'Exportador preferido',
-            notConfigured: 'No configurado',
-            exportDate: {
-                label: 'Fecha de exportación',
-                description: 'Utilice esta fecha cuando exporte informes a Sage Intacct.',
-                values: {
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
-                        label: 'Fecha del último gasto',
-                        description: 'Fecha del gasto más reciente del informe.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
-                        label: 'Fecha de exportación',
-                        description: 'Fecha en la que se exportó el informe a Sage Intacct.',
-                    },
-                    [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
-                        label: 'Fecha de envío',
-                        description: 'Fecha de presentación del informe para su aprobación.',
-                    },
-                },
+
+      sageIntacct: {
+        preferredExporter: 'Exportador preferido',
+        notConfigured: 'No configurado',
+        exportDate: {
+          label: 'Fecha de exportación',
+          description: 'Utilice esta fecha cuando exporte informes a Sage Intacct.',
+          values: {
+            [CONST.SAGE_INTACCT_EXPORT_DATE.LAST_EXPENSE]: {
+              label: 'Fecha del último gasto',
+              description: 'Fecha del gasto más reciente del informe.',
             },
-            reimbursableExpenses: {
-                label: 'Gastos reembolsables de exportación como',
-                description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
-                values: {
-                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
-                    [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
-                },
+            [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_EXPORTED]: {
+              label: 'Fecha de exportación',
+              description: 'Fecha en la que se exportó el informe a Sage Intacct.',
             },
-            nonReimbursableExpenses: {
-                label: 'Exportar gastos no reembolsables como',
-                description:
-                    'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
-                values: {
-                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
-                    [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
-                },
+            [CONST.SAGE_INTACCT_EXPORT_DATE.REPORT_SUBMITTED]: {
+              label: 'Fecha de envío',
+              description: 'Fecha de presentación del informe para su aprobación.',
             },
-            creditCardAccount: 'Cuenta de tarjeta de crédito',
-            creditCardAccountDescription: '!!!!!!!!',
-            defaultVendor: 'Proveedor por defecto',
-            defaultVendorDescription: (isReimbursable: boolean): string =>
-                `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
-            exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Inacct.',
-            exportPreferredExporterNote:
-                'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
-            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+          },
         },
+        reimbursableExpenses: {
+          label: 'Gastos reembolsables de exportación como',
+          description: 'Los gastos reembolsables se exportarán como informes de gastos a Sage Intacct. Las facturas se exportarán como facturas de proveedores.',
+          values: {
+            [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT]: 'Informes de gastos',
+            [CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+          },
+        },
+        nonReimbursableExpenses: {
+          label: 'Exportar gastos no reembolsables como',
+          description:
+            'Los gastos no reembolsables se exportarán a Sage Intacct como transacciones de tarjetas de crédito o facturas de proveedores y se abonarán en la cuenta seleccionada a continuación. Más información sobre la asignación de tarjetas a cuentas individuales.',
+          values: {
+            [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE]: 'Transacciones con tarjeta de crédito',
+            [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Facturas de proveedores',
+          },
+        },
+        creditCardAccount: 'Cuenta de tarjeta de crédito',
+        creditCardAccountDescription: '!!!!!!!!',
+        defaultVendor: 'Proveedor por defecto',
+        defaultVendorDescription: (isReimbursable: boolean): string =>
+          `Establezca un proveedor predeterminado que se aplicará a los gastos ${isReimbursable ? '' : 'no '}reembolsables que no tienen un proveedor coincidente en Sage Intacct.`,
+        exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Inacct.',
+        exportPreferredExporterNote:
+          'El exportador preferido puede ser cualquier administrador del área de trabajo, pero también debe ser un administrador del dominio si establece diferentes cuentas de exportación para tarjetas de empresa individuales en Configuración del dominio.',
+        exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+      },
         netsuite: {
             subsidiary: 'Subsidiaria',
             subsidiarySelectDescription: 'Elige la subsidiaria de NetSuite de la que deseas importar datos.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a NetSuite.',
+            exportReimbursable: 'Exportar gastos reembolsables como',
+            exportNonReimbursable: 'Exportar gastos no reembolsables como',
+            exportInvoices: 'Exportar facturas a',
+            journalEntriesTaxPostingAccount: 'Cuenta de registro de impuestos de asientos contables',
+            journalEntriesProvTaxPostingAccount: 'Cuenta de registro de impuestos provinciales de asientos contables',
+            foreignCurrencyAmount: 'Exportar importe en moneda extranjera',
+            exportToNextOpenPeriod: 'Exportar al siguiente período abierto',
+            nonReimbursableJournalPostingAccount: 'Cuenta de registro de diario no reembolsable',
+            reimbursableJournalPostingAccount: 'Cuenta de registro de diario reembolsable',
+            journalPostingPreference: {
+                label: 'Preferencia de registro de asientos contables',
+                values: {
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Entrada única y detallada para cada informe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrada única para cada gasto individual',
+                },
+            },
+            invoiceItem: {
+                label: 'Artículo de la factura',
+                values: {
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE]: {
+                        label: 'Crear uno para mí',
+                        description: "Crearemos un 'Artículo de línea de factura de Expensify' para ti al exportar (si aún no existe).",
+                    },
+                    [CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT]: {
+                        label: 'Seleccionar existente',
+                        description: 'Asociaremos las facturas de Expensify al artículo seleccionado a continuación.',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a NetSuite.',
+                values: {
+                    [CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DATE.SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación.',
+                    },
+                },
+            },
+            exportDestination: {
+                values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
+                        label: 'Informes de gastos',
+                        reimbursableDescription: 'Los gastos reembolsables se exportarán como informes de gastos a NetSuite.',
+                        nonReimbursableDescription: 'Los gastos no reembolsables se exportarán como informes de gastos a NetSuite.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL]: {
+                        label: 'Facturas de proveedores',
+                        reimbursableDescription:
+                            'Los gastos reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                        nonReimbursableDescription:
+                            'Los gastos no reembolsables se exportarán como facturas pagaderas al proveedor especificado en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                    },
+                    [CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY]: {
+                        label: 'Asientos contables',
+                        reimbursableDescription:
+                            'Los gastos reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                        nonReimbursableDescription:
+                            'Los gastos no reembolsables se exportarán como asientos contables a la cuenta especificada en NetSuite.\n' +
+                            '\n' +
+                            'Si deseas establecer un proveedor específico para cada tarjeta, ve a *Configuraciones > Dominios > Tarjetas de Empresa*.',
+                    },
+                },
+            },
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo.',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Añade proveedores en NetSuite y sincroniza la conexión de nuevo.',
+            noItemsFound: 'No se han encontrado artículos de factura',
+            noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
         },
@@ -2357,6 +2433,13 @@ export default {
             integrateSection: {
                 title: 'Integrar',
                 subtitle: 'Conecta Expensify a otros productos financieros populares.',
+            },
+            expensifyCard: {
+                title: 'Tarjeta Expensify',
+                subtitle: 'Obtén información y control sobre tus gastos',
+                disableCardTitle: 'Deshabilitar la Tarjeta Expensify',
+                disableCardPrompt: 'No puedes deshabilitar la Tarjeta Expensify porque ya está en uso. Por favor, contacta con Concierge para conocer los pasos a seguir.',
+                disableCardButton: 'Chatear con Concierge',
             },
             distanceRates: {
                 title: 'Tasas de distancia',
@@ -2513,7 +2596,7 @@ export default {
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
             setup: 'Configurar',
-            lastSync: 'Recién sincronizado',
+            lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
@@ -2658,6 +2741,12 @@ export default {
                     }
                 },
             },
+            preferredExporter: 'Exportador preferido',
+            exportPreferredExporterNote:
+                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
+            exportAs: 'Exportar cómo',
+            defaultVendor: 'Proveedor predeterminado',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -3919,6 +4008,57 @@ export default {
     subscription: {
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
         billingBanner: {
+            policyOwnerAmountOwed: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: ({date}) => `Actualiza tu tarjeta de pago antes del ${date} para continuar utilizando todas tus herramientas favoritas`,
+            },
+            policyOwnerAmountOwedOverdue: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: 'Por favor, actualiza tu información de pago.',
+            },
+            policyOwnerUnderInvoicing: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: ({date}) => `Tu pago está vencido. Por favor, paga tu factura antes del ${date} para evitar la interrupción del servicio.`,
+            },
+            policyOwnerUnderInvoicingOverdue: {
+                title: 'Tu información de pago está desactualizada',
+                subtitle: 'Tu pago está vencido. Por favor, paga tu factura.',
+            },
+            billingDisputePending: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed, cardEnding}) =>
+                    `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
+            },
+            cardAuthenticationRequired: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({cardEnding}) =>
+                    `Tu tarjeta de pago no ha sido autenticada completamente. Por favor, completa el proceso de autenticación para activar tu tarjeta de pago que termina en ${cardEnding}.`,
+            },
+            insufficientFunds: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed}) =>
+                    `Tu tarjeta de pago fue rechazada por falta de fondos. Vuelve a intentarlo o añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
+            },
+            cardExpired: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle: ({amountOwed}) => `Tu tarjeta de pago ha expirado. Por favor, añade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${amountOwed}.`,
+            },
+            cardExpireSoon: {
+                title: 'Tu tarjeta caducará pronto',
+                subtitle:
+                    'Tu tarjeta de pago caducará a finales de este mes. Haz clic en el menú de tres puntos que aparece a continuación para actualizarla y continuar utilizando todas tus herramientas favoritas.',
+            },
+            retryBillingSuccess: {
+                title: 'Éxito!',
+                subtitle: 'Tu tarjeta fue facturada correctamente.',
+            },
+            retryBillingError: {
+                title: 'No se ha podido realizar el cobro a tu tarjeta',
+                subtitle:
+                    'Antes de volver a intentarlo, llama directamente a tu banco para que autorice los cargos de Expensify y elimine las retenciones. De lo contrario, añade una tarjeta de pago diferente.',
+            },
+            cardOnDispute: ({amountOwed, cardEnding}) =>
+                `Has impugnado el cargo ${amountOwed} en la tarjeta terminada en ${cardEnding}. Tu cuenta estará bloqueada hasta que se resuelva la disputa con tu banco.`,
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
                 subtitle: 'Para empezar, ',
@@ -4004,7 +4144,7 @@ export default {
             title: 'Configuración de suscripción',
             autoRenew: 'Auto-renovación',
             autoIncrease: 'Auto-incremento',
-            saveUpTo: ({amountSaved}) => `Ahorre hasta $${amountSaved} al mes por miembro activo`,
+            saveUpTo: ({amountWithCurrency}) => `Ahorre hasta ${amountWithCurrency} al mes por miembro activo`,
             automaticallyIncrease:
                 'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
             disableAutoRenew: 'Desactivar auto-renovación',

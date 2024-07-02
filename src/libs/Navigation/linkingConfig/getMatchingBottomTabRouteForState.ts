@@ -23,7 +23,7 @@ function getMatchingBottomTabRouteForState(state: State<RootStackParamList>, pol
     const tabName = CENTRAL_PANE_TO_TAB_MAPPING[topmostCentralPaneRoute.name];
 
     if (tabName === SCREENS.SEARCH.BOTTOM_TAB) {
-        const topmostCentralPaneRouteParams = topmostCentralPaneRoute.params as Record<string, string | undefined>;
+        const topmostCentralPaneRouteParams = {...topmostCentralPaneRoute.params} as Record<string, string | undefined>;
         delete topmostCentralPaneRouteParams?.policyIDs;
         if (policyID) {
             topmostCentralPaneRouteParams.policyID = policyID;
