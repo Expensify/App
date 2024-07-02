@@ -95,5 +95,8 @@ type IssueNewCard = {
     currentStep: IssueNewCardStep;
 };
 
+/** List of Expensify cards */
+type ExpensifyCardsList = Record<string, Card>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, ExpensifyCardsList};
