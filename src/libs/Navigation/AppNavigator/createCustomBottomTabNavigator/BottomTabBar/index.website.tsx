@@ -72,9 +72,12 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     const navigateToChats = useCallback(() => {
+        if (currentTabName === SCREENS.HOME) {
+            return;
+        }
         const route = activeWorkspaceID ? (`/w/${activeWorkspaceID}/home` as Route) : ROUTES.HOME;
         Navigation.navigate(route);
-    }, [activeWorkspaceID]);
+    }, [activeWorkspaceID, currentTabName]);
 
     return (
         <View style={styles.bottomTabBarContainer}>
@@ -102,6 +105,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
+                        if (currentTabName === SCREENS.SEARCH.BOTTOM_TAB || currentTabName === SCREENS.SEARCH.CENTRAL_PANE) {
+                            return;
+                        }
                         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH_CENTRAL_PANE.getRoute(CONST.SEARCH.TAB.ALL)));
                     }}
                     role={CONST.ROLE.BUTTON}
