@@ -7041,7 +7041,7 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
         return false;
     }
 
-    return isChatRoom(report) && !isThread(report);
+    return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
 }
 
 function shouldShowMerchantColumn(transactions: Transaction[]) {
