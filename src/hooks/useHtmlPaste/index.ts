@@ -16,8 +16,11 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
         range.insertNode(node);
 
         // Move caret to the end of the newly inserted text node.
-        range.setStart(node, node.length);
-        range.setEnd(node, node.length);
+        // Correctly calculate text length since newline character does not create a new line in HTML
+        // https://github.com/Expensify/App/issues/42216
+        const offset = text.endsWith('\n') ? node.length - 1 : node.length;
+        range.setStart(node, offset);
+        range.setEnd(node, offset);
         selection.setBaseAndExtent(range.startContainer, range.startOffset, range.endContainer, range.endOffset);
 
         // Dispatch paste event to simulate real browser behavior
