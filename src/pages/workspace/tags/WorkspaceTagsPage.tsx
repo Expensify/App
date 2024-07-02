@@ -189,15 +189,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             style={[isSmallScreenWidth && styles.flex1]}
                         />
                     )}
-                    {policyTags && (
-                        <Button
-                            medium
-                            onPress={navigateToTagsSettings}
-                            icon={Expensicons.Gear}
-                            text={translate('common.settings')}
-                            style={[isSmallScreenWidth && styles.flex1]}
-                        />
-                    )}
+                    <Button
+                        medium
+                        onPress={navigateToTagsSettings}
+                        icon={Expensicons.Gear}
+                        text={translate('common.settings')}
+                        style={[isSmallScreenWidth && styles.flex1]}
+                    />
                 </View>
             );
         }
