@@ -160,11 +160,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
     const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
 
-    if (isNarrowLayout) {
-        metainfo.isFullScreenNavigatorMandatory = false;
-        metainfo.isCentralPaneAndBottomTabMandatory = false;
-    }
-
     if (rhpNavigator) {
         // Routes
         // - matching bottom tab
