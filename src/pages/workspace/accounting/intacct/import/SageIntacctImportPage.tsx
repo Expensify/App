@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -7,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctMappingsErrorField, clearSageIntacctTaxErrorField, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCurrentXeroOrganizationName} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -42,16 +42,13 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
     const policyID: string = policy?.id ?? '-1';
     const sageIntacctConfig = policy?.connections?.intacct?.config;
-    const config = policy?.connections?.intacct?.config;
-
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
 
     const mapingItems = useMemo(
         () =>
             Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
                 const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
                 return {
-                    description: translate('workspace.common.mappingTitle', mapping, true),
+                    description: Str.recapitalize(translate('workspace.common.mappingTitle', mapping)),
                     action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
                     title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
                     hasError: !!sageIntacctConfig?.mappings?.errorFields?.[mapping],
@@ -65,7 +62,6 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
         <ConnectionLayout
             displayName={SageIntacctImportPage.displayName}
             headerTitle="workspace.accounting.import"
-            headerSubtitle={currentXeroOrganizationName}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -88,10 +84,10 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('common.billable')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={config?.mappings?.syncItems ?? false}
-                onToggle={() => updateSageIntacctBillable(policyID, !config?.mappings?.syncItems)}
-                pendingAction={config?.mappings?.pendingFields?.syncItems}
-                errors={ErrorUtils.getLatestErrorField(config?.mappings ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
+                isActive={sageIntacctConfig?.mappings?.syncItems ?? false}
+                onToggle={() => updateSageIntacctBillable(policyID, !sageIntacctConfig?.mappings?.syncItems)}
+                pendingAction={sageIntacctConfig?.mappings?.pendingFields?.syncItems}
+                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig?.mappings ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
                 onCloseError={() => clearSageIntacctMappingsErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
 
@@ -116,19 +112,19 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 switchAccessibilityLabel={translate('workspace.intacct.importTaxDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
-                isActive={config?.tax.syncTax ?? false}
-                onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !config?.tax.syncTax)}
-                pendingAction={config?.pendingFields?.tax}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, 'tax')}
+                isActive={sageIntacctConfig?.tax.syncTax ?? false}
+                onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !sageIntacctConfig?.tax.syncTax)}
+                pendingAction={sageIntacctConfig?.pendingFields?.tax}
+                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, 'tax')}
                 onCloseError={() => clearSageIntacctTaxErrorField(policyID)}
             />
 
-            <OfflineWithFeedback pendingAction={config?.mappings?.dimensions.find((userDimension) => !!userDimension.pendingAction)?.pendingAction}>
+            <OfflineWithFeedback pendingAction={sageIntacctConfig?.mappings?.dimensions.find((userDimension) => !!userDimension.pendingAction)?.pendingAction}>
                 <MenuItemWithTopDescription
                     description={translate('workspace.intacct.userDefinedDimensions')}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
-                    brickRoadIndicator={config?.mappings?.dimensions.some((userDimension) => !!userDimension.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={sageIntacctConfig?.mappings?.dimensions.some((userDimension) => !!userDimension.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         </ConnectionLayout>

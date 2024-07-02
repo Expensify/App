@@ -444,7 +444,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     onDismissError={() => onDismissError?.(item)}
                     shouldPreventDefaultFocusOnSelectRow
                     // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                    shouldPreventEnterKeySubmit
+                    shouldPreventEnterKeySubmit={shouldPreventDefaultFocusOnSelectRow}
                     rightHandSideComponent={rightHandSideComponent}
                     keyForList={item.keyForList ?? ''}
                     isMultilineSupported={isRowMultilineSupported}

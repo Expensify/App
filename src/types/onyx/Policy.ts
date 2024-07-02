@@ -1043,18 +1043,6 @@ type SageIntacctMappingType = OnyxCommon.OnyxValueWithOfflineFeedback<{
  * Connection config for Sage Intacct
  */
 type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Whether employees should be imported from Sage Intacct */
-    importEmployees: boolean;
-
-    /** Whether Sage Intacct is configured */
-    isConfigured: boolean;
-
-    /** Sage Intacct approval mode */
-    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
-
-    /** Whether auto sync is enabled */
-    isAutoSyncEnabled: boolean;
-
     /** Sage Intacct credentials */
     credentials: {
         /** Sage Intacct companyID */
@@ -1077,24 +1065,6 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Whether should sync tax with Sage Intacct */
         syncTax: boolean;
-    };
-
-    /** Configuration of automatic synchronization from Sage Intacct to the app */
-    autoSync: {
-        /** ID of sync job */
-        jobID: string;
-
-        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
-        enabled: boolean;
-    };
-
-    /** Sage Intacct sync */
-    sync: {
-        /** ID of the bank account for Sage Intacct bill payment account */
-        reimbursementAccountID: string;
-
-        /** Whether the reimbursed reports should be synched */
-        syncReimbursedReports: boolean;
     };
 
     /** Collection of Sage Intacct config errors */

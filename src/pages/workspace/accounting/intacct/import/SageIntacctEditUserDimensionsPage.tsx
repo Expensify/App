@@ -19,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
 import DimensionTypeSelector from './DimensionTypeSelector';
@@ -73,7 +74,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                 validate={validate}
                 onSubmit={(value) => {
                     editSageIntacctUserDimensions(policyID, editedUserDimensionName, value[INPUT_IDS.INTEGRATION_NAME], value[INPUT_IDS.DIMENSION_TYPE], userDimensions ?? []);
-                    Navigation.goBack();
+                    Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID));
                 }}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
@@ -96,7 +97,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                             defaultValue={editedUserDimensionName}
                         />
                     </View>
-                    <View style={[styles.mb4]}>
+                    <View style={[]}>
                         <InputWrapper
                             InputComponent={DimensionTypeSelector}
                             inputID={INPUT_IDS.DIMENSION_TYPE}

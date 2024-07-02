@@ -35,6 +35,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            shouldIncludeSafeAreaPaddingBottom
         >
             {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>
@@ -49,7 +50,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{translate('workspace.intacct.addAUserDefinedDimension')}</Text>
                         </View>
 
-                        <View style={[styles.justifyContentCenter]}>
+                        <View style={[styles.ph5]}>
                             <Text>
                                 <TextLink
                                     style={styles.link}

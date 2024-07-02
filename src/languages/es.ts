@@ -2047,20 +2047,20 @@ export default {
             lineItemLevel: 'Nivel de partida',
             reportLevel: 'Nivel de informe',
             appliedOnExport: 'No se importa en Expensify, se aplica en la exportación',
-            mappingTitle: (mappingName: SageIntacctMappingName, startsWithBigLetter = false): string => {
+            mappingTitle: (mappingName: SageIntacctMappingName): string => {
                 switch (mappingName) {
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
-                        return startsWithBigLetter ? 'Departamento' : 'departamento';
+                        return 'departamentos';
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
-                        return startsWithBigLetter ? 'Clases' : 'clases';
+                        return 'clases';
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
-                        return startsWithBigLetter ? 'Lugares' : 'lugares';
+                        return 'lugares';
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
-                        return startsWithBigLetter ? 'Clientes' : 'clientes';
+                        return 'clientes';
                     case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
-                        return startsWithBigLetter ? 'Proyectos (empleos)' : 'proyectos (empleos)';
+                        return 'proyectos (empleos)';
                     default:
-                        return startsWithBigLetter ? 'Mapa' : 'mapa';
+                        return 'asignaciones';
                 }
             },
         },

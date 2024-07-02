@@ -237,7 +237,7 @@ function addSageIntacctUserDimensions(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [...existingUserDimensions, {name, mapping, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}],
+                                dimensions: [...existingUserDimensions, {name, mapping}],
                             },
                         },
                     },
@@ -255,10 +255,7 @@ function addSageIntacctUserDimensions(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [
-                                    ...existingUserDimensions,
-                                    {name, mapping, pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
-                                ],
+                                dimensions: [...existingUserDimensions, {name, mapping}],
                             },
                         },
                     },
@@ -276,7 +273,7 @@ function addSageIntacctUserDimensions(
                     intacct: {
                         config: {
                             mappings: {
-                                dimensions: [...existingUserDimensions, {name, mapping, pendingAction: null, errors: undefined}],
+                                dimensions: [...existingUserDimensions, {name, mapping}],
                             },
                         },
                     },

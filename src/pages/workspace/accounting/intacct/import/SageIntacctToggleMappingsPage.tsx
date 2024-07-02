@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -62,7 +63,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     return (
         <ConnectionLayout
             displayName={SageIntacctToggleMappingsPage.displayName}
-            headerTitleAlreadyTranslated={translate('workspace.common.mappingTitle', mappingName, true)}
+            headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.common.mappingTitle', mappingName))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

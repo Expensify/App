@@ -55,13 +55,16 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
                 onSelectRow={onDimensionTypeSelected}
                 sections={[{data: selectionOptions}]}
                 ListItem={RadioListItem}
-                showScrollIndicator
                 shouldShowTooltips={false}
-                containerStyle={styles.mhn5}
-            />
-            <FormHelpMessage
-                isError={!!errorText}
-                message={errorText}
+                containerStyle={[styles.mhn5, styles.pb5, styles.mb0]}
+                footerContent={
+                    errorText ? (
+                        <FormHelpMessage
+                            isError={!!errorText}
+                            message={errorText}
+                        />
+                    ) : undefined
+                }
             />
         </View>
     );

@@ -14,6 +14,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
 import DimensionTypeSelector from './DimensionTypeSelector';
 
@@ -61,7 +62,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                 validate={validate}
                 onSubmit={(value) => {
                     addSageIntacctUserDimensions(policyID, value[INPUT_IDS.INTEGRATION_NAME], value[INPUT_IDS.DIMENSION_TYPE], userDimensions ?? []);
-                    Navigation.goBack();
+                    Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID));
                 }}
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline
@@ -78,7 +79,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                         spellCheck={false}
                     />
                 </View>
-                <View style={styles.mb4}>
+                <View>
                     <InputWrapper
                         InputComponent={DimensionTypeSelector}
                         inputID={INPUT_IDS.DIMENSION_TYPE}
