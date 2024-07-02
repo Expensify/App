@@ -3,6 +3,7 @@ import React, {forwardRef, useEffect, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import type {BaseSelectionListProps, ReportListItemType, SelectionListHandle, TransactionListItemType} from '@components/SelectionList/types';
 import * as SearchUtils from '@libs/SearchUtils';
+import CONST from '@src/CONST';
 import type {SearchDataTypes, SearchQuery, SelectedTransactions} from '@src/types/onyx/SearchResults';
 import SearchPageHeader from './SearchPageHeader';
 
@@ -57,7 +58,7 @@ function SearchSelectionListWithHeader({ListItem, onSelectRow, query, hash, data
     };
 
     const toggleAllTransactions = () => {
-        const areReportItems = searchType === 'report';
+        const areReportItems = searchType === CONST.SEARCH.DATA_TYPES.REPORT;
         const flattenedItems = areReportItems ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedItems).length;
 
