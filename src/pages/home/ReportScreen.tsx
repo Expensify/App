@@ -289,6 +289,10 @@ function ReportScreen({
         }
         return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
+    const linkedAction = useMemo(
+        () => sortedAllReportActions.find((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)),
+        [reportActionIDFromRoute, sortedAllReportActions],
+    );
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -378,7 +382,7 @@ function ReportScreen({
     }
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID) {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !ReportUtils.isOneTransactionThread(linkedAction?.childReportID ?? '', report.reportID, linkedAction)) {
             return;
         }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
