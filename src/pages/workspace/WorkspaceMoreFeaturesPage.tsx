@@ -85,7 +85,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {canUseReportFieldsFeature, canUseWorkspaceFeeds} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax || !!policy?.connections?.xero?.config?.importTaxRates;
+    const isSyncTaxEnabled =
+        !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
+        !!policy?.connections?.xero?.config?.importTaxRates ||
+        !!policy?.connections?.netsuite?.options?.config?.syncOptions?.syncTax;
     const policyID = policy?.id ?? '';
     // @ts-expect-error a new props will be added during feed api implementation
     const workspaceAccountID = policy?.workspaceAccountID ?? '';

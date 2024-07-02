@@ -2325,6 +2325,22 @@ export default {
             noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+            import: {
+                expenseCategories: 'Categorías de gastos',
+                expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
+                importFields: {
+                    departments: 'Departamentos',
+                    classes: 'Clases',
+                    locations: 'Ubicaciones',
+                    customers: 'Clientes',
+                    jobs: 'Proyectos (trabajos)',
+                },
+                importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
+                importCustomFields: {
+                    customSegments: 'Segmentos/registros personalizado',
+                    customLists: 'Listas personalizado',
+                },
+            },
         },
         intacct: {
             sageIntacctSetup: 'Sage Intacct configuración',
@@ -2597,6 +2613,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
