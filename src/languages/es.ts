@@ -33,7 +33,6 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
-    IntegrationsMessageParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -1465,6 +1464,7 @@ export default {
         error: {
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge.',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma.',
+            requiredFirstName: 'El nombre no puede estar vacío.',
         },
     },
     privatePersonalDetails: {
@@ -2001,6 +2001,7 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            expensifyCard: 'Tarjeta Expensify',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
@@ -2016,7 +2017,6 @@ export default {
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
-            expensifyCard: 'Tarjeta Expensify',
             members: 'Miembros',
             accounting: 'Contabilidad',
             plan: 'Plan',
@@ -2099,6 +2099,7 @@ export default {
             accountsPayableDescription: 'Elige dónde crear las facturas de proveedores.',
             bankAccount: 'Cuenta bancaria',
             bankAccountDescription: 'Elige desde dónde enviar los cheques.',
+            creditCardAccount: 'Cuenta de la tarjeta de crédito',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online no permite lugares en las exportaciones de facturas de proveedores. Como tienes activadas los lugares en tu espacio de trabajo, esta opción de exportación no está disponible.',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
@@ -2325,6 +2326,22 @@ export default {
             noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+            import: {
+                expenseCategories: 'Categorías de gastos',
+                expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
+                importFields: {
+                    departments: 'Departamentos',
+                    classes: 'Clases',
+                    locations: 'Ubicaciones',
+                    customers: 'Clientes',
+                    jobs: 'Proyectos (trabajos)',
+                },
+                importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
+                importCustomFields: {
+                    customSegments: 'Segmentos/registros personalizado',
+                    customLists: 'Listas personalizado',
+                },
+            },
         },
         intacct: {
             sageIntacctSetup: 'Sage Intacct configuración',
@@ -2341,6 +2358,21 @@ export default {
             free: 'Gratis',
             control: 'Control',
             collect: 'Recolectar',
+        },
+        expensifyCard: {
+            issueCard: 'Emitir tarjeta',
+            name: 'Nombre',
+            lastFour: '4 últimos',
+            limit: 'Limite',
+            currentBalance: 'Saldo actual',
+            currentBalanceDescription:
+                'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            remainingLimit: 'Límite restante',
+            requestLimitIncrease: 'Solicitar aumento de límite',
+            remainingLimitDescription:
+                'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
+            cashBack: 'Reembolso',
+            cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2582,6 +2614,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
@@ -3079,6 +3112,12 @@ export default {
             },
         },
         groupedExpenses: 'gastos agrupados',
+        bulkActions: {
+            delete: 'Eliminar',
+            hold: 'Bloquear',
+            unhold: 'Desbloquear',
+            noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -3189,7 +3228,7 @@ export default {
                 exportedToCSV: `exportó este informe a CSV`,
                 exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exportó este informe a ${label}`,
                 forwarded: ({amount, currency}: ForwardedParams) => `aprobado ${currency}${amount}`,
-                integrationsMessage: ({errorMessage, label}: IntegrationsMessageParams) => `no se pudo exportar este informe a ${label}. ${errorMessage}`,
+                integrationsMessage: (errorMessage: string, label: string) => `no se pudo exportar este informe a ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `agregó un recibo`,
                 managerDetachReceipt: `quitó el recibo`,
                 markedReimbursed: ({amount, currency}: MarkedReimbursedParams) => `pagó ${currency}${amount} en otro lugar`,
@@ -3983,6 +4022,9 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
+        badge: {
+            freeTrial: ({numOfDays}) => `Prueba gratuita: ${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}`,
+        },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'Tu información de pago está desactualizada',
@@ -4038,7 +4080,11 @@ export default {
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
                 subtitle: 'Para empezar, ',
-                subtitleLink: 'completa la lista de configuración aquí',
+                subtitleLink: 'completa la lista de configuración aquí.',
+            },
+            trialStarted: {
+                title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
         },
         cardSection: {
@@ -4052,6 +4098,13 @@ export default {
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
             retryPaymentButton: 'Reintentar el pago',
+            requestRefund: 'Solicitar reembolso',
+            requestRefundModal: {
+                phrase1: 'Obtener un reembolso es fácil, simplemente baja tu cuenta de categoría antes de la próxima fecha de facturación y recibirás un reembolso.',
+                phrase2:
+                    'Atención: Bajar tu cuenta de categoría significa que tu(s) espacio(s) de trabajo será(n) eliminado(s). Esta acción no se puede deshacer, pero siempre puedes crear un nuevo espacio de trabajo si cambias de opinión.',
+                confirm: 'Eliminar y degradar',
+            },
             viewPaymentHistory: 'Ver historial de pagos',
         },
         yourPlan: {

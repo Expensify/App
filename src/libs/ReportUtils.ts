@@ -1081,7 +1081,7 @@ function doesReportBelongToWorkspace(report: OnyxEntry<Report>, policyMemberAcco
 /**
  * Given an array of reports, return them filtered by a policyID and policyMemberAccountIDs.
  */
-function filterReportsByPolicyIDAndMemberAccountIDs(reports: Report[], policyMemberAccountIDs: number[] = [], policyID?: string) {
+function filterReportsByPolicyIDAndMemberAccountIDs(reports: Array<OnyxEntry<Report>>, policyMemberAccountIDs: number[] = [], policyID?: string) {
     return reports.filter((report) => !!report && doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID));
 }
 
@@ -1167,6 +1167,7 @@ function findLastAccessedReport(
     reportMetadata: OnyxCollection<ReportMetadata> = {},
     policyID?: string,
     policyMemberAccountIDs: number[] = [],
+    excludeReportID?: string,
 ): OnyxEntry<Report> {
     // If it's the user's first time using New Expensify, then they could either have:
     //   - just a Concierge report, if so we'll return that
@@ -1174,7 +1175,7 @@ function findLastAccessedReport(
     // If it's the latter, we'll use the deeplinked report over the Concierge report,
     // since the Concierge report would be incorrectly selected over the deep-linked report in the logic below.
 
-    let reportsValues = Object.values(reports ?? {}) as Report[];
+    let reportsValues = Object.values(reports ?? {});
 
     if (!!policyID || policyMemberAccountIDs.length > 0) {
         reportsValues = filterReportsByPolicyIDAndMemberAccountIDs(reportsValues, policyMemberAccountIDs, policyID);
@@ -1190,13 +1191,28 @@ function findLastAccessedReport(
         });
     }
 
-    if (ignoreDomainRooms) {
-        // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
-        // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
-        // Domain rooms are now the only type of default room that are on the defaultRooms beta.
-        sortedReports = sortedReports.filter(
-            (report) => !isDomainRoom(report) || getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE || hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number)),
-        );
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldFilter = excludeReportID || ignoreDomainRooms;
+    if (shouldFilter) {
+        sortedReports = sortedReports.filter((report) => {
+            if (excludeReportID && report?.reportID === excludeReportID) {
+                return false;
+            }
+
+            // We allow public announce rooms, admins, and announce rooms through since we bypass the default rooms beta for them.
+            // Check where ReportUtils.findLastAccessedReport is called in MainDrawerNavigator.js for more context.
+            // Domain rooms are now the only type of default room that are on the defaultRooms beta.
+            if (
+                ignoreDomainRooms &&
+                isDomainRoom(report) &&
+                getPolicyType(report, policies) !== CONST.POLICY.TYPE.FREE &&
+                !hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number))
+            ) {
+                return false;
+            }
+
+            return true;
+        });
     }
 
     if (isFirstTimeNewExpensifyUser) {
@@ -5228,7 +5244,7 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return true;
     }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const lastVisibleMessage = getLastVisibleMessage(report.reportID);
     return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 }
 
@@ -7025,7 +7041,7 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
         return false;
     }
 
-    return isChatRoom(report) && !isThread(report);
+    return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
 }
 
 function shouldShowMerchantColumn(transactions: Transaction[]) {

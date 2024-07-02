@@ -234,5 +234,10 @@ export type {default as UpdateSubscriptionAddNewUsersAutomaticallyParams} from '
 export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTokenParams';
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpgradeToCorporateParams} from './UpgradeToCorporateParams';
+export type {default as DeleteMoneyRequestOnSearchParams} from './DeleteMoneyRequestOnSearchParams';
+export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequestOnSearchParams';
+export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
+export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
+export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
