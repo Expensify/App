@@ -1,11 +1,10 @@
 import debounce from 'lodash/debounce';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import * as ReportConnection from '@libs/ReportConnection';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 
 /**
  * This actions file is used to automatically switch a user into #focus mode when they exceed a certain number of reports. We do this primarily for performance reasons.
@@ -34,18 +33,6 @@ Onyx.connect({
  */
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
-
-let allReports: OnyxCollection<Report> | undefined = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (reports) => {
-        allReports = reports;
-
-        // Each time a new report is added we will check to see if the user should be switched
-        autoSwitchToFocusMode();
-    },
-});
 
 let isLoadingReportData = true;
 Onyx.connect({
@@ -87,11 +74,10 @@ function resetHasReadRequiredDataFromStorage() {
         resolveIsReadyPromise = resolve;
     });
     isLoadingReportData = true;
-    allReports = {};
 }
 
 function checkRequiredData() {
-    if (allReports === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
+    if (ReportConnection.getAllReports() === undefined || hasTriedFocusMode === undefined || isInFocusMode === undefined || isLoadingReportData) {
         return;
     }
 
@@ -112,6 +98,7 @@ function tryFocusModeUpdate() {
         }
 
         const validReports = [];
+        const allReports = ReportConnection.getAllReports();
         Object.keys(allReports ?? {}).forEach((key) => {
             const report = allReports?.[key];
             if (!report) {

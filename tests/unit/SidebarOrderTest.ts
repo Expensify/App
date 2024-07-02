@@ -873,13 +873,13 @@ describe('Sidebar', () => {
 
             return (
                 waitForBatchedUpdates()
+                    .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, LHNTestUtils.fakePersonalDetails))
                     .then(() => LHNTestUtils.getDefaultRenderedSidebarLinks('0'))
                     // Given the sidebar is rendered in #focus mode (hides read chats)
                     // with all reports having unread comments
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                             [ONYXKEYS.IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
