@@ -1,6 +1,7 @@
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import {escapeRegExp} from 'lodash';
 import lodashClone from 'lodash/clone';
+import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -51,7 +52,18 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyCategory, ReimbursementAccount, Report, ReportAction, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {
+    InvitedEmailsToAccountIDs,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategory,
+    RecentlyUsedCurrencies,
+    ReimbursementAccount,
+    Report,
+    ReportAction,
+    TaxRatesWithDefault,
+    Transaction,
+} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, Rate, TaxRate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -153,6 +165,13 @@ let reimbursementAccount: OnyxEntry<ReimbursementAccount>;
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     callback: (val) => (reimbursementAccount = val),
+});
+
+let allRecentlyUsedCurrencies: OnyxCollection<RecentlyUsedCurrencies> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allRecentlyUsedCurrencies = val),
 });
 
 /**
@@ -1963,6 +1982,22 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
 }
 
+function buildOptimisticPolicyRecentlyUsedCurrencies(policyID?: string, currency?: string) {
+    if (!currency) {
+        return [];
+    }
+    const personalPolicy = PolicyUtils.getPersonalPolicy();
+    const personalPolicyID = personalPolicy?.id;
+    if (!policyID && !personalPolicyID) {
+        return [];
+    }
+    const policyRecentlyUsedCurrencies = policyID
+        ? allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${policyID}`]
+        : allRecentlyUsedCurrencies?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CURRENCIES}${personalPolicyID}`];
+
+    return lodashUnion([currency], policyRecentlyUsedCurrencies);
+}
+
 /**
  * This flow is used for bottom up flow converting IOU report to an expense report. When user takes this action,
  * we create a Collect type workspace when the person taking the action becomes an owner and an admin, while we
@@ -3014,6 +3049,7 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
+    buildOptimisticPolicyRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
