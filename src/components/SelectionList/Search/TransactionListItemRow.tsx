@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import DateUtils from '@libs/DateUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -66,6 +67,8 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const canModifyReceipt = !ReportUtils.isReportApproved(transactionItem.reportID) && !ReportUtils.isSettled(transactionItem.reportID);
+
     return (
         <View
             style={[
@@ -81,7 +84,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
-                fallbackIcon={Expensicons.ReceiptPlus}
+                fallbackIcon={canModifyReceipt ? Expensicons.ReceiptPlus : Expensicons.ReceiptSlash}
                 fallbackIconSize={20}
                 fallbackIconColor={theme.icon}
                 iconSize="x-small"
