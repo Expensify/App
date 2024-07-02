@@ -131,7 +131,6 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                 ListItem={RadioListItem}
                 showScrollIndicator
                 shouldShowTooltips={false}
-                initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 listFooterContent={
                     <View>
                         {config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL && defaultVendor}

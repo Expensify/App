@@ -105,7 +105,6 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                 ListItem={RadioListItem}
                 showScrollIndicator
                 shouldShowTooltips={false}
-                initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 listFooterContent={
                     reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT ? (
                         <View>
