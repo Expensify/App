@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -13,6 +14,14 @@ type SubsidiaryParam = {
     subsidiaryID: string;
     subsidiary: string;
 };
+
+function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    const parameters: ConnectPolicyToNetSuiteParams = {
+        policyID,
+        ...credentials,
+    };
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {});
+}
 
 function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     policyID: string,
@@ -360,4 +369,5 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    connectPolicyToNetSuite,
 };
