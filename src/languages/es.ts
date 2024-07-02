@@ -1463,6 +1463,7 @@ export default {
         error: {
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge.',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma.',
+            requiredFirstName: 'El nombre no puede estar vacío.',
         },
     },
     privatePersonalDetails: {
