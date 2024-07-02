@@ -113,7 +113,7 @@ function MoneyRequestView({
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, swapForTranslation} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? '-1'];
@@ -349,10 +349,18 @@ function MoneyRequestView({
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptHeader = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
-    const errors = {
-        ...(transaction?.errorFields?.route ?? transaction?.errors),
-        ...parentReportAction?.errors,
-    };
+    const errors = useMemo(() => {
+        const combinedErrors = {
+            ...(transaction?.errorFields?.route ?? transaction?.errors),
+            ...parentReportAction?.errors,
+        };
+        return Object.fromEntries(
+            Object.entries(combinedErrors).map(([key, value]) =>
+                // swap for translation for each error message
+                [key, swapForTranslation(value as string)],
+            ),
+        );
+    }, [transaction?.errorFields?.route, transaction?.errors, parentReportAction?.errors, swapForTranslation]);
 
     const tagList = policyTagLists.map(({name, orderWeight}, index) => {
         const tagError = getErrorForField(
@@ -404,6 +412,13 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            if ((!!report?.errorFields?.createChat || !!report.isOptimisticReport) && parentReportAction) {
+                                const urlToNavigateBack = IOU.cleanUpMoneyRequest(transaction.transactionID, parentReportAction, true);
+                                Navigation.goBack(urlToNavigateBack);
+                                return;
+                            }
+
                             if (
                                 transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
                                 Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))
