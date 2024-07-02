@@ -296,7 +296,7 @@ function IOURequestStepConfirmation({
             }
             IOU.createDistanceRequest(
                 report,
-                selectedParticipants[0],
+                selectedParticipants,
                 trimmedComment,
                 transaction.created,
                 transaction.category,
@@ -312,9 +312,13 @@ function IOURequestStepConfirmation({
                 policyTags,
                 policyCategories,
                 customUnitRateID,
+                currentUserPersonalDetails.login,
+                currentUserPersonalDetails.accountID,
+                transaction.splitShares,
+                iouType,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount, customUnitRateID, currentUserPersonalDetails, iouType],
     );
 
     const createTransaction = useCallback(
@@ -338,6 +342,11 @@ function IOURequestStepConfirmation({
             }
 
             formHasBeenSubmitted.current = true;
+
+            if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+                createDistanceRequest((iouType === CONST.IOU.TYPE.SPLIT) ? splitParticipants : selectedParticipants, trimmedComment);
+                return;
+            }
 
             // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
@@ -503,6 +512,8 @@ function IOURequestStepConfirmation({
             policyCategories,
             transactionTaxAmount,
             transactionTaxCode,
+            action,
+            requestType,
         ],
     );
 

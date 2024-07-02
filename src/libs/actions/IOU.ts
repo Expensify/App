@@ -1956,14 +1956,8 @@ function getMoneyRequestInformation(
     } else {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
     }
-    // STEP 3: Build optimistic receipt and transaction
-    const receiptObject: Receipt = {};
-    let filename;
-    if (receipt?.source) {
-        receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
-        filename = receipt.name;
-    }
+
+    // STEP 3: Build an optimistic transaction with the receipt
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -1975,8 +1969,8 @@ function getMoneyRequestInformation(
         '',
         '',
         merchant,
-        receiptObject,
-        filename,
+        receipt,
+        '',
         existingTransactionID,
         category,
         tag,
@@ -2306,98 +2300,6 @@ function getTrackExpenseInformation(
             failureData: failureData.concat(trackExpenseOnyxData[2]),
         },
     };
-}
-
-/** Requests money based on a distance (e.g. mileage from a map) */
-function createDistanceRequest(
-    report: OnyxEntry<OnyxTypes.Report>,
-    participant: Participant,
-    comment: string,
-    created: string,
-    category: string | undefined,
-    tag: string | undefined,
-    taxCode: string | undefined,
-    taxAmount: number | undefined,
-    amount: number,
-    currency: string,
-    merchant: string,
-    billable: boolean | undefined,
-    validWaypoints: WaypointCollection,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    customUnitRateID?: string,
-) {
-    // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
-
-    const optimisticReceipt: Receipt = {
-        source: ReceiptGeneric as ReceiptSource,
-        state: CONST.IOU.RECEIPT_STATE.OPEN,
-    };
-    const {
-        iouReport,
-        chatReport,
-        transaction,
-        iouAction,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewAction,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-        payerEmail,
-        onyxData,
-    } = getMoneyRequestInformation(
-        currentChatReport,
-        participant,
-        comment,
-        amount,
-        currency,
-        created,
-        merchant,
-        optimisticReceipt,
-        undefined,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        userAccountID,
-        currentUserEmail,
-        moneyRequestReportID,
-    );
-
-    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : chatReport.reportID;
-    const parameters: CreateDistanceRequestParams = {
-        comment,
-        iouReportID: iouReport.reportID,
-        chatReportID: chatReport.reportID,
-        transactionID: transaction.transactionID,
-        reportActionID: iouAction.reportActionID,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        waypoints: JSON.stringify(validWaypoints),
-        created,
-        category,
-        tag,
-        taxCode,
-        taxAmount,
-        billable,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-        payerEmail,
-        customUnitRateID,
-    };
-
-    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(activeReportID);
-    Report.notifyNewAction(activeReportID, userAccountID);
 }
 
 /**
@@ -3851,6 +3753,9 @@ function createSplitsAndOnyxData(
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
+    // Pass an open receipt so the distance expense will show a map with the route optimistically
+    const receipt: Receipt|undefined = (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
+
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
@@ -3860,7 +3765,7 @@ function createSplitsAndOnyxData(
         '',
         '',
         merchant || Localize.translateLocal('iou.expense'),
-        undefined,
+        receipt,
         undefined,
         undefined,
         category,
@@ -4949,6 +4854,147 @@ function setDraftSplitTransaction(transactionID: string, transactionChanges: Tra
     const updatedTransaction = draftSplitTransaction ? TransactionUtils.getUpdatedTransaction(draftSplitTransaction, transactionChanges, false, false) : null;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
+}
+
+/** Requests money based on a distance (e.g. mileage from a map) */
+function createDistanceRequest(
+    report: OnyxEntry<OnyxTypes.Report>,
+    participants: Participant[],
+    comment: string,
+    created: string,
+    category: string | undefined,
+    tag: string | undefined,
+    taxCode: string | undefined,
+    taxAmount: number | undefined,
+    amount: number,
+    currency: string,
+    merchant: string,
+    billable: boolean | undefined,
+    validWaypoints: WaypointCollection,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    customUnitRateID = '',
+    currentUserLogin = '',
+    currentUserAccountID = -1,
+    splitShares: SplitShares = {},
+    iouType: ValueOf<typeof CONST.IOU.TYPE> = CONST.IOU.TYPE.SUBMIT,
+) {
+    // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+
+    const optimisticReceipt: Receipt = {
+        source: ReceiptGeneric as ReceiptSource,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
+
+    let parameters: CreateDistanceRequestParams;
+    let onyxData: OnyxData;
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        const {splitData, splits, onyxData: splitOnyxData} = createSplitsAndOnyxData(
+            participants,
+            currentUserLogin ?? '',
+            currentUserAccountID,
+            amount,
+            comment,
+            currency,
+            merchant,
+            created,
+            category ?? '',
+            tag ?? '',
+            splitShares,
+            report?.reportID ?? '',
+            billable,
+            CONST.IOU.REQUEST_TYPE.DISTANCE,
+        );
+        onyxData = splitOnyxData;
+
+        // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
+        // Therefore, any params related to the IOU report are irrelevant and omitted below.
+        parameters = {
+            transactionID: splitData.transactionID,
+            chatReportID: splitData.chatReportID,
+            createdChatReportActionID: splitData.createdReportActionID ?? '',
+            reportActionID: splitData.reportActionID,
+            waypoints: JSON.stringify(validWaypoints),
+            customUnitRateID,
+            comment,
+            created,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            splits: JSON.stringify(splits),
+            chatType: splitData.chatType,
+        };
+    } else {
+        const participant = participants[0] ?? {};
+        const {
+            iouReport,
+            chatReport,
+            transaction,
+            iouAction,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewAction,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            payerEmail,
+            onyxData: moneyRequestOnyxData,
+        } = getMoneyRequestInformation(
+            currentChatReport,
+            participant,
+            comment,
+            amount,
+            currency,
+            created,
+            merchant,
+            optimisticReceipt,
+            undefined,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            policy,
+            policyTagList,
+            policyCategories,
+            userAccountID,
+            currentUserEmail,
+            moneyRequestReportID,
+        );
+        onyxData = moneyRequestOnyxData;
+
+        parameters = {
+            comment,
+            iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
+            transactionID: transaction.transactionID,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            waypoints: JSON.stringify(validWaypoints),
+            created,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            payerEmail,
+            customUnitRateID,
+        };
+    }
+
+    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '-1' : parameters.chatReportID;
+    Navigation.dismissModal(activeReportID);
+    Report.notifyNewAction(activeReportID, userAccountID);
 }
 
 function editRegularMoneyRequest(
