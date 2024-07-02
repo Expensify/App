@@ -144,9 +144,6 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
-                    fieldList: {
-                        [fieldKey]: null,
-                    },
                     pendingFields: {
                         [fieldKey]: null,
                     },
