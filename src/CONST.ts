@@ -3903,6 +3903,7 @@ const CONST = {
             SIZE: 350,
         },
         NAN_ASPECT_RATIO: 1.5,
+        MIN_ASPECT_RATIO: 0.15,
     },
 
     VIDEO_PLAYER: {
