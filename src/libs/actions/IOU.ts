@@ -6212,8 +6212,19 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedI
     return Object.values(chatReportActions).some((action) => {
         const iouReport = getReportOrDraftReport(action.childReportID ?? '-1');
         const policy = PolicyUtils.getPolicy(iouReport?.policyID);
+        const isPayer = ReportUtils.isPayer(
+            {
+                email: currentUserEmail,
+                accountID: userAccountID,
+            },
+            iouReport,
+        );
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
-        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
+        return (
+            (action.childReportID?.toString() !== excludedIOUReportID || (canApproveIOU(iouReport, chatReport, policy) && isPayer)) &&
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+            shouldShowSettlementButton
+        );
     });
 }
 
