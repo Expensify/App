@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -9,10 +9,14 @@ function CardSectionDataEmpty() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const openAddPaymentCardScreen = useCallback(() => {
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+    }, []);
+
     return (
         <Button
             text={translate('subscription.cardSection.addCardButton')}
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD)}
+            onPress={openAddPaymentCardScreen}
             style={styles.w100}
             success
             large
