@@ -2293,6 +2293,7 @@ const CONST = {
         CATEGORY: 'category',
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
+        DISTANCE_RATE: 'distanceRate',
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',

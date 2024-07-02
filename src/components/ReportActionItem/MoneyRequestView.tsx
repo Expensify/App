@@ -165,6 +165,7 @@ function MoneyRequestView({
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    const canEditDistanceRate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
@@ -312,12 +313,12 @@ function MoneyRequestView({
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
                     title={rateToDisplay}
-                    // TODO: https://github.com/Expensify/App/issues/36987 make it interactive and show right icon when EditRatePage is ready
-                    interactive={false}
-                    shouldShowRightIcon={false}
+                    interactive={canEditDistanceRate}
+                    shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
-                    // TODO: https://github.com/Expensify/App/issues/36987 Add route for editing rate
-                    onPress={() => {}}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '-1', report.reportID))
+                    }
                 />
             </OfflineWithFeedback>
         </>

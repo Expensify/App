@@ -664,6 +664,7 @@ type MoneyRequestNavigatorParamList = {
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+        action: string;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         backTo: Routes;
