@@ -6852,7 +6852,7 @@ function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, 
  * Whether the user can join a report
  */
 function canJoinChat(report: OnyxInputOrEntry<Report>, parentReportAction: OnyxInputOrEntry<ReportAction>, policy: OnyxInputOrEntry<Policy>): boolean {
-    if (isPublicRoom(report as OnyxEntry<Report>) && SessionUtils.isAnonymousUser()) {
+    if (report && isPublicRoom(report) && SessionUtils.isAnonymousUser()) {
         return true;
     }
 
