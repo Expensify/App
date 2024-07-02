@@ -30,7 +30,7 @@ PODS:
   - BVLinearGradient (2.8.1):
     - React-Core
   - DoubleConversion (1.1.6)
-  - EXAV (14.0.5):
+  - EXAV (14.0.6):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
   - EXImageLoader (4.7.0):
@@ -2665,7 +2665,7 @@ SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
-  EXAV: cb6e8dbcc40873d8a386af357e6c2eb55d6d739e
+  EXAV: a1e8d579f0cb4a60792d1686732117420c901b8b
   EXImageLoader: ab589d67d6c5f2c33572afea9917304418566334
   Expo: 9c87c876b45a6934894ba5e9353ee94fdba48125
   ExpoAsset: 39e60dc31b16e204a9949caf3edb6dcda322e667
