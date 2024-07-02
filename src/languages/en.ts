@@ -2313,7 +2313,9 @@ export default {
         reportFields: {
             addField: 'Add field',
             delete: 'Delete field',
-            deleteConfirmation: 'Are you sure that you want to delete this field?',
+            deleteFields: 'Delete fields',
+            deleteConfirmation: 'Are you sure you want to delete this report field?',
+            deleteFieldsConfirmation: 'Are you sure you want to delete these report fields?',
             emptyReportFields: {
                 title: "You haven't created any report fields",
                 subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
