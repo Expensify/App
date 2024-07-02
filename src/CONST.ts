@@ -604,6 +604,7 @@ const CONST = {
     TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
+    SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     PRICING: `https://www.expensify.com/pricing`,
 
@@ -1336,6 +1337,28 @@ const CONST = {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG',
         },
+    },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+    },
+
+    SAGE_INTACCT_CONFIG: {
+        MAPPING_VALUE: {
+            NONE: 'NONE',
+            DEFAULT: 'DEFAULT',
+            TAG: 'TAG',
+            REPORT_FIELD: 'REPORT_FIELD',
+        },
+        MAPPINGS: {
+            DEPARTMENTS: 'departments',
+            CLASSES: 'classes',
+            LOCATIONS: 'locations',
+            CUSTOMERS: 'customers',
+            PROJECTS: 'projects',
+        },
+        SYNC_ITEMS: 'syncItems',
+        TAX: 'tax',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

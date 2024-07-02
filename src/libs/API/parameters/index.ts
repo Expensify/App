@@ -235,3 +235,6 @@ export type {default as GenerateSpotnanaTokenParams} from './GenerateSpotnanaTok
 export type {default as UpdateSubscriptionSizeParams} from './UpdateSubscriptionSizeParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
+export type {default as UpdateSageIntacctMapping} from './UpdateSageIntacctMapping';
+export type {default as UpdateSageIntacctImportBooleanValues} from './UpdateSageIntacctImportBooleanValues';
+export type {default as UpdateSageIntacctUserDimension} from './UpdateSageIntacctUserDimension';

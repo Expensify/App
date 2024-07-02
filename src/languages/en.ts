@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -1987,6 +1987,7 @@ export default {
             categories: 'Categories',
             tags: 'Tags',
             reportFields: 'Report Fields',
+            reportField: 'Report Field',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2020,16 +2021,33 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            lineItemLevel: 'Line-item level',
+            reportLevel: 'Report level',
+            appliedOnExport: 'Not imported into Expensify, applied on export',
+            mappingTitle: (mappingName: SageIntacctMappingName): string => {
+                switch (mappingName) {
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
+                        return 'departments';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CLASSES:
+                        return 'classes';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.LOCATIONS:
+                        return 'locations';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.CUSTOMERS:
+                        return 'customers';
+                    case CONST.SAGE_INTACCT_CONFIG.MAPPINGS.PROJECTS:
+                        return 'projects (jobs)';
+                    default:
+                        return 'mappings';
+                }
+            },
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
-            classes: 'Classes',
             locations: 'Locations',
             customers: 'Customers/projects',
             accountsDescription: 'Your Quickbooks Online chart of accounts will import into Expensify as categories.',
             accountsSwitchTitle: 'Choose to import new accounts as enabled or disabled categories.',
             accountsSwitchDescription: 'Enabled categories will be available for members to select when creating their expenses.',
-            classesDescription: 'Choose how to handle QuickBooks Online classes in Expensify.',
             customersDescription: 'Choose how to handle QuickBooks Online customers/projects in Expensify.',
             locationsDescription: 'Choose how to handle QuickBooks Online locations in Expensify.',
             taxesDescription: 'Choose how to handle QuickBooks Online taxes in Expensify.',
@@ -2303,6 +2321,26 @@ export default {
             reuseExistingConnection: 'Reuse existing connection',
             existingConnections: 'Existing connections',
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Last synced ${formattedDate}`,
+            employeeDefault: 'Sage Intacct employee default',
+            employeeDefaultDescription: "The employee's default department will be applied to their expenses in Sage Intacct if one exists.",
+            displayedAsTagDescription: "Department will be selectable for each individual expense on an employee's report.",
+            displayedAsReportFieldDescription: "Department selection will apply to all expenses on an employee's report.",
+            toggleImportTitleFirstPart: 'Choose how to handle Sage Intacct ',
+            toggleImportTitleSecondPart: ' in Expensify.',
+            expenseTypes: 'Expense types',
+            expenseTypesDescription: 'Sage Intacct expense types import into Expensify as categories.',
+            importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
+            userDefinedDimensions: 'User-defined dimensions',
+            addUserDefinedDimension: 'Add user-defined dimension',
+            integrationName: 'Integration name',
+            dimensionExists: 'Dimension with such name already exists.',
+            removeDimension: 'Remove user-defined dimension',
+            removeDimensionPrompt: 'Are you sure you want to remove this user-defined dimension?',
+            userDefinedDimension: 'User-defined dimensions',
+            addAUserDefinedDimension: 'Add a user-defined dimension',
+            detailedInstructionsLink: 'View detailed instructions',
+            detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',
+            userDimensionsAdded: (dimensionsAmmount: number) => `${dimensionsAmmount} ${Str.pluralize('UDD', `UDDs`, dimensionsAmmount)} added`,
         },
         type: {
             free: 'Free',
@@ -2600,6 +2638,11 @@ export default {
             },
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
+            classes: 'Classes',
+            classesDescription: (integration?: ConnectionName): string => {
+                const integrationName = integration && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration] : 'integration';
+                return `Choose how to handle ${integrationName} classes in Expensify.`;
+            },
             imported: 'Imported',
             notImported: 'Not imported',
             importAsCategory: 'Imported as categories',
