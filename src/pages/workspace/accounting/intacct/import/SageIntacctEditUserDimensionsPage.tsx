@@ -13,7 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctUserDimensionErrorField, editSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
+import {clearSageIntacctErrorField, editSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -33,6 +33,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
     const editedUserDimensionName: string = route.params.dimensionName;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID ?? '-1'}`);
     const policyID: string = policy?.id ?? '-1';
+    const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.name === editedUserDimensionName);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -82,9 +83,9 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                 shouldValidateOnChange
             >
                 <OfflineWithFeedback
-                    pendingAction={editedUserDimension?.pendingAction}
-                    errors={editedUserDimension?.errors}
-                    onClose={() => clearSageIntacctUserDimensionErrorField(policyID, userDimensions ?? [], editedUserDimensionName)}
+                    pendingAction={config?.pendingAction?.[`dimension_${editedUserDimensionName}`]}
+                    errors={config?.errorFields?.[`dimension_${editedUserDimensionName}`]}
+                    onClose={() => clearSageIntacctErrorField(policyID, `dimension_${editedUserDimensionName}`)}
                 >
                     <View style={[styles.mb4]}>
                         <InputWrapper

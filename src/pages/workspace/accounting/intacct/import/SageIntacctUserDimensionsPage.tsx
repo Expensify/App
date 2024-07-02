@@ -23,6 +23,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
+    const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
 
     return (
@@ -82,14 +83,14 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     {userDimensions.map((userDimension) => (
                         <OfflineWithFeedback
                             key={userDimension.name}
-                            pendingAction={userDimension.pendingAction}
+                            pendingAction={config?.pendingFields?.[`dimension_${userDimension.name}`]}
                         >
                             <MenuItemWithTopDescription
                                 title={userDimension.name}
                                 description="User-defined dimension"
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.name))}
-                                brickRoadIndicator={userDimension.errors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.name}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         </OfflineWithFeedback>
                     ))}

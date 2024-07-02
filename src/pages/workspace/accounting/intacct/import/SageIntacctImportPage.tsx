@@ -5,7 +5,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctMappingsErrorField, clearSageIntacctTaxErrorField, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
+import {clearSageIntacctErrorField, updateSageIntacctBillable, updateSageIntacctSyncTaxConfiguration} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -14,7 +14,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type {SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {SageIntacctConnectiosConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -36,6 +36,11 @@ function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): Tr
     }
 }
 
+const checkForUserDimensionWithError = (config?: SageIntacctConnectiosConfig) => config?.mappings?.dimensions?.some((dimension) => !!config?.errorFields?.[`dimension_${dimension.name}`]);
+
+const checkForUserDimensionWithPendingAction = (config?: SageIntacctConnectiosConfig) =>
+    config?.mappings?.dimensions?.some((dimension) => !!config?.pendingFields?.[`dimension_${dimension.name}`]);
+
 function SageIntacctImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -51,11 +56,11 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     description: Str.recapitalize(translate('workspace.common.mappingTitle', mapping)),
                     action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
                     title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
-                    hasError: !!sageIntacctConfig?.mappings?.errorFields?.[mapping],
-                    pendingAction: sageIntacctConfig?.mappings?.pendingFields?.[mapping],
+                    hasError: !!sageIntacctConfig?.errorFields?.[mapping],
+                    pendingAction: sageIntacctConfig?.pendingFields?.[mapping],
                 };
             }),
-        [policyID, sageIntacctConfig?.mappings, translate],
+        [policyID, sageIntacctConfig?.errorFields, sageIntacctConfig?.mappings, sageIntacctConfig?.pendingFields, translate],
     );
 
     return (
@@ -86,9 +91,9 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive={sageIntacctConfig?.mappings?.syncItems ?? false}
                 onToggle={() => updateSageIntacctBillable(policyID, !sageIntacctConfig?.mappings?.syncItems)}
-                pendingAction={sageIntacctConfig?.mappings?.pendingFields?.syncItems}
+                pendingAction={sageIntacctConfig?.pendingFields?.syncItems}
                 errors={ErrorUtils.getLatestErrorField(sageIntacctConfig?.mappings ?? {}, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
-                onCloseError={() => clearSageIntacctMappingsErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
+                onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.SYNC_ITEMS)}
             />
 
             {mapingItems.map((section) => (
@@ -115,16 +120,16 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                 isActive={sageIntacctConfig?.tax.syncTax ?? false}
                 onToggle={() => updateSageIntacctSyncTaxConfiguration(policyID, !sageIntacctConfig?.tax.syncTax)}
                 pendingAction={sageIntacctConfig?.pendingFields?.tax}
-                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, 'tax')}
-                onCloseError={() => clearSageIntacctTaxErrorField(policyID)}
+                errors={ErrorUtils.getLatestErrorField(sageIntacctConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.TAX)}
+                onCloseError={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.TAX)}
             />
 
-            <OfflineWithFeedback pendingAction={sageIntacctConfig?.mappings?.dimensions.find((userDimension) => !!userDimension.pendingAction)?.pendingAction}>
+            <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
                 <MenuItemWithTopDescription
                     description={translate('workspace.intacct.userDefinedDimensions')}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
-                    brickRoadIndicator={sageIntacctConfig?.mappings?.dimensions.some((userDimension) => !!userDimension.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={checkForUserDimensionWithError(sageIntacctConfig) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
         </ConnectionLayout>

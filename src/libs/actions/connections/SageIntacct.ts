@@ -7,7 +7,14 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SageIntacctDimension, SageIntacctMappingType, SageIntacctMappingValue} from '@src/types/onyx/Policy';
+import type {
+    SageIntacctConnectiosConfig,
+    SageIntacctDimension,
+    SageIntacctMappingType,
+    SageIntacctMappingValue,
+    SageIntacctOfflineStateEntries,
+    SageIntacctOfflineStateKeys,
+} from '@src/types/onyx/Policy';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -32,12 +39,12 @@ function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntac
                         config: {
                             mappings: {
                                 [mappingName]: mappingValue,
-                                pendingFields: {
-                                    [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                                errorFields: {
-                                    [mappingName]: null,
-                                },
+                            },
+                            pendingFields: {
+                                [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [mappingName]: null,
                             },
                         },
                     },
@@ -56,12 +63,12 @@ function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntac
                         config: {
                             mappings: {
                                 [mappingName]: mappingValue,
-                                pendingFields: {
-                                    [mappingName]: null,
-                                },
-                                errorFields: {
-                                    [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                },
+                            },
+                            pendingFields: {
+                                [mappingName]: null,
+                            },
+                            errorFields: {
+                                [mappingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -80,12 +87,12 @@ function prepareOnyxDataForUpdate(policyID: string, mappingName: keyof SageIntac
                         config: {
                             mappings: {
                                 [mappingName]: mappingValue,
-                                pendingFields: {
-                                    [mappingName]: null,
-                                },
-                                errorFields: {
-                                    [mappingName]: undefined,
-                                },
+                            },
+                            pendingFields: {
+                                [mappingName]: null,
+                            },
+                            errorFields: {
+                                [mappingName]: undefined,
                             },
                         },
                     },
@@ -137,10 +144,6 @@ function updateSageIntacctMappingValue(policyID: string, mappingName: ValueOf<ty
         },
         onyxData,
     );
-}
-
-function clearSageIntacctMappingsErrorField(policyID: string, fieldName: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {mappings: {errorFields: {[fieldName]: null}}}}}});
 }
 
 function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
@@ -218,10 +221,6 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function clearSageIntacctTaxErrorField(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {tax: null}}}}});
-}
-
 function addSageIntacctUserDimensions(
     policyID: string,
     name: string,
@@ -239,6 +238,8 @@ function addSageIntacctUserDimensions(
                             mappings: {
                                 dimensions: [...existingUserDimensions, {name, mapping}],
                             },
+                            pendingFields: {[`dimension_${name}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[`dimension_${name}`]: null},
                         },
                     },
                 },
@@ -257,6 +258,8 @@ function addSageIntacctUserDimensions(
                             mappings: {
                                 dimensions: [...existingUserDimensions, {name, mapping}],
                             },
+                            pendingFields: {[`dimension_${name}`]: null},
+                            errorFields: {[`dimension_${name}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
                     },
                 },
@@ -275,6 +278,8 @@ function addSageIntacctUserDimensions(
                             mappings: {
                                 dimensions: [...existingUserDimensions, {name, mapping}],
                             },
+                            pendingFields: {[`dimension_${name}`]: null},
+                            errorFields: {[`dimension_${name}`]: null},
                         },
                     },
                 },
@@ -308,6 +313,8 @@ function editSageIntacctUserDimensions(
                                     return userDimension;
                                 }),
                             },
+                            pendingFields: {[`dimension_${name}`]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            errorFields: {[`dimension_${name}`]: null},
                         },
                     },
                 },
@@ -331,6 +338,8 @@ function editSageIntacctUserDimensions(
                                     return userDimension;
                                 }),
                             },
+                            pendingFields: {[`dimension_${name}`]: null},
+                            errorFields: {[`dimension_${name}`]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                         },
                     },
                 },
@@ -354,6 +363,8 @@ function editSageIntacctUserDimensions(
                                     return userDimension;
                                 }),
                             },
+                            pendingFields: {[`dimension_${name}`]: null},
+                            errorFields: {[`dimension_${name}`]: null},
                         },
                     },
                 },
@@ -364,23 +375,8 @@ function editSageIntacctUserDimensions(
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping}, {optimisticData, successData, failureData});
 }
 
-function clearSageIntacctUserDimensionErrorField(policyID: string, dimensions: SageIntacctDimension[], dimensionName: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        connections: {
-            intacct: {
-                config: {
-                    mappings: {
-                        dimensions: dimensions.map((dimension) => {
-                            if (dimension.name === dimensionName) {
-                                return {...dimension, errors: undefined};
-                            }
-                            return dimension;
-                        }),
-                    },
-                },
-            },
-        },
-    });
+function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectiosConfig) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 
 export {
@@ -390,7 +386,5 @@ export {
     addSageIntacctUserDimensions,
     updateSageIntacctMappingValue,
     editSageIntacctUserDimensions,
-    clearSageIntacctMappingsErrorField,
-    clearSageIntacctTaxErrorField,
-    clearSageIntacctUserDimensionErrorField,
+    clearSageIntacctErrorField,
 };

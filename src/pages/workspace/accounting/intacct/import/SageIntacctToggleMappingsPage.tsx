@@ -9,7 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearSageIntacctMappingsErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
+import {clearSageIntacctErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -56,9 +56,9 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
     const mappingName: SageIntacctMappingName = route.params.mapping;
     const policyID: string = policy?.id ?? '-1';
 
-    const mappings = policy?.connections?.intacct?.config?.mappings;
-    const translationKeys = getDisplayTypeTranslationKeys(mappings?.[mappingName]);
-    const [importMapping, setImportMapping] = useState(mappings?.[mappingName] && mappings?.[mappingName] !== CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
+    const config = policy?.connections?.intacct?.config;
+    const translationKeys = getDisplayTypeTranslationKeys(config?.mappings?.[mappingName]);
+    const [importMapping, setImportMapping] = useState(config?.mappings?.[mappingName] && config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_CONFIG.MAPPING_VALUE.NONE);
 
     return (
         <ConnectionLayout
@@ -77,9 +77,9 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
             </Text>
             <OfflineWithFeedback
-                pendingAction={mappings?.pendingFields?.[mappingName]}
-                errors={ErrorUtils.getLatestErrorField(mappings ?? {}, mappingName)}
-                onClose={() => clearSageIntacctMappingsErrorField(policyID, mappingName)}
+                pendingAction={config?.pendingFields?.[mappingName]}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
+                onClose={() => clearSageIntacctErrorField(policyID, mappingName)}
             >
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.import')}
@@ -104,7 +104,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                             description={translate('workspace.common.displayedAs')}
                             shouldShowRightIcon
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName))}
-                            brickRoadIndicator={mappings?.errorFields?.[mappingName] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={config?.errorFields?.[mappingName] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
                         <Text
                             style={[styles.textLabelSupporting, styles.ph5]}

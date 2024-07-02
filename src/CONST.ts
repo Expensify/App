@@ -1357,6 +1357,7 @@ const CONST = {
             PROJECTS: 'projects',
         },
         SYNC_ITEMS: 'syncItems',
+        TAX: 'tax',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
