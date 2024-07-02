@@ -196,9 +196,9 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: mappingValue,
-                                        },
-                                        pendingFields: {
-                                            [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                            pendingFields: {
+                                                [mappingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                            },
                                         },
                                     },
                                     errorFields: {
@@ -223,9 +223,9 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: mappingValue,
-                                        },
-                                        pendingFields: {
-                                            [mappingName]: null,
+                                            pendingFields: {
+                                                [mappingName]: null,
+                                            },
                                         },
                                     },
                                     errorFields: {
@@ -250,9 +250,9 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
                                     syncOptions: {
                                         mapping: {
                                             [mappingName]: oldMappingValue,
-                                        },
-                                        pendingFields: {
-                                            [mappingName]: null,
+                                            pendingFields: {
+                                                [mappingName]: null,
+                                            },
                                         },
                                     },
                                     errorFields: {

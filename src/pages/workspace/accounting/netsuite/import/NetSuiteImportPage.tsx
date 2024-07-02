@@ -55,6 +55,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         key={importField}
                         errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}
                         errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
+                        pendingAction={config?.syncOptions?.mapping?.pendingFields?.[importField]}
                         onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
                     >
                         <MenuItemWithTopDescription
@@ -83,6 +84,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         onToggle={(isEnabled: boolean) => {
                             updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
                         }}
+                        pendingAction={config?.syncOptions?.pendingFields?.syncTax}
                         errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_TAX)}
                         onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_TAX)}
                     />
