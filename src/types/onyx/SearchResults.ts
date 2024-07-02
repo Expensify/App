@@ -128,6 +128,9 @@ type SearchTransaction = {
     /** The transaction amount */
     amount: number;
 
+    /** If the transaction can be deleted */
+    canDelete: boolean;
+
     /** The edited transaction amount */
     modifiedAmount: number;
 
@@ -147,6 +150,9 @@ type SearchTransaction = {
     receipt?: {
         /** Source of the receipt */
         source?: string;
+
+        /** State of the receipt */
+        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     };
 
     /** The transaction tag */
