@@ -2770,10 +2770,10 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                     customUnits: {
                         [customUnitID]: {
                             attributes,
+                            pendingFields: {
+                                taxEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
                         },
-                    },
-                    pendingFields: {
-                        customUnits: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                 },
             },
@@ -2783,8 +2783,12 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        customUnits: null,
+                    customUnits: {
+                        [customUnitID]: {
+                            pendingFields: {
+                                taxEnabled: null,
+                            },
+                        },
                     },
                 },
             },
@@ -2797,6 +2801,9 @@ function enableDistanceRequestTax(policyID: string, customUnitName: string, cust
                     customUnits: {
                         [customUnitID]: {
                             attributes: policy?.customUnits ? policy?.customUnits[customUnitID].attributes : null,
+                            errorFields: {
+                                taxEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
                         },
                     },
                 },

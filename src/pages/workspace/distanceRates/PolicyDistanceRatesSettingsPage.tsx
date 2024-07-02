@@ -77,7 +77,7 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
 
     const onToggleTrackTax = (isOn: boolean) => {
         const attributes = {...customUnits[customUnitID].attributes, taxEnabled: isOn};
-        Policy.enableDistanceRequestTax(policyID, customUnit.name, customUnitID, attributes);
+        Policy.enableDistanceRequestTax(policyID, customUnit?.name, customUnitID, attributes);
     };
     return (
         <AccessOrNotFoundWrapper
@@ -122,7 +122,11 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
                                 />
                             </OfflineWithFeedback>
                         )}
-                        <OfflineWithFeedback errorRowStyles={styles.mh5}>
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'taxEnabled')}
+                            errorRowStyles={styles.mh5}
+                            pendingAction={customUnits[customUnitID]?.pendingFields?.taxEnabled}
+                        >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb2, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.trackTax')}</Text>
