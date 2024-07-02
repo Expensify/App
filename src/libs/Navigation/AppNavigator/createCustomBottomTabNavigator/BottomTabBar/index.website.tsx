@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import useActiveRoute from '@hooks/useActiveRoute';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -69,6 +70,11 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
+    /**
+     * Use active route context in web because useNavigationState events aren't being fired immediately on tab change.
+     */
+    const activeRoute = useActiveRoute();
+
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     const navigateToChats = useCallback(() => {
@@ -92,7 +98,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.Inbox}
-                            fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
+                            fill={activeRoute?.name.includes('Report') ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -118,14 +124,14 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={currentTabName === SCREENS.SEARCH.BOTTOM_TAB || currentTabName === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
+                            fill={activeRoute?.name.includes('Search') ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            <BottomTabAvatar isSelected={activeRoute?.name.includes('Settings')} />
             <View style={[styles.flex1, styles.bottomTabBarItem]}>
                 <BottomTabBarFloatingActionButton />
             </View>
