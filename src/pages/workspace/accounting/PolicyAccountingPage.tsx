@@ -129,7 +129,7 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => {},
-                onExportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => {},
             };
         default:
@@ -156,7 +156,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         isValid(lastSyncProgressDate) &&
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration));
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
+        (name) => !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE || name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) && !canUseNetSuiteIntegration),
+    );
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
     const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
@@ -228,7 +230,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress) : datetimeToRelative,
+                description: isSyncInProgress
+                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
+                    : translate('workspace.accounting.lastSync', datetimeToRelative),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
