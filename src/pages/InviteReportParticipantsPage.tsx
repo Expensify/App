@@ -197,7 +197,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
                 onSubmit={inviteUsers}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
-                disablePressOnEnter
+                disablePressOnEnter={false}
             />
         ),
         [selectedOptions.length, inviteUsers, translate, styles],
