@@ -2373,6 +2373,7 @@ export default {
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
+            userDimensionsAdded: (dimensionsAmmount: number) => `${dimensionsAmmount} ${Str.pluralize('UDD', `UDDs`, dimensionsAmmount)} añadido`,
         },
         type: {
             free: 'Gratis',

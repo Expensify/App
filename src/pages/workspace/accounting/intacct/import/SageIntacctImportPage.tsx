@@ -126,6 +126,7 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
 
             <OfflineWithFeedback pendingAction={checkForUserDimensionWithPendingAction(sageIntacctConfig) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}>
                 <MenuItemWithTopDescription
+                    title={sageIntacctConfig?.mappings?.dimensions ? translate('workspace.intacct.userDimensionsAdded', sageIntacctConfig?.mappings?.dimensions.length) : undefined}
                     description={translate('workspace.intacct.userDefinedDimensions')}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
