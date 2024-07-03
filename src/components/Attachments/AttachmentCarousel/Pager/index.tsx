@@ -78,7 +78,7 @@ function AttachmentCarouselPager(
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
-    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, index, isActive: index === activePageIndex})), [activePageIndex, items]);
+    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, previewSource: item.previewSource, index, isActive: index === activePageIndex})), [activePageIndex, items]);
 
     /**
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.
