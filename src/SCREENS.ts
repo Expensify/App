@@ -274,6 +274,7 @@ const SCREENS = {
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
             NETSUITE_IMPORT_MAPPING: 'Policy_Accounting_NetSuite_Import_Mapping',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
+            NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
             NETSUITE_EXPORT: 'Policy_Accounting_NetSuite_Export',
