@@ -87,7 +87,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 >
                     <MenuItemWithTopDescription
                         description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
-                        title={PolicyUtils.getCustomersOrJobsLabelNetSuite(policy)}
+                        title={PolicyUtils.getCustomersOrJobsLabelNetSuite(policy, translate)}
                         shouldShowRightIcon
                         onPress={() => {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));

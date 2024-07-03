@@ -2322,6 +2322,9 @@ export default {
                     subtitle: 'Choose how to handle NetSuite *customers* and *projects* in Expensify.',
                     importCustomers: 'Import customers',
                     importJobs: 'Import projects',
+                    customers: 'customers',
+                    jobs: 'projects',
+                    label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
