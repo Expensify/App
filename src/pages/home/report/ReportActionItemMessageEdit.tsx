@@ -100,6 +100,7 @@ function ReportActionItemMessageEdit(
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
+    const isInitialMount = useRef(true);
 
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
@@ -138,11 +139,6 @@ function ReportActionItemMessageEdit(
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-    }, [isFocused]);
-
-    useEffect(() => {
         InputFocus.composerFocusKeepFocusOn(textInputRef.current as HTMLElement, isFocused, modal, onyxFocused);
     }, [isFocused, modal, onyxFocused]);
 
@@ -179,25 +175,32 @@ function ReportActionItemMessageEdit(
     );
 
     useEffect(
-        () => () => {
-            InputFocus.callback(() => setIsFocused(false));
-            InputFocus.inputFocusChange(false);
-
-            // Skip if the current report action is not active
-            if (!isActive()) {
+        () => {
+            if (isInitialMount.current) {
+                isInitialMount.current = false;
                 return;
             }
 
-            if (EmojiPickerAction.isActive(action.reportActionID)) {
-                EmojiPickerAction.clearActive();
-            }
-            if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
-                ReportActionContextMenu.clearActiveReportAction();
-            }
+            return () => {
+                InputFocus.callback(() => setIsFocused(false));
+                InputFocus.inputFocusChange(false);
 
-            // Show the main composer when the focused message is deleted from another client
-            // to prevent the main composer stays hidden until we swtich to another chat.
-            setShouldShowComposeInputKeyboardAware(true);
+                // Skip if the current report action is not active
+                if (!isActive()) {
+                    return;
+                }
+
+                if (EmojiPickerAction.isActive(action.reportActionID)) {
+                    EmojiPickerAction.clearActive();
+                }
+                if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
+                    ReportActionContextMenu.clearActiveReportAction();
+                }
+
+                // Show the main composer when the focused message is deleted from another client
+                // to prevent the main composer stays hidden until we swtich to another chat.
+                setShouldShowComposeInputKeyboardAware(true);
+            };
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
         [action.reportActionID],
@@ -347,6 +350,21 @@ function ReportActionItemMessageEdit(
         updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
+    const hideSuggestionMenu = useCallback(() => {
+        if (!suggestionsRef.current) {
+            return;
+        }
+        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
+    }, [suggestionsRef]);
+    const onSaveScrollAndHideSuggestionMenu = useCallback(
+        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+
+            hideSuggestionMenu();
+        },
+        [hideSuggestionMenu],
+    );
+
     /**
      * Key event handlers that short cut to saving/canceling.
      *
@@ -358,15 +376,28 @@ function ReportActionItemMessageEdit(
                 return;
             }
             const keyEvent = e as KeyboardEvent;
-            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
+            const isShortcutEnter = keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
+            const isShortcutEscape = keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey;
+            const isSuggestionActive = suggestionsRef.current?.checkIfSuggestionVisible();
+
+            if (isSuggestionActive && isShortcutEnter) {
+                suggestionsRef.current?.triggerHotkeyActions(keyEvent);
+                return;
+            }
+            if (isShortcutEscape && isSuggestionActive) {
+                e.preventDefault();
+                hideSuggestionMenu();
+                return;
+            }
+            if (isShortcutEnter && !keyEvent.shiftKey) {
                 e.preventDefault();
                 publishDraft();
-            } else if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+            } else if (isShortcutEscape) {
                 e.preventDefault();
                 deleteDraft();
             }
         },
-        [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
+        [deleteDraft, hideSuggestionMenu, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
     const measureContainer = useCallback(
@@ -399,18 +430,6 @@ function ReportActionItemMessageEdit(
         [cursorPositionValue.value, measureContainer, selection],
     );
 
-    const hideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
-            mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
-
-            if (!suggestionsRef.current) {
-                return;
-            }
-            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-        },
-        [suggestionsRef],
-    );
-
     useEffect(() => {
         tag.value = findNodeHandle(textInputRef.current) ?? -1;
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -439,6 +458,15 @@ function ReportActionItemMessageEdit(
     useEffect(() => {
         validateCommentMaxLength(draft, {reportID});
     }, [draft, reportID, validateCommentMaxLength]);
+
+    useEffect(() => {
+        // required for keeping last state of isFocused variable
+        isFocusedRef.current = isFocused;
+
+        if (!isFocused) {
+            hideSuggestionMenu();
+        }
+    }, [isFocused, hideSuggestionMenu]);
 
     return (
         <>
@@ -524,7 +552,7 @@ function ReportActionItemMessageEdit(
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
-                            onScroll={hideSuggestionMenu}
+                            onScroll={onSaveScrollAndHideSuggestionMenu}
                         />
                     </View>
 
