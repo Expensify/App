@@ -355,6 +355,9 @@ export default {
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
+        initialValue: 'Initial value',
+        currentDate: 'Current date',
+        value: 'Value',
     },
     location: {
         useCurrent: 'Use current location',
@@ -699,6 +702,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
@@ -972,6 +976,8 @@ export default {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
+            maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
+            exportOnyxState: 'Export Onyx state',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1987,7 +1993,7 @@ export default {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
-            reportFields: 'Report Fields',
+            reportFields: 'Report fields',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2461,9 +2467,42 @@ export default {
                 title: "You haven't created any report fields",
                 subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
             },
-            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
+            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            textType: 'Text',
+            dateType: 'Date',
+            dropdownType: 'List',
+            textAlternateText: 'Add a field for free text input.',
+            dateAlternateText: 'Add a calendar for date selection.',
+            dropdownAlternateText: 'Add a list of options to choose from.',
+            nameInputSubtitle: 'Choose a name for the report field.',
+            typeInputSubtitle: 'Choose what type of report field to use.',
+            initialValueInputSubtitle: 'Enter a starting value to show in the report field.',
+            listValuesInputSubtitle: 'These values will appear in your report field dropdown. Enabled values can be selected by members.',
+            listInputSubtitle: 'These values will appear in your report field list. Enabled values can be selected by members.',
+            deleteValue: 'Delete value',
+            deleteValues: 'Delete values',
+            disableValue: 'Disable value',
+            disableValues: 'Disable values',
+            enableValue: 'Enable value',
+            enableValues: 'Enable values',
+            emptyReportFieldsValues: {
+                title: "You haven't created any list values",
+                subtitle: 'Add custom values to appear on reports.',
+            },
+            deleteValuePrompt: 'Are you sure you want to delete this list value?',
+            deleteValuesPrompt: 'Are you sure you want to delete these list values?',
+            listValueRequiredError: 'Please enter a list value name',
+            existingListValueError: 'A list value with this name already exists',
+            editValue: 'Edit value',
+            listValues: 'List values',
+            addValue: 'Add value',
+            existingReportFieldNameError: 'A report field with this name already exists',
+            reportFieldNameRequiredError: 'Please enter a report field name',
+            reportFieldTypeRequiredError: 'Please choose a report field type',
+            reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
+            genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
         tags: {
             tagName: 'Tag name',
@@ -2875,6 +2914,8 @@ export default {
         editor: {
             descriptionInputLabel: 'Description',
             nameInputLabel: 'Name',
+            typeInputLabel: 'Type',
+            initialValueInputLabel: 'Initial value',
             nameInputHelpText: "This is the name you'll see on your workspace.",
             nameIsRequiredError: "You'll need to give your workspace a name.",
             currencyInputLabel: 'Default currency',
@@ -3457,7 +3498,19 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Receipt required';
+            if (formattedLimit ?? category) {
+                message += ' over';
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+                if (category) {
+                    message += ' category limit';
+                }
+            }
+            return message;
+        },
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {

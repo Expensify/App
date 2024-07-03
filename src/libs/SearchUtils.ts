@@ -217,7 +217,7 @@ const searchTypeToItemMap: SearchTypeToItemMap = {
         listItem: ReportListItem,
         getSections: getReportSections,
         // sorting for ReportItems not yet implemented
-        getSortedSections: (data) => data,
+        getSortedSections: getSortedReportData,
     },
 };
 
@@ -275,6 +275,19 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
         const bNum = bValue as number;
 
         return sortOrder === CONST.SEARCH.SORT_ORDER.ASC ? aNum - bNum : bNum - aNum;
+    });
+}
+
+function getSortedReportData(data: ReportListItemType[]) {
+    return data.sort((a, b) => {
+        const aValue = a?.created;
+        const bValue = b?.created;
+
+        if (aValue === undefined || bValue === undefined) {
+            return 0;
+        }
+
+        return bValue.toLowerCase().localeCompare(aValue);
     });
 }
 
