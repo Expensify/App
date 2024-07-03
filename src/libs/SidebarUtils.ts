@@ -456,9 +456,6 @@ function getOptionData({
     return result;
 }
 function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string {
-    if (ReportUtils.isThread(report)) {
-        return Localize.translateLocal('report.noActivityYet');
-    }
 
     const welcomeMessage = ReportUtils.getWelcomeMessage(report);
     if (ReportUtils.isPolicyExpenseChat(report)) {
