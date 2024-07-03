@@ -158,7 +158,7 @@ const isPolicyAdmin = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.ADMIN;
 
 /**
- * Checks if the current user is an user of the policy.
+ * Checks if the current user is of the role "user" on the policy.
  */
 const isPolicyUser = (policy: OnyxInputOrEntry<Policy>, currentUserLogin?: string): boolean =>
     (policy?.role ?? (currentUserLogin && policy?.employeeList?.[currentUserLogin]?.role)) === CONST.POLICY.ROLE.USER;
@@ -580,6 +580,12 @@ function navigateWhenEnableFeature(policyID: string) {
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
+function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
+    return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -645,6 +651,7 @@ export {
     removePendingFieldsFromCustomUnit,
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
+    getCurrentConnectionName,
 };
 
 export type {MemberEmailsToAccountIDs};

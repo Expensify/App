@@ -16,7 +16,6 @@ type PolicyRoute = RouteProp<
     NavigatorsParamList,
     | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
     | typeof SCREENS.WORKSPACE.INITIAL
-    | typeof SCREENS.WORKSPACE.PROFILE
     | typeof SCREENS.WORKSPACE.BILLS
     | typeof SCREENS.WORKSPACE.MORE_FEATURES
     | typeof SCREENS.WORKSPACE.MEMBERS
@@ -37,6 +36,8 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.ADDRESS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_CREATE
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
