@@ -389,7 +389,7 @@ function getOptionData({
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
-                result.alternateText = ReportUtils.formatReportLastMessageText(getReportBeginningOfChatHistoryMessage(report)) || Localize.translate(preferredLocale, 'report.noActivityYet');
+                result.alternateText = ReportUtils.formatReportLastMessageText(getReportBeginningOfChatHistoryMessage(report) ?? '');
             }
         }
     } else {
@@ -455,8 +455,7 @@ function getOptionData({
 
     return result;
 }
-function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string {
-
+function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string | undefined {
     const welcomeMessage = ReportUtils.getWelcomeMessage(report);
     if (ReportUtils.isPolicyExpenseChat(report)) {
         if (report?.description) {
@@ -477,31 +476,39 @@ function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): stri
     if (ReportUtils.isSelfDM(report) || ReportUtils.isSystemChat(report)) {
         return `${welcomeMessage.phrase1}`;
     }
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const isChatRoom = ReportUtils.isChatRoom(report);
+    const isSelfDM = ReportUtils.isSelfDM(report);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
 
-    const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
-    const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails),
-        isMultipleParticipant,
-    );
-    const displayNamesWithTooltipsText = displayNamesWithTooltips
-        .map(({displayName, pronouns}, index) => {
-            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
+    if (isDefault) {
+        const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
+        const isMultipleParticipant = participantAccountIDs.length > 1;
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+            OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, allPersonalDetails),
+            isMultipleParticipant,
+        );
+        const displayNamesWithTooltipsText = displayNamesWithTooltips
+            .map(({displayName, pronouns}, index) => {
+                const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
 
-            if (index === displayNamesWithTooltips.length - 1) {
-                return `${formattedText}.`;
-            }
-            if (index === displayNamesWithTooltips.length - 2) {
-                return `${formattedText} ${Localize.translateLocal('common.and')}`;
-            }
-            if (index < displayNamesWithTooltips.length - 2) {
-                return `${formattedText},`;
-            }
+                if (index === displayNamesWithTooltips.length - 1) {
+                    return `${formattedText}.`;
+                }
+                if (index === displayNamesWithTooltips.length - 2) {
+                    return `${formattedText} ${Localize.translateLocal('common.and')}`;
+                }
+                if (index < displayNamesWithTooltips.length - 2) {
+                    return `${formattedText},`;
+                }
 
-            return '';
-        })
-        .join(' ');
-    return `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
+                return '';
+            })
+            .join(' ');
+        return `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
+    }
 }
 
 export default {
