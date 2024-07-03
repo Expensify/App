@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
+import * as ConnectionUtils from '@libs/ConnectionUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -51,11 +52,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                     <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesAccount}>
                         <MenuItemWithTopDescription
                             title={nonReimbursableExpensesAccount?.name}
-                            description={
-                                nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
-                                    ? translate('workspace.qbo.accountsPayable')
-                                    : translate('workspace.qbo.account')
-                            }
+                            description={ConnectionUtils.getQBONonReimbursableExportAccountType(nonReimbursableExpensesExportDestination)}
                             errorText={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
                             brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
