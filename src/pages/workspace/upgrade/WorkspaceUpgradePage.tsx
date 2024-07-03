@@ -19,8 +19,7 @@ type WorkspaceUpgradePageProps = StackScreenProps<SettingsNavigatorParamList, ty
 
 function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const policyID = route.params.policyID;
-    const featureName = route.params.featureName as keyof typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING;
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING[featureName];
+    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.find((f) => f.alias === route.params.featureName);
     const {translate} = useLocalize();
     const [policy] = useOnyx(`policy_${policyID}`);
     const {isOffline} = useNetwork();
@@ -30,7 +29,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     }
 
     const upgradeToCorporate = () => {
-        Policy.upgradeToCorporate(policy.id, featureName);
+        Policy.upgradeToCorporate(policy.id, feature.id);
     };
 
     const isUpgraded = policy.type === CONST.POLICY.TYPE.CORPORATE;
@@ -52,9 +51,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             )}
             {!isUpgraded && (
                 <UpgradeIntro
-                    title={translate(feature.title)}
-                    description={translate(feature.description)}
-                    icon={feature.icon}
+                    feature={feature}
                     onUpgrade={upgradeToCorporate}
                     buttonDisabled={isOffline}
                     loading={policy.isPendingUpgrade}

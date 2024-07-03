@@ -5085,13 +5085,16 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
-    UPGRADE_FEATURE_INTRO_MAPPING: {
-        reportFields: {
+    UPGRADE_FEATURE_INTRO_MAPPING: [
+        {
+            id: 'reportFields',
+            alias: 'report-fields',
+            name: 'Report Fields',
             title: 'workspace.upgrade.reportFields.title',
             description: 'workspace.upgrade.reportFields.description',
-            icon: 'Tag',
+            icon: 'Pencil',
         },
-    },
+    ],
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

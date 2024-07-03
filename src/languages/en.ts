@@ -2928,9 +2928,13 @@ export default {
         },
         upgrade: {
             reportFields: {
-                // Todo: Add proper translations for the following strings
                 title: 'Report fields',
-                description: 'Set up custom fields for spend.',
+                description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
+                pricing: {
+                    onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
+                    amount: '$9 ',
+                    perActiveMember: 'per active member per month.',
+                },
             },
             note: {
                 upgradeWorkspace: 'Upgrade your workspace to access this feature, or',

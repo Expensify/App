@@ -2963,9 +2963,13 @@ export default {
         },
         upgrade: {
             reportFields: {
-                // Todo: Add proper translations for the following strings
-                title: 'Report fields',
-                description: 'Set up custom fields for spend.',
+                title: 'Los campos',
+                description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
+                pricing: {
+                    onlyAvailableOnPlan: 'Los campos de informe sólo están disponibles en el plan Control, a partir de ',
+                    amount: '$9 ',
+                    perActiveMember: 'por miembro activo al mes.',
+                },
             },
             note: {
                 upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',

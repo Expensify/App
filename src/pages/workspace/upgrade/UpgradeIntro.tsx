@@ -12,18 +12,17 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import type CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    title: string;
-    description: string;
-    icon: keyof typeof Illustrations;
+    feature: (typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING)[0];
     onUpgrade: () => void;
 };
 
-function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, loading}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -33,7 +32,7 @@ function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, load
             <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                 <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
-                        src={Illustrations[icon]}
+                        src={Illustrations[feature.icon]}
                         width={variables.iconSizeExtraLarge}
                         height={variables.iconSizeExtraLarge}
                     />
@@ -44,8 +43,13 @@ function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, load
                     />
                 </View>
                 <View style={styles.mb5}>
-                    <Text style={[styles.textHeadlineH1, styles.mb4]}>{title}</Text>
-                    <Text style={[styles.textNormal, styles.textSupporting]}>{description}</Text>
+                    <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
+                    <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
+                    <Text style={[styles.textNormal, styles.textSupporting]}>
+                        {translate(`workspace.upgrade.${feature.id}.pricing.onlyAvailableOnPlan`)}
+                        <Text style={[styles.textWhite, styles.textBold]}>{translate(`workspace.upgrade.${feature.id}.pricing.amount`)}</Text>
+                        {translate(`workspace.upgrade.${feature.id}.pricing.perActiveMember`)}
+                    </Text>
                 </View>
                 <Button
                     isLoading={loading}
@@ -53,6 +57,7 @@ function UpgradeIntro({title, description, icon, onUpgrade, buttonDisabled, load
                     success
                     onPress={onUpgrade}
                     isDisabled={buttonDisabled}
+                    large
                 />
             </View>
             <View style={styles.mt6}>
