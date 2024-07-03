@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -25,20 +25,6 @@ const INPUT_KEYS = {
 
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.STREET, PERSONAL_INFO_STEP_KEY.CITY, PERSONAL_INFO_STEP_KEY.STATE, PERSONAL_INFO_STEP_KEY.ZIP_CODE];
 
-const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-    const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-
-    if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
-        errors.addressStreet = 'bankAccount.error.addressStreet';
-    }
-
-    if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-        errors.addressZipCode = 'bankAccount.error.zipCode';
-    }
-
-    return errors;
-};
-
 function AddressStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -51,6 +37,23 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
         state: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STATE] ?? '',
         zipCode: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.ZIP_CODE] ?? '',
     };
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+
+            if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+                errors.addressStreet = translate('bankAccount.error.addressStreet');
+            }
+
+            if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
+                errors.addressZipCode = translate('bankAccount.error.zipCode');
+            }
+
+            return errors;
+        },
+        [translate],
+    );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,

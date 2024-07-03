@@ -169,9 +169,9 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const getMemberOptions = (): ListItem[] => {
         let result: ListItem[] = [];
 
-        const participants = ReportUtils.getVisibleChatMemberAccountIDs(report.reportID);
+        const participants = ReportUtils.getParticipantsAccountIDsForDisplay(report, true);
 
-        participants?.forEach((accountID) => {
+        participants.forEach((accountID) => {
             const details = personalDetails[accountID];
 
             if (!details) {
@@ -185,7 +185,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
             }
             const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
             const isAdmin = !!(policy && policy.employeeList && details.login && policy.employeeList[details.login]?.role === CONST.POLICY.ROLE.ADMIN);
-            const isDisabled = (isPolicyExpenseChat && isAdmin) || accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const isDisabled =
+                (isPolicyExpenseChat && isAdmin) ||
+                accountID === session?.accountID ||
+                pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                details.accountID === report.ownerAccountID;
 
             result.push({
                 keyForList: String(accountID),
