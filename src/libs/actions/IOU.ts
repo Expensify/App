@@ -3755,7 +3755,7 @@ function createSplitsAndOnyxData(
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const receipt: Receipt|undefined = (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
 
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(
+    let splitTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
         CONST.REPORT.SPLIT_REPORTID,
@@ -3773,6 +3773,13 @@ function createSplitsAndOnyxData(
         taxAmount,
         billable,
     );
+
+    // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    if (isDistanceRequest) {
+        splitTransaction = fastMerge(existingTransaction, splitTransaction, false);
+    }
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
     const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
