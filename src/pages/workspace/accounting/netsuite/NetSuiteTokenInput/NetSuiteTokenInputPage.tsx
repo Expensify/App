@@ -11,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
