@@ -55,19 +55,24 @@ function WorkspaceListValuesPage({
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
 
-    const listValuesSections = useMemo(() => {
-        let listValues: string[];
-        let disabledListValues: boolean[];
+    const [listValues, disabledListValues] = useMemo(() => {
+        let reportFieldValues: string[];
+        let reportFieldDisabledValues: boolean[];
 
         if (reportFieldID) {
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-            listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
-            disabledListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
-        } else {
-            listValues = formDraft?.listValues ?? [];
-            disabledListValues = formDraft?.disabledListValues ?? [];
+
+            reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+            reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
         }
 
+        reportFieldValues = formDraft?.listValues ?? [];
+        reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
+
+        return [reportFieldValues, reportFieldDisabledValues];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
+
+    const listValuesSections = useMemo(() => {
         const data = listValues.map((value, index) => ({
             value,
             index,
@@ -84,9 +89,9 @@ function WorkspaceListValuesPage({
         }));
 
         return [{data, isDisabled: false}];
-    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
+    }, [disabledListValues, listValues, selectedValues, translate]);
 
-    const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
+    const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
 
     const toggleValue = (valueItem: ValueListItem) => {
@@ -97,7 +102,6 @@ function WorkspaceListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const listValues = formDraft?.listValues ?? [];
         const isAllSelected = listValues.length === Object.keys(selectedValues).length;
 
         setSelectedValues(isAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
@@ -107,7 +111,7 @@ function WorkspaceListValuesPage({
         setSelectedValues({});
 
         const valuesToDelete = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-            const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
+            const index = listValues?.indexOf(valueName) ?? -1;
 
             if (index !== -1) {
                 acc.push(index);
@@ -149,14 +153,14 @@ function WorkspaceListValuesPage({
             });
 
             const enabledValues = selectedValuesArray.filter((valueName) => {
-                const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                return !formDraft?.disabledListValues?.[index];
+                const index = listValues?.indexOf(valueName) ?? -1;
+                return !disabledListValues?.[index];
             });
 
             if (enabledValues.length > 0) {
                 const valuesToDisable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                    if (!formDraft?.disabledListValues?.[index] && index !== -1) {
+                    const index = listValues?.indexOf(valueName) ?? -1;
+                    if (!disabledListValues?.[index] && index !== -1) {
                         acc.push(index);
                     }
 
@@ -175,14 +179,14 @@ function WorkspaceListValuesPage({
             }
 
             const disabledValues = selectedValuesArray.filter((valueName) => {
-                const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                return formDraft?.disabledListValues?.[index];
+                const index = listValues?.indexOf(valueName) ?? -1;
+                return disabledListValues?.[index];
             });
 
             if (disabledValues.length > 0) {
                 const valuesToEnable = selectedValuesArray.reduce<number[]>((acc, valueName) => {
-                    const index = formDraft?.listValues?.indexOf(valueName) ?? -1;
-                    if (formDraft?.disabledListValues?.[index] && index !== -1) {
+                    const index = listValues?.indexOf(valueName) ?? -1;
+                    if (disabledListValues?.[index] && index !== -1) {
                         acc.push(index);
                     }
 
