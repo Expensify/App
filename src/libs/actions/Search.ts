@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SearchParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as Report from './Report';
@@ -15,7 +15,7 @@ Onyx.connect({
     },
 });
 
-function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
+function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -40,6 +40,12 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
         },
     ];
 
+    return {optimisticData, finallyData};
+}
+
+function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
     API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
 }
 
@@ -61,4 +67,19 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-export {search, createTransactionThread};
+function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+}
+
+function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+}
+
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+}
+
+export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};

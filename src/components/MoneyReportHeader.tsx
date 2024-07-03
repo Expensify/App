@@ -393,60 +393,61 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     </View>
                 )}
             </HeaderWithBackButton>
-            <View style={[isMoreContentShown && [styles.dFlex, styles.flexColumn, styles.borderBottom], styles.ph5, styles.pb3, styles.gap3]}>
-                {shouldShowSettlementButton && shouldUseNarrowLayout && (
-                    <SettlementButton
-                        currency={moneyRequestReport.currency}
-                        confirmApproval={confirmApproval}
-                        policyID={moneyRequestReport.policyID}
-                        chatReportID={moneyRequestReport.chatReportID}
-                        iouReport={moneyRequestReport}
-                        onPress={confirmPayment}
-                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                        addBankAccountRoute={bankAccountRoute}
-                        shouldHidePaymentOptions={!shouldShowPayButton}
-                        shouldShowApproveButton={shouldShowApproveButton}
-                        formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
-                        shouldDisableApproveButton={shouldDisableApproveButton}
-                        isDisabled={isOffline && !canAllowSettlement}
-                        isLoading={!isOffline && !canAllowSettlement}
-                    />
-                )}
-                {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
-                    <ExportWithDropdownMenu
-                        report={moneyRequestReport}
-                        connectionName={connectedIntegration}
-                    />
-                )}
-
-                {shouldShowSubmitButton && shouldUseNarrowLayout && (
-                    <Button
-                        medium
-                        success={isWaitingForSubmissionFromCurrentUser}
-                        text={translate('common.submit')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={() => IOU.submitReport(moneyRequestReport)}
-                        isDisabled={shouldDisableSubmitButton}
-                    />
-                )}
-                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
-                    <Button
-                        medium
-                        success
-                        text={translate('iou.markAsCash')}
-                        style={[styles.w100, styles.pr0]}
-                        onPress={markAsCash}
-                    />
-                )}
-                {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
-                {statusBarProps && (
-                    <MoneyRequestHeaderStatusBar
-                        title={statusBarProps.title}
-                        description={statusBarProps.description}
-                        danger={statusBarProps.danger}
-                    />
-                )}
-            </View>
+            {isMoreContentShown && (
+                <View style={[styles.dFlex, styles.flexColumn, styles.gap3, styles.pb3, styles.ph5, styles.borderBottom]}>
+                    {shouldShowSettlementButton && shouldUseNarrowLayout && (
+                        <SettlementButton
+                            currency={moneyRequestReport.currency}
+                            confirmApproval={confirmApproval}
+                            policyID={moneyRequestReport.policyID}
+                            chatReportID={moneyRequestReport.chatReportID}
+                            iouReport={moneyRequestReport}
+                            onPress={confirmPayment}
+                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                            addBankAccountRoute={bankAccountRoute}
+                            shouldHidePaymentOptions={!shouldShowPayButton}
+                            shouldShowApproveButton={shouldShowApproveButton}
+                            formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
+                            shouldDisableApproveButton={shouldDisableApproveButton}
+                            isDisabled={isOffline && !canAllowSettlement}
+                            isLoading={!isOffline && !canAllowSettlement}
+                        />
+                    )}
+                    {shouldShowExportIntegrationButton && shouldUseNarrowLayout && (
+                        <ExportWithDropdownMenu
+                            report={moneyRequestReport}
+                            connectionName={connectedIntegration}
+                        />
+                    )}
+                    {shouldShowSubmitButton && shouldUseNarrowLayout && (
+                        <Button
+                            medium
+                            success={isWaitingForSubmissionFromCurrentUser}
+                            text={translate('common.submit')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={() => IOU.submitReport(moneyRequestReport)}
+                            isDisabled={shouldDisableSubmitButton}
+                        />
+                    )}
+                    {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
+                        <Button
+                            medium
+                            success
+                            text={translate('iou.markAsCash')}
+                            style={[styles.w100, styles.pr0]}
+                            onPress={markAsCash}
+                        />
+                    )}
+                    {shouldShowNextStep && <MoneyReportHeaderStatusBar nextStep={nextStep} />}
+                    {statusBarProps && (
+                        <MoneyRequestHeaderStatusBar
+                            title={statusBarProps.title}
+                            description={statusBarProps.description}
+                            danger={statusBarProps.danger}
+                        />
+                    )}
+                </View>
+            )}
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
