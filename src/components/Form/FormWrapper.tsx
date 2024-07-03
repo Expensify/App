@@ -114,7 +114,7 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles]}
+                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles, safeAreaPaddingBottomStyle.paddingBottom ? styles.pb5 : {}]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
