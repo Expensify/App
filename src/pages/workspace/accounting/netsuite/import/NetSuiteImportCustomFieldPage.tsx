@@ -91,6 +91,7 @@ function NetSuiteImportCustomFieldPage({
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
                     success
+                    large
                     text={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addButtonText`)}
                 />
             </FixedFooter>
