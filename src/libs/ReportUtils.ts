@@ -1453,8 +1453,6 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
     }
 
     const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
-
-    // Early return false in case not having any transaction
     if (!transactions || transactions.length === 0) {
         return false;
     }
