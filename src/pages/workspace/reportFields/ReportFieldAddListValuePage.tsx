@@ -21,9 +21,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
-type WorkspaceAddValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
+type ReportFieldAddListValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
-function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
+function ReportFieldAddListValuePage({route}: ReportFieldAddListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -50,7 +50,7 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={WorkspaceAddValuePage.displayName}
+                testID={ReportFieldAddListValuePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -80,6 +80,6 @@ function WorkspaceAddValuePage({route}: WorkspaceAddValuePageProps) {
     );
 }
 
-WorkspaceAddValuePage.displayName = 'WorkspaceAddValuePage';
+ReportFieldAddListValuePage.displayName = 'ReportFieldAddListValuePage';
 
-export default WorkspaceAddValuePage;
+export default ReportFieldAddListValuePage;
