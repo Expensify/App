@@ -560,7 +560,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         isTransactionDeleted.current = true;
-    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction]);
+    }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction, isSingleTransactionView]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
