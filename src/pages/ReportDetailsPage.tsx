@@ -473,7 +473,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return result;
     }, [report, parentReportAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
 
-    const nameSectionExpenseIOU = (
+    const nameSectionStatic = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
             {shouldDisableRename && (
                 <>
@@ -516,28 +516,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </View>
     );
 
-    const nameSectionGroupWorkspace = (
-        <OfflineWithFeedback
-            pendingAction={report?.pendingFields?.reportName}
-            errors={report?.errorFields?.reportName}
-            errorRowStyles={[styles.ph5]}
-            onClose={() => Report.clearPolicyRoomNameErrors(report?.reportID)}
-        >
-            <View style={[styles.flex1, !shouldDisableRename && styles.mt3]}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={!shouldDisableRename}
-                    interactive={!shouldDisableRename}
-                    title={reportName}
-                    titleStyle={styles.newKansasLarge}
-                    shouldCheckActionAllowedOnPress={false}
-                    description={!shouldDisableRename ? roomDescription : ''}
-                    furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID))}
-                />
-            </View>
-        </OfflineWithFeedback>
-    );
-
     const titleField = useMemo<OnyxTypes.PolicyReportField | undefined>((): OnyxTypes.PolicyReportField | undefined => {
         const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
@@ -556,24 +534,48 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const nameSectionTitleField = titleField && (
+    const editableSectionParams = {
+        [CASES.MONEY_REPORT]: {
+            pendingAction: report.pendingFields?.[fieldKey],
+            errors: report.errorFields?.[fieldKey],
+            errorRowStyles: styles.ph5,
+            onClose: () => titleField && Report.clearReportFieldErrors(report.reportID, titleField),
+            disabled: isFieldDisabled,
+            onPress: () => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField?.fieldID ?? '-1')),
+            furtherDetailsComponent: nameSectionFurtherDetailsContent,
+            description: Str.UCFirst(titleField?.name ?? ''),
+        },
+        [CASES.DEFAULT]: {
+            pendingAction: report?.pendingFields?.reportName,
+            errors: report?.errorFields?.reportName,
+            errorRowStyles: styles.ph5,
+            onClose: () => Report.clearPolicyRoomNameErrors(report?.reportID),
+            disabled: shouldDisableRename,
+            containerStyle: !shouldDisableRename && styles.mt3,
+            onPress: () => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID)),
+            furtherDetails: chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : '',
+            description: !shouldDisableRename ? roomDescription : '',
+        },
+    };
+
+    const nameSectionEditable = (
         <OfflineWithFeedback
-            pendingAction={report.pendingFields?.[fieldKey]}
-            errors={report.errorFields?.[fieldKey]}
-            errorRowStyles={styles.ph5}
-            key={`menuItem-${fieldKey}`}
-            onClose={() => Report.clearReportFieldErrors(report.reportID, titleField)}
+            pendingAction={editableSectionParams[caseID].pendingAction}
+            errors={editableSectionParams[caseID].errors}
+            errorRowStyles={editableSectionParams[caseID].errorRowStyles}
+            onClose={editableSectionParams[caseID].onClose}
         >
-            <View style={[styles.flex1]}>
+            <View style={[styles.flex1, editableSectionParams[caseID].containerStyle]}>
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon={!isFieldDisabled}
-                    interactive={!isFieldDisabled}
+                    shouldShowRightIcon={!editableSectionParams[caseID].disabled}
+                    interactive={!editableSectionParams[caseID].disabled}
                     title={reportName}
                     titleStyle={styles.newKansasLarge}
                     shouldCheckActionAllowedOnPress={false}
-                    description={Str.UCFirst(titleField.name)}
-                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
-                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
+                    description={editableSectionParams[caseID].description}
+                    onPress={editableSectionParams[caseID].onPress}
+                    furtherDetails={editableSectionParams[caseID].furtherDetails}
+                    furtherDetailsComponent={editableSectionParams[caseID].furtherDetailsComponent}
                 />
             </View>
         </OfflineWithFeedback>
@@ -607,12 +609,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
+                        {isExpenseReport && !shouldShowTitleField && nameSectionStatic}
                     </View>
 
-                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
-
-                    {!isExpenseReport && nameSectionGroupWorkspace}
+                    {!isExpenseReport || (isExpenseReport && shouldShowTitleField && nameSectionEditable)}
 
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
