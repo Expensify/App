@@ -3755,6 +3755,8 @@ function createSplitsAndOnyxData(
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const receipt: Receipt|undefined = (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
 
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     let splitTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
@@ -3772,11 +3774,10 @@ function createSplitsAndOnyxData(
         taxCode,
         taxAmount,
         billable,
+        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
 
     // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
-    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     if (isDistanceRequest) {
         splitTransaction = fastMerge(existingTransaction, splitTransaction, false);
     }
