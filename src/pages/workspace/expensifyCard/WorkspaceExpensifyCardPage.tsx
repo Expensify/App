@@ -19,7 +19,6 @@ import localeCompare from '@libs/LocaleCompare';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -143,36 +142,29 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     );
 
     return (
-        <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={policyID}
-            // TODO: uncomment when feature support is implemented (https://github.com/Expensify/App/issues/44301)
-            // featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+        <ScreenWrapper
+            shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicatorInWideScreen
+            shouldEnableMaxHeight
+            testID={WorkspaceExpensifyCardPage.displayName}
         >
-            <ScreenWrapper
-                shouldEnablePickerAvoiding={false}
-                shouldShowOfflineIndicatorInWideScreen
-                shouldEnableMaxHeight
-                testID={WorkspaceExpensifyCardPage.displayName}
+            <HeaderWithBackButton
+                icon={Illustrations.HandCard}
+                title={translate('workspace.common.expensifyCard')}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={() => Navigation.goBack()}
             >
-                <HeaderWithBackButton
-                    icon={Illustrations.HandCard}
-                    title={translate('workspace.common.expensifyCard')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => Navigation.goBack()}
-                >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
-                </HeaderWithBackButton>
+                {!shouldUseNarrowLayout && getHeaderButtons()}
+            </HeaderWithBackButton>
 
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
 
-                <FlatList
-                    data={sortedCards}
-                    renderItem={renderItem}
-                    ListHeaderComponent={WorkspaceCardListHeader}
-                />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            <FlatList
+                data={sortedCards}
+                renderItem={renderItem}
+                ListHeaderComponent={WorkspaceCardListHeader}
+            />
+        </ScreenWrapper>
     );
 }
 

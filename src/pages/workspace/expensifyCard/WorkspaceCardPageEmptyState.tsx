@@ -5,9 +5,9 @@ import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
 import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -33,7 +33,7 @@ function WorkspaceCardPageEmptyState({route}: WorkspaceCardPageEmptyStateProps) 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <WorkspacePageWithSections
@@ -44,7 +44,7 @@ function WorkspaceCardPageEmptyState({route}: WorkspaceCardPageEmptyStateProps) 
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList
                     menuItems={expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}

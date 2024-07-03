@@ -12,7 +12,7 @@ import WorkspaceExpensifyCardPage from './WorkspaceExpensifyCardPage';
 type WorkspaceCardPageFeedProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceCardPageFeed({route}: WorkspaceCardPageFeedProps) {
-    const policyID = route.params.policyID;
+    const policyID = route.params.policyID ?? '-1';
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${policyID}_${CONST.EXPENSIFY_CARD.BANK}`);
 
     return (
@@ -21,6 +21,7 @@ function WorkspaceCardPageFeed({route}: WorkspaceCardPageFeedProps) {
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
+            {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
             {!cardsList && <WorkspaceCardPageEmptyState route={route} />}
             {cardsList && <WorkspaceExpensifyCardPage route={route} />}
         </AccessOrNotFoundWrapper>
