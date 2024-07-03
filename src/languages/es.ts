@@ -2380,6 +2380,14 @@ export default {
                         helpLink:
                             '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments) sobre la configuración de segmentos/registros personalizado.',
                         emptyTitle: 'Añadir un segmento personalizado o un registro personalizado',
+                        fields: {
+                            segmentName: 'Name',
+                            internalID: 'Internal ID',
+                            scriptID: 'Script ID',
+                            mapping: 'Displayed as',
+                        },
+                        removeTitle: 'Eliminar segmento/registro personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar este segmento/registro personalizado?',
                     },
                     customLists: {
                         title: 'Listas personalizado',
@@ -2388,6 +2396,15 @@ export default {
                         helpLink:
                             '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists) sobre cómo configurar listas personalizado.',
                         emptyTitle: 'Añadir una lista personalizado',
+                        fields: {
+                            listName: 'Name',
+                            internalID: 'Internal ID',
+                            transactionFieldID: 'Transaction field ID',
+                            mapping: 'Displayed as',
+                        },
+                        removeTitle: 'Eliminar lista personalizado',
+                        removePrompt: '¿Está seguro de que desea eliminar esta lista personalizado?',
+
                     },
                 },
                 importTypes: {

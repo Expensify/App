@@ -2346,6 +2346,8 @@ export default {
                             scriptID: 'Script ID',
                             mapping: 'Displayed as',
                         },
+                        removeTitle: 'Remove custom segment/record',
+                        removePrompt: 'Are you sure you want to remove this custom segment/record?',
                     },
                     customLists: {
                         title: 'Custom lists',
@@ -2360,6 +2362,8 @@ export default {
                             transactionFieldID: 'Transaction field ID',
                             mapping: 'Displayed as',
                         },
+                        removeTitle: 'Remove custom list',
+                        removePrompt: 'Are you sure you want to remove this custom list?',
                     },
                 },
                 importTypes: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 import MenuItem from '@components/MenuItem';
-import useTheme from '@hooks/useTheme';
+import ConfirmModal from '@components/ConfirmModal';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -34,8 +34,8 @@ function NetSuiteImportCustomFieldView({
 }: NetSuiteImportCustomFieldViewProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
+    const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
 
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
@@ -70,13 +70,24 @@ function NetSuiteImportCustomFieldView({
                     <View style={styles.flex1}>
                         <MenuItem
                             icon={Expensicons.Trashcan}
-                            iconFill={theme.fallbackIconColor}
                             title={translate('common.remove')}
                             onPress={() => alert('hel')}
                         />
                     </View>
                 </View>
             )}
+
+            <ConfirmModal
+                    title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`)}
+                    isVisible={isRemoveModalOpen}
+                    onConfirm={() => {
+                    }}
+                    onCancel={() => setIsRemoveModalOpen(false)}
+                    prompt={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`)}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
         </ConnectionLayout>
     );
 }

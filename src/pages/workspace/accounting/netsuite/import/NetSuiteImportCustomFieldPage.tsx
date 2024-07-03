@@ -61,7 +61,7 @@ function NetSuiteImportCustomFieldPage({
                 <RenderHTML html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`))}</muted-text></comment>`} />
             </View>
         ),
-        [styles.ph5, styles.mt2, styles.mb4, translate, importCustomField],
+        [styles.ph5, styles.dFlex, styles.mt2, styles.mb4, styles.w100, translate, importCustomField],
     );
 
     return (
