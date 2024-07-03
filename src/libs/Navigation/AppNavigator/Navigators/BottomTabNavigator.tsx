@@ -25,15 +25,11 @@ function BottomTabNavigator() {
         if (!state) {
             return undefined;
         }
-        console.log(state);
-        let route = state.routes.filter((route) => isBottomTabName(route.name)).at(-1) as NavigationPartialRoute<keyof BottomTabScreensParamList>;
-
-        if (!route) {
-            for (let selector of [getTopmostBottomTabRoute, getTopmostCentralPaneRoute]) {
-                const selectedRoute = selector(state);
-                if (isBottomTabName(selectedRoute?.name)) {
-                    route = selectedRoute as NavigationPartialRoute<keyof BottomTabScreensParamList>;
-                }
+        let route: NavigationPartialRoute<keyof BottomTabScreensParamList> | undefined;
+        for (let selector of [getTopmostBottomTabRoute, getTopmostCentralPaneRoute]) {
+            const selectedRoute = selector(state);
+            if (isBottomTabName(selectedRoute?.name)) {
+                route = selectedRoute as NavigationPartialRoute<keyof BottomTabScreensParamList>;
             }
         }
 
