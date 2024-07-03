@@ -1,8 +1,11 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import SearchPageHeader from '@components/Search/SearchPageHeader';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import EmptySearchView from '@pages/Search/EmptySearchView';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import EmptyCardView from '@pages/workspace/expensifyCard/EmptyCardView';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {WorkspaceCardsList} from '@src/types/onyx';
@@ -26,8 +29,15 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             {/* After BE will be implemented we will probably want to have ActivityIndicator during fetch for cardsList */}
-            {isEmptyObject(cardsList) && <WorkspaceExpensifyCardPageEmptyState route={route} />}
-            {!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}
+            <>
+                <SearchPageHeader
+                    query={''}
+                    hash={''}
+                />
+                <EmptyCardView />
+            </>
+            {/*{isEmptyObject(cardsList) && <WorkspaceExpensifyCardPageEmptyState route={route} />}*/}
+            {/*{!isEmptyObject(cardsList) && <WorkspaceExpensifyCardListPage route={route} />}*/}
         </AccessOrNotFoundWrapper>
     );
 }

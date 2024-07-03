@@ -2644,6 +2644,8 @@ export default {
             collect: 'Collect',
         },
         expensifyCard: {
+            issueAndManageCards: 'Issue and manage your Expensify Cards',
+            getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
             name: 'Name',
             lastFour: 'Last 4',
@@ -2928,6 +2930,8 @@ export default {
             benefit4: 'Customizable limits and spend controls',
             addWorkEmail: 'Add work email address',
             checkingDomain: "Hang tight! We're still working on enabling your Expensify Cards. Check back here in a few minutes.",
+            issueAndManageCards: 'Issue and manage your Expensify Cards',
+            getStartedIssuing: 'Get started by issuing your first virtual or physical card.',
             issueCard: 'Issue card',
             issueNewCard: {
                 whoNeedsCard: 'Who needs a card?',

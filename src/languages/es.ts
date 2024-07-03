@@ -2693,6 +2693,8 @@ export default {
             collect: 'Recolectar',
         },
         expensifyCard: {
+            issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
+            getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueCard: 'Emitir tarjeta',
             name: 'Nombre',
             lastFour: '4 últimos',
@@ -3177,6 +3179,8 @@ export default {
             addWorkEmail: 'Añadir correo electrónico de trabajo',
             checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
             issueCard: 'Emitir tarjeta',
+            issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
+            getStartedIssuing: 'Empieza emitiendo tu primera tarjeta virtual o física.',
             issueNewCard: {
                 whoNeedsCard: '¿Quién necesita una tarjeta?',
                 findMember: 'Buscar miembro',
