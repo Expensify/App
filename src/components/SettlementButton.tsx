@@ -242,11 +242,11 @@ function SettlementButton({
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
 
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-          if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
+        if (policy && SubscriptionUtils.shouldRestrictUserBillableActions(policy.id)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
-        
+
         if (
             iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
             iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
@@ -255,7 +255,7 @@ function SettlementButton({
         ) {
             triggerKYCFlow(event, iouPaymentType);
             return;
-        };
+        }
 
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
             if (confirmApproval) {
