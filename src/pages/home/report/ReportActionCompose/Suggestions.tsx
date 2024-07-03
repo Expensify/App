@@ -124,7 +124,7 @@ function Suggestions(
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
     }, []);
-    const checkIfSuggestionVisible = useCallback(() => {
+    const checkIfSuggestionVisible = useCallback((): boolean => {
         const isEmojiVisible = suggestionEmojiRef.current?.checkIfSuggestionVisible();
         const isSuggestionVisible = suggestionMentionRef.current?.checkIfSuggestionVisible();
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
