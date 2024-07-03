@@ -121,6 +121,12 @@ type SearchReport = {
 
     /** The action that can be performed for the report */
     action?: string;
+
+    /** The net report sender ID */
+    accountID?: number;
+
+    /** The net report recipient ID */
+    managerID?: number;
 };
 
 /** Model of transaction search result */
