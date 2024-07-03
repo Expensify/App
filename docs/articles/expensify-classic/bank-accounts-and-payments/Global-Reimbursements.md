@@ -14,9 +14,7 @@ The process to enable global reimbursements is dependent on the currency of your
 If your reimbursement bank account is in USD, the first step is connecting the bank account to Expensify. 
 The individual who plans on sending reimbursements internationally should head to **Settings > Account > Payments > Add Verified Bank Account**. From there, you will provide company details, input personal information, and upload a copy of your ID. 
 
-Once the USD bank account is verified (or if you already had a USD business bank account connected), click the support icon in your Expensify account to inform your Setup Specialist, Account Manager, or Concierge that you’d like to enable international reimbursements. From there, Expensify will ask you to confirm the currencies of the reimbursement and employee bank accounts.
-
-Our team will assess your account, and if you meet the criteria, international reimbursements will be enabled.
+Once the USD bank account is verified (or if you already had a USD business bank account connected), click "Enable Global Reimbursements" on the account.
 
 ## The reimbursement account is in AUD, CAD, GBP, EUR
 
