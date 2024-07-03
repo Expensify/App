@@ -954,6 +954,11 @@ const ROUTES = {
         getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:internalID',
+        getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${internalID}` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,

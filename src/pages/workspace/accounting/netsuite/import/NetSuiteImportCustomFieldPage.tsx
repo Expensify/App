@@ -14,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 const parser = new ExpensiMark();
 
@@ -83,7 +85,7 @@ function NetSuiteImportCustomFieldPage({
                         description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                         shouldShowRightIcon
                         title={'listName' in record ? record.listName : record.segmentName}
-                        onPress={() => {}}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, record.internalID))}
                     />
                 ))}
             </View>
