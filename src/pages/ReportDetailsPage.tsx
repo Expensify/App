@@ -537,6 +537,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const isTransactionDeleted = useRef<boolean>(false);
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
@@ -558,9 +559,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
         }
 
-        if (!navigateBackToAfterDelete.current) {
-            Navigation.dismissModal();
-        }
+        isTransactionDeleted.current = true;
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction]);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
@@ -637,7 +636,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
+                    onModalHide={() => {
+                        if (isTransactionDeleted.current && !navigateBackToAfterDelete.current) {
+                            Navigation.dismissModal();
+                        } else {
+                            ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)
+                        }
+                    }}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
