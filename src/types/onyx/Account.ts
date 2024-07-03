@@ -80,6 +80,9 @@ type Account = {
     /** Indicates whether the user can downgrade current subscription plan */
     canDowngrade?: boolean;
 
+    /** Indicates whether the user can downgrade current subscription plan */
+    isEligibleForRefund?: boolean;
+
     /** Indicates whether the user has at least one previous purchase */
     hasPurchases?: boolean;
 };
