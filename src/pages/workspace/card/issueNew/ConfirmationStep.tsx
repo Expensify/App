@@ -110,7 +110,7 @@ function ConfirmationStep() {
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
                 />
-                <View style={[styles.mh5, styles.pb5, styles.mt3]}>
+                <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd]}>
                     <Button
                         isDisabled={isOffline}
                         success

@@ -77,6 +77,7 @@ function CardNameStep() {
                     // TODO: default value for card name
                     defaultValue={issueNewCard?.data?.cardTitle}
                     containerStyles={[styles.mb6]}
+                    autoFocus={!issueNewCard?.data?.cardTitle}
                 />
             </FormProvider>
         </ScreenWrapper>

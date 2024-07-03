@@ -61,6 +61,7 @@ function LimitStep() {
                     defaultValue={CurrencyUtils.convertToFrontendAmountAsString(issueNewCard?.data?.limit, false)}
                     isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
+                    autoFocus={!issueNewCard?.data?.limit}
                 />
             </FormProvider>
         </ScreenWrapper>
