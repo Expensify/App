@@ -6,10 +6,12 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import MenuItem from '@components/MenuItem';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -52,15 +54,24 @@ function NetSuiteImportCustomFieldView({
             shouldBeBlocked={!customRecord}
         >
             {customRecord && (
-                <View>
-                    {fieldList.map((fieldName) => (
-                        <MenuItemWithTopDescription
-                            key={fieldName}
-                            description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                            shouldShowRightIcon
-                            title={customRecord[fieldName as keyof CustomRecord]}
+                <View style={styles.flex1}>
+                    <View style={styles.mb4}>
+                        {fieldList.map((fieldName) => (
+                            <MenuItemWithTopDescription
+                                key={fieldName}
+                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                                shouldShowRightIcon
+                                title={customRecord[fieldName as keyof CustomRecord]}
+                            />
+                        ))}
+                    </View>
+                    <View style={styles.flex1}>
+                        <MenuItem
+                            icon={Expensicons.Trashcan}
+                            title={translate('common.remove')}
+                            onPress={() => alert(internalID)}
                         />
-                    ))}
+                    </View>
                 </View>
             )}
         </ConnectionLayout>

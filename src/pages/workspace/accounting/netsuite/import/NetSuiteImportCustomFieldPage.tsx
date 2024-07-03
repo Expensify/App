@@ -52,7 +52,7 @@ function NetSuiteImportCustomFieldPage({
                 containerStyle={[styles.flex1, styles.justifyContentCenter]}
             />
         ),
-        [],
+        [importCustomField, styles.flex1, styles.justifyContentCenter, translate],
     );
 
     const listHeaderComponent = useMemo(
