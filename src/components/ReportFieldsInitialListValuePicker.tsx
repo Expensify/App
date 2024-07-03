@@ -10,32 +10,35 @@ type ReportFieldsInitialListValuePickerProps = {
     disabledOptions: boolean[];
 
     /** Selected value */
-    currentValue: string;
+    value: string;
 
     /** Function to call when the user selects a value */
-    onValueSelected: (value: string) => void;
+    onInputChange?: (value: string) => void;
 };
 
-function ReportFieldsInitialListValuePicker({listValues, disabledOptions, currentValue, onValueSelected}: ReportFieldsInitialListValuePickerProps) {
-    const listValueOptions = useMemo(
-        () =>
-            Object.values(listValues ?? {})
-                .filter((listValue, index) => !disabledOptions[index])
-                .map((listValue) => ({
-                    keyForList: listValue,
-                    value: listValue,
-                    isSelected: currentValue === listValue,
-                    text: listValue,
-                })),
-        [currentValue, listValues, disabledOptions],
+function ReportFieldsInitialListValuePicker({listValues, disabledOptions, value, onInputChange}: ReportFieldsInitialListValuePickerProps) {
+    const listValueSections = useMemo(
+        () => [
+            {
+                data: Object.values(listValues ?? {})
+                    .filter((listValue, index) => !disabledOptions[index])
+                    .map((listValue) => ({
+                        keyForList: listValue,
+                        value: listValue,
+                        isSelected: value === listValue,
+                        text: listValue,
+                    })),
+            },
+        ],
+        [value, listValues, disabledOptions],
     );
 
     return (
         <SelectionList
-            sections={[{data: listValueOptions}]}
+            sections={listValueSections}
             ListItem={RadioListItem}
-            onSelectRow={(item) => onValueSelected(item.value)}
-            initiallyFocusedOptionKey={listValueOptions.find((listValue) => listValue.isSelected)?.keyForList}
+            onSelectRow={(item) => onInputChange?.(item.value)}
+            initiallyFocusedOptionKey={listValueSections[0].data.find((listValue) => listValue.isSelected)?.keyForList}
         />
     );
 }

@@ -58,12 +58,11 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
                 <View style={[styles.ph5, styles.pb4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
                 </View>
-
                 <ReportFieldsInitialListValuePicker
                     listValues={formDraft?.listValues ?? []}
                     disabledOptions={formDraft?.disabledListValues ?? []}
-                    currentValue={currentValue}
-                    onValueSelected={onValueSelected}
+                    value={currentValue}
+                    onInputChange={onValueSelected}
                 />
             </ScreenWrapper>
         </Modal>
