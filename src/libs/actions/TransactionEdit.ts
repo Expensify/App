@@ -27,10 +27,10 @@ function removeBackupTransaction(transactionID: string) {
 }
 
 function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: boolean) {
-    const connectionID = Onyx.connect({
+    const connection = Onyx.connect({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
-            Onyx.disconnect(connectionID);
+            Onyx.disconnect(connection);
 
             // Use set to completely overwrite the original transaction
             Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);

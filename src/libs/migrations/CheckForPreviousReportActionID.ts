@@ -7,11 +7,11 @@ import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction'
 
 function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActions>> {
     return new Promise((resolve) => {
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             waitForCollectionCallback: true,
             callback: (allReportActions) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
                 return resolve(allReportActions);
             },
         });

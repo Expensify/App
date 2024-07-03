@@ -59,11 +59,11 @@ describe('Migrations', () => {
                     expect(LogSpy).toHaveBeenCalledWith(
                         '[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first valid reportAction',
                     );
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportAction = {};
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
                         },
@@ -99,11 +99,11 @@ describe('Migrations', () => {
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportAction = {
                                 1: {
                                     reportActionID: '1',
@@ -153,11 +153,11 @@ describe('Migrations', () => {
                     expect(LogSpy).toHaveBeenCalledWith(
                         '[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first valid reportAction',
                     );
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportAction = {};
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeUndefined();
@@ -201,11 +201,11 @@ describe('Migrations', () => {
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportAction1 = {};
                             const expectedReportAction4 = {
                                 1: {
@@ -237,12 +237,12 @@ describe('Migrations', () => {
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no valid reportActions');
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             const expectedReportAction = {};
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeUndefined();
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
@@ -270,11 +270,11 @@ describe('Migrations', () => {
             return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
                         waitForCollectionCallback: true,
                         callback: (allReportActionsDrafts) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportActionDraft1 = {
                                 1: 'a',
                                 2: 'b',
@@ -302,11 +302,11 @@ describe('Migrations', () => {
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there are no actions drafts to migrate');
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             const expectedReportActionDraft = {};
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
                             expect(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_2`]).toBeUndefined();
@@ -326,11 +326,11 @@ describe('Migrations', () => {
             return Onyx.multiSet(setQueries)
                 .then(KeyReportActionsDraftByReportActionID)
                 .then(() => {
-                    const connectionID = Onyx.connect({
+                    const connection = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
                         waitForCollectionCallback: true,
                         callback: (allReportActionsDrafts) => {
-                            Onyx.disconnect(connectionID);
+                            Onyx.disconnect(connection);
                             expect(allReportActionsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}1_1`]).toBeUndefined();
                         },
                     });

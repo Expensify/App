@@ -5,7 +5,7 @@ import * as ReportActionFile from './actions/Report';
 import * as ReportUtils from './ReportUtils';
 
 export default function markAllPolicyReportsAsRead(policyID: string) {
-    const connectionID = Onyx.connect({
+    const connection = Onyx.connect({
         key: ONYXKEYS.COLLECTION.REPORT,
         waitForCollectionCallback: true,
         callback: (allReports) => {
@@ -26,7 +26,7 @@ export default function markAllPolicyReportsAsRead(policyID: string) {
 
                 delay += 1000;
             });
-            Onyx.disconnect(connectionID);
+            Onyx.disconnect(connection);
         },
     });
 }

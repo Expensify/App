@@ -184,11 +184,11 @@ AppState.addEventListener('change', (nextAppState) => {
 function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
-            const connectionID = Onyx.connect({
+            const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.POLICY,
                 waitForCollectionCallback: true,
                 callback: (policies) => {
-                    Onyx.disconnect(connectionID);
+                    Onyx.disconnect(connection);
                     resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
                 },
             });

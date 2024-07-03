@@ -11,11 +11,11 @@ type OldReportCollection = Record<ReportKey, NullishDeep<OldReport>>;
 
 function getReports(): Promise<OnyxCollection<OldReport>> {
     return new Promise((resolve) => {
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT,
             waitForCollectionCallback: true,
             callback: (reports) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
                 return resolve(reports);
             },
         });
@@ -24,10 +24,10 @@ function getReports(): Promise<OnyxCollection<OldReport>> {
 
 function getCurrentUserAccountID(): Promise<number | undefined> {
     return new Promise((resolve) => {
-        const connectionID = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
                 return resolve(session?.accountID);
             },
         });

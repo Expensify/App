@@ -36,11 +36,11 @@ describe('actions/PolicyProfile', () => {
             Policy.updateWorkspaceDescription(fakePolicy.id, newDescription, oldDescription);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
 
                         expect(policy?.description).toBe(parsedDescription);
                         expect(policy?.pendingFields?.description).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
@@ -52,11 +52,11 @@ describe('actions/PolicyProfile', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
-                const connectionID = Onyx.connect({
+                const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
                     callback: (policy) => {
-                        Onyx.disconnect(connectionID);
+                        Onyx.disconnect(connection);
                         expect(policy?.pendingFields?.description).toBeFalsy();
 
                         resolve();

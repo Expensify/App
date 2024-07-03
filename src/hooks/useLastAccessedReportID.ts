@@ -1,5 +1,5 @@
 import {useCallback, useSyncExternalStore} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {ConnectionMetadata, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -23,11 +23,11 @@ let policies: OnyxCollection<Policy> = {};
 let accountID: number | undefined;
 let isFirstTimeNewExpensifyUser = false;
 
-let reportsConnection: number;
-let reportMetadataConnection: number;
-let policiesConnection: number;
-let accountIDConnection: number;
-let isFirstTimeNewExpensifyUserConnection: number;
+let reportsConnection: ConnectionMetadata | null;
+let reportMetadataConnection: ConnectionMetadata | null;
+let policiesConnection: ConnectionMetadata | null;
+let accountIDConnection: ConnectionMetadata | null;
+let isFirstTimeNewExpensifyUserConnection: ConnectionMetadata | null;
 
 function notifySubscribers() {
     subscribers.forEach((subscriber) => subscriber());
@@ -82,23 +82,23 @@ function subscribeToOnyxData() {
 function unsubscribeFromOnyxData() {
     if (reportsConnection) {
         Onyx.disconnect(reportsConnection);
-        reportsConnection = 0;
+        reportsConnection = null;
     }
     if (reportMetadataConnection) {
         Onyx.disconnect(reportMetadataConnection);
-        reportMetadataConnection = 0;
+        reportMetadataConnection = null;
     }
     if (policiesConnection) {
         Onyx.disconnect(policiesConnection);
-        policiesConnection = 0;
+        policiesConnection = null;
     }
     if (accountIDConnection) {
         Onyx.disconnect(accountIDConnection);
-        accountIDConnection = 0;
+        accountIDConnection = null;
     }
     if (isFirstTimeNewExpensifyUserConnection) {
         Onyx.disconnect(isFirstTimeNewExpensifyUserConnection);
-        isFirstTimeNewExpensifyUserConnection = 0;
+        isFirstTimeNewExpensifyUserConnection = null;
     }
 }
 
