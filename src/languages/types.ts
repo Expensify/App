@@ -310,7 +310,18 @@ type ExportedToIntegrationParams = {label: string};
 
 type ForwardedParams = {amount: string; currency: string};
 
-type IntegrationsMessageParams = {errorMessage: string; label: string};
+type IntegrationsMessageParams = {
+    label: string;
+    result: {
+        code?: number;
+        messages?: string[];
+        title?: string;
+        link?: {
+            url: string;
+            text: string;
+        };
+    };
+};
 
 type MarkedReimbursedParams = {amount: string; currency: string};
 
