@@ -77,8 +77,6 @@ type AttachmentViewProps = AttachmentViewOnyxProps &
         /** Whether the attachment is used as a chat attachment */
         isUsedAsChatAttachment?: boolean;
 
-        downloadAttachment?: () => void;
-
         /* Flag indicating whether the attachment has been uploaded. */
         isUploaded?: boolean;
     };
@@ -116,7 +114,6 @@ function AttachmentView({
     const [isCalculatingDimension, setIsCalculatingDimension] = useState(true);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
-    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -128,35 +125,31 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
-
-    const isFileHaveDimension = (file: FileObject | undefined): Promise<boolean> => {
-        if (!file) {
-            return Promise.resolve(false);
+    const getFileResolution = (targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> => {
+        if (!targetFile) {
+            return Promise.resolve(null);
         }
 
-        if ('width' in file && 'height' in file) {
-            return Promise.resolve(true);
-        } else {
-            return getImageResolution(file)
-                .then(({width, height}) => {
-                    file.width = width;
-                    file.height = height;
-                    return true;
-                })
-                .catch((error) => {
-                    Log.hmmm('Failed to get image resolution:', error);
-                    return false;
-                });
+        // If the file already has width and height, return them directly
+        if ('width' in targetFile && 'height' in targetFile) {
+            return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
         }
+
+        // Otherwise, attempt to get the image resolution
+        return getImageResolution(targetFile)
+            .then(({width, height}) => ({width, height}))
+            .catch((error: Error) => {
+                Log.hmmm('Failed to get image resolution:', error);
+                return null;
+            });
     };
 
     useEffect(() => {
         setIsCalculatingDimension(true);
-        isFileHaveDimension(file)
-            .then((isDimensionAvailable) => {
-                const isHighResolution =
-                    (file && isDimensionAvailable && (file?.height ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && (file?.width ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD) ?? false;
-                setIsHighResolution(isHighResolution);
+        getFileResolution(file)
+            .then((resolution) => {
+                const isImageHighResolution = resolution !== null && resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
+                setIsHighResolution(isImageHighResolution);
             })
             .finally(() => {
                 setIsCalculatingDimension(false);
@@ -250,9 +243,6 @@ function AttachmentView({
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     const isFileNameImage = file?.name && Str.isImage(file.name);
     const isFileImage = isSourceImage || isFileNameImage;
-
-    const isFileNameVideo = file?.name && Str.isVideo(file.name);
-    const isFileVideo = isVideo || isFileNameVideo;
 
     if (isFileImage && isCalculatingDimension) {
         return <FullScreenLoadingIndicator />;

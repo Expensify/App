@@ -8,7 +8,7 @@ import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type DefaultAttachmentViewProps = {
     /** The name of the file */
@@ -36,7 +36,7 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
             <View style={styles.mr2}>
                 <Icon
                     fill={theme.icon}
-                    src={icon ? icon : Expensicons.Paperclip}
+                    src={icon ?? Expensicons.Paperclip}
                 />
             </View>
 

@@ -26,7 +26,7 @@ type CarouselItemProps = {
     isFocused: boolean;
 };
 
-function CarouselItem({item, onPress, isFocused, isModalHovered, onHiResImageAttachment}: CarouselItemProps) {
+function CarouselItem({item, onPress, isFocused, isModalHovered}: CarouselItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isAttachmentHidden} = useContext(ReportAttachmentsContext);
