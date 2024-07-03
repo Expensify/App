@@ -203,9 +203,8 @@ function SettlementButton({
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
         }
 
-        const canUsePersonalBankAccount = isExpenseReport && shouldShowPaywithExpensifyOption;
-
-        if (shouldShowPersonalBankAccountOption && canUsePersonalBankAccount) {
+        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
+            buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.DEBIT_CARD]);
             buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
         }
         if (shouldShowPayElsewhereOption) {
