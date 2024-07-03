@@ -2367,7 +2367,7 @@ export default {
                         recordTitle: 'Lista personalizado',
                         helpLink:
                             '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists) sobre cómo configurar listas personalizado.',
-                        emptyTitle: 'Add a custom list',
+                        emptyTitle: 'Añadir una lista personalizado',
                     },
                 },
                 importTypes: {
