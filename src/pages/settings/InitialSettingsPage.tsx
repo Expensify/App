@@ -30,6 +30,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -90,6 +91,8 @@ type MenuData = {
     title?: string;
     shouldShowRightIcon?: boolean;
     iconRight?: IconAsset;
+    badgeText?: string;
+    badgeStyle?: ViewStyle;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -209,6 +212,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
                 link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
+                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
+                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
             });
         }
 
@@ -217,7 +222,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, styles.workspaceSettingsSectionContainer]);
+    }, [policies, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, translate]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -316,7 +321,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                     }
                                 })}
                                 iconStyles={item.iconStyles}
-                                badgeText={getWalletBalance(isPaymentItem)}
+                                badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
+                                badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 floatRightAvatars={item.floatRightAvatars}
