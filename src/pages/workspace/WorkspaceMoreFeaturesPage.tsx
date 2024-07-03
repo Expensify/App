@@ -4,7 +4,9 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
+import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
@@ -32,7 +34,6 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
-import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
@@ -312,14 +313,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
         >
-            <WorkspacePageWithSections
-                headerText={translate('workspace.common.moreFeatures')}
-                route={route}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_FEATURES}
-                icon={Illustrations.Gears}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
                 testID={WorkspaceMoreFeaturesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
             >
+                <HeaderWithBackButton
+                    icon={Illustrations.Gears}
+                    title={translate('workspace.common.moreFeatures')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                />
+
                 <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
 
                 <ConfirmModal
@@ -371,7 +376,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     confirmText={translate('workspace.moreFeatures.expensifyCard.disableCardButton')}
                     cancelText={translate('common.cancel')}
                 />
-            </WorkspacePageWithSections>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

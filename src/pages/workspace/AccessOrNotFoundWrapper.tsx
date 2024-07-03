@@ -88,7 +88,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
     return shouldShowFullScreenFallback ? (
         <FullPageNotFoundView
             shouldShow
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+            onBackButtonPress={() => Navigation.dismissModal()}
             shouldForceFullScreen
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
@@ -139,7 +139,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
         return (
             <PageNotFoundFallback
                 policyID={policyID}
-                shouldShowFullScreenFallback={!isFeatureEnabled}
+                shouldShowFullScreenFallback={!isFeatureEnabled || isPolicyNotAccessible}
                 fullPageNotFoundViewProps={fullPageNotFoundViewProps}
             />
         );
