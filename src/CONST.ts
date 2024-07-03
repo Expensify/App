@@ -74,6 +74,9 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    DEFAULT_DB_NAME: 'OnyxDB',
+    DEFAULT_TABLE_NAME: 'keyvaluepairs',
+    DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace

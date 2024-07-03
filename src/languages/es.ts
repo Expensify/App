@@ -694,6 +694,7 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
+        business: 'Empresa',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
@@ -970,6 +971,8 @@ export default {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
+            maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
+            exportOnyxState: 'Exportar estado Onyx',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -3946,8 +3949,19 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
-        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
-            `Recibo obligatorio${params ? ` para importes sobre${params.formattedLimit ? ` ${params.formattedLimit}` : ''}${params.category ? ' el límite de la categoría' : ''}` : ''}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Recibo obligatorio';
+            if (formattedLimit ?? category) {
+                message += ' para importes sobre';
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+                if (category) {
+                    message += ' el límite de la categoría';
+                }
+            }
+            return message;
+        },
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {

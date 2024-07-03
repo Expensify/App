@@ -3382,13 +3382,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 84,
-        },
-
-        workspaceListBadge: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 6,
+            justifyContent: 'flex-end',
+            width: 124,
         },
 
         workspaceListRBR: {
