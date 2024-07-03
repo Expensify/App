@@ -5,8 +5,10 @@ import type {TupleToUnion} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
+import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
+import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -38,6 +40,19 @@ function NetSuiteImportCustomFieldPage({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
+    const listEmptyComponent = useMemo(
+        () => (
+            <WorkspaceEmptyStateSection
+                title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
+                icon={Illustrations.EmptyStateExpenses}
+                subtitle={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
+                shouldParseSubtitle
+                containerStyle={[styles.flex1, styles.justifyContentCenter]}
+            />
+        ),
+        [],
+    );
+
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
@@ -59,6 +74,7 @@ function NetSuiteImportCustomFieldPage({
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
+            {data.length === 0 && listEmptyComponent}
             {data.length > 0 && listHeaderComponent}
 
             <View>
