@@ -5,7 +5,7 @@ import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
@@ -134,6 +135,13 @@ function BaseReportActionContextMenu({
         }
         return reportActions[reportActionID];
     }, [reportActions, reportActionID]);
+
+    const message = Array.isArray(reportAction?.message) ? reportAction?.message?.at(-1) ?? null : reportAction?.message ?? null;
+    const html = message?.html ?? '';
+    const {sourceURL} = getAttachmentDetails(html);
+    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+
+    const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
 
     const originalReportID = useMemo(() => ReportUtils.getOriginalReportID(reportID, reportAction), [reportID, reportAction]);
 
@@ -288,6 +296,7 @@ function BaseReportActionContextMenu({
                                 shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
                                 onFocus={() => setFocusedIndex(index)}
                                 onBlur={() => (index === filteredContextMenuActions.length - 1 || index === 1) && setFocusedIndex(-1)}
+                                disabled={contextAction?.shouldDisable ? contextAction?.shouldDisable(download) : false}
                             />
                         );
                     })}
