@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -67,7 +68,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo]);
 
     return (
-        <View style={styles.flex1}>
+        <ScrollView contentContainerStyle={styles.emptyStateScrollView}>
             <View style={styles.skeletonBackground}>
                 <SkeletonComponent
                     gradientOpacityEnabled
@@ -91,7 +92,7 @@ function EmptyStateComponent({SkeletonComponent, headerMediaType, headerMedia, b
                     </View>
                 </View>
             </View>
-        </View>
+        </ScrollView>
     );
 }
 

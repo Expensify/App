@@ -5064,6 +5064,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        emptyStateScrollView: {
+            minHeight: 400,
+            height: '100%',
+            flex: 1,
+        },
+
         emptyStateForeground: (isSmallScreenWidth: boolean) => ({
             justifyContent: 'center',
             alignItems: 'center',
