@@ -34,19 +34,24 @@ import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ValueListItem = ListItem & {
+    /** The value */
     value: string;
+
+    /** Whether the value is enabled */
     enabled: boolean;
+
+    /** The value order weight in the list */
     orderWeight?: number;
 };
 
-type WorkspaceListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
+type ReportFieldListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
-function WorkspaceListValuesPage({
+function ReportFieldListValuesPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: WorkspaceListValuesPageProps) {
+}: ReportFieldListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -239,7 +244,7 @@ function WorkspaceListValuesPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={WorkspaceListValuesPage.displayName}
+                testID={ReportFieldListValuesPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -290,6 +295,6 @@ function WorkspaceListValuesPage({
     );
 }
 
-WorkspaceListValuesPage.displayName = 'WorkspaceListValuesPage';
+ReportFieldListValuesPage.displayName = 'ReportFieldListValuesPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceListValuesPage);
+export default withPolicyAndFullscreenLoading(ReportFieldListValuesPage);

@@ -7,9 +7,16 @@ import CONST from '@src/CONST';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 
 type ReportFieldItemType = {
+    /** The value */
     value: PolicyReportFieldType;
+
+    /** The display text */
     text: string;
+
+    /** The key for list */
     keyForList: string;
+
+    /** Whether the value is selected */
     isSelected: boolean;
 };
 

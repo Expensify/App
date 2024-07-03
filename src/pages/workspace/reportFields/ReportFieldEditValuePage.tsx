@@ -21,13 +21,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
-type EditValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
+type ReportFieldEditValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE>;
 
-function EditValuePage({
+function ReportFieldEditValuePage({
     route: {
         params: {policyID, valueIndex},
     },
-}: EditValuePageProps) {
+}: ReportFieldEditValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -62,7 +62,7 @@ function EditValuePage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={EditValuePage.displayName}
+                testID={ReportFieldEditValuePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -93,6 +93,6 @@ function EditValuePage({
     );
 }
 
-EditValuePage.displayName = 'EditValuePage';
+ReportFieldEditValuePage.displayName = 'ReportFieldEditValuePage';
 
-export default EditValuePage;
+export default ReportFieldEditValuePage;
