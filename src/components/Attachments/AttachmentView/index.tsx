@@ -4,10 +4,13 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {FileObject} from '@components/AttachmentModal';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useLocalize from '@hooks/useLocalize';
@@ -17,21 +20,18 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import getImageResolution from '@libs/fileDownload/getImageResolution';
+import Log from '@libs/Log';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
 import DefaultAttachmentView from './DefaultAttachmentView';
-import getImageResolution from '@libs/fileDownload/getImageResolution';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type {FileObject} from '@components/AttachmentModal';
-import CONST from '@src/CONST';
-import Log from '@libs/Log';
 
 type AttachmentViewOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -116,7 +116,7 @@ function AttachmentView({
     const [isCalculatingDimension, setIsCalculatingDimension] = useState(true);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
-    const { isOffline } = useNetwork();
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
@@ -130,7 +130,7 @@ function AttachmentView({
     useNetwork({onReconnect: () => setImageError(false)});
 
     const isFileHaveDimension = (file: FileObject | undefined): Promise<boolean> => {
-        if(!file) {
+        if (!file) {
             return Promise.resolve(false);
         }
 
@@ -138,12 +138,12 @@ function AttachmentView({
             return Promise.resolve(true);
         } else {
             return getImageResolution(file)
-                .then(({ width, height }) => {
+                .then(({width, height}) => {
                     file.width = width;
                     file.height = height;
                     return true;
                 })
-                .catch(error => {
+                .catch((error) => {
                     Log.hmmm('Failed to get image resolution:', error);
                     return false;
                 });
@@ -153,11 +153,12 @@ function AttachmentView({
     useEffect(() => {
         setIsCalculatingDimension(true);
         isFileHaveDimension(file)
-            .then(isDimensionAvailable => {
-                const isHighResolution = (file && isDimensionAvailable && ((file?.height ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && (file?.width ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD)) ?? false;
+            .then((isDimensionAvailable) => {
+                const isHighResolution =
+                    (file && isDimensionAvailable && (file?.height ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && (file?.width ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD) ?? false;
                 setIsHighResolution(isHighResolution);
             })
-            .finally(()=>{
+            .finally(() => {
                 setIsCalculatingDimension(false);
             });
     }, [file]);
@@ -254,7 +255,7 @@ function AttachmentView({
     const isFileVideo = isVideo || isFileNameVideo;
 
     if (isFileImage && isCalculatingDimension) {
-        return <FullScreenLoadingIndicator />
+        return <FullScreenLoadingIndicator />;
     }
 
     if (isFileImage) {
@@ -269,10 +270,10 @@ function AttachmentView({
                 />
             );
         }
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string)
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
 
         if (isHighResolution) {
-            if(!isUploaded) {
+            if (!isUploaded) {
                 return (
                     <DefaultAttachmentView
                         icon={Expensicons.Gallery}

@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
-import {Animated, Keyboard, View, Text} from 'react-native';
+import {Animated, Keyboard, Text, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,8 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
@@ -39,12 +39,12 @@ import ConfirmModal from './ConfirmModal';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 import HeaderGap from './HeaderGap';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as Illustrations from './Icon/Illustrations';
 import Modal from './Modal';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TextLink from './TextLink';
-import Icon from './Icon';
 
 /**
  * Modal render prop component that exposes modal launching triggers that can be used
@@ -65,7 +65,7 @@ type ImagePickerResponse = {
     width?: number;
 };
 
-type FileObject = Partial<File | ImagePickerResponse> & Partial <ImagePickerResponse>;
+type FileObject = Partial<File | ImagePickerResponse> & Partial<ImagePickerResponse>;
 
 type ChildrenProps = {
     displayFileInModal: (data: FileObject) => void;
@@ -199,7 +199,7 @@ function AttachmentModal({
     const {isOffline} = useNetwork();
 
     const isDimensionAvailable = file && 'width' in file && 'height' in file;
-    const isHiResImage = file && isDimensionAvailable && ((file.height ?? 0) > 5000 || (file.width ?? 0) > 5000);
+    const isHighResolutionImage = file && isDimensionAvailable && ((file.height ?? 0) > 5000 || (file.width ?? 0) > 5000);
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
@@ -244,7 +244,6 @@ function AttachmentModal({
      */
     const downloadAttachment = useCallback(() => {
         let sourceURL = sourceState;
-        console.log('[wildebug] sourceURL', sourceURL)
         if (isAuthTokenRequiredState && typeof sourceURL === 'string') {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
@@ -545,34 +544,37 @@ function AttachmentModal({
                             ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {((!!onConfirm && !isConfirmButtonDisabled) || isHiResImage) && (
+                    {((!!onConfirm && !isConfirmButtonDisabled) || isHighResolutionImage) && (
                         <SafeAreaConsumer>
-                            {({ safeAreaPaddingBottomStyle }) => (<>
-                                {isHiResImage && <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
-                                    <Icon
-                                        src={Expensicons.Info}
-                                        height={variables.iconSizeExtraSmall}
-                                        width={variables.iconSizeExtraSmall}
-                                        fill={theme.icon}
-                                        additionalStyles={styles.p1}
-                                    />
-                                        <Text style={[styles.textLabelSupporting]}>{translate('attachmentPicker.attachmentImageResized')}</Text>
-                                </View>
-                                }
-                                {!!onConfirm && !isConfirmButtonDisabled && <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
-                                    <Button
-                                        success
-                                        large
-                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                        textStyles={[styles.buttonConfirmText]}
-                                        text={translate('common.send')}
-                                        onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled}
-                                        pressOnEnter
-                                    />
-                                </Animated.View>
-                                }
-                            </>
+                            {({safeAreaPaddingBottomStyle}) => (
+                                <>
+                                    {isHighResolutionImage && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
+                                            <Icon
+                                                src={Expensicons.Info}
+                                                height={variables.iconSizeExtraSmall}
+                                                width={variables.iconSizeExtraSmall}
+                                                fill={theme.icon}
+                                                additionalStyles={styles.p1}
+                                            />
+                                            <Text style={[styles.textLabelSupporting]}>{translate('attachmentPicker.attachmentImageResized')}</Text>
+                                        </View>
+                                    )}
+                                    {!!onConfirm && !isConfirmButtonDisabled && (
+                                        <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                            <Button
+                                                success
+                                                large
+                                                style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                                textStyles={[styles.buttonConfirmText]}
+                                                text={translate('common.send')}
+                                                onPress={submitAndClose}
+                                                isDisabled={isConfirmButtonDisabled}
+                                                pressOnEnter
+                                            />
+                                        </Animated.View>
+                                    )}
+                                </>
                             )}
                         </SafeAreaConsumer>
                     )}
