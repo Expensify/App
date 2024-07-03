@@ -1974,6 +1974,10 @@ export default {
         trip: 'Viaje',
         tripSummary: 'Resumen del viaje',
         departs: 'Sale',
+        travel: 'Viajes',
+        details: 'Detalles',
+        tripSupport: 'Soporte de viaje',
+        confirmationNo: 'No. de confirmación',
     },
     workspace: {
         common: {
