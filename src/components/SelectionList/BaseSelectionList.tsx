@@ -470,7 +470,7 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldAnimate />;
+            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
         }
         if (!textInputValue && !showLoadingPlaceholder && !!listEmptyContent) {
             return listEmptyContent;
@@ -701,8 +701,8 @@ function BaseSelectionList<TItem extends ListItem>(
                         </View>
                     )}
                     {!!headerContent && headerContent}
-                    {flattenedSections.allOptions.length === 0 && showLoadingPlaceholder ? (
-                        <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />
+                    {flattenedSections.allOptions.length === 0 ? (
+                        renderListEmptyContent()
                     ) : (
                         <>
                             {!listHeaderContent && header()}
