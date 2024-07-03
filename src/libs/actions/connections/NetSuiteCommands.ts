@@ -556,7 +556,7 @@ function updateNetSuiteEnableNewCategories(policyID: string, value: boolean, old
         policyID,
         enabled: value,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
 function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string, value: boolean, oldValue?: boolean) {
