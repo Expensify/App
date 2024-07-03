@@ -44,6 +44,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         width: 0,
         left: 0,
         bottom: 0,
+        cursorCoordinates: {x: 0, y: 0},
     });
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
@@ -65,6 +66,8 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     }, []);
 
     const suggestionsLength = props.suggestions.length;
+
+    // console.log('emoji_FOCUS', isFocused);
 
     useEffect(() => {
         if (!measureParentContainerAndReportCursor) {
@@ -111,11 +114,12 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
+                cursorCoordinates,
             });
         });
     }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, isSmallScreenWidth, suggestionsLength, bottomInset, topInset]);
 
-    if (containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) {
+    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
         return null;
     }
     return (
