@@ -39,10 +39,10 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
     const updateImportMapping = useCallback(
         ({value}: ImportListItem) => {
             if (value !== importedValue) {
-                if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+                if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
                     updateNetSuiteImportMapping(policyID, 'jobs', value, importMappings?.jobs);
                 }
-                if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+                if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
                     updateNetSuiteImportMapping(policyID, 'customers', value, importMappings?.customers);
                 }
             }
