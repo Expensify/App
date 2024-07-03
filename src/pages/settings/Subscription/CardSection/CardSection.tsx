@@ -40,27 +40,15 @@ function CardSection() {
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
 
-    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(
-        CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '', defaultCard?.accountData?.cardMonth ?? 0, defaultCard?.accountData?.cardYear ?? 0),
-    );
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
 
     useEffect(() => {
-        setBillingStatus(
-            CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '', defaultCard?.accountData?.cardMonth ?? 0, defaultCard?.accountData?.cardYear ?? 0),
-        );
-    }, [
-        subscriptionRetryBillingStatusPending,
-        subscriptionRetryBillingStatusSuccessful,
-        subscriptionRetryBillingStatusFailed,
-        translate,
-        defaultCard?.accountData?.cardNumber,
-        defaultCard?.accountData?.cardMonth,
-        defaultCard?.accountData?.cardYear,
-    ]);
+        setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
+    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, translate, defaultCard?.accountData]);
 
     const handleRetryPayment = () => {
         Subscription.clearOutstandingBalance();

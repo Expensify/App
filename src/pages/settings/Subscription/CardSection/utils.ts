@@ -6,6 +6,7 @@ import type {Phrase, PhraseParameters} from '@libs/Localize';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {AccountData} from '@src/types/onyx/Fund';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BillingStatusResult = {
@@ -21,10 +22,10 @@ type BillingStatusResult = {
 
 function getBillingStatus(
     translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
-    cardEnding: string,
-    cardMonth: number,
-    cardYear: number,
+    accountData?: AccountData,
 ): BillingStatusResult | undefined {
+    const cardEnding = accountData?.cardNumber ?? '';
+
     const amountOwed = SubscriptionUtils.getAmountOwed();
 
     const subscriptionStatus = SubscriptionUtils.getSubscriptionStatus();
@@ -33,7 +34,7 @@ function getBillingStatus(
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
-    const isCurrentCardExpired = DateUtils.isCardExpired(cardMonth, cardYear);
+    const isCurrentCardExpired = DateUtils.isCardExpired(accountData?.cardMonth ?? 0, accountData?.cardYear ?? 0);
 
     switch (subscriptionStatus?.status) {
         case SubscriptionUtils.PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
