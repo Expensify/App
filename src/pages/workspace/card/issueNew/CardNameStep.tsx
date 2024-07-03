@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -19,6 +20,7 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 function CardNameStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
@@ -73,7 +75,7 @@ function CardNameStep() {
                     aria-label={translate('workspace.card.issueNewCard.cardName')}
                     role={CONST.ROLE.PRESENTATION}
                     // TODO: default value for card name
-                    defaultValue=""
+                    defaultValue={issueNewCard?.data?.cardTitle}
                     containerStyles={[styles.mb6]}
                 />
             </FormProvider>

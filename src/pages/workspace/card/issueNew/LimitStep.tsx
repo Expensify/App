@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -19,6 +20,7 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 function LimitStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
@@ -56,6 +58,7 @@ function LimitStep() {
             >
                 <InputWrapper
                     InputComponent={AmountForm}
+                    defaultValue={CurrencyUtils.convertToFrontendAmountAsString(issueNewCard?.data?.limit, false)}
                     isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
                 />
