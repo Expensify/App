@@ -783,6 +783,26 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    WORKSPACE_CREATE_REPORT_FIELD: {
+        route: 'settings/workspaces/:policyID/reportFields/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
+    },
+    WORKSPACE_REPORT_FIELD_LIST_VALUES: {
+        route: 'settings/workspaces/:policyID/reportFields/new/listValues',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new/listValues` as const,
+    },
+    WORKSPACE_REPORT_FIELD_ADD_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/addValue',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new/addValue` as const,
+    },
+    WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}` as const,
+    },
+    WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'settings/workspaces/:policyID/expensify-card',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
@@ -958,6 +978,14 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:internalID',
         getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${internalID}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',

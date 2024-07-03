@@ -15,6 +15,7 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
+    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -346,6 +347,9 @@ export default {
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
+        initialValue: 'Valor inicial',
+        currentDate: 'Fecha actual',
+        value: 'Valor',
     },
     connectionComplete: {
         title: 'Conexión completa',
@@ -693,6 +697,7 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
+        business: 'Empresa',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
@@ -782,8 +787,20 @@ export default {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
+        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
+            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
+                'aprobar',
+                'aprobarlos',
+                transactionCount,
+            )} de todos modos?`,
         confirmPay: 'Confirmar importe de pago',
-        confirmPayAmount: 'Paga lo que no está bloqueado, o paga todos los gastos por cuenta propia.',
+        confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
+        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
+            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
+                'pagar',
+                'pagarlo',
+                transactionCount,
+            )} de todos modos?`,
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloquear',
@@ -969,6 +986,8 @@ export default {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
+            maskExportOnyxStateData: 'Enmascare los datos frágiles del usuario mientras exporta el estado Onyx',
+            exportOnyxState: 'Exportar estado Onyx',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -2342,14 +2361,15 @@ export default {
                         title: 'Ubicaciones',
                         subtitle: 'Elija cómo manejar *ubicaciones* en Expensify.',
                     },
-                    customers: {
-                        title: 'Clientes',
-                        subtitle: 'Importa *clientes* a Expensify y elige cómo se mostrarán.',
-                    },
-                    jobs: {
-                        title: 'Proyectos (trabajos)',
-                        subtitle: 'Importa *proyectos (trabajos)* a Expensify y elige cómo se mostrarán.',
-                    },
+                },
+                customersOrJobs: {
+                    title: 'Clientes / proyectos',
+                    subtitle: 'Elija cómo manejar los *clientes* y *proyectos* de NetSuite en Expensify.',
+                    importCustomers: 'Importar clientes',
+                    importJobs: 'Importar proyectos',
+                    customers: 'clientes',
+                    jobs: 'proyectos',
+                    label: (importFields: string[], importType: string) => `${importFields.join(' y ')}, ${importType}`,
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
@@ -2512,9 +2532,42 @@ export default {
                 title: 'No has creado ningún campo de informe',
                 subtitle: 'Añade un campo personalizado (texto, fecha o desplegable) que aparezca en los informes.',
             },
-            subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando desees solicitar información adicional',
+            subtitle: 'Los campos de informe se aplican a todos los gastos y pueden ser útiles cuando quieras solicitar información adicional.',
             disableReportFields: 'Desactivar campos de informe',
             disableReportFieldsConfirmation: 'Estás seguro? Se eliminarán los campos de texto y fecha y se desactivarán las listas.',
+            textType: 'Texto',
+            dateType: 'Fecha',
+            dropdownType: 'Lista',
+            textAlternateText: 'Añade un campo para introducir texto libre.',
+            dateAlternateText: 'Añade un calendario para la selección de fechas.',
+            dropdownAlternateText: 'Añade una lista de opciones para elegir.',
+            nameInputSubtitle: 'Elige un nombre para el campo del informe.',
+            typeInputSubtitle: 'Elige qué tipo de campo de informe utilizar.',
+            initialValueInputSubtitle: 'Ingresa un valor inicial para mostrar en el campo del informe.',
+            listValuesInputSubtitle: 'Estos valores aparecerán en el desplegable del campo de tu informe. Los miembros pueden seleccionar los valores habilitados.',
+            listInputSubtitle: 'Estos valores aparecerán en la lista de campos de tu informe. Los miembros pueden seleccionar los valores habilitados.',
+            deleteValue: 'Eliminar valor',
+            deleteValues: 'Eliminar valores',
+            disableValue: 'Desactivar valor',
+            disableValues: 'Desactivar valores',
+            enableValue: 'Habilitar valor',
+            enableValues: 'Habilitar valores',
+            emptyReportFieldsValues: {
+                title: 'No has creado ningún valor en la lista',
+                subtitle: 'Añade valores personalizados para que aparezcan en los informes.',
+            },
+            deleteValuePrompt: '¿Estás seguro de que quieres eliminar este valor de la lista?',
+            deleteValuesPrompt: '¿Estás seguro de que quieres eliminar estos valores de la lista?',
+            listValueRequiredError: 'Ingresa un nombre para el valor de la lista',
+            existingListValueError: 'Ya existe un valor en la lista con este nombre',
+            editValue: 'Editar valor',
+            listValues: 'Valores de la lista',
+            addValue: 'Añade valor',
+            existingReportFieldNameError: 'Ya existe un campo de informe con este nombre',
+            reportFieldNameRequiredError: 'Ingresa un nombre de campo de informe',
+            reportFieldTypeRequiredError: 'Elige un tipo de campo de informe',
+            reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
+            genericFailureMessage: 'Se ha producido un error al actualizar el campo del informe. Por favor, inténtalo de nuevo.',
         },
         tags: {
             tagName: 'Nombre de etiqueta',
@@ -2926,6 +2979,8 @@ export default {
         editor: {
             nameInputLabel: 'Nombre',
             descriptionInputLabel: 'Descripción',
+            typeInputLabel: 'Tipo',
+            initialValueInputLabel: 'Valor inicial',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
             currencyInputLabel: 'Moneda por defecto',
@@ -3973,8 +4028,19 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
-        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
-            `Recibo obligatorio${params ? ` para importes sobre${params.formattedLimit ? ` ${params.formattedLimit}` : ''}${params.category ? ' el límite de la categoría' : ''}` : ''}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Recibo obligatorio';
+            if (formattedLimit ?? category) {
+                message += ' para importes sobre';
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+                if (category) {
+                    message += ' el límite de la categoría';
+                }
+            }
+            return message;
+        },
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
