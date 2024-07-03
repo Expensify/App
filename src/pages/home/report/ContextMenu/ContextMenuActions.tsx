@@ -29,6 +29,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, OnyxInputOrEntry, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import Permissions from '@libs/Permissions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -425,6 +426,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
+            if (!Permissions.canUseCommentLinking(betas)) {
+                return false;
+            }
+
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
