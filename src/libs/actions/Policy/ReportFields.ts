@@ -4,6 +4,7 @@ import * as API from '@libs/API';
 import type {CreateWorkspaceReportFieldParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {generateFieldID} from '@libs/WorkspaceReportFieldsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -108,6 +109,7 @@ type CreateReportFieldArguments = Pick<WorkspaceReportFieldsForm, 'name' | 'type
 function createReportField(policyID: string, {name, type, initialValue}: CreateReportFieldArguments) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = generateFieldID(name);
+    const fieldKey = ReportUtils.getReportFieldKey(fieldID);
     const newReportField: PolicyReportField = {
         name,
         type,
@@ -129,10 +131,10 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldID]: newReportField,
+                        [fieldKey]: newReportField,
                     },
                     pendingFields: {
-                        [fieldID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                     errorFields: null,
                 },
@@ -143,11 +145,8 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
-                    fieldList: {
-                        [fieldID]: null,
-                    },
                     pendingFields: {
-                        [fieldID]: null,
+                        [fieldKey]: null,
                     },
                     errorFields: null,
                 },
@@ -158,12 +157,14 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
-                    fieldList: previousFieldList,
+                    fieldList: {
+                        [fieldKey]: null,
+                    },
                     pendingFields: {
-                        [fieldID]: null,
+                        [fieldKey]: null,
                     },
                     errorFields: {
-                        [fieldID]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
                     },
                 },
             },

@@ -7,6 +7,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import * as ReportFields from '@src/libs/actions/Policy/ReportFields';
 import type {CreateReportFieldArguments} from '@src/libs/actions/Policy/ReportFields';
+import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
@@ -38,6 +39,7 @@ describe('actions/ReportFields', () => {
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
             const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const newReportField: Omit<PolicyReportField, 'value'> = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.TEXT,
@@ -72,7 +74,7 @@ describe('actions/ReportFields', () => {
 
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual({
-                [reportFieldID]: newReportField,
+                [reportFieldKey]: newReportField,
             });
 
             // Check for success data
@@ -92,7 +94,7 @@ describe('actions/ReportFields', () => {
 
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldID]).toBeFalsy();
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
         });
 
         it('creates a new date report field of a workspace', async () => {
@@ -103,6 +105,7 @@ describe('actions/ReportFields', () => {
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field 2';
             const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const defaultDate = DateUtils.extractDate(new Date().toString());
             const newReportField: Omit<PolicyReportField, 'value'> = {
                 name: reportFieldName,
@@ -138,7 +141,7 @@ describe('actions/ReportFields', () => {
 
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual({
-                [reportFieldID]: newReportField,
+                [reportFieldKey]: newReportField,
             });
 
             // Check for success data
@@ -158,7 +161,7 @@ describe('actions/ReportFields', () => {
 
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldID]).toBeFalsy();
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
         });
 
         it('creates a new list report field of a workspace', async () => {
@@ -172,6 +175,7 @@ describe('actions/ReportFields', () => {
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field 3';
             const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const newReportField: PolicyReportField = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.LIST,
@@ -207,7 +211,7 @@ describe('actions/ReportFields', () => {
 
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual({
-                [reportFieldID]: newReportField,
+                [reportFieldKey]: newReportField,
             });
 
             // Check for success data
@@ -227,7 +231,7 @@ describe('actions/ReportFields', () => {
 
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldID]).toBeFalsy();
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
         });
     });
 });

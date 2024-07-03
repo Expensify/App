@@ -105,6 +105,16 @@ function WorkspaceListValuesPage({
         setDeleteValuesConfirmModalVisible(false);
     };
 
+    const openListValuePage = (valueItem: ValueListItem) => {
+        if (valueItem.index === undefined) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, valueItem.index));
+
+        setSelectedValues({});
+    };
+
     const getCustomListHeader = () => (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
@@ -236,7 +246,7 @@ function WorkspaceListValuesPage({
                         canSelectMultiple
                         sections={listValuesSections}
                         onCheckboxPress={toggleValue}
-                        onSelectRow={(item) => item.index !== undefined && Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, item.index))}
+                        onSelectRow={openListValuePage}
                         shouldDebounceRowSelect={false}
                         onSelectAll={toggleAllValues}
                         ListItem={TableListItem}
