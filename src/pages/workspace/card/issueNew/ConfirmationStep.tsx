@@ -16,7 +16,6 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 function getTranslationKeyForLimitType(limitType: string | undefined) {
