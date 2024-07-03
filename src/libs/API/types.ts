@@ -234,6 +234,7 @@ const WRITE_COMMANDS = {
     UNHOLD_MONEY_REQUEST_ON_SEARCH: 'UnholdMoneyRequestOnSearch',
     REQUEST_REFUND: 'User_RefundPurchase',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
+    CREATE_WORKSPACE_REPORT_FIELD: 'CreatePolicyReportField',
     UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION: 'UpdateNetSuiteSyncTaxConfiguration',
     UPDATE_NETSUITE_EXPORTER: 'UpdateNetSuiteExporter',
     UPDATE_NETSUITE_EXPORT_DATE: 'UpdateNetSuiteExportDate',
@@ -492,6 +493,10 @@ type WriteCommandParameters = {
 
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;
+
+    // Workspace report field parameters
+    [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
+
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORTER]: Parameters.UpdateNetSuiteGenericTypeParams<'email', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_DATE]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>>;
