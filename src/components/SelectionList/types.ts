@@ -135,7 +135,7 @@ type ListItem = {
     tabIndex?: 0 | -1;
 
     /** The style to override the cursor appearance */
-    cursorStyle?: CursorStyles[keyof CursorStyles],
+    cursorStyle?: CursorStyles[keyof CursorStyles];
 };
 
 type TransactionListItemType = ListItem &
