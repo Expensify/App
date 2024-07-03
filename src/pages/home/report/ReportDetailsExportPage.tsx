@@ -22,19 +22,34 @@ import type SCREENS from '@src/SCREENS';
 
 type ReportDetailsExportPageProps = StackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.EXPORT>;
 
-type ModalStatus = ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS> | null;
+type ExportType = ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
+
+type ExportSelectorType = SelectorType<ExportType>;
 
 function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const reportID = route.params.reportID;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
     const {translate} = useLocalize();
-    const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
+    const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const connectionName = route?.params?.connectionName;
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
     const canBeExported = ReportUtils.canBeExported(report);
 
-    const exportSelectorOptions: SelectorType[] = useMemo(
+    const confirmExport = useCallback(
+        (type = modalStatus) => {
+            if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+                ReportActions.exportToIntegration(reportID, connectionName);
+            } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+                ReportActions.markAsManuallyExported(reportID);
+            }
+            setModalStatus(null);
+            Navigation.dismissModal();
+        },
+        [connectionName, modalStatus, reportID],
+    );
+
+    const exportSelectorOptions: ExportSelectorType[] = useMemo(
         () => [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
@@ -46,13 +61,6 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     },
                 ],
                 isDisabled: !canBeExported,
-                onPress: () => {
-                    if (ReportUtils.isExported(report)) {
-                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-                    } else {
-                        ReportActions.exportToIntegration(reportID, connectionName);
-                    }
-                },
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
@@ -64,26 +72,10 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     },
                 ],
                 isDisabled: !canBeExported,
-                onPress: () => {
-                    if (ReportUtils.isExported(report)) {
-                        setModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
-                    } else {
-                        ReportActions.markAsManuallyExported(reportID);
-                    }
-                },
             },
         ],
-        [iconToDisplay, canBeExported, translate, report, reportID, connectionName],
+        [translate, connectionName, iconToDisplay, canBeExported],
     );
-
-    const confirmExport = useCallback(() => {
-        if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            ReportActions.exportToIntegration(reportID, connectionName);
-        } else if (modalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            ReportActions.markAsManuallyExported(reportID);
-        }
-        setModalStatus(null);
-    }, [connectionName, modalStatus, reportID]);
 
     if (!canBeExported) {
         return (
@@ -104,7 +96,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     return (
         <>
-            <SelectionScreen
+            <SelectionScreen<ExportType>
                 policyID={policyID ?? ''}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -115,8 +107,12 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
                 title="common.export"
                 connectionName={connectionName}
-                onSelectRow={(option) => {
-                    option.onPress?.();
+                onSelectRow={({value}) => {
+                    if (ReportUtils.isExported(report)) {
+                        setModalStatus(value);
+                    } else {
+                        confirmExport();
+                    }
                 }}
             />
             {!!modalStatus && (
@@ -137,4 +133,4 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 ReportDetailsExportPage.displayName = 'ReportDetailsExportPage';
 
 export default ReportDetailsExportPage;
-export type {ModalStatus};
+export type {ExportType};

@@ -3735,9 +3735,7 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName) {
 
 function markAsManuallyExported(reportID: string) {
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, {
-        // TODO: Update it when backend is ready
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        'reportIDList[]': reportID,
+        reportIDList: reportID,
         markedManually: true,
     });
 }
