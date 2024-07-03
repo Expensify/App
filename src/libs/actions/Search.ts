@@ -66,63 +66,15 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-function holdMoneyRequestOnSearch(searchHash: number, transactionIDList: string[], comment?: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {isLoading: true},
-        },
-    ];
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {isLoading: false},
-        },
-    ];
-
-    const commandPayload = {
-        searchHash,
-        transactionIDList,
-        comment,
-    };
-
-    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, commandPayload, {optimisticData, finallyData});
-}
-
-function unholdMoneyRequestOnSearch(searchHash: number, transactionIDList: string[]) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {isLoading: true},
-        },
-    ];
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
-            value: {isLoading: false},
-        },
-    ];
-
-    const commandPayload = {
-        searchHash,
-        transactionIDList,
-    };
-
-    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, commandPayload, {optimisticData, finallyData});
-}
-
-export {search, createTransactionThread, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};
 function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
 }
 
 function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
