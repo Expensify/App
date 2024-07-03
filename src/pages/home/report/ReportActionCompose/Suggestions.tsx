@@ -127,7 +127,8 @@ function Suggestions(
     const checkIfSuggestionVisible = useCallback(() => {
         const isEmojiVisible = suggestionEmojiRef.current?.checkIfSuggestionVisible();
         const isSuggestionVisible = suggestionMentionRef.current?.checkIfSuggestionVisible();
-        return isEmojiVisible ?? isSuggestionVisible ?? false;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return isEmojiVisible || isSuggestionVisible;
     }, []);
 
     useImperativeHandle(
