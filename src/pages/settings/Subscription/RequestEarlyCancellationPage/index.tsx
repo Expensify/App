@@ -11,6 +11,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Report from '@userActions/Report';
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +46,7 @@ function RequestEarlyCancellationPage() {
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
                     <Text style={[styles.mt1, styles.textNormalThemeText]}>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part1')}
-                        <TextLink onPress={() => {}}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
+                        <TextLink onPress={() => Report.navigateToConciergeChat()}>{translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.link')}</TextLink>
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
                     </Text>
                 </View>
