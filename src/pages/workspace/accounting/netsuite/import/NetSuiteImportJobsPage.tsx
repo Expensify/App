@@ -1,5 +1,5 @@
 import {ExpensiMark} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -7,7 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteCrossSubsidiaryCustomersConfiguration} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -20,6 +20,8 @@ import ROUTES from '@src/ROUTES';
 
 const parser = new ExpensiMark();
 
+type ImportField = 'jobs' | 'customers';
+
 function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
@@ -27,7 +29,32 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options?.config;
     const importMappings = config?.syncOptions?.mapping;
-    const importedValue = importMappings?.customers ?? importMappings?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importCustomer = importMappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importJobs = importMappings?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const importedValue = importMappings?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
+
+    const updateMapping = useCallback(
+        (importField: ImportField, isEnabled: boolean) => {
+            let newValue;
+            if (!isEnabled) {
+                // if the import is off, then we send default as the value for mapping
+                newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+            } else {
+                // when we enable any field, and if the other one already has a value set, we should set that,
+                const otherFieldValue = importField === 'jobs' ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
+                if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+                    newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
+                } else {
+                    // else fallback to Tag
+                    newValue = otherFieldValue;
+                }
+            }
+            if (newValue) {
+                updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField]);
+            }
+        },
+        [config?.syncOptions?.mapping, policyID],
+    );
 
     return (
         <ConnectionLayout
@@ -51,7 +78,7 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
                     isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                     switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
                     onToggle={(isEnabled: boolean) => {
-                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                        updateMapping('customers', isEnabled);
                     }}
                     pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers}
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
@@ -65,7 +92,7 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
                     isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                     switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
                     onToggle={(isEnabled: boolean) => {
-                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                        updateMapping('jobs', isEnabled);
                     }}
                     pendingAction={config?.syncOptions?.mapping?.pendingFields?.jobs}
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}

@@ -267,7 +267,7 @@ function updateNetSuiteImportMapping<TMappingName extends keyof Connections['net
     policyID: string,
     mappingName: TMappingName,
     mappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
-    oldMappingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
+    oldMappingValue?: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>,
 ) {
     const onyxData: OnyxData = {
         optimisticData: [

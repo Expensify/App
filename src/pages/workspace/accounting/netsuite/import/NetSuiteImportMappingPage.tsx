@@ -58,17 +58,13 @@ function NetSuiteImportMappingPage({
 
     const listHeaderComponent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.mt2, styles.mb4]}>
+            <View style={[styles.ph5, styles.mt2, styles.mb8]}>
                 <View style={[styles.flexRow]}>
-                    <RenderHTML
-                        html={`<comment><muted-text>${parser.replace(
-                            translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths),
-                        )}</muted-text></comment>`}
-                    />
+                    <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
                 </View>
             </View>
         ),
-        [styles.ph5, styles.mt2, styles.mb4, styles.flexRow, importField, translate],
+        [styles.ph5, styles.mt2, styles.mb8, styles.flexRow, translate, importField],
     );
 
     const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
