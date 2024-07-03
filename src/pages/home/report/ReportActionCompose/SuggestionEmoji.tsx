@@ -183,10 +183,7 @@ function SuggestionEmoji(
             return;
         }
 
-        // Avoid calling the function when keyboard animation running
-        InteractionManager.runAfterInteractions(() => {
-            calculateEmojiSuggestion(selection.start, selection.end);
-        });
+        calculateEmojiSuggestion(selection.start, selection.end);
     }, [selection, calculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
@@ -198,6 +195,8 @@ function SuggestionEmoji(
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
 
+    const checkIfSuggestionVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
+
     useImperativeHandle(
         ref,
         () => ({
@@ -206,8 +205,9 @@ function SuggestionEmoji(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            checkIfSuggestionVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, checkIfSuggestionVisible],
     );
 
     if (!isEmojiSuggestionsMenuVisible) {
