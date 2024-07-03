@@ -59,7 +59,7 @@ function navigateBack() {
         window.history.back();
         return;
     } else if (pathSegments.length > 4 && (pathSegments[2] === 'new-expensify' || pathSegments[2] === 'expensify-classic')) {
-        newPath = `/${pathSegments[2]}/hubs/`;
+        newPath = `/${pathSegments[2]}/hubs/${pathSegments[3]}`;
     } else {
         newPath = '/';
     }
