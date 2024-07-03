@@ -74,6 +74,9 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    DEFAULT_DB_NAME: 'OnyxDB',
+    DEFAULT_TABLE_NAME: 'keyvaluepairs',
+    DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -365,6 +368,7 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1288,6 +1292,7 @@ const CONST = {
         REPORT_FIELD: 'REPORT_FIELD',
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
@@ -1367,6 +1372,11 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
+        IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        SYNC_OPTIONS: {
+            SYNC_TAX: 'syncTax',
+        },
     },
 
     NETSUITE_EXPORT_DATE: {
@@ -4071,13 +4081,13 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Categories*.\n' +
                         '4. Enable and disable default categories.\n' +
                         '5. Click *Add categories* to make your own.\n' +
@@ -4088,13 +4098,13 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *More features*.\n' +
                         '4. Enable *Workflows*.\n' +
                         '5. In *Workflows*, enable *Add approvals*.\n' +
@@ -4105,13 +4115,13 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Members* > *Invite member*.\n' +
                         '4. Enter emails or phone numbers. \n' +
                         '5. Add an invite message if you want.\n' +
@@ -5022,6 +5032,14 @@ const CONST = {
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
     },
 
     REFERRER: {
@@ -5055,6 +5073,12 @@ const CONST = {
             ID: 'businessClosing',
             TRANSLATION_KEY: 'feedbackSurvey.businessClosing',
         },
+    },
+
+    WORKSPACE_CARDS_LIST_LABEL_TYPE: {
+        CURRENT_BALANCE: 'currentBalance',
+        REMAINING_LIMIT: 'remainingLimit',
+        CASH_BACK: 'cashBack',
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],

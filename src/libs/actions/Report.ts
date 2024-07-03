@@ -783,7 +783,9 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                errorFields: null,
+                errorFields: {
+                    notFound: null,
+                },
             },
         },
         {
@@ -3114,6 +3116,7 @@ function completeOnboarding(
         lastName: string;
     },
     adminsChatReportID?: string,
+    onboardingPolicyID?: string,
 ) {
     const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
@@ -3157,6 +3160,7 @@ function completeOnboarding(
             typeof task.description === 'function'
                 ? task.description({
                       adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
+                      workspaceLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
