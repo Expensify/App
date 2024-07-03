@@ -90,7 +90,7 @@ function RequestEarlyCancellationPage() {
                 description={translate('subscription.requestEarlyCancellation.subtitle')}
                 onSubmit={handleSubmit}
                 optionRowStyles={styles.flex1}
-                bottomText={<Text style={styles.mb2}>{acknowledgmentText}</Text>}
+                bottomText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgmentText}</Text>}
             />
         );
     }

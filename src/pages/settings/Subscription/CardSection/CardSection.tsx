@@ -18,6 +18,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
+import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import CardSectionUtils from './utils';
 
 function CardSection() {
@@ -72,16 +73,7 @@ function CardSection() {
                 )}
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
             </View>
-            {!!privateSubscription?.type && (
-                <MenuItem
-                    title="Request early cancellation"
-                    icon={Expensicons.CalendarSolid}
-                    iconFill={theme.icon}
-                    shouldShowRightIcon
-                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION)}
-                />
-            )}
+            {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
             {!!account?.hasPurchases && (
                 <MenuItem
                     shouldShowRightIcon
