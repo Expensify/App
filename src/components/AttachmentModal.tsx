@@ -556,7 +556,7 @@ function AttachmentModal({
                                         fill={theme.icon}
                                         additionalStyles={styles.p1}
                                     />
-                                    <Text style={[styles.textLabelSupporting]}>This image has been resized for previewing. Download for full resolution.</Text>
+                                        <Text style={[styles.textLabelSupporting]}>{translate('attachmentPicker.attachmentImageResized')}</Text>
                                 </View>
                                 }
                                 {!!onConfirm && !isConfirmButtonDisabled && <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
