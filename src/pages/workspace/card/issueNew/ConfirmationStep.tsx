@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -73,48 +74,53 @@ function ConfirmationStep() {
                     stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
                 />
             </View>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
-            <Text style={[styles.textLabelSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
-            <MenuItemWithTopDescription
-                description={translate('workspace.card.issueNewCard.cardholder')}
-                title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}
-                shouldShowRightIcon
-                onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
-            />
-            <MenuItemWithTopDescription
-                description={translate('workspace.card.issueNewCard.cardType')}
-                title={data?.cardType ? translate(`workspace.card.issueNewCard.${data?.cardType}Card`) : ''}
-                shouldShowRightIcon
-                onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
-            />
-            <MenuItemWithTopDescription
-                description={translate('workspace.card.issueNewCard.limit')}
-                title={CurrencyUtils.convertToShortDisplayString(data?.limit)}
-                shouldShowRightIcon
-                onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
-            />
-            <MenuItemWithTopDescription
-                description={translate('workspace.card.issueNewCard.limitType')}
-                title={translationForLimitType ? translate(translationForLimitType) : ''}
-                shouldShowRightIcon
-                onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
-            />
-            <MenuItemWithTopDescription
-                description={translate('workspace.card.issueNewCard.name')}
-                title={data?.cardTitle}
-                shouldShowRightIcon
-                onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
-            />
-            <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    large
-                    style={[styles.w100]}
-                    onPress={submit}
-                    text={translate('workspace.card.issueCard')}
+            <ScrollView
+                style={styles.pt0}
+                contentContainerStyle={styles.flexGrow1}
+            >
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
+                <Text style={[styles.textLabelSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>
+                <MenuItemWithTopDescription
+                    description={translate('workspace.card.issueNewCard.cardholder')}
+                    title={PersonalDetailsUtils.getPersonalDetailByEmail(data?.assigneeEmail ?? '')?.displayName}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE)}
                 />
-            </View>
+                <MenuItemWithTopDescription
+                    description={translate('workspace.card.issueNewCard.cardType')}
+                    title={data?.cardType ? translate(`workspace.card.issueNewCard.${data?.cardType}Card`) : ''}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE)}
+                />
+                <MenuItemWithTopDescription
+                    description={translate('workspace.card.issueNewCard.limit')}
+                    title={CurrencyUtils.convertToShortDisplayString(data?.limit)}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
+                />
+                <MenuItemWithTopDescription
+                    description={translate('workspace.card.issueNewCard.limitType')}
+                    title={translationForLimitType ? translate(translationForLimitType) : ''}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
+                />
+                <MenuItemWithTopDescription
+                    description={translate('workspace.card.issueNewCard.name')}
+                    title={data?.cardTitle}
+                    shouldShowRightIcon
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.CARD_NAME)}
+                />
+                <View style={[styles.mh5, styles.pb5, styles.mt3]}>
+                    <Button
+                        isDisabled={isOffline}
+                        success
+                        large
+                        style={[styles.w100]}
+                        onPress={submit}
+                        text={translate('workspace.card.issueCard')}
+                    />
+                </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
