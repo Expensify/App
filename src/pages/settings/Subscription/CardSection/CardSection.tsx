@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -36,25 +36,6 @@ function CardSection() {
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
     const BillingBanner = <PreTrialBillingBanner />;
-
-    useEffect(() => {
-        Onyx.merge(ONYXKEYS.FUND_LIST, [
-            {
-                accountData: {
-                    cardMonth: 11,
-
-                    cardNumber: '1234',
-
-                    cardYear: 2026,
-
-                    currency: 'USD',
-
-                    addressName: 'John Doe',
-                },
-                isDefault: true,
-            },
-        ]);
-    }, [fundList]);
 
     return (
         <Section

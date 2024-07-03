@@ -21,7 +21,7 @@ function RequestEarlyCancellationPage() {
     const styles = useThemeStyles();
 
     // TODO: replace this with NVP_PRIVATE_CANCELLATION_DETAILS.cancellationType
-    const [cancellationType, setCancellationType] = useState<CancellationType>(CONST.CANCELLATION_TYPE.MANUAL);
+    const [cancellationType, setCancellationType] = useState<CancellationType>();
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleSubmit = (cancellationReason: FeedbackSurveyOptionID, cancellationNote = '') => {
