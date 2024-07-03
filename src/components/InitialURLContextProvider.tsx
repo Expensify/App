@@ -32,3 +32,4 @@ InitialURLContextProvider.displayName = 'InitialURLContextProvider';
 
 export default InitialURLContextProvider;
 export {InitialURLContext};
+]

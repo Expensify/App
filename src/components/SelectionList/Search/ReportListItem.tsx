@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -54,6 +55,7 @@ function ReportListItem<TItem extends ListItem>({
     showTooltip,
     isDisabled,
     canSelectMultiple,
+    onCheckboxPress,
     onSelectRow,
     onDismissError,
     onFocus,
@@ -104,6 +106,7 @@ function ReportListItem<TItem extends ListItem>({
                 showTooltip={showTooltip}
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
+                onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
                 onSelectRow={() => openReportInRHP(transactionItem)}
                 onDismissError={onDismissError}
                 onFocus={onFocus}
@@ -146,10 +149,20 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, isLargeScreenWidth && styles.mr4]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
-                            <View style={[styles.flexShrink1]}>
+                            {canSelectMultiple && (
+                                <Checkbox
+                                    onPress={() => onCheckboxPress?.(item)}
+                                    isChecked={item.isSelected}
+                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                                    disabled={!!isDisabled || item.isDisabledCheckbox}
+                                    accessibilityLabel={item.text ?? ''}
+                                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                                />
+                            )}
+                            <View style={[styles.flexShrink1, isLargeScreenWidth && styles.ph4]}>
                                 <Text style={[styles.reportListItemTitle]}>{reportItem?.reportName}</Text>
                                 <Text style={[styles.textMicroSupporting]}>{`${reportItem.transactions.length} ${translate('search.groupedExpenses')}`}</Text>
                             </View>
@@ -171,6 +184,7 @@ function ReportListItem<TItem extends ListItem>({
                                     action={reportItem.action}
                                     searchHash={searchHash}
                                     goToItem={handleOnButtonPress}
+                                    isSelected={item.isSelected}
                                 />
                             </View>
                         </>
@@ -184,9 +198,13 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={() => {
                             openReportInRHP(transaction);
                         }}
+                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         showItemHeaderOnNarrowLayout={false}
                         containerStyle={styles.mt3}
                         isChildListItem
+                        isDisabled={!!isDisabled}
+                        canSelectMultiple={!!canSelectMultiple}
+                        isButtonSelected={item.isSelected}
                     />
                 ))}
             </View>

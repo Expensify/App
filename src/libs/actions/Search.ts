@@ -15,7 +15,7 @@ Onyx.connect({
     },
 });
 
-function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
+function getOnyxLoadingData(hash: number): {optimisticData: OnyxUpdate[]; finallyData: OnyxUpdate[]} {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -39,6 +39,12 @@ function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParam
             },
         },
     ];
+
+    return {optimisticData, finallyData};
+}
+
+function search({hash, query, policyIDs, offset, sortBy, sortOrder}: SearchParams) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
 
     API.read(READ_COMMANDS.SEARCH, {hash, query, offset, policyIDs, sortBy, sortOrder}, {optimisticData, finallyData});
 }
@@ -110,3 +116,19 @@ function unholdMoneyRequestOnSearch(searchHash: number, transactionIDList: strin
 }
 
 export {search, createTransactionThread, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};
+function holdMoneyRequestOnSearch(hash: number, transactionIDList: string[], comment: string) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList, comment}, {optimisticData, finallyData});
+}
+
+function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+}
+
+function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
+}
+
+export {search, createTransactionThread, deleteMoneyRequestOnSearch, holdMoneyRequestOnSearch, unholdMoneyRequestOnSearch};

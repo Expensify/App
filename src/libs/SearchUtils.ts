@@ -1,7 +1,7 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -82,8 +82,13 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
 
 const currentYear = new Date().getFullYear();
 
-function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+function isReportListItemType(item: ListItem): item is ReportListItemType {
     return 'transactions' in item;
+}
+
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
 }
 
 function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
@@ -142,9 +147,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 date,
                 shouldShowMerchant,
                 searchHash: context.searchHash,
-                shouldShowCategory: metadata?.columnsToShow.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow.shouldShowTaxColumn,
+                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
+                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
+                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
@@ -190,9 +195,9 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 date,
                 shouldShowMerchant,
                 searchHash: context.searchHash,
-                shouldShowCategory: metadata?.columnsToShow.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow.shouldShowTaxColumn,
+                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
+                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
+                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
@@ -284,5 +289,5 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItemType, isTransactionListItemType};
 export type {SearchColumnType, SortOrder, SearchDataContext};

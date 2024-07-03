@@ -29,10 +29,11 @@ type ActionCellProps = {
     transactionID?: string;
     searchHash: number;
     isLargeScreenWidth?: boolean;
+    isSelected?: boolean;
     goToItem: () => void;
 };
 
-function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, searchHash, isLargeScreenWidth = true, goToItem}: ActionCellProps) {
+function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, searchHash, isLargeScreenWidth = true, isSelected = false, goToItem}: ActionCellProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -94,6 +95,7 @@ function ActionCell({action = CONST.SEARCH.ACTION_TYPES.VIEW, transactionID, sea
             small
             pressOnEnter
             style={[styles.w100]}
+            innerStyles={isSelected ? styles.buttonDefaultHovered : {}}
         />
     );
 }
