@@ -364,6 +364,12 @@ const CONST = {
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
+<<<<<<< HEAD
+=======
+        NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
+        COMMENT_LINKING: 'commentLinking',
+>>>>>>> 292d7b2c (Merge pull request #44780 from Expensify/jasper-commentLinkingBeta)
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
