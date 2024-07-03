@@ -393,6 +393,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         selectedEmployees,
         session?.accountID,
         translate,
+        styles.cursorDefault,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
