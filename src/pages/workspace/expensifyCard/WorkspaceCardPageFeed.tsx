@@ -14,7 +14,7 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-const tripsFeatures: FeatureListItem[] = [
+const expensifyCardFeatures: FeatureListItem[] = [
     {
         icon: Illustrations.MoneyReceipts,
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack',
@@ -51,7 +51,7 @@ function WorkspaceCardPageFeed({route}: WorkspaceCardPageFeedProps) {
             >
                 <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <FeatureList
-                        menuItems={tripsFeatures}
+                        menuItems={expensifyCardFeatures}
                         title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
                         subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
                         ctaText={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
