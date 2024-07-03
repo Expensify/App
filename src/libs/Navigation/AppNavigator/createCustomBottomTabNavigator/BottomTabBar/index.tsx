@@ -17,7 +17,7 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';

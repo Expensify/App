@@ -783,7 +783,9 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                errorFields: null,
+                errorFields: {
+                    notFound: null,
+                },
             },
         },
         {
