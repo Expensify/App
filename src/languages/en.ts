@@ -2318,7 +2318,10 @@ export default {
                     },
                 },
                 customersOrJobs: {
-                    title: 'Customers / projects (jobs)',
+                    title: 'Customers / projects',
+                    subtitle: 'Choose how to handle NetSuite *customers* and *projects* in Expensify.',
+                    importCustomers: 'Import customers',
+                    importJobs: 'Import projects',
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {

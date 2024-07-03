@@ -59,7 +59,6 @@ function NetSuiteImportMappingPage({
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
-                
                 <View style={[styles.flexRow]}>
                     <RenderHTML
                         html={`<comment><muted-text>${parser.replace(

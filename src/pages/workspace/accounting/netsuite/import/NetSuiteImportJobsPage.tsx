@@ -1,15 +1,13 @@
 import {ExpensiMark} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {SelectorType} from '@components/SelectionScreen';
-import SelectionScreen from '@components/SelectionScreen';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteCrossSubsidiaryCustomersConfiguration} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -18,106 +16,101 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 
 const parser = new ExpensiMark();
 
-type ImportListItem = SelectorType & {
-    value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
-};
-
-function NetSuiteImportJobsPage({
-    policy
-}: WithPolicyConnectionsProps) {
+function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const importField = 'locations';
 
-    const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
-    const importMappings = netsuiteConfig?.syncOptions?.mapping;
-
-    const importValue = importMappings?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-
-    const listFooterContent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.mt2, styles.mb4]}>
-                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
-            </View>
-        ),
-        [importField, importValue, styles.mb4, styles.mt2, styles.ph5, translate],
-    );
-
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.mt2, styles.mb4]}>
-                
-                    <View style={[styles.mb4]}>
-                        <ToggleSettingOptionRow
-                            title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
-                            isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
-                            switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
-                            onToggle={(isEnabled: boolean) => {
-                                updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
-                            }}
-                            pendingAction={netsuiteConfig?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
-                            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                            onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                        />
-                    </View>
-
-                <View style={[styles.flexRow]}>
-                    <RenderHTML
-                        html={`<comment><muted-text>${parser.replace(
-                            translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths),
-                        )}</muted-text></comment>`}
-                    />
-                </View>
-            </View>
-        ),
-        [styles.ph5, styles.mt2, styles.mb4, styles.flexRow, importField, translate, netsuiteConfig, policyID],
-    );
-
-    const inputOptions =  [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
-        
-
-    const inputSectionData: ImportListItem[] =
-        inputOptions.map((inputOption) => ({
-            text: translate(`workspace.netsuite.import.importTypes.${inputOption}.label`),
-            keyForList: inputOption,
-            isSelected: importValue === inputOption,
-            value: inputOption,
-            alternateText: translate(`workspace.netsuite.import.importTypes.${inputOption}.description`),
-        })) ?? [];
-
-    const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
-
-    const updateImportMapping = useCallback(
-        ({value}: ImportListItem) => {
-            if (value !== importValue) {
-                updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
-            }
-
-            Navigation.goBack();
-        },
-        [importField, importValue, policyID],
-    );
+    const config = policy?.connections?.netsuite?.options?.config;
+    const importMappings = config?.syncOptions?.mapping;
+    const importedValue = importMappings?.customers ?? importMappings?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
     return (
-        <SelectionScreen
-            policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <ConnectionLayout
             displayName={NetSuiteImportJobsPage.displayName}
-            sections={inputSectionData.length > 0 ? [{data: inputSectionData}] : []}
-            listItem={RadioListItem}
+            headerTitle="workspace.netsuite.import.customersOrJobs.title"
+            headerSubtitle={config?.subsidiary ?? ''}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2]}
+            titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            onSelectRow={(selection: SelectorType) => updateImportMapping(selection as ImportListItem)}
-            initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
-            headerContent={listHeaderComponent}
-            onBackButtonPress={() => Navigation.goBack()}
-            title={titleKey}
-            listFooterContent={listFooterContent}
-        />
+        >
+            <View style={[styles.ph5, styles.flexRow, styles.mb8]}>
+                <RenderHTML html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</muted-text></comment>`} />
+            </View>
+
+            <View style={[styles.ph5, styles.mb8]}>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
+                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                    switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
+                    onToggle={(isEnabled: boolean) => {
+                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                    }}
+                    pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                />
+            </View>
+
+            <View style={[styles.ph5, styles.mb8]}>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
+                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                    switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
+                    onToggle={(isEnabled: boolean) => {
+                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                    }}
+                    pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                />
+            </View>
+            <View style={[styles.ph5, styles.mb8]}>
+                <ToggleSettingOptionRow
+                    title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                    switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                    onToggle={(isEnabled: boolean) => {
+                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                    }}
+                    pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                />
+            </View>
+
+            <View style={[styles.mb4]}>
+                <OfflineWithFeedback
+                    errors={
+                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ??
+                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)
+                    }
+                    errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
+                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
+                    onClose={() => {
+                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
+                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
+                    }}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.common.displayedAs')}
+                        title={importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? translate(`workspace.netsuite.import.importTypes.${importedValue}.label`) : undefined}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS.getRoute(policyID));
+                        }}
+                        brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            </View>
+        </ConnectionLayout>
     );
 }
 

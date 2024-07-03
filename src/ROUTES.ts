@@ -971,8 +971,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/jobs/',
-        getRoute: (policyID: string) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/jobs` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/jobs` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',

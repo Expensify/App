@@ -536,6 +536,14 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry?: string) {
     return subsidiaryCountry === '_canada';
 }
 
+function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined): string | undefined {
+    const importMapping = policy?.connections?.netsuite?.options?.config?.syncOptions?.mapping;
+    if (!importMapping?.customers && !importMapping?.jobs) {
+        return undefined;
+    }
+    return 'Test';
+}
+
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
     if (!connection) {
         return undefined;
@@ -652,6 +660,7 @@ export {
     navigateWhenEnableFeature,
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
+    getCustomersOrJobsLabelNetSuite,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -1379,8 +1379,8 @@ const CONST = {
             CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
             MAPPING: {
                 CUSTOMERS: 'customers',
-                JOBS: 'jobs'
-            }
+                JOBS: 'jobs',
+            },
         },
     },
 
