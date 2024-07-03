@@ -106,17 +106,6 @@ function BaseVideoPlayer({
         }
     }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumber]);
 
-    const showControl = useCallback(() => {
-        if (!canToggleControlOnTap) {
-            return;
-        }
-        if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
-            return;
-        }
-        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
-        controlsOpacity.value = 1;
-    }, [canToggleControlOnTap, controlStatusState, controlsOpacity]);
-
     const hideControl = useCallback(
         () => (controlsOpacity.value = withTiming(0, {duration: 500}, () => runOnJS(setControlStatusState)(CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE))),
         [controlsOpacity],
@@ -134,6 +123,18 @@ function BaseVideoPlayer({
 
         debouncedHideControl();
     }, [isPlaying, debouncedHideControl, controlStatusState, canToggleControlOnTap]);
+
+    const showControl = useCallback(() => {
+        if (!canToggleControlOnTap) {
+            return;
+        }
+        if (controlStatusState === CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
+            debouncedHideControl();
+            return;
+        }
+        setControlStatusState(CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW);
+        controlsOpacity.value = 1;
+    }, [canToggleControlOnTap, controlStatusState, controlsOpacity, debouncedHideControl]);
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
