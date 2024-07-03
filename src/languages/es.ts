@@ -2000,6 +2000,7 @@ export default {
     workspace: {
         common: {
             card: 'Tarjetas',
+            expensifyCard: 'Tarjeta Expensify',
             workflows: 'Flujos de trabajo',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
@@ -2015,7 +2016,6 @@ export default {
             bills: 'Pagar facturas',
             invoices: 'Enviar facturas',
             travel: 'Viajes',
-            expensifyCard: 'Tarjeta Expensify',
             members: 'Miembros',
             accounting: 'Contabilidad',
             plan: 'Plan',
@@ -2325,6 +2325,22 @@ export default {
             noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+            import: {
+                expenseCategories: 'Categorías de gastos',
+                expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
+                importFields: {
+                    departments: 'Departamentos',
+                    classes: 'Clases',
+                    locations: 'Ubicaciones',
+                    customers: 'Clientes',
+                    jobs: 'Proyectos (trabajos)',
+                },
+                importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
+                importCustomFields: {
+                    customSegments: 'Segmentos/registros personalizado',
+                    customLists: 'Listas personalizado',
+                },
+            },
         },
         intacct: {
             sageIntacctSetup: 'Sage Intacct configuración',
@@ -2341,6 +2357,21 @@ export default {
             free: 'Gratis',
             control: 'Control',
             collect: 'Recolectar',
+        },
+        expensifyCard: {
+            issueCard: 'Emitir tarjeta',
+            name: 'Nombre',
+            lastFour: '4 últimos',
+            limit: 'Limite',
+            currentBalance: 'Saldo actual',
+            currentBalanceDescription:
+                'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
+            remainingLimit: 'Límite restante',
+            requestLimitIncrease: 'Solicitar aumento de límite',
+            remainingLimitDescription:
+                'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
+            cashBack: 'Reembolso',
+            cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
         },
         categories: {
             deleteCategories: 'Eliminar categorías',
@@ -2582,6 +2613,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
@@ -3059,6 +3091,12 @@ export default {
             },
         },
         groupedExpenses: 'gastos agrupados',
+        bulkActions: {
+            delete: 'Eliminar',
+            hold: 'Bloquear',
+            unhold: 'Desbloquear',
+            noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -3887,8 +3925,19 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma tu exactitud',
-        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
-            `Recibo obligatorio${params ? ` para importes sobre${params.formattedLimit ? ` ${params.formattedLimit}` : ''}${params.category ? ' el límite de la categoría' : ''}` : ''}`,
+        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+            let message = 'Recibo obligatorio';
+            if (formattedLimit ?? category) {
+                message += ' para importes sobre';
+                if (formattedLimit) {
+                    message += ` ${formattedLimit}`;
+                }
+                if (category) {
+                    message += ' el límite de la categoría';
+                }
+            }
+            return message;
+        },
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {
@@ -3963,6 +4012,9 @@ export default {
     },
     subscription: {
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
+        badge: {
+            freeTrial: ({numOfDays}) => `Prueba gratuita: ${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}`,
+        },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'Tu información de pago está desactualizada',
@@ -4018,7 +4070,11 @@ export default {
             preTrial: {
                 title: 'Iniciar una prueba gratuita',
                 subtitle: 'Para empezar, ',
-                subtitleLink: 'completa la lista de configuración aquí',
+                subtitleLink: 'completa la lista de configuración aquí.',
+            },
+            trialStarted: {
+                title: ({numOfDays}) => `Prueba gratuita: ¡${numOfDays === 1 ? `queda 1 día` : `quedan ${numOfDays} días`}!`,
+                subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
         },
         cardSection: {

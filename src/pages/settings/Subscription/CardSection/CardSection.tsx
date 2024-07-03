@@ -14,12 +14,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
+import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import CardSectionUtils from './utils';
@@ -54,6 +56,8 @@ function CardSection() {
     let BillingBanner: React.ReactNode | undefined;
     if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
         BillingBanner = <PreTrialBillingBanner />;
+    } else if (SubscriptionUtils.isUserOnFreeTrial()) {
+        BillingBanner = <TrialStartedBillingBanner />;
     } else if (billingStatus) {
         BillingBanner = (
             <SubscriptionBillingBanner
