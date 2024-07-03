@@ -148,6 +148,7 @@ type OptimisticExpenseReport = Pick<
     | 'notificationPreference'
     | 'parentReportID'
     | 'lastVisibleActionCreated'
+    | 'parentReportActionID'
 >;
 
 type OptimisticIOUReportAction = Pick<
@@ -4721,9 +4722,9 @@ function buildOptimisticGroupChatReport(
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
  * @param [created] - Action created time
  */
-function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime()): OptimisticCreatedReportAction {
+function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime(), reportActionID?: string): OptimisticCreatedReportAction {
     return {
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: reportActionID || NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
@@ -5236,7 +5237,7 @@ function buildOptimisticMoneyRequestEntities(
     existingTransactionThreadReportID?: string,
     linkedTrackedExpenseReportAction?: ReportAction,
 ): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
-    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
+    const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, undefined, iouReport.parentReportActionID);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
     const iouActionCreationTime = DateUtils.getDBTime();
