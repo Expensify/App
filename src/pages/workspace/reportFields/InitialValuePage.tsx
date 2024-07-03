@@ -49,6 +49,11 @@ function InitialValuePage({
         [policyID],
     );
 
+    const submitListValueUpdate = (value: string) => {
+        console.debug('submitListValueUpdate', policyID, reportFieldID, value);
+        Navigation.goBack();
+    };
+
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
             const {name, type, initialValue: formInitialValue} = values;
@@ -106,6 +111,7 @@ function InitialValuePage({
                     validate={validateForm}
                     style={styles.flex1}
                     enabledWhenOffline
+                    isSubmitButtonVisible={isTextFieldType}
                     submitButtonStyles={styles.mh5}
                 >
                     {isTextFieldType && (
@@ -130,11 +136,7 @@ function InitialValuePage({
                             listValues={reportField.values}
                             disabledOptions={reportField.disabledOptions}
                             value={initialValue}
-                            onValueChange={(value) => {
-                                setInitialValue(value as string);
-
-                                Navigation.goBack();
-                            }}
+                            onValueChange={(value) => submitListValueUpdate(value as string)}
                         />
                     )}
                 </FormProvider>
