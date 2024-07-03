@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
@@ -65,6 +65,20 @@ function FormWrapper({
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
+    const [willKeyboardShow, setWillKeyboardShow] = useState(false);
+    useEffect(() => {
+        const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (e) => {
+            setWillKeyboardShow(true);
+        });
+        const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
+            setWillKeyboardShow(false);
+        });
+
+        return () => {
+            keyboardWillShowListener.remove();
+            keyboardWillHideListener.remove();
+        };
+    }, []);
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
@@ -114,7 +128,13 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles, safeAreaPaddingBottomStyle.paddingBottom ? styles.pb5 : {}]}
+                        containerStyles={[
+                            styles.mh0,
+                            styles.mt5,
+                            submitFlexEnabled ? styles.flex1 : {},
+                            submitButtonStyles,
+                            safeAreaPaddingBottomStyle.paddingBottom && !willKeyboardShow ? styles.pb5 : {},
+                        ]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
@@ -146,6 +166,7 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
+            willKeyboardShow,
         ],
     );
 
