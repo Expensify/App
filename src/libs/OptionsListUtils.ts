@@ -2501,7 +2501,9 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 if (item.subtitle) {
                     values.push(item.subtitle);
                 }
-            } else if (!item.isChatRoom) {
+            }
+
+            if (!item.isChatRoom) {
                 const participantNames = getParticipantNames(item.participantsList ?? []);
                 values = values.concat(Array.from(participantNames));
                 values = values.concat(getParticipantsLoginsArray(item));
