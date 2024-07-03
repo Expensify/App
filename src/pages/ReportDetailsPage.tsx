@@ -22,7 +22,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
@@ -80,10 +79,21 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
+
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
-    const {reportActions} = usePaginatedReportActions(report.reportID);
+    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? '-1'}`, {
+        canEvict: false,
+        selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
+    });
+
+    const reportActions = useMemo(() => {
+        if (!sortedAllReportActions.length) {
+            return [];
+        }
+        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions);
+    }, [sortedAllReportActions]);
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -109,12 +119,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
-    const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
+    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+    const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
@@ -149,8 +162,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
-    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
-
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -181,8 +192,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
         canModifyTask;
-    const canDeleteRequest =
-        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     useEffect(() => {
