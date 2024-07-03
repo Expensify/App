@@ -41,7 +41,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                 <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-                        PolicyAction.enablePolicyTaxes(policyID, false);                        
+                        PolicyAction.enablePolicyTaxes(policyID, false);
                         removePolicyConnection(policyID, integrationToDisconnect);
                         Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
                         setIsDisconnectModalOpen(false);
