@@ -88,7 +88,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hash, isOffline]);
 
-    const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const isLoadingItems = !isOffline && searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
     const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
