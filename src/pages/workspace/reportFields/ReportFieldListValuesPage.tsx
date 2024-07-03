@@ -42,13 +42,13 @@ type ValueListItem = ListItem & {
     orderWeight?: number;
 };
 
-type WorkspaceListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
+type ReportFieldListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
-function WorkspaceListValuesPage({
+function ReportFieldListValuesPage({
     route: {
         params: {policyID},
     },
-}: WorkspaceListValuesPageProps) {
+}: ReportFieldListValuesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -225,7 +225,7 @@ function WorkspaceListValuesPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={WorkspaceListValuesPage.displayName}
+                testID={ReportFieldListValuesPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -276,6 +276,6 @@ function WorkspaceListValuesPage({
     );
 }
 
-WorkspaceListValuesPage.displayName = 'WorkspaceListValuesPage';
+ReportFieldListValuesPage.displayName = 'ReportFieldListValuesPage';
 
-export default WorkspaceListValuesPage;
+export default ReportFieldListValuesPage;
