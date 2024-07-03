@@ -3,11 +3,12 @@ import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
-import useActiveRoute from '@hooks/useActiveBottomTabRoute';
+import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -41,6 +42,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const navigation = useNavigation();
+    const HOME_SCREENS = [SCREENS.HOME, SCREENS.REPORT];
     const {activeWorkspaceID: contextActiveWorkspaceID} = useActiveWorkspace();
     const activeWorkspaceID = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.ACTIVE_WORKSPACE_ID) ?? contextActiveWorkspaceID;
 
@@ -70,10 +72,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    /**
-     * Use active route context in web because useNavigationState events aren't being fired immediately on tab change.
-     */
-    const activeRoute = useActiveRoute();
+    const activeBottomTabRoute = useActiveBottomTabRoute();
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     const navigateToChats = useCallback(() => {
@@ -97,7 +96,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.Inbox}
-                            fill={isHomeTabName(activeRoute?.name) ? theme.iconMenu : theme.icon}
+                            fill={isHomeTabName(activeBottomTabRoute?.name as TupleToUnion<typeof HOME_SCREENS>) ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -110,7 +109,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        if (isSearchTabName(activeRoute?.name)) {
+                        if (isSearchTabName(activeBottomTabRoute?.name)) {
                             return;
                         }
                         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
@@ -123,14 +122,14 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={isSearchTabName(activeRoute?.name) ? theme.iconMenu : theme.icon}
+                            fill={isSearchTabName(activeBottomTabRoute?.name) ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabAvatar isSelected={isSettingTabName(activeRoute?.name)} />
+            <BottomTabAvatar isSelected={isSettingTabName(activeBottomTabRoute?.name)} />
             <View style={[styles.flex1, styles.bottomTabBarItem]}>
                 <BottomTabBarFloatingActionButton />
             </View>

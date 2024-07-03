@@ -1,8 +1,9 @@
 import cloneDeep from 'lodash/cloneDeep';
+import type {TupleToUnion} from 'type-fest';
+import {flattenObject} from '@src/languages/translations';
 import SCREENS from '@src/SCREENS';
-import {flattenObject} from './flattenObject';
 import getTopmostBottomTabRoute from './Navigation/getTopmostBottomTabRoute';
-import type {BottomTabScreenName, CentralPaneName, RootStackParamList, State} from './Navigation/types';
+import type {CentralPaneName, RootStackParamList, State} from './Navigation/types';
 
 const CENTRAL_PANE_SCREEN_NAMES = new Set([
     SCREENS.SETTINGS.WORKSPACES,
@@ -46,11 +47,11 @@ const SEARCH_TAB_SCREEN_NAMES = new Set(SEARCH_SCREENS);
 
 const HOME_SCREEN_NAMES = new Set(HOME_SCREENS);
 
-function isBottomTabName(screen: string | undefined): screen is BottomTabScreenName {
+function isBottomTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefined) {
     if (!screen) {
         return false;
     }
-    return BOTTOM_TAB_SCREEN_NAMES.has(screen as any);
+    return BOTTOM_TAB_SCREEN_NAMES.has(screen);
 }
 
 function isSettingTabName(screen: string | undefined): screen is any {
@@ -60,18 +61,25 @@ function isSettingTabName(screen: string | undefined): screen is any {
     return SETTINGS_TAB_SCREEN_NAMES.has(screen as any);
 }
 
-function isSearchTabName(screen: string | undefined): screen is (typeof SEARCH_SCREENS)[0] {
++function isSettingTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefined) {
     if (!screen) {
         return false;
     }
-    return SEARCH_TAB_SCREEN_NAMES.has(screen as (typeof SEARCH_SCREENS)[0]);
+    return SETTINGS_TAB_SCREEN_NAMES.has(screen);
+};
+
+function isSearchTabName(screen: TupleToUnion<typeof SEARCH_SCREENS> | undefined) {
+    if (!screen) {
+        return false;
+    }
+    return SEARCH_TAB_SCREEN_NAMES.has(screen);
 }
 
-function isHomeTabName(screen: string | undefined): screen is (typeof HOME_SCREENS)[0] {
+function isHomeTabName(screen: TupleToUnion<typeof HOME_SCREENS> | undefined) {
     if (!screen) {
         return false;
     }
-    return HOME_SCREEN_NAMES.has(screen as (typeof HOME_SCREENS)[0]);
+    return HOME_SCREEN_NAMES.has(screen);
 }
 
 export {isCentralPaneName, isBottomTabName, isSearchTabName, isSettingTabName, isHomeTabName, removePolicyIDParamFromState};
