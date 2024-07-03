@@ -240,5 +240,3 @@ export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSu
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';
-export type {default as HoldRequestOnSearchParams} from './HoldRequestOnSearchParams';
-export type {default as UnholdRequestOnSearchParams} from './UnholdRequestOnSearchParams';
