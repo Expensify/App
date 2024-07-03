@@ -2,8 +2,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {findNodeHandle, InteractionManager, Keyboard, View} from 'react-native';
-import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, TextInputScrollEventData} from 'react-native';
+import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useOnyx} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
@@ -101,7 +100,6 @@ function ReportActionItemMessageEdit(
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const isInitialMount = useRef(true);
-
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
         if (draftMessage) {
