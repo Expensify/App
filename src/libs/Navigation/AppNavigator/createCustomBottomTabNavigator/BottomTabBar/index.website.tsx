@@ -7,7 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
-import useActiveRoute from '@hooks/useActiveRoute';
+import useActiveRoute from '@hooks/useActiveBottomTabRoute';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -18,7 +18,7 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
-import {isCentralPaneName} from '@libs/NavigationUtils';
+import {isCentralPaneName, isHomeTabName, isSearchTabName, isSettingTabName} from '@libs/NavigationUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
@@ -74,7 +74,6 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
      * Use active route context in web because useNavigationState events aren't being fired immediately on tab change.
      */
     const activeRoute = useActiveRoute();
-
     const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     const navigateToChats = useCallback(() => {
@@ -98,7 +97,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.Inbox}
-                            fill={activeRoute?.name.includes('Report') || !activeRoute?.name ? theme.iconMenu : theme.icon}
+                            fill={isHomeTabName(activeRoute?.name) ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -111,7 +110,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        if (currentTabName === SCREENS.SEARCH.BOTTOM_TAB || currentTabName === SCREENS.SEARCH.CENTRAL_PANE) {
+                        if (isSearchTabName(activeRoute?.name)) {
                             return;
                         }
                         interceptAnonymousUser(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL)));
@@ -124,14 +123,14 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={activeRoute?.name.includes('Search') ? theme.iconMenu : theme.icon}
+                            fill={isSearchTabName(activeRoute?.name) ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <BottomTabAvatar isSelected={activeRoute?.name.includes('Settings')} />
+            <BottomTabAvatar isSelected={isSettingTabName(activeRoute?.name)} />
             <View style={[styles.flex1, styles.bottomTabBarItem]}>
                 <BottomTabBarFloatingActionButton />
             </View>

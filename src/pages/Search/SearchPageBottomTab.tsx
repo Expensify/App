@@ -3,7 +3,7 @@ import React, {useMemo} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
-import useActiveRoute from '@hooks/useActiveRoute';
+import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -27,7 +27,7 @@ const defaultSearchProps = {
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const activeRoute = useActiveRoute();
+    const activeRoute = useActiveBottomTabRoute();
     const styles = useThemeStyles();
 
     const {

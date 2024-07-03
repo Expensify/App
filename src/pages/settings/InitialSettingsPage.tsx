@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {NativeModules, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+// eslint-disable-next-line no-restricted-imports
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import ConfirmModal from '@components/ConfirmModal';
 import CurrentUserPersonalDetailsSkeletonView from '@components/CurrentUserPersonalDetailsSkeletonView';
@@ -20,7 +20,7 @@ import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveRoute from '@hooks/useActiveRoute';
+import useActiveBottomTabRoute from '@hooks/useActiveBottomTabRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -105,7 +105,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const waitForNavigate = useWaitForNavigation();
     const popoverAnchor = useRef(null);
     const {translate, formatPhoneNumber} = useLocalize();
-    const activeRoute = useActiveRoute();
+    const activeRoute = useActiveBottomTabRoute();
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
