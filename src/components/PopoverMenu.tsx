@@ -225,6 +225,7 @@ function PopoverMenu({
                             iconFill={item.iconFill}
                             contentFit={item.contentFit}
                             title={item.text}
+                            titleStyle={item.titleStyle}
                             shouldCheckActionAllowedOnPress={false}
                             description={item.description}
                             numberOfLinesDescription={item.numberOfLinesDescription}
@@ -249,6 +250,8 @@ function PopoverMenu({
                             tooltipShiftVertical={item.tooltipShiftVertical}
                             tooltipWrapperStyle={item.tooltipWrapperStyle}
                             renderTooltipContent={item.renderTooltipContent}
+                            numberOfLinesTitle={item.numberOfLinesTitle}
+                            interactive={item.interactive}
                         />
                     ))}
                 </View>
