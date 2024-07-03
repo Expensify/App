@@ -140,12 +140,10 @@ function IOURequestStepConfirmation({
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
-                const participantAccountID = participant.accountID ?? -1;
-
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+                return participant.accountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
@@ -553,9 +551,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={
-                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) && !isMovingTransactionFromTrackExpense
-                        }
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {

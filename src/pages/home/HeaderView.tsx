@@ -2,6 +2,7 @@ import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
@@ -27,6 +28,7 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
@@ -103,7 +105,7 @@ function HeaderView({
     const isTaskReport = ReportUtils.isTaskReport(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report.parentReportID ? parentReport : report;
     // Use sorted display names for the title for group chats on native small screen widths
-    const title = ReportUtils.getReportName(reportHeaderData);
+    const title = ReportUtils.getReportName(reportHeaderData, undefined, parentReportAction);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.isConciergeChatReport(report);
@@ -346,6 +348,12 @@ function HeaderView({
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
+                                    {ReportUtils.isChatUsedForOnboarding(report) && SubscriptionUtils.isUserOnFreeTrial() && (
+                                        <Badge
+                                            success
+                                            text={translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()})}
+                                        />
+                                    )}
                                     {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {canJoin && !shouldUseNarrowLayout && joinButton}
                                     {shouldShowThreeDotsButton && (
