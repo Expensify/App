@@ -70,7 +70,11 @@ function generateFieldID(name: string) {
 /**
  * Gets the initial value for a report field.
  */
-function getReportFieldInitialValue(reportField: PolicyReportField): string {
+function getReportFieldInitialValue(reportField: PolicyReportField | null): string {
+    if (!reportField) {
+        return '';
+    }
+
     if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST) {
         return reportField.defaultValue ?? '';
     }

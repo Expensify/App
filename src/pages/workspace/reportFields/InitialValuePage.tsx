@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -38,6 +39,8 @@ function InitialValuePage({
     const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
 
+    const [initialValue, setInitialValue] = useState(getReportFieldInitialValue(reportField));
+
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             console.debug('submitForm', policyID, values);
@@ -48,7 +51,7 @@ function InitialValuePage({
 
     const validateForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {name, type, initialValue} = values;
+            const {name, type, initialValue: formInitialValue} = values;
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
             if (!ValidationUtils.isRequiredFulfilled(name)) {
@@ -64,7 +67,7 @@ function InitialValuePage({
                 );
             }
 
-            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(initialValue)) {
+            if (type === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength > 0 && !ValidationUtils.isRequiredFulfilled(formInitialValue)) {
                 errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.reportFieldInitialValueRequiredError');
             }
 
@@ -107,15 +110,17 @@ function InitialValuePage({
                 >
                     {isTextFieldType && (
                         <InputWrapper
+                            containerStyles={styles.mh5}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.INITIAL_VALUE}
                             label={translate('common.initialValue')}
                             accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
                             maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                             multiline={false}
-                            containerStyles={styles.mh5}
+                            value={initialValue}
                             role={CONST.ROLE.PRESENTATION}
                             ref={inputCallbackRef}
+                            onChangeText={setInitialValue}
                         />
                     )}
                     {isListFieldType && (
@@ -124,7 +129,12 @@ function InitialValuePage({
                             inputID={INPUT_IDS.INITIAL_VALUE}
                             listValues={reportField.values}
                             disabledOptions={reportField.disabledOptions}
-                            value={reportField.defaultValue}
+                            value={initialValue}
+                            onValueChange={(value) => {
+                                setInitialValue(value as string);
+
+                                Navigation.goBack();
+                            }}
                         />
                     )}
                 </FormProvider>
