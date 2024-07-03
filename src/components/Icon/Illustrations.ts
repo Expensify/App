@@ -195,5 +195,5 @@ export {
     CheckmarkCircle,
     CreditCardEyes,
     LockClosedOrange,
-    EmptyStateRecords
+    EmptyStateRecords,
 };

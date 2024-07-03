@@ -2328,6 +2328,12 @@ export default {
                         helpLink:
                             '[View detailed instructions](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments) on configuring custom segements/records.',
                         emptyTitle: 'Add a custom segment or custom record',
+                        fields: {
+                            segmentName: 'Name',
+                            internalID: 'Internal ID',
+                            scriptID: 'Script ID',
+                            mapping: 'Displayed as',
+                        },
                     },
                     customLists: {
                         title: 'Custom lists',
@@ -2336,6 +2342,12 @@ export default {
                         helpLink:
                             '[View detailed instructions](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists) on configuring custom lists.',
                         emptyTitle: 'Add a custom list',
+                        fields: {
+                            listName: 'Name',
+                            internalID: 'Internal ID',
+                            transactionFieldID: 'Transaction field ID',
+                            mapping: 'Displayed as',
+                        },
                     },
                 },
                 importTypes: {

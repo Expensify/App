@@ -11,10 +11,10 @@ import RenderHTML from '@components/RenderHTML';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 const parser = new ExpensiMark();
@@ -82,6 +82,7 @@ function NetSuiteImportCustomFieldPage({
             <View>
                 {data.map((record) => (
                     <MenuItemWithTopDescription
+                        key={record.internalID}
                         description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                         shouldShowRightIcon
                         title={'listName' in record ? record.listName : record.segmentName}

@@ -1371,6 +1371,8 @@ const CONST = {
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        CUSTOM_SEGMENT_FIELDS: ['segmentName', 'internalID', 'scriptID', 'mapping'],
+        CUSTOM_LIST_FIELDS: ['listName', 'internalID', 'transactionFieldID', 'mapping'],
         SYNC_OPTIONS: {
             SYNC_TAX: 'syncTax',
             CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
