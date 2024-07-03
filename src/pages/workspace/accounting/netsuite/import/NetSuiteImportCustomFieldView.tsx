@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -46,9 +47,16 @@ function NetSuiteImportCustomFieldView({
     const fieldList = customRecord && 'segmentName' in customRecord ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
 
     const removeRecord = useCallback(() => {
-        const filteredRecords = allRecords.filter((record) => record.internalID !== internalID);
+        if (customRecord) {
+            const filteredRecords = allRecords.filter((record) => record.internalID !== internalID);
+            if ('segmentName' in customRecord) {
+                updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
+            } else {
+                updateNetSuiteCustomLists(policyID, filteredRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
+            }
+        }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, importCustomField, internalID, policyID]);
+    }, [allRecords, customRecord, importCustomField, internalID, policyID]);
 
     return (
         <ConnectionLayout
