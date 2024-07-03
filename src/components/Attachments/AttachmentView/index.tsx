@@ -150,21 +150,17 @@ function AttachmentView({
         }
     };
 
-
     useEffect(() => {
         setIsCalculatingDimension(true);
         isFileHaveDimension(file)
             .then(isDimensionAvailable => {
                 const isHighResolution = (file && isDimensionAvailable && ((file?.height ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && (file?.width ?? 0) > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD)) ?? false;
                 setIsHighResolution(isHighResolution);
-                setIsCalculatingDimension(false);
             })
-            .catch(error => {
-                console.error('Failed to get image resolution:', error);
+            .finally(()=>{
                 setIsCalculatingDimension(false);
             });
     }, [file]);
-    
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image

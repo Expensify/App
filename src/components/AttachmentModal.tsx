@@ -65,9 +65,7 @@ type ImagePickerResponse = {
     width?: number;
 };
 
-type FileObject = Partial<File | ImagePickerResponse>;
-
-// type FileObject = Partial<File | ImagePickerResponse> & Partial <ImagePickerResponse>;
+type FileObject = Partial<File | ImagePickerResponse> & Partial <ImagePickerResponse>;
 
 type ChildrenProps = {
     displayFileInModal: (data: FileObject) => void;
