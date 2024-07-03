@@ -81,6 +81,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         onToggle={(isEnabled: boolean) => {
                             updateNetSuiteSyncTaxConfiguration(policyID, isEnabled);
                         }}
+                        pendingAction={config?.syncOptions.pendingFields?.syncTax}
                         errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
                         onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX)}
                     />
