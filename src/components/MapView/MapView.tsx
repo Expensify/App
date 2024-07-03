@@ -140,7 +140,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         useEffect(() => {
             setAccessToken(accessToken).then((token) => {
-                if(!token) {
+                if (!token) {
                     return;
                 }
                 setIsAccessTokenSet(true);
