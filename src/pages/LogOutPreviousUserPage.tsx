@@ -33,7 +33,7 @@ type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & StackScreen
 // This component should not do any other navigation as that handled in App.setUpPoliciesAndNavigate
 function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPreviousUserPageProps) {
     const initialURL = useContext(InitialURLContext);
-    const {navigateToExitUrl} = useHybridAppMiddleware();
+    const {handleTransition} = useHybridAppMiddleware();
 
     useEffect(() => {
         const sessionEmail = session?.email;
@@ -83,8 +83,15 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
                 // remove this screen and navigate to exit route
                 const exitUrl = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : exitTo;
                 Navigation.goBack();
-                navigateToExitUrl(exitUrl);
+                handleTransition(exitUrl);
             });
+            return;
+        }
+
+        // We need to handle case where exitTo is not defined or exit === ROUTES.WORKSPACE_NEW
+        // NewDot on HybridApp is closed when isLoggingInAsNewUser == true, so we don't include this scenario here.
+        if (!isAccountLoading && !isLoggingInAsNewUser) {
+            handleTransition();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialURL, isAccountLoading]);

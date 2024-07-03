@@ -4,8 +4,8 @@ import {HybridAppMiddlewareContext} from '@components/HybridAppMiddleware';
 type SplashScreenHiddenContextType = {isSplashHidden: boolean};
 
 export default function useHybridAppMiddleware() {
-    const {navigateToExitUrl, showSplashScreenOnNextStart} = useContext(HybridAppMiddlewareContext);
-    return {navigateToExitUrl, showSplashScreenOnNextStart};
+    const {handleTransition, showSplashScreenOnNextStart} = useContext(HybridAppMiddlewareContext);
+    return {handleTransition, showSplashScreenOnNextStart};
 }
 
 export type {SplashScreenHiddenContextType};

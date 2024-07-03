@@ -16,11 +16,11 @@ type HybridAppMiddlewareProps = {
 };
 
 type HybridAppMiddlewareContextType = {
-    navigateToExitUrl: (exitUrl: Route) => void;
+    handleTransition: (route?: Route) => void;
     showSplashScreenOnNextStart: () => void;
 };
 const HybridAppMiddlewareContext = React.createContext<HybridAppMiddlewareContextType>({
-    navigateToExitUrl: () => {},
+    handleTransition: () => {},
     showSplashScreenOnNextStart: () => {},
 });
 
@@ -37,13 +37,16 @@ function HybridAppMiddleware(props: HybridAppMiddlewareProps) {
     /*
      * Handles navigation during transition from OldDot. For ordinary NewDot app it is just pure navigation.
      */
-    const navigateToExitUrl = useCallback((exitUrl: Route) => {
+    const handleTransition = useCallback((route?: Route) => {
         if (NativeModules.HybridAppModule) {
             setStartedTransition(true);
-            Log.info(`[HybridApp] Started transition to ${exitUrl}`, true);
+            Log.info(`[HybridApp] Started transition`, true, {route});
         }
 
-        Navigation.navigate(exitUrl);
+        if (!route) {
+            return;
+        }
+        Navigation.navigate(route);
     }, []);
 
     /**
@@ -92,10 +95,10 @@ function HybridAppMiddleware(props: HybridAppMiddlewareProps) {
 
     const contextValue = useMemo(
         () => ({
-            navigateToExitUrl,
+            handleTransition,
             showSplashScreenOnNextStart,
         }),
-        [navigateToExitUrl, showSplashScreenOnNextStart],
+        [handleTransition, showSplashScreenOnNextStart],
     );
 
     return <HybridAppMiddlewareContext.Provider value={contextValue}>{props.children}</HybridAppMiddlewareContext.Provider>;

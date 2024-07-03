@@ -35,7 +35,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {navigateToExitUrl} = useHybridAppMiddleware();
+    const {handleTransition} = useHybridAppMiddleware();
     const {email = '', shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
 
     useEffect(() => {
@@ -47,7 +47,7 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.HOME);
+                handleTransition(ROUTES.HOME);
             });
             return;
         }
@@ -56,6 +56,8 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         if (token && !account?.isLoading) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
             Session.signInWithShortLivedAuthToken(email, token);
+            // Navigation is handled in different component, but we need to handle transition to hide splash screen
+            handleTransition();
             return;
         }
 
@@ -67,9 +69,14 @@ function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedA
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
                 const url = NativeModules.HybridAppModule ? Navigation.parseHybridAppUrl(exitTo) : (exitTo as Route);
-                navigateToExitUrl(url);
+                handleTransition(url);
             });
+            return;
         }
+
+        Navigation.isNavigationReady().then(() => {
+            handleTransition();
+        });
         // The only dependencies of the effect are based on props.route
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route]);
