@@ -48,28 +48,28 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.ph5, styles.mb8]}>
                 <ToggleSettingOptionRow
                     title={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
-                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                    isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                     switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
                     onToggle={(isEnabled: boolean) => {
                         updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
                     }}
-                    pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
                 />
             </View>
 
             <View style={[styles.ph5, styles.mb8]}>
                 <ToggleSettingOptionRow
                     title={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
-                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                    isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                     switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
                     onToggle={(isEnabled: boolean) => {
                         updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
                     }}
-                    pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.jobs}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
+                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
                 />
             </View>
             <View style={[styles.ph5, styles.mb8]}>
