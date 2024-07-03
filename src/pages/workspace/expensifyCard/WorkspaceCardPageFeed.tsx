@@ -28,9 +28,9 @@ const tripsFeatures: FeatureListItem[] = [
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
     },
 ];
-type WorkspaceCardPageFreeProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+type WorkspaceCardPageFeedProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-function WorkspaceCardPageFeed({route}: WorkspaceCardPageFreeProps) {
+function WorkspaceCardPageFeed({route}: WorkspaceCardPageFeedProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
