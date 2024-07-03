@@ -46,7 +46,7 @@ function NetSuiteImportCustomFieldPage({
         () => (
             <WorkspaceEmptyStateSection
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={Illustrations.EmptyStateExpenses}
+                icon={Illustrations.EmptyStateRecords}
                 subtitle={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
                 shouldParseSubtitle
                 containerStyle={[styles.flex1, styles.justifyContentCenter]}
