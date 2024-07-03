@@ -189,12 +189,15 @@ function setIssueNewCardStep(step: IssueNewCardStep | null) {
     Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {currentStep: step});
 }
 
-function setIssueNewCardData(data: IssueNewCardData) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data});
-}
-
 function setIssueNewCardDataAndGoToStep(data: Partial<IssueNewCardData>, step: IssueNewCardStep) {
     Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, currentStep: step});
+}
+
+function clearIssueNewCardFlow() {
+    Onyx.set(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {
+        currentStep: null,
+        data: {},
+    });
 }
 
 export {
@@ -204,7 +207,7 @@ export {
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
     setIssueNewCardStep,
-    setIssueNewCardData,
     setIssueNewCardDataAndGoToStep,
+    clearIssueNewCardFlow,
 };
 export type {ReplacementReason};

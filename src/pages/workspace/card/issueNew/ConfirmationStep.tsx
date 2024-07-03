@@ -43,7 +43,8 @@ function ConfirmationStep() {
 
     const submit = () => {
         // TODO: the logic will be created when CreateExpensifyCard is ready
-        Navigation.navigate(ROUTES.SETTINGS);
+        Navigation.goBack();
+        Card.clearIssueNewCardFlow();
     };
 
     const editStep = (step: IssueNewCardStep) => {
@@ -89,7 +90,7 @@ function ConfirmationStep() {
             />
             <MenuItemWithTopDescription
                 description={translate('workspace.card.issueNewCard.limit')}
-                title={CurrencyUtils.convertToDisplayString(data?.limit)}
+                title={CurrencyUtils.convertToShortDisplayString(data?.limit)}
                 shouldShowRightIcon
                 onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
             />
