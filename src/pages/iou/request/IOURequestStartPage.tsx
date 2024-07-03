@@ -186,7 +186,7 @@ export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>(
         key: `${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`,
     },
     transaction: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
+        key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? -1}`,
     },
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,

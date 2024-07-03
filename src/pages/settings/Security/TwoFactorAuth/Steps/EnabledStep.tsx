@@ -57,7 +57,7 @@ function EnabledStep() {
                     onModalHide={() => setIsConfirmModalVisible(false)}
                     isVisible={isConfirmModalVisible}
                     prompt={translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
-                    confirmText={translate('twoFactorAuth.disable')}
+                    confirmText={translate('common.disable')}
                     cancelText={translate('common.cancel')}
                     shouldShowCancelButton
                     danger

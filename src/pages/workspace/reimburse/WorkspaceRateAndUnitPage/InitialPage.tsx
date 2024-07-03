@@ -1,36 +1,31 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {withNetwork} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import * as BankAccounts from '@userActions/BankAccounts';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Network, ReimbursementAccount, WorkspaceRateAndUnit} from '@src/types/onyx';
+import type {ReimbursementAccount, WorkspaceRateAndUnit} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type WorkspaceRateAndUnitPageBaseProps = WithPolicyProps & {
-    // eslint-disable-next-line react/no-unused-prop-types
-    network: OnyxEntry<Network>;
-};
+type WorkspaceRateAndUnitPageBaseProps = WithPolicyProps;
 
 type WorkspaceRateAndUnitOnyxProps = {
     workspaceRateAndUnit: OnyxEntry<WorkspaceRateAndUnit>;
@@ -48,7 +43,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
             return;
         }
-        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '');
+        Policy.setPolicyIDForReimburseView(props.policy?.id ?? '-1');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -59,7 +54,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
         }
 
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(props.policy?.id ?? '');
+        Policy.openWorkspaceReimburseView(props.policy?.id ?? '-1');
     }, [props]);
 
     const saveUnitAndRate = (newUnit: Unit, newRate: string) => {
@@ -80,7 +75,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                 rate: parseFloat(newRate),
             },
         };
-        Policy.updateWorkspaceCustomUnitAndRate(props.policy?.id ?? '', distanceCustomUnit, newCustomUnit, props.policy?.lastModified);
+        Policy.updateWorkspaceCustomUnitAndRate(props.policy?.id ?? '-1', distanceCustomUnit, newCustomUnit, props.policy?.lastModified);
     };
 
     const distanceCustomUnit = PolicyUtils.getCustomUnit(props.policy);
@@ -101,7 +96,6 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
             headerText={translate('workspace.reimburse.trackDistance')}
             route={props.route}
             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_REIMBURSE}
-            shouldSkipVBBACall
             backButtonRoute=""
             shouldShowLoading={false}
             shouldShowBackButton
@@ -117,18 +111,18 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
                                 }}
                                 errorRowStyles={styles.mh5}
                                 pendingAction={distanceCustomUnit?.pendingAction ?? distanceCustomRate?.pendingAction}
-                                onClose={() => Policy.clearCustomUnitErrors(props.policy?.id ?? '', distanceCustomUnit?.customUnitID ?? '', distanceCustomRate?.customUnitRateID ?? '')}
+                                onClose={() => Policy.clearCustomUnitErrors(props.policy?.id ?? '-1', distanceCustomUnit?.customUnitID ?? '-1', distanceCustomRate?.customUnitRateID ?? '-1')}
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceRate')}
                                     title={CurrencyUtils.convertAmountToDisplayString(parseFloat(rateValue), props.policy?.outputCurrency ?? CONST.CURRENCY.USD)}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy?.id ?? ''))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_RATE.getRoute(props.policy?.id ?? '-1'))}
                                     shouldShowRightIcon
                                 />
                                 <MenuItemWithTopDescription
                                     description={translate('workspace.reimburse.trackDistanceUnit')}
                                     title={unitTitle}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy?.id ?? ''))}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT_UNIT.getRoute(props.policy?.id ?? '-1'))}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
@@ -151,7 +145,7 @@ function WorkspaceRateAndUnitPage(props: WorkspaceRateAndUnitPageProps) {
 
 WorkspaceRateAndUnitPage.displayName = 'WorkspaceRateAndUnitPage';
 
-export default compose(
+export default withPolicy(
     withOnyx<WorkspaceRateAndUnitPageProps, WorkspaceRateAndUnitOnyxProps>({
         // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
@@ -160,7 +154,5 @@ export default compose(
         workspaceRateAndUnit: {
             key: ONYXKEYS.WORKSPACE_RATE_AND_UNIT,
         },
-    }),
-    withPolicy,
-    withNetwork(),
-)(WorkspaceRateAndUnitPage);
+    })(WorkspaceRateAndUnitPage),
+);

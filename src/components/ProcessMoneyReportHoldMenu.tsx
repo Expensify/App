@@ -4,10 +4,14 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import DecisionModal from './DecisionModal';
+
+type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
 type ProcessMoneyReportHoldMenuProps = {
     /** The chat report this report is linked to */
@@ -35,7 +39,7 @@ type ProcessMoneyReportHoldMenuProps = {
     paymentType?: PaymentMethodType;
 
     /** Type of action handled */
-    requestType?: 'pay' | 'approve';
+    requestType?: ActionHandledType;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -50,12 +54,12 @@ function ProcessMoneyReportHoldMenu({
     moneyRequestReport,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = requestType === 'approve';
+    const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
 
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
-            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '', moneyRequestReport.reportID)) {
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '-1', moneyRequestReport.reportID)) {
                 Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport.reportID));
             }
         } else if (chatReport && paymentType) {
@@ -82,3 +86,4 @@ function ProcessMoneyReportHoldMenu({
 ProcessMoneyReportHoldMenu.displayName = 'ProcessMoneyReportHoldMenu';
 
 export default ProcessMoneyReportHoldMenu;
+export type {ActionHandledType};

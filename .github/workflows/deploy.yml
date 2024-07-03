@@ -14,7 +14,7 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          
+
       - name: Setup git for OSBotify
         uses: ./.github/actions/composite/setupGitForOSBotifyApp
         id: setupGitForOSBotify
@@ -65,9 +65,6 @@ jobs:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 
       - name: 🚀 Create release to trigger production deploy 🚀
-        uses: softprops/action-gh-release@affa18ef97bc9db20076945705aba8c516139abd
-        with:
-          tag_name: ${{ env.PRODUCTION_VERSION }}
-          body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
+        run: gh release create ${{ env.PRODUCTION_VERSION }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}

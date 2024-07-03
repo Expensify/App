@@ -21,7 +21,7 @@ type MenuListItem = ListItem & {
 
 function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {billDate} = policy?.connections?.xero?.config?.export ?? {};
     const data: MenuListItem[] = Object.values(CONST.XERO_EXPORT_DATE).map((dateType) => ({
