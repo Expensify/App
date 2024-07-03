@@ -22,7 +22,7 @@ const parser = new ExpensiMark();
 
 type ImportField = 'jobs' | 'customers';
 
-function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
+function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -58,7 +58,7 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportJobsPage.displayName}
+            displayName={NetSuiteImportCustomersOrProjectsPage.displayName}
             headerTitle="workspace.netsuite.import.customersOrJobs.title"
             headerSubtitle={config?.subsidiary ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -143,6 +143,6 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteImportJobsPage.displayName = 'NetSuiteImportJobsPage';
+NetSuiteImportCustomersOrProjectsPage.displayName = 'NetSuiteImportCustomersOrProjectsPage';
 
-export default withPolicyConnections(NetSuiteImportJobsPage);
+export default withPolicyConnections(NetSuiteImportCustomersOrProjectsPage);

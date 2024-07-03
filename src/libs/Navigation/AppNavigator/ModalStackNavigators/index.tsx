@@ -322,7 +322,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/NetSuiteSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_MAPPING]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportMappingPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_JOBS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportJobsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_JOBS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PREFERRED_EXPORTER_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuitePreferredExporterSelectPage').default,
