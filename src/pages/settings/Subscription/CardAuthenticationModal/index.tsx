@@ -11,6 +11,7 @@ import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import CONFIG from '@src/CONFIG';
 
 type CardAuthenticationModalProps = {
     /** Title shown in the header of the modal */
@@ -21,6 +22,8 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID);
     const [isLoading, setIsLoading] = useState(true);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+ 
     useEffect(() => {
         if (privateStripeCustomerID?.status !== CONST.STRIPE_GBP_AUTH_STATUSES.SUCCEEDED) {
             return;
@@ -29,9 +32,29 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
         Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION);
     }, [privateStripeCustomerID]);
 
+    useEffect(() => {
+        if (!session) {
+            return;
+        }
+        document.cookie = `authToken=${session.authToken}; domain=${CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL}; path=/;`;
+        document.cookie = `email=${session.email}; domain=${CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL}; path=/;`;
+    }, [session]);
+
+    // useEffect(() => {
+    //     if (!session) {
+    //         return;
+    //     }
+    //     // Ensure cookies are marked as Secure and set SameSite=None for cross-domain compatibility
+    //     document.cookie = `authToken=${session.authToken}; domain=.expensify.com.dev; path=/; SameSite=None; Secure`;
+    //     document.cookie = `email=${session.email}; domain=.expensify.com.dev; path=/; SameSite=None; Secure`;
+    // }, [session]);
+    
+
     const onModalClose = () => {
         PaymentMethods.clearPaymentCard3dsVerification();
     };
+
+    const url = `${CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL}iframe_authenticate_billing.php?authToken=${session?.authToken}&authenticationLink=${authenticationLink}`;
 
     return (
         <Modal
@@ -56,7 +79,7 @@ function CardAuthenticationModal({headerTitle}: CardAuthenticationModalProps) {
                 {isLoading && <FullScreenLoadingIndicator />}
                 <View style={[styles.flex1]}>
                     <iframe
-                        src={authenticationLink}
+                        src={url}
                         title="Statements"
                         height="100%"
                         width="100%"
