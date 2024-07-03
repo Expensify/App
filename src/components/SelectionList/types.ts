@@ -176,6 +176,12 @@ type TransactionListItemType = ListItem &
 
 type ReportListItemType = ListItem &
     SearchReport & {
+        /** The personal details of the user requesting money */
+        from: SearchAccountDetails;
+
+        /** The personal details of the user paying the request */
+        to: SearchAccountDetails;
+
         transactions: TransactionListItemType[];
     };
 

@@ -86,11 +86,8 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    // We get the from and to details from the first transaction. The first transaction's from and to need not be the same
-    // as the report's accountID and managerID.
-
-    const participantFrom = reportItem.transactions[0].from?.accountID === reportItem?.accountID ? reportItem.transactions[0].from : reportItem.transactions[0].to;
-    const participantTo = reportItem.transactions[0].to?.accountID === reportItem?.managerID ? reportItem.transactions[0].to : reportItem.transactions[0].from;
+    const participantFrom = reportItem.from;
+    const participantTo = reportItem.to;
 
     // These values should come as part of the item via SearchUtils.getSections() but ReportListItem is not yet 100% handled
     // This will be simplified in future once sorting of ReportListItem is done
