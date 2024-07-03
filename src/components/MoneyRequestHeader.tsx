@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
+import type {EmitterSubscription} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -47,7 +48,7 @@ type MoneyRequestHeaderProps = {
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 };
-
+let keyboardEventListener: EmitterSubscription | null = null;
 function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrowLayout = false, onBackButtonPress}: MoneyRequestHeaderProps) {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [transaction] = useOnyx(
@@ -174,12 +175,32 @@ function MoneyRequestHeader({report, parentReportAction, policy, shouldUseNarrow
         }
     }
 
+    const showEducationalHoldMenu = useCallback(() => {
+        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
+    }, [isOnHold, dismissedHoldUseExplanation]);
+
     useEffect(() => {
         if (isLoadingHoldUseExplained) {
             return;
         }
-        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
-    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
+
+        if (isOnHold && !dismissedHoldUseExplanation) {
+            if (!Keyboard.isVisible()) showEducationalHoldMenu();
+
+            // On iOS, if the keyboard is open when the hold reason screen is opened, it will reappear after submitting the hold reason
+            // and may overlap the educational modal. To fix this, we should dismiss the keyboard.
+            keyboardEventListener = Keyboard.addListener('keyboardDidHide', showEducationalHoldMenu);
+            Keyboard.dismiss();
+        } else {
+            setShouldShowHoldMenu(false);
+        }
+
+        return () => {
+            if (keyboardEventListener) {
+                keyboardEventListener.remove();
+            }
+        };
+    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold, showEducationalHoldMenu]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
