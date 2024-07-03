@@ -143,7 +143,7 @@ function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptT
                             fill={primaryColor}
                         />
                     ) : null}
-                    {tripIcon && isReceiptThumbnail ? (
+                    {tripIcon ? (
                         <Icon
                             src={tripIcon}
                             height={receiptMCCSize}
