@@ -547,8 +547,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
     const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerOrReportOwner(report, policy);
 
-    console.log(PolicyUtils.isPolicyAdmin(policy));
-
     const nameSectionFurtherDetailsContent = (
         <ParentNavigationSubtitle
             parentNavigationSubtitleData={parentNavigationSubtitleData}
