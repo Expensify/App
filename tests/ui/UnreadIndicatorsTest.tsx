@@ -542,7 +542,7 @@ describe('Unread Indicators', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         callback: (reportActions) => {
                             Onyx.disconnect(connectionID);
-                            const sortedActions = Object.values(reportActions ?? {}).toSorted((a, b) => a.created < b.created ? -1 : 1);
+                            const sortedActions = Object.values(reportActions ?? {}).toSorted((a, b) => (a.created < b.created ? -1 : 1));
                             resolve(sortedActions.pop()?.reportActionID ?? '');
                         },
                     });
