@@ -2336,7 +2336,7 @@ export default {
             dimensionExists: 'Dimension with such name already exists.',
             removeDimension: 'Remove user-defined dimension',
             removeDimensionPrompt: 'Are you sure you want to remove this user-defined dimension?',
-            userDefinedDimension: 'User-defined dimensions',
+            userDefinedDimension: 'User-defined dimension',
             addAUserDefinedDimension: 'Add a user-defined dimension',
             detailedInstructionsLink: 'View detailed instructions',
             detailedInstructionsRestOfSentence: ' on adding user-defined dimensions.',

@@ -48,7 +48,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     />
 
                     <View style={[styles.w100, styles.pt5]}>
-                        <View style={[styles.justifyContentCenter]}>
+                        <View style={[styles.justifyContentCenter, styles.ph5]}>
                             <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{translate('workspace.intacct.addAUserDefinedDimension')}</Text>
                         </View>
 
@@ -90,7 +90,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             >
                                 <MenuItemWithTopDescription
                                     title={userDimension.name}
-                                    description="User-defined dimension"
+                                    description={translate('workspace.intacct.userDefinedDimension')}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.name))}
                                     brickRoadIndicator={config?.errorFields?.[`dimension_${userDimension.name}`] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}

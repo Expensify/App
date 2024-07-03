@@ -2369,7 +2369,7 @@ export default {
             dimensionExists: 'Ya existe una dimensión con ese nombre.',
             removeDimension: 'Eliminar dimensión definida por el usuario',
             removeDimensionPrompt: 'Está seguro de que desea eliminar esta dimensión definida por el usuario?',
-            userDefinedDimension: 'Dimensiones definidas por el usuario',
+            userDefinedDimension: 'Dimensión definida por el usuario',
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
