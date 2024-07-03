@@ -91,16 +91,15 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             displayName={SageIntacctReimbursableExpensesPage.displayName}
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            contentContainerStyle={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
             shouldUseScrollView={false}
-            shouldIncludeSafeAreaPaddingBottom={true}
+            shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
                 errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
-                errorRowStyles={[styles.ph5, styles.mt2]}
+                errorRowStyles={[styles.ph5]}
                 onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
-                style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
-                contentContainerStyle={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
+                style={[styles.flexGrow1, styles.flexShrink1]}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >
                 <SelectionList
                     onSelectRow={(selection: SelectorType) => selectReimbursableDestination(selection as MenuListItem)}
@@ -108,30 +107,29 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                     ListItem={RadioListItem}
                     showScrollIndicator
                     shouldShowTooltips={false}
-                    listFooterContent={
-                        reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT ? (
-                            <View>
-                                <ToggleSettingOptionRow
-                                    title={translate('workspace.sageIntacct.defaultVendor')}
-                                    subtitle={translate('workspace.sageIntacct.defaultVendorDescription', true)}
-                                    shouldPlaceSubtitleBelowSwitch
-                                    switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
-                                    isActive={!!reimbursableExpenseReportDefaultVendor}
-                                    onToggle={(enabled) => {
-                                        const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
-                                        updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
-                                    }}
-                                    wrapperStyle={[styles.ph5, styles.pv3]}
-                                    pendingAction={config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor}
-                                    errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
-                                    onCloseError={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
-                                />
-                                {!!reimbursableExpenseReportDefaultVendor && defaultVendor}
-                            </View>
-                        ) : undefined
-                    }
+                    containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1]}
                 />
             </OfflineWithFeedback>
+            {reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT && (
+                <View style={[styles.flexGrow1, styles.flexShrink1]}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.sageIntacct.defaultVendor')}
+                        subtitle={translate('workspace.sageIntacct.defaultVendorDescription', true)}
+                        shouldPlaceSubtitleBelowSwitch
+                        switchAccessibilityLabel={translate('workspace.sageIntacct.defaultVendor')}
+                        isActive={!!reimbursableExpenseReportDefaultVendor}
+                        onToggle={(enabled) => {
+                            const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
+                            updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
+                        }}
+                        wrapperStyle={[styles.ph5, styles.pv3]}
+                        pendingAction={config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor}
+                        errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
+                        onCloseError={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
+                    />
+                    {!!reimbursableExpenseReportDefaultVendor && defaultVendor}
+                </View>
+            )}
         </ConnectionLayout>
     );
 }

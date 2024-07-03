@@ -1,7 +1,7 @@
 import {isEmpty} from 'lodash';
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -10,8 +10,9 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
-import {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
 import type RadioListItem from './SelectionList/RadioListItem';
@@ -113,32 +114,35 @@ function SelectionScreen({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={true}
+                includeSafeAreaPaddingBottom
                 testID={displayName}
             >
                 <HeaderWithBackButton
                     title={translate(title)}
                     onBackButtonPress={onBackButtonPress}
                 />
-                <OfflineWithFeedback
-                    errors={errors}
-                    errorRowStyles={errorRowStyles}
-                    onClose={onClose}
-                    style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
-                    contentContainerStyle={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
-                >
-                    <SelectionList
-                        onSelectRow={onSelectRow}
-                        headerContent={headerContent}
-                        sections={sections}
-                        ListItem={listItem}
-                        showScrollIndicator
-                        shouldShowTooltips={false}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                        listEmptyContent={listEmptyContent}
-                        listFooterContent={listFooterContent}
-                    />
-                </OfflineWithFeedback>
+                <View style={[styles.flexGrow1, styles.flexShrink1]}>
+                    <OfflineWithFeedback
+                        errors={errors}
+                        errorRowStyles={errorRowStyles}
+                        onClose={onClose}
+                        style={[styles.flexGrow1, styles.flexShrink1]}
+                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
+                    >
+                        <SelectionList
+                            onSelectRow={onSelectRow}
+                            headerContent={headerContent}
+                            sections={sections}
+                            ListItem={listItem}
+                            showScrollIndicator
+                            shouldShowTooltips={false}
+                            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                            listEmptyContent={listEmptyContent}
+                            listFooterContent={listFooterContent}
+                            containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1]}
+                        />
+                    </OfflineWithFeedback>
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
