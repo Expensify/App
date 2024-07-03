@@ -35,6 +35,9 @@ function EditReportFieldPage({
         return <NotFoundPage />;
     }
 
+    const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
+    const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -73,11 +76,12 @@ function EditReportFieldPage({
                     titleStyle={styles.flex1}
                     title={getReportFieldInitialValue(reportField)}
                     description={translate('common.initialValue')}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!isDateFieldType}
+                    interactive={!isDateFieldType}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(`${policyID}`, reportFieldID))}
                 />
 
-                {reportField.type === CONST.REPORT_FIELD_TYPES.LIST && (
+                {isListFieldType && (
                     <MenuItemWithTopDescription
                         style={[styles.moneyRequestMenuItem]}
                         titleStyle={styles.flex1}

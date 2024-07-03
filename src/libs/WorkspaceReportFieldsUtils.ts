@@ -75,6 +75,10 @@ function getReportFieldInitialValue(reportField: PolicyReportField): string {
         return reportField.defaultValue ?? '';
     }
 
+    if (reportField.type === CONST.REPORT_FIELD_TYPES.DATE) {
+        return Localize.translateLocal('common.currentDate');
+    }
+
     return reportField.value ?? reportField.defaultValue;
 }
 
