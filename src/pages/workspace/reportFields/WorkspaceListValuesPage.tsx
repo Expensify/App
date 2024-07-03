@@ -32,8 +32,13 @@ import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ValueListItem = ListItem & {
+    /** The value */
     value: string;
+
+    /** Whether the value is enabled */
     enabled: boolean;
+
+    /** The value order weight in the list */
     orderWeight?: number;
 };
 
