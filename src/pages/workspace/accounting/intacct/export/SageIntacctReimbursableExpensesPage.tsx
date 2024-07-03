@@ -89,6 +89,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             displayName={SageIntacctReimbursableExpensesPage.displayName}
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            contentContainerStyle={[styles.flex1]}
+            shouldUseScrollView={false}
         >
             <SelectionList
                 onSelectRow={(selection: SelectorType) => selectReimbursableDestination(selection as MenuListItem)}

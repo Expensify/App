@@ -115,6 +115,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             displayName={SageIntacctNonReimbursableExpensesPage.displayName}
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            contentContainerStyle={[styles.flex1]}
+            shouldUseScrollView={false}
         >
             <SelectionList
                 onSelectRow={(selection: SelectorType) => selectNonReimbursableExpense(selection as MenuListItem)}
