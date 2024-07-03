@@ -22,17 +22,17 @@ function BaseEducationalTooltip({children, ...props}: TooltipProps) {
         [],
     );
 
-    // Automatically hide tooltip after 5 seconds
-    useEffect(() => {
-        if (!hideTooltipRef.current) {
-            return;
-        }
+    // // Automatically hide tooltip after 5 seconds
+    // useEffect(() => {
+    //     if (!hideTooltipRef.current) {
+    //         return;
+    //     }
 
-        const intervalID = setInterval(hideTooltipRef.current, 5000);
-        return () => {
-            clearInterval(intervalID);
-        };
-    }, []);
+    //     const intervalID = setInterval(hideTooltipRef.current, 5000);
+    //     return () => {
+    //         clearInterval(intervalID);
+    //     };
+    // }, []);
 
     return (
         <GenericTooltip
