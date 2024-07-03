@@ -53,17 +53,17 @@ const SearchColumns: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
         translationKey: 'common.category',
-        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowCategoryColumn ?? false,
+        shouldShow: (data, metadata) => metadata?.columnsToShow?.shouldShowCategoryColumn ?? false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
-        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowTagColumn ?? false,
+        shouldShow: (data, metadata) => metadata?.columnsToShow?.shouldShowTagColumn ?? false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        shouldShow: (data, metadata) => metadata?.columnsToShow.shouldShowTaxColumn ?? false,
+        shouldShow: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
         isColumnSortable: false,
     },
     {
@@ -107,7 +107,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, isSortingAllowed,
     }
 
     return (
-        <View style={[styles.ph5, styles.pb3]}>
+        <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
                 {SearchColumns.map(({columnName, translationKey, shouldShow, isColumnSortable}) => {
                     if (!shouldShow(data, metadata)) {
