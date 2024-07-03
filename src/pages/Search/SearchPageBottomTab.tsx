@@ -27,7 +27,7 @@ const defaultSearchProps = {
 function SearchPageBottomTab() {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const activeRoute = useActiveBottomTabRoute();
+    const activeBottomTabRoute = useActiveBottomTabRoute();
     const styles = useThemeStyles();
 
     const {
@@ -36,11 +36,11 @@ function SearchPageBottomTab() {
         sortBy,
         sortOrder,
     } = useMemo(() => {
-        if (activeRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeRoute.params) {
+        if (activeBottomTabRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE || !activeBottomTabRoute.params) {
             return defaultSearchProps;
         }
-        return {...defaultSearchProps, ...activeRoute.params} as SearchPageProps['route']['params'];
-    }, [activeRoute]);
+        return {...defaultSearchProps, ...activeBottomTabRoute.params} as SearchPageProps['route']['params'];
+    }, [activeBottomTabRoute]);
 
     const query = rawQuery as SearchQuery;
 
