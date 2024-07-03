@@ -16,11 +16,22 @@ type SubsidiaryParam = {
 };
 
 function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+                timestamp: new Date().toISOString(),
+            },
+        },
+    ];
     const parameters: ConnectPolicyToNetSuiteParams = {
         policyID,
         ...credentials,
     };
-    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {});
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {optimisticData});
 }
 
 function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
