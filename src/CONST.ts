@@ -1372,11 +1372,15 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
-        IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
+        IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         SYNC_OPTIONS: {
             SYNC_TAX: 'syncTax',
             CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
+            MAPPING: {
+                CUSTOMERS: 'customers',
+                JOBS: 'jobs'
+            }
         },
     },
 

@@ -2348,14 +2348,9 @@ export default {
                         title: 'Ubicaciones',
                         subtitle: 'Elija cómo manejar *ubicaciones* en Expensify.',
                     },
-                    customers: {
-                        title: 'Clientes',
-                        subtitle: 'Importa *clientes* a Expensify y elige cómo se mostrarán.',
-                    },
-                    jobs: {
-                        title: 'Proyectos (trabajos)',
-                        subtitle: 'Importa *proyectos (trabajos)* a Expensify y elige cómo se mostrarán.',
-                    },
+                },
+                customersOrJobs: {
+                    title: 'Clientes / proyectos (trabajos)',
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {

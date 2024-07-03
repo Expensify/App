@@ -1,7 +1,7 @@
 import {ExpensiMark} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -9,38 +9,29 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 const parser = new ExpensiMark();
 
-type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
-
-type NetSuiteImportMappingPageProps = WithPolicyConnectionsProps & {
-    route: {
-        params: {
-            importField: ImportFieldsKeys;
-        };
-    };
-};
-
 type ImportListItem = SelectorType & {
     value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
 };
 
-function NetSuiteImportMappingPage({
-    policy,
-    route: {
-        params: {importField},
-    },
-}: NetSuiteImportMappingPageProps) {
+function NetSuiteImportJobsPage({
+    policy
+}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const importField = 'locations';
 
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const importMappings = netsuiteConfig?.syncOptions?.mapping;
@@ -60,6 +51,20 @@ function NetSuiteImportMappingPage({
         () => (
             <View style={[styles.ph5, styles.mt2, styles.mb4]}>
                 
+                    <View style={[styles.mb4]}>
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                            isActive={netsuiteConfig?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                            switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                            onToggle={(isEnabled: boolean) => {
+                                updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                            }}
+                            pendingAction={netsuiteConfig?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                            onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                        />
+                    </View>
+
                 <View style={[styles.flexRow]}>
                     <RenderHTML
                         html={`<comment><muted-text>${parser.replace(
@@ -69,10 +74,11 @@ function NetSuiteImportMappingPage({
                 </View>
             </View>
         ),
-        [styles.ph5, styles.mt2, styles.mb4, styles.flexRow, importField, translate],
+        [styles.ph5, styles.mt2, styles.mb4, styles.flexRow, importField, translate, netsuiteConfig, policyID],
     );
 
-    const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
+    const inputOptions =  [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
+        
 
     const inputSectionData: ImportListItem[] =
         inputOptions.map((inputOption) => ({
@@ -101,7 +107,7 @@ function NetSuiteImportMappingPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteImportMappingPage.displayName}
+            displayName={NetSuiteImportJobsPage.displayName}
             sections={inputSectionData.length > 0 ? [{data: inputSectionData}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -115,6 +121,6 @@ function NetSuiteImportMappingPage({
     );
 }
 
-NetSuiteImportMappingPage.displayName = 'NetSuiteImportMappingPage';
+NetSuiteImportJobsPage.displayName = 'NetSuiteImportJobsPage';
 
-export default withPolicyConnections(NetSuiteImportMappingPage);
+export default withPolicyConnections(NetSuiteImportJobsPage);

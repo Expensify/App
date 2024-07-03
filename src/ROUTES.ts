@@ -969,6 +969,11 @@ const ROUTES = {
         getRoute: (policyID: string, importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/jobs/',
+        getRoute: (policyID: string) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/jobs` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,

@@ -2316,14 +2316,9 @@ export default {
                         title: 'Locations',
                         subtitle: 'Choose how to handle *locations* in Expensify.',
                     },
-                    customers: {
-                        title: 'Customers',
-                        subtitle: "Import *customers* into Expensify and choose how they'll be displayed.",
-                    },
-                    jobs: {
-                        title: 'Projects (jobs)',
-                        subtitle: "Import *projects (jobs)* into Expensify and choose how they'll be displayed.",
-                    },
+                },
+                customersOrJobs: {
+                    title: 'Customers / projects (jobs)',
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {

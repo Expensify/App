@@ -71,6 +71,26 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         />
                     </OfflineWithFeedback>
                 ))}
+
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ?? ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
+                        errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
+                        pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
+                        onClose={() => {
+                            Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
+                            Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
+                        }}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
+                            title={translate(`workspace.netsuite.import.customersOrJobs.title`)}
+                            shouldShowRightIcon
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS.getRoute(policyID));
+                            }}
+                            brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
             </View>
 
             {canUseTaxNetSuite(canUseNetSuiteUSATax, selectedSubsidiary?.country) && (
