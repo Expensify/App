@@ -93,6 +93,6 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     );
 }
 
-EnterSageIntacctCredentialsPage.displayName = 'PolicyEnterSageIntacctCredentialsPage';
+EnterSageIntacctCredentialsPage.displayName = 'EnterSageIntacctCredentialsPage';
 
 export default EnterSageIntacctCredentialsPage;

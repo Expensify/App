@@ -53,7 +53,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                         </View>
 
                         <View style={[styles.ph5]}>
-                            <Text style={styles.emptySageIntacctUserDimensionsSubtitle}>
+                            <Text style={[styles.userDimensionsSubtitle, styles.textAlignCenter]}>
                                 <TextLink
                                     style={styles.link}
                                     onPress={() => {
@@ -62,7 +62,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 >
                                     {translate('workspace.intacct.detailedInstructionsLink')}
                                 </TextLink>
-                                <Text style={[styles.textNormal]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
+                                <Text>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                             </Text>
                         </View>
                     </View>
@@ -70,7 +70,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             ) : (
                 <>
                     <View style={[styles.ph5]}>
-                        <Text>
+                        <Text style={[styles.userDimensionsSubtitle, styles.textAlignLeft]}>
                             <TextLink
                                 style={styles.link}
                                 onPress={() => {
@@ -79,7 +79,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             >
                                 {translate('workspace.intacct.detailedInstructionsLink')}
                             </TextLink>
-                            <Text style={[styles.textNormal, styles.sageIntacctUserDimensionsSubtitle]}>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
+                            <Text>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                         </Text>
                     </View>
                     <ScrollView>
@@ -113,6 +113,6 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctUserDimensionsPage.displayName = 'PolicySageIntacctUserDimensionsPage';
+SageIntacctUserDimensionsPage.displayName = 'SageIntacctUserDimensionsPage';
 
 export default withPolicy(SageIntacctUserDimensionsPage);

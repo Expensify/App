@@ -997,9 +997,8 @@ type SageIntacctMappingValue = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPING_
 /** Mapping names for Sage Intacct */
 type SageIntacctMappingName = ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>;
 
-//* * TODO */
 /**
- *
+ * Sage Intacct dimension type
  */
 type SageIntacctDimension = {
     /** Name of user defined dimention */

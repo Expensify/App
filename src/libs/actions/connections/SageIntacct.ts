@@ -54,9 +54,6 @@ function prepareOnyxDataForMappingUpdate(policyID: string, mappingName: keyof Sa
                 connections: {
                     intacct: {
                         config: {
-                            mappings: {
-                                [mappingName]: mappingValue,
-                            },
                             pendingFields: {
                                 [mappingName]: null,
                             },
@@ -78,9 +75,6 @@ function prepareOnyxDataForMappingUpdate(policyID: string, mappingName: keyof Sa
                 connections: {
                     intacct: {
                         config: {
-                            mappings: {
-                                [mappingName]: mappingValue,
-                            },
                             pendingFields: {
                                 [mappingName]: null,
                             },
@@ -196,9 +190,6 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
                 connections: {
                     intacct: {
                         config: {
-                            tax: {
-                                syncTax: enabled,
-                            },
                             pendingFields: {
                                 tax: null,
                             },

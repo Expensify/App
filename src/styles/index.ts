@@ -4045,18 +4045,10 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
-        emptySageIntacctUserDimensionsSubtitle: {
+        userDimensionsSubtitle: {
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.textSupporting,
-            textAlign: 'center',
-        },
-
-        sageIntacctUserDimensionsSubtitle: {
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightXLarge,
-            color: theme.textSupporting,
-            textAlign: 'left',
         },
 
         taskCheckboxWrapper: {

@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -51,21 +50,24 @@ function DimensionTypeSelector({errorText = '', value = '', onInputChange}: Dime
     return (
         <View>
             <Text style={[styles.textLabelSupporting, styles.mb1]}>{translate('workspace.common.displayedAs')}</Text>
-            <SelectionList
-                onSelectRow={onDimensionTypeSelected}
-                sections={[{data: selectionOptions}]}
-                ListItem={RadioListItem}
-                shouldShowTooltips={false}
-                containerStyle={[styles.mhn5, styles.pb5, styles.mb0]}
-                footerContent={
-                    errorText ? (
-                        <FormHelpMessage
-                            isError={!!errorText}
-                            message={errorText}
-                        />
-                    ) : undefined
-                }
-            />
+            <View style={[styles.mhn5, styles.pb5, styles.mb0]}>
+                {selectionOptions.map((option) => (
+                    <RadioListItem
+                        key={option.value}
+                        item={option}
+                        showTooltip={false}
+                        isFocused={option.isSelected}
+                        onSelectRow={onDimensionTypeSelected}
+                    />
+                ))}
+                {!!errorText && (
+                    <FormHelpMessage
+                        style={styles.mh5}
+                        isError={!!errorText}
+                        message={errorText}
+                    />
+                )}
+            </View>
         </View>
     );
 }

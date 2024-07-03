@@ -5,6 +5,7 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addSageIntacctUserDimensions} from '@libs/actions/connections/SageIntacct';
@@ -24,6 +25,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
 
     const policyID = policy?.id ?? '-1';
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
@@ -53,6 +55,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.flex1}
+            shouldUseScrollView={false}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
@@ -77,6 +80,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                         aria-label={translate('workspace.intacct.integrationName')}
                         role={CONST.ROLE.PRESENTATION}
                         spellCheck={false}
+                        ref={inputCallbackRef}
                     />
                 </View>
                 <View>
@@ -91,6 +95,6 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
     );
 }
 
-SageIntacctAddUserDimensionPage.displayName = 'PolicySageIntacctAddUserDimensionPage';
+SageIntacctAddUserDimensionPage.displayName = 'SageIntacctAddUserDimensionPage';
 
 export default withPolicy(SageIntacctAddUserDimensionPage);

@@ -134,6 +134,6 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
     );
 }
 
-SageIntacctEditUserDimensionPage.displayName = 'PolicySageIntacctEditUserDimensionPage';
+SageIntacctEditUserDimensionPage.displayName = 'SageIntacctEditUserDimensionPage';
 
 export default SageIntacctEditUserDimensionPage;
