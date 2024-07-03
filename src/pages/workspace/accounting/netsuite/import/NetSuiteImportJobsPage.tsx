@@ -113,30 +113,32 @@ function NetSuiteImportJobsPage({policy}: WithPolicyConnectionsProps) {
                 />
             </View>
 
-            <View style={[styles.mb4]}>
-                <OfflineWithFeedback
-                    errors={
-                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ??
-                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)
-                    }
-                    errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
-                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
-                    onClose={() => {
-                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
-                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
-                    }}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.common.displayedAs')}
-                        title={importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? translate(`workspace.netsuite.import.importTypes.${importedValue}.label`) : undefined}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS.getRoute(policyID));
+            {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
+                <View style={[styles.mb4]}>
+                    <OfflineWithFeedback
+                        errors={
+                            ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ??
+                            ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)
+                        }
+                        errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
+                        pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
+                        onClose={() => {
+                            Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
+                            Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
                         }}
-                        brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
-                </OfflineWithFeedback>
-            </View>
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.common.displayedAs')}
+                            title={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
+                            shouldShowRightIcon
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS.getRoute(policyID));
+                            }}
+                            brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        />
+                    </OfflineWithFeedback>
+                </View>
+            )}
         </ConnectionLayout>
     );
 }
