@@ -2353,8 +2353,22 @@ export default {
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
-                    customSegments: 'Segmentos/registros personalizado',
-                    customLists: 'Listas personalizado',
+                    customSegments: {
+                        title: 'Segmentos/registros personalizado',
+                        addButtonText: 'Añadir segmento/registro personalizado',
+                        recordTitle: 'Segmento personalizado',
+                        helpLink:
+                            '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments) sobre la configuración de segmentos/registros personalizado.',
+                        emptyTitle: 'Añadir un segmento personalizado o un registro personalizado',
+                    },
+                    customLists: {
+                        title: 'Listas personalizado',
+                        addButtonText: 'Añadir lista personalizado',
+                        recordTitle: 'Lista personalizado',
+                        helpLink:
+                            '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists) sobre cómo configurar listas personalizado.',
+                        emptyTitle: 'Add a custom list',
+                    },
                 },
                 importTypes: {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {

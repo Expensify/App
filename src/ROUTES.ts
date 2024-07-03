@@ -950,7 +950,7 @@ const ROUTES = {
             `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importField',
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
         getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}` as const,
     },

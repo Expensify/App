@@ -2321,8 +2321,22 @@ export default {
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
-                    customSegments: 'Custom segments/records',
-                    customLists: 'Custom lists',
+                    customSegments: {
+                        title: 'Custom segments/records',
+                        addButtonText: 'Add custom segment/record',
+                        recordTitle: 'Custom segment',
+                        helpLink:
+                            '[View detailed instructions](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments) on configuring custom segements/records.',
+                        emptyTitle: 'Add a custom segment or custom record',
+                    },
+                    customLists: {
+                        title: 'Custom lists',
+                        addButtonText: 'Add custom list',
+                        recordTitle: 'Custom list',
+                        helpLink:
+                            '[View detailed instructions](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists) on configuring custom lists.',
+                        emptyTitle: 'Add a custom list',
+                    },
                 },
                 importTypes: {
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {

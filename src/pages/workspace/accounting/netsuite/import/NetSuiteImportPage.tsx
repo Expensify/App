@@ -100,7 +100,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                         onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
                     >
                         <MenuItemWithTopDescription
-                            description={translate(`workspace.netsuite.import.importCustomFields.${importField}`)}
+                            description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
                             shouldShowRightIcon
                             onPress={() => {
                                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField));
