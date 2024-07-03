@@ -52,8 +52,6 @@ function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
 
-<<<<<<< HEAD
-=======
 function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
@@ -62,7 +60,6 @@ function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.COMMENT_LINKING) || canUseAllBetas(betas);
 }
 
->>>>>>> 292d7b2c (Merge pull request #44780 from Expensify/jasper-commentLinkingBeta)
 /**
  * Link previews are temporarily disabled.
  */
@@ -83,9 +80,6 @@ export default {
     canUseNetSuiteIntegration,
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
-<<<<<<< HEAD
-=======
     canUseNetSuiteUSATax,
     canUseCommentLinking,
->>>>>>> 292d7b2c (Merge pull request #44780 from Expensify/jasper-commentLinkingBeta)
 };
