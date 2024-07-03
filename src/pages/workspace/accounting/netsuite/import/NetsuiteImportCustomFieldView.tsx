@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 import MenuItem from '@components/MenuItem';
+import useTheme from '@hooks/useTheme';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -33,6 +34,7 @@ function NetSuiteImportCustomFieldView({
 }: NetSuiteImportCustomFieldViewProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
 
     const config = policy?.connections?.netsuite?.options?.config;
@@ -40,7 +42,7 @@ function NetSuiteImportCustomFieldView({
 
     const customRecord: CustomRecord | undefined = data.find((record) => record.internalID === internalID);
     const fieldList = customRecord && 'segmentName' in customRecord ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
-
+    
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
@@ -68,8 +70,9 @@ function NetSuiteImportCustomFieldView({
                     <View style={styles.flex1}>
                         <MenuItem
                             icon={Expensicons.Trashcan}
+                            iconFill={theme.fallbackIconColor}
                             title={translate('common.remove')}
-                            onPress={() => alert(internalID)}
+                            onPress={() => alert('hel')}
                         />
                     </View>
                 </View>
