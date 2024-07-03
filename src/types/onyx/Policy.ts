@@ -718,6 +718,36 @@ type NetSuiteCustomFormIDOptions = {
     journalEntry?: string;
 };
 
+/** NetSuite custom list */
+type NetSuiteCustomList = {
+    /** The name of the custom list in NetSuite */
+    listName: string;
+
+    /** The internalID of the custom list in NetSuite */
+    internalID: string;
+
+    /** The ID of the transaction form field we'll code the list option onto during Export */
+    transactionFieldID: string;
+
+    /** Whether we import this list as a report field or tag */
+    mapping: 'tag' | 'reportField';
+};
+
+/** NetSuite custom segments/records */
+type NetSuiteCustomSegment = {
+    /** The name of the custom segment */
+    segmentName: string;
+
+    /** The ID of the custom segment in NetSuite */
+    internalID: string;
+
+    /** The ID of the transaction form field we'll code this segment onto during Export */
+    scriptID: string;
+
+    /** Whether we import this segment as a report field or tag */
+    mapping: 'tag' | 'reportField';
+};
+
 /** User configuration for the NetSuite accounting integration. */
 type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Invoice Item Preference */
@@ -783,19 +813,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncReimbursedReports: boolean;
 
         /** The relevant details of the custom segments we import into Expensify and code onto expenses */
-        customSegments?: Array<{
-            /** The name of the custom segment */
-            segmentName: string;
-
-            /** The ID of the custom segment in NetSuite */
-            internalID: string;
-
-            /** The ID of the transaction form field we'll code this segment onto during Export */
-            scriptID: string;
-
-            /** Whether we import this segment as a report field or tag */
-            mapping: 'tag' | 'reportField';
-        }>;
+        customSegments?: NetSuiteCustomSegment[];
 
         /** Whether to import Employees from NetSuite into Expensify */
         syncPeople: boolean;
@@ -816,19 +834,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         syncCustomSegments?: boolean;
 
         /** The relevant details of the custom lists we import into Expensify and code onto expenses */
-        customLists?: Array<{
-            /** The name of the custom list in NetSuite */
-            listName: string;
-
-            /** The internalID of the custom list in NetSuite */
-            internalID: string;
-
-            /** The ID of the transaction form field we'll code the list option onto during Export */
-            transactionFieldID: string;
-
-            /** Whether we import this list as a report field or tag */
-            mapping: 'tag' | 'reportField';
-        }>;
+        customLists?: NetSuiteCustomList[];
 
         /** Whether we'll import Expense Categories into Expensify as categories */
         syncCategories: boolean;
@@ -1349,4 +1355,6 @@ export type {
     NetSuiteConnection,
     ConnectionLastSync,
     NetSuiteSubsidiary,
+    NetSuiteCustomList,
+    NetSuiteCustomSegment,
 };

@@ -9,7 +9,9 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
+type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
 type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
@@ -34,14 +36,13 @@ function NetSuiteImportCustomFieldView({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
-    const customRecord = data.find((record) => record.internalID === internalID);
+    const customRecord: CustomRecord | undefined = data.find((record) => record.internalID === internalID);
     const fieldList = customRecord && 'segmentName' in customRecord ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
 
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
-            headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.title`}
-            headerSubtitle={config?.subsidiary ?? ''}
+            headerTitleAlreadyTranslated={customRecord && 'segmentName' in customRecord ? customRecord.segmentName : customRecord?.listName ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -57,7 +58,7 @@ function NetSuiteImportCustomFieldView({
                             key={fieldName}
                             description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
                             shouldShowRightIcon
-                            title={customRecord[fieldName]}
+                            title={customRecord[fieldName as keyof CustomRecord]}
                         />
                     ))}
                 </View>
