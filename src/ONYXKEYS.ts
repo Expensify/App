@@ -432,6 +432,15 @@ const ONYXKEYS = {
         // Shared NVPs
         /** Collection of objects where each object represents the owner of the workspace that is past due billing AND the user is a member of. */
         SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END: 'sharedNVP_private_billingGracePeriodEnd_',
+
+        /** Expensify cards settings */
+        SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS: 'sharedNVP_private_expensifyCardSettings_',
+
+        /**
+         * Stores the card list for a given fundID and feed in the format: card_<fundID>_<bankName>
+         * So for example: card_12345_Expensify Card
+         */
+        WORKSPACE_CARDS_LIST: 'card_',
     },
 
     /** List of Form ids */
@@ -655,6 +664,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
+    [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
+    [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
 };
 
 type OnyxValuesMapping = {
