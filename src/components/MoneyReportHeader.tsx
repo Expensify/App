@@ -437,6 +437,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
+                    transactionCount={transactionIDs.length}
                 />
             )}
             <ConfirmModal
