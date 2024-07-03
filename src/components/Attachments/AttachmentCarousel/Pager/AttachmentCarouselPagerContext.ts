@@ -18,7 +18,7 @@ type AttachmentCarouselPagerItems = {
 };
 
 type AttachmentCarouselPagerContextValue = {
-    /** List of items displayed in the attachment */
+    /** List of attachments displayed in the pager */
     pagerItems: AttachmentCarouselPagerItems[];
 
     /** Index of the currently active page */

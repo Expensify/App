@@ -1513,6 +1513,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         canvasContainer: {
+            // Adding border to prevent a bug with the appearance of lines during gesture events for MultiGestureCanvas
             borderWidth: 1,
             borderColor: theme.appBG,
         },
