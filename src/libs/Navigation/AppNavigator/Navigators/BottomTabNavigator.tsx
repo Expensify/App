@@ -26,7 +26,7 @@ function BottomTabNavigator() {
             return undefined;
         }
         let route: NavigationPartialRoute<keyof BottomTabScreensParamList> | undefined;
-        for (let selector of [getTopmostBottomTabRoute, getTopmostCentralPaneRoute]) {
+        for (const selector of [getTopmostBottomTabRoute, getTopmostCentralPaneRoute]) {
             const selectedRoute = selector(state);
             if (isBottomTabName(selectedRoute?.name)) {
                 route = selectedRoute as NavigationPartialRoute<keyof BottomTabScreensParamList>;
