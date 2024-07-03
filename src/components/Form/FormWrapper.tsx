@@ -67,7 +67,7 @@ function FormWrapper({
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
     const [willKeyboardShow, setWillKeyboardShow] = useState(false);
     useEffect(() => {
-        const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', (e) => {
+        const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', () => {
             setWillKeyboardShow(true);
         });
         const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
