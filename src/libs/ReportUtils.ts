@@ -5244,7 +5244,7 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return true;
     }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    const lastVisibleMessage = getLastVisibleMessage(report.reportID);
     return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
 }
 
@@ -5409,6 +5409,8 @@ function shouldReportBeInOptionList({
     excludeEmptyChats,
     doesReportHaveViolations,
     includeSelfDM = false,
+    login,
+    includeDomainEmail = false,
 }: {
     report: OnyxEntry<Report>;
     currentReportId: string;
@@ -5418,6 +5420,8 @@ function shouldReportBeInOptionList({
     excludeEmptyChats: boolean;
     doesReportHaveViolations: boolean;
     includeSelfDM?: boolean;
+    login?: string;
+    includeDomainEmail?: boolean;
 }) {
     const isInDefaultMode = !isInFocusMode;
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -5521,6 +5525,11 @@ function shouldReportBeInOptionList({
     if (isSelfDM(report)) {
         return includeSelfDM;
     }
+
+    if (Str.isDomainEmail(login ?? '') && !includeDomainEmail) {
+        return false;
+    }
+
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
     // Hide chat threads where the parent message is pending removal
@@ -7041,7 +7050,7 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
         return false;
     }
 
-    return isChatRoom(report) && !isThread(report);
+    return isChatRoom(report) && !isInvoiceRoom(report) && !isThread(report);
 }
 
 function shouldShowMerchantColumn(transactions: Transaction[]) {

@@ -31,12 +31,15 @@ type Card = {
     /** Is card data loading */
     isLoading?: boolean;
 
+    /** Cardholder account ID */
+    accountID?: number;
+
     /** Additional card data */
     nameValuePairs?: {
         /** Type of card spending limits */
         limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
 
-        /** User-defined nickname for a virtual card */
+        /** User-defined nickname for the card */
         cardTitle?: string;
 
         /** Account ID of user that issued the card */
@@ -92,5 +95,8 @@ type IssueNewCard = {
     currentStep: IssueNewCardStep;
 };
 
+/** List of Expensify cards */
+type WorkspaceCardsList = Record<string, Card>;
+
 export default Card;
-export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep};
+export type {ExpensifyCardDetails, CardList, IssueNewCard, IssueNewCardStep, WorkspaceCardsList};
