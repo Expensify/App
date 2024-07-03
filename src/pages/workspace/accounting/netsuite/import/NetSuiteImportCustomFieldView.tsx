@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
+import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
-import MenuItem from '@components/MenuItem';
-import ConfirmModal from '@components/ConfirmModal';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -38,11 +40,16 @@ function NetSuiteImportCustomFieldView({
     const [isRemoveModalOpen, setIsRemoveModalOpen] = useState<boolean>(false);
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const data = config?.syncOptions?.[importCustomField] ?? [];
+    const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
-    const customRecord: CustomRecord | undefined = data.find((record) => record.internalID === internalID);
+    const customRecord: CustomRecord | undefined = allRecords.find((record) => record.internalID === internalID);
     const fieldList = customRecord && 'segmentName' in customRecord ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
-    
+
+    const removeRecord = useCallback(() => {
+        const filteredRecords = allRecords.filter((record) => record.internalID !== internalID);
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
+    }, [allRecords, importCustomField, internalID, policyID]);
+
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
@@ -71,23 +78,22 @@ function NetSuiteImportCustomFieldView({
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.remove')}
-                            onPress={() => alert('hel')}
+                            onPress={() => setIsRemoveModalOpen(true)}
                         />
                     </View>
                 </View>
             )}
 
             <ConfirmModal
-                    title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`)}
-                    isVisible={isRemoveModalOpen}
-                    onConfirm={() => {
-                    }}
-                    onCancel={() => setIsRemoveModalOpen(false)}
-                    prompt={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`)}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
+                title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`)}
+                isVisible={isRemoveModalOpen}
+                onConfirm={removeRecord}
+                onCancel={() => setIsRemoveModalOpen(false)}
+                prompt={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`)}
+                confirmText={translate('common.remove')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
         </ConnectionLayout>
     );
 }

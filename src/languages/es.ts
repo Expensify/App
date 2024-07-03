@@ -2404,7 +2404,6 @@ export default {
                         },
                         removeTitle: 'Eliminar lista personalizado',
                         removePrompt: '¿Está seguro de que desea eliminar esta lista personalizado?',
-
                     },
                 },
                 importTypes: {
