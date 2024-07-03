@@ -553,9 +553,13 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
-            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+            navigateBackToAfterDelete.current = IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
-            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
+            navigateBackToAfterDelete.current = IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+        }
+
+        if (!navigateBackToAfterDelete.current) {
+            Navigation.dismissModal();
         }
     }, [caseID, iouTransactionID, moneyRequestReport?.reportID, report, requestParentReportAction]);
     return (
