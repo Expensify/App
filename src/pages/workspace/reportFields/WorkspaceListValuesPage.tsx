@@ -22,9 +22,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportFields from '@libs/actions/Policy/ReportFields';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,8 +42,9 @@ type ValueListItem = ListItem & {
 type WorkspaceListValuesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES>;
 
 function WorkspaceListValuesPage({
+    policy,
     route: {
-        params: {policyID},
+        params: {policyID, reportFieldID},
     },
 }: WorkspaceListValuesPageProps) {
     const styles = useThemeStyles();
@@ -53,23 +56,35 @@ function WorkspaceListValuesPage({
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
 
     const listValuesSections = useMemo(() => {
-        const data = Object.values(formDraft?.listValues ?? {}).map((value, index) => ({
+        let listValues: string[];
+        let disabledListValues: boolean[];
+
+        if (reportFieldID) {
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            listValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
+            disabledListValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
+        } else {
+            listValues = formDraft?.listValues ?? [];
+            disabledListValues = formDraft?.disabledListValues ?? [];
+        }
+
+        const data = listValues.map((value, index) => ({
             value,
             index,
             text: value,
             keyForList: value,
             isSelected: selectedValues[value],
-            enabled: formDraft?.disabledListValues?.[index] ?? true,
+            enabled: !disabledListValues[index] ?? true,
             rightElement: (
                 <ListItemRightCaretWithLabel
                     shouldShowCaret={false}
-                    labelText={formDraft?.disabledListValues?.[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
+                    labelText={disabledListValues[index] ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}
                 />
             ),
         }));
 
         return [{data, isDisabled: false}];
-    }, [formDraft?.disabledListValues, formDraft?.listValues, selectedValues, translate]);
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(formDraft?.listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -273,4 +288,4 @@ function WorkspaceListValuesPage({
 
 WorkspaceListValuesPage.displayName = 'WorkspaceListValuesPage';
 
-export default WorkspaceListValuesPage;
+export default withPolicyAndFullscreenLoading(WorkspaceListValuesPage);

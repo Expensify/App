@@ -87,7 +87,7 @@ function EditReportFieldPage({
                         titleStyle={styles.flex1}
                         description={translate('workspace.reportFields.listValues')}
                         shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID, reportFieldID))}
                     />
                 )}
             </ScreenWrapper>
