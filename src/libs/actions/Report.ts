@@ -3630,6 +3630,32 @@ function resolveActionableReportMentionWhisper(
         return;
     }
 
+    let optimisticReport: Partial<Report> = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+    const optimisticReportActions: NullishDeep<ReportActions> = {
+        [reportAction.reportActionID]: {
+            originalMessage: {
+                resolution,
+            },
+        },
+    };
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportUtils.getLastVisibleMessage(reportId, optimisticReportActions as ReportActions);
+
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportId, optimisticReportActions as ReportActions);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        optimisticReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3641,6 +3667,11 @@ function resolveActionableReportMentionWhisper(
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
+            value: optimisticReport,
         },
     ];
 
