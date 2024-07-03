@@ -273,7 +273,7 @@ const SCREENS = {
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
             NETSUITE_IMPORT_MAPPING: 'Policy_Accounting_NetSuite_Import_Mapping',
-            NETSUITE_IMPORT_JOBS: 'Policy_Accounting_NetSuite_Import_Jobs',
+            NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
             NETSUITE_EXPORT: 'Policy_Accounting_NetSuite_Export',

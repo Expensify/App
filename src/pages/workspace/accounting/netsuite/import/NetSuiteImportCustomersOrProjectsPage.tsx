@@ -132,7 +132,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                             title={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
                             shouldShowRightIcon
                             onPress={() => {
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_JOBS.getRoute(policyID));
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
                             }}
                             brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         />
