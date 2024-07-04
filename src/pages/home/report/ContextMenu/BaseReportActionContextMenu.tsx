@@ -166,7 +166,6 @@ function BaseReportActionContextMenu({
         disabledIndexes,
         maxIndex: filteredContextMenuActions.length - 1,
         isActive: shouldEnableArrowNavigation,
-        disableCyclicTraversal: true,
     });
 
     /**

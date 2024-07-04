@@ -81,6 +81,7 @@ Onyx.connect({
 let retryBillingSuccessful: OnyxEntry<boolean>;
 Onyx.connect({
     key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+    initWithStoredValues: false,
     callback: (value) => {
         if (value === undefined) {
             return;
