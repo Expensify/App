@@ -1,12 +1,10 @@
-import {ExpensiMark} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
-import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type WorkspaceEmptyStateSectionProps = {
@@ -16,8 +14,8 @@ type WorkspaceEmptyStateSectionProps = {
     /** The text to display in the subtitle of the section */
     subtitle?: string;
 
-    /** Whether should render subtitle as HTML */
-    shouldParseSubtitle?: boolean;
+    /** The component to show in the subtitle of the section */
+    subtitleComponent?: React.ReactNode;
 
     /** The icon to display along with the title */
     icon: IconAsset;
@@ -29,27 +27,9 @@ type WorkspaceEmptyStateSectionProps = {
     shouldStyleAsCard?: boolean;
 };
 
-function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shouldStyleAsCard = true, shouldParseSubtitle = false}: WorkspaceEmptyStateSectionProps) {
+function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shouldStyleAsCard = true, subtitleComponent}: WorkspaceEmptyStateSectionProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const subtitleHtml = useMemo(() => {
-        if (!subtitle || !shouldParseSubtitle) {
-            return '';
-        }
-        const parser = new ExpensiMark();
-        return parser.replace(subtitle);
-    }, [subtitle, shouldParseSubtitle]);
-
-    const processedSubtitleText = useMemo(() => {
-        let textToWrap = '';
-
-        if (shouldParseSubtitle) {
-            textToWrap = subtitleHtml;
-        }
-
-        return textToWrap ? `<comment><muted-text>${textToWrap}</muted-text></comment>` : '';
-    }, [shouldParseSubtitle, subtitleHtml]);
 
     return (
         <View
@@ -73,9 +53,9 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
                     <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{title}</Text>
                 </View>
 
-                {!!subtitle && (
+                {(!!subtitle || !!subtitleComponent) && (
                     <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mt1, styles.mh1]}>
-                        {shouldParseSubtitle ? <RenderHTML html={processedSubtitleText} /> : <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{subtitle}</Text>}
+                        {subtitleComponent ?? <Text style={[styles.textNormal, styles.emptyCardSectionSubtitle]}>{subtitle}</Text>}
                     </View>
                 )}
             </View>

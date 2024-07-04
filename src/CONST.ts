@@ -1387,6 +1387,13 @@ const CONST = {
         },
     },
 
+    NETSUITE_IMPORT: {
+        HELP_LINKS: {
+            CUSTOM_SEGMENTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments',
+            CUSTOM_LISTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists',
+        },
+    },
+
     NETSUITE_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         EXPORTED: 'EXPORTED',

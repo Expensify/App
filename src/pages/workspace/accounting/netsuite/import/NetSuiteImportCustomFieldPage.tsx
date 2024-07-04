@@ -8,6 +8,8 @@ import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import RenderHTML from '@components/RenderHTML';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,17 +44,31 @@ function NetSuiteImportCustomFieldPage({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
+    const helpLinkComponent = useMemo(
+        () => (
+            <Text style={[styles.mb3, styles.textAlignCenter]}>
+                <TextLink
+                    href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
+                    style={[styles.link]}
+                >
+                    {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLinkText`)}
+                </TextLink>
+                {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpText`)}
+            </Text>
+        ),
+        [importCustomField, styles.link, styles.mb3, styles.textAlignCenter, translate],
+    );
+
     const listEmptyComponent = useMemo(
         () => (
             <WorkspaceEmptyStateSection
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
                 icon={Illustrations.EmptyStateRecords}
-                subtitle={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
-                shouldParseSubtitle
+                subtitleComponent={helpLinkComponent}
                 containerStyle={[styles.flex1, styles.justifyContentCenter]}
             />
         ),
-        [importCustomField, styles.flex1, styles.justifyContentCenter, translate],
+        [helpLinkComponent, importCustomField, styles.flex1, styles.justifyContentCenter, translate],
     );
 
     const listHeaderComponent = useMemo(

@@ -2377,8 +2377,9 @@ export default {
                         title: 'Segmentos/registros personalizado',
                         addButtonText: 'Añadir segmento/registro personalizado',
                         recordTitle: 'Segmento personalizado',
-                        helpLink:
-                            '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments) sobre la configuración de segmentos/registros personalizado.',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre la configuración de segmentos/registros personalizado.',
                         emptyTitle: 'Añadir un segmento personalizado o un registro personalizado',
                         fields: {
                             segmentName: 'Name',
@@ -2393,8 +2394,9 @@ export default {
                         title: 'Listas personalizado',
                         addButtonText: 'Añadir lista personalizado',
                         recordTitle: 'Lista personalizado',
-                        helpLink:
-                            '[Ver instrucciones detalladas](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-lists) sobre cómo configurar listas personalizado.',
+                        helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
+                        helpLinkText: 'Ver instrucciones detalladas',
+                        helpText: ' sobre cómo configurar listas personalizado.',
                         emptyTitle: 'Añadir una lista personalizado',
                         fields: {
                             listName: 'Name',
