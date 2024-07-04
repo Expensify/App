@@ -1403,4 +1403,5 @@ export type {
     ConnectionLastSync,
     NetSuiteSubsidiary,
     SageIntacctDataElementWithValue,
+    SageIntacctExportConfig,
 };

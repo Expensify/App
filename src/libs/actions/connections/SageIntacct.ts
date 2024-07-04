@@ -17,7 +17,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Connections} from '@src/types/onyx/Policy';
+import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -31,7 +31,7 @@ function connectToSageIntacct(policyID: string, credentials: SageIntacctCredenti
     API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
 }
 
-function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof Connections['intacct']['config']['export'], settingValue: string | null) {
+function prepareOnyxDataForExportUpdate(policyID: string, settingName: keyof SageIntacctExportConfig, settingValue: string | null) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -181,7 +181,7 @@ function updateSageIntacctNonreimbursableExpensesExportVendor(policyID: string, 
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR, parameters, {optimisticData, failureData, successData});
 }
 
-function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Connections['intacct']['config']['export'], vendor: string | null) {
+function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof SageIntacctExportConfig, vendor: string | null) {
     if (settingName === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR) {
         updateSageIntacctReimbursableExpensesReportExportDefaultVendor(policyID, vendor);
     } else if (settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR) {
