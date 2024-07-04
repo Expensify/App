@@ -11,6 +11,7 @@ import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useExtraSafePaddingBottomStyle from '@hooks/useExtraSafePaddingBottomStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type {Form} from '@src/types/form';
@@ -65,20 +66,7 @@ function FormWrapper({
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
-    const [willKeyboardShow, setWillKeyboardShow] = useState(false);
-    useEffect(() => {
-        const keyboardWillShowListener = Keyboard.addListener('keyboardWillShow', () => {
-            setWillKeyboardShow(true);
-        });
-        const keyboardWillHideListener = Keyboard.addListener('keyboardWillHide', () => {
-            setWillKeyboardShow(false);
-        });
-
-        return () => {
-            keyboardWillShowListener.remove();
-            keyboardWillHideListener.remove();
-        };
-    }, []);
+    const extraSafePaddingBottomStyle = useExtraSafePaddingBottomStyle();
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : formState?.errorFields ?? {};
@@ -128,13 +116,7 @@ function FormWrapper({
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-                        containerStyles={[
-                            styles.mh0,
-                            styles.mt5,
-                            submitFlexEnabled ? styles.flex1 : {},
-                            submitButtonStyles,
-                            safeAreaPaddingBottomStyle.paddingBottom && !willKeyboardShow ? styles.pb5 : {},
-                        ]}
+                        containerStyles={[styles.mh0, styles.mt5, submitFlexEnabled ? styles.flex1 : {}, submitButtonStyles, extraSafePaddingBottomStyle]}
                         enabledWhenOffline={enabledWhenOffline}
                         isSubmitActionDangerous={isSubmitActionDangerous}
                         disablePressOnEnter={disablePressOnEnter}
@@ -166,7 +148,7 @@ function FormWrapper({
             enabledWhenOffline,
             isSubmitActionDangerous,
             disablePressOnEnter,
-            willKeyboardShow,
+            extraSafePaddingBottomStyle,
         ],
     );
 

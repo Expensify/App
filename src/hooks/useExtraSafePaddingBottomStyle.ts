@@ -22,7 +22,8 @@ const useExtraSafePaddingBottomStyle = () => {
     const {paddingBottom} = useStyledSafeAreaInsets();
 
     const extraPaddingBottomStyle = useMemo(() => {
-        if (willKeyboardShow || paddingBottom) {
+        // Do not add extra padding at the bottom if the keyboard is open or if there is no safe area bottom padding style.
+        if (willKeyboardShow || !paddingBottom) {
             return {};
         }
         return styles.pb5;
