@@ -22,13 +22,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ValueSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
+type ReportFieldValueSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
 
-function ValueSettingsPage({
+function ReportFieldValueSettingsPage({
     route: {
         params: {policyID, valueIndex},
     },
-}: ValueSettingsPageProps) {
+}: ReportFieldValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
@@ -65,7 +65,7 @@ function ValueSettingsPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={ValueSettingsPage.displayName}
+                testID={ReportFieldValueSettingsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={currentValueName}
@@ -110,6 +110,6 @@ function ValueSettingsPage({
     );
 }
 
-ValueSettingsPage.displayName = 'ValueSettingsPage';
+ReportFieldValueSettingsPage.displayName = 'ReportFieldValueSettingsPage';
 
-export default ValueSettingsPage;
+export default ReportFieldValueSettingsPage;
