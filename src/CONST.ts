@@ -74,6 +74,9 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    DEFAULT_DB_NAME: 'OnyxDB',
+    DEFAULT_TABLE_NAME: 'keyvaluepairs',
+    DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -365,6 +368,8 @@ const CONST = {
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
+        COMMENT_LINKING: 'commentLinking',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1851,6 +1856,11 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
             ARE_TAGS_ENABLED: 'areTagsEnabled',
@@ -1860,21 +1870,6 @@ const CONST = {
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
             ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
-        },
-        CATEGORIES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        TAGS_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        DISTANCE_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -1905,11 +1900,6 @@ const CONST = {
             SUBSCRIPTION: 'subscription',
             DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
             FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
-        },
-        TAX_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
@@ -2258,6 +2248,7 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
     TAG_NAME_LIMIT: 256,
+    WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
@@ -4080,13 +4071,13 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Categories*.\n' +
                         '4. Enable and disable default categories.\n' +
                         '5. Click *Add categories* to make your own.\n' +
@@ -4097,13 +4088,13 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *More features*.\n' +
                         '4. Enable *Workflows*.\n' +
                         '5. In *Workflows*, enable *Add approvals*.\n' +
@@ -4114,13 +4105,13 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Members* > *Invite member*.\n' +
                         '4. Enter emails or phone numbers. \n' +
                         '5. Add an invite message if you want.\n' +
@@ -5081,6 +5072,12 @@ const CONST = {
     },
 
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+
+    REPORT_FIELD_TYPES: {
+        TEXT: 'text',
+        DATE: 'date',
+        LIST: 'dropdown',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
