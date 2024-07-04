@@ -3673,7 +3673,7 @@ export default {
         requestEarlyCancellation: {
             title: 'Request early cancellation',
             subtitle: 'What’s the main reason you’re requesting early cancellation?',
-            subscriptionCancelled: {
+            subscriptionCanceled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',
                 info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',

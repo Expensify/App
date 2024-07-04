@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FeedbackSurvey from '@components/FeedbackSurvey';
@@ -29,18 +29,19 @@ function RequestEarlyCancellationPage() {
         setCancellationType(CONST.CANCELLATION_TYPE.AUTOMATIC);
     };
 
-    const acknowledgmentText = (
-        <Text>
-            {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
-            <TextLink href={CONST.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
-            {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
-        </Text>
+    const acknowledgmentText = useMemo(
+        () => (
+            <Text>
+                {translate('subscription.requestEarlyCancellation.acknowledgement.part1')}
+                <TextLink href={CONST.TERMS_URL}>{translate('subscription.requestEarlyCancellation.acknowledgement.link')}</TextLink>
+                {translate('subscription.requestEarlyCancellation.acknowledgement.part2')}
+            </Text>
+        ),
+        [translate],
     );
 
-    let screenContent: React.ReactNode;
-
-    if (cancellationType === CONST.CANCELLATION_TYPE.MANUAL) {
-        screenContent = (
+    const manualCancellationContent = useMemo(
+        () => (
             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>
                 <View>
                     <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.requestSubmitted.title')}</Text>
@@ -50,49 +51,71 @@ function RequestEarlyCancellationPage() {
                         {translate('subscription.requestEarlyCancellation.requestSubmitted.subtitle.part2')}
                     </Text>
                 </View>
-                <FixedFooter>
+                <FixedFooter style={styles.ph0}>
                     <Button
                         success
-                        text={translate('subscription.requestEarlyCancellation.submitButton')}
+                        text={translate('common.done')}
                         onPress={() => Navigation.goBack()}
+                        large
                     />
                 </FixedFooter>
             </View>
-        );
-    } else if (cancellationType === CONST.CANCELLATION_TYPE.AUTOMATIC) {
-        screenContent = (
+        ),
+        [styles, translate],
+    );
+
+    const automaticCancellationContent = useMemo(
+        () => (
             <View style={[styles.flexGrow1, styles.justifyContentBetween, styles.mh5]}>
                 <View>
-                    <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCancelled.title')}</Text>
-                    <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCancelled.subtitle')}</Text>
-                    <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCancelled.info')}</Text>
+                    <Text style={styles.textHeadline}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.title')}</Text>
+                    <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.subtitle')}</Text>
+                    <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.requestEarlyCancellation.subscriptionCanceled.info')}</Text>
                     <Text>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCancelled.preventFutureActivity.part1')}
+                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part1')}
                         <TextLink onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}>
-                            {translate('subscription.requestEarlyCancellation.subscriptionCancelled.preventFutureActivity.link')}
+                            {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.link')}
                         </TextLink>
-                        {translate('subscription.requestEarlyCancellation.subscriptionCancelled.preventFutureActivity.part2')}
+                        {translate('subscription.requestEarlyCancellation.subscriptionCanceled.preventFutureActivity.part2')}
                     </Text>
                 </View>
-                <FixedFooter>
+                <FixedFooter style={styles.ph0}>
                     <Button
                         success
-                        text={translate('subscription.requestEarlyCancellation.submitButton')}
+                        text={translate('common.done')}
                         onPress={() => Navigation.goBack()}
+                        large
                     />
                 </FixedFooter>
             </View>
-        );
-    } else {
-        screenContent = (
+        ),
+        [styles, translate],
+    );
+
+    const surveyContent = useMemo(
+        () => (
             <FeedbackSurvey
                 title={translate('subscription.subscriptionSettings.helpUsImprove')}
                 description={translate('subscription.requestEarlyCancellation.subtitle')}
                 onSubmit={handleSubmit}
                 optionRowStyles={styles.flex1}
-                bottomText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgmentText}</Text>}
+                footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgmentText}</Text>}
             />
-        );
+        ),
+        [acknowledgmentText, styles, translate],
+    );
+
+    let screenContent: React.ReactNode;
+
+    switch (cancellationType) {
+        case CONST.CANCELLATION_TYPE.MANUAL:
+            screenContent = manualCancellationContent;
+            break;
+        case CONST.CANCELLATION_TYPE.AUTOMATIC:
+            screenContent = automaticCancellationContent;
+            break;
+        default:
+            screenContent = surveyContent;
     }
 
     return (

@@ -27,7 +27,7 @@ type FeedbackSurveyProps = {
     optionRowStyles?: StyleProp<ViewStyle>;
 
     /** Optional text to render over the submit button */
-    bottomText?: React.ReactNode;
+    footerText?: React.ReactNode;
 };
 
 type Option = {
@@ -42,7 +42,7 @@ const OPTIONS: Option[] = [
     {key: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.ID, label: CONST.FEEDBACK_SURVEY_OPTIONS.BUSINESS_CLOSING.TRANSLATION_KEY},
 ];
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles, bottomText}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -92,7 +92,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, bottomTe
                 )}
             </View>
             <FixedFooter>
-                {!!bottomText && bottomText}
+                {!!footerText && footerText}
                 <FormAlertWithSubmitButton
                     isAlertVisible={shouldShowReasonError}
                     onSubmit={handleSubmit}
