@@ -299,7 +299,7 @@ function getSearchParams() {
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-function isSearchResultEmpty(searchResults: SearchResults) {
+function isSearchResultsEmpty(searchResults: SearchResults) {
     return !Object.keys(searchResults?.data).find((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 }
 
@@ -314,6 +314,6 @@ export {
     shouldShowYear,
     isReportListItemType,
     isTransactionListItemType,
-    isSearchResultEmpty,
+    isSearchResultsEmpty,
 };
 export type {SearchColumnType, SortOrder};

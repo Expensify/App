@@ -89,7 +89,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultEmpty(searchResults);
+    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (isLoadingItems) {
         return (
