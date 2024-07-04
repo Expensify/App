@@ -387,6 +387,7 @@ function TransactionListItemRow({
                         onButtonPress={onButtonPress}
                         action={item.action}
                         isSelected={isButtonSelected}
+                        isChildListItem={isChildListItem}
                     />
                 </View>
             </View>

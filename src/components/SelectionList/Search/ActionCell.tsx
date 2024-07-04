@@ -15,9 +15,10 @@ type ActionCellProps = {
     action?: string;
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
+    isChildListItem?: boolean;
 };
 
-function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false}: ActionCellProps) {
+function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, isChildListItem = false}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -54,8 +55,9 @@ function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isL
             small
             pressOnEnter
             style={[styles.w100]}
-            innerStyles={[isSelected ? styles.buttonDefaultHovered : {}, styles.bgTransparent]}
-            textStyles={[styles.link]}
+            innerStyles={[isSelected ? styles.buttonDefaultHovered : {}]}
+            link={isChildListItem}
+            shouldUseDefaultHover={!isChildListItem}
         />
     );
 }

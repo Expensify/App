@@ -170,8 +170,6 @@ function ReportListItem<TItem extends ListItem>({
                     </View>
                     {isLargeScreenWidth && (
                         <>
-                            {/** We add an empty view with type style to align the total with the table header */}
-                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)} />
                             <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                                 <ActionCell
                                     isLargeScreenWidth={isLargeScreenWidth}

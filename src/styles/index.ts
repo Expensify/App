@@ -584,6 +584,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        linkHover: {
+            color: theme.linkHover,
+        },
+
         buttonText: {
             color: theme.text,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -5037,11 +5041,6 @@ const styles = (theme: ThemeColors) =>
         tripIllustrationSize: {
             width: 190,
             height: 172,
-        },
-
-        reportListItemSeparator: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.activeComponentBG,
         },
 
         reportListItemTitle: {
