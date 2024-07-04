@@ -673,7 +673,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: file?.uri ?? '',
-                originalFileName: file?.name ?? '',
+                avatarFileName: file?.name ?? '',
                 pendingFields: {
                     avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -690,7 +690,7 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 avatarUrl: currentReportData?.[reportID]?.avatarUrl ?? null,
-                originalFileName: currentReportData?.[reportID]?.originalFileName ?? null,
+                avatarFileName: currentReportData?.[reportID]?.avatarFileName ?? null,
                 pendingFields: {
                     avatar: null,
                 },
