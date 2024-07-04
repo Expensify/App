@@ -11,6 +11,7 @@ import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -212,6 +213,76 @@ describe('actions/ReportFields', () => {
             // check if the new report field was added to the policy
             expect(policy?.fieldList).toStrictEqual({
                 [reportFieldKey]: newReportField,
+            });
+
+            // Check for success data
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.POLICY,
+                    waitForCollectionCallback: true,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the policy pending action was cleared
+            // @ts-expect-error pendingFields is not null
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+        });
+    });
+
+    describe('updateReportFieldInitialValue', () => {
+        it('updates the initial value of a text report field', async () => {
+            mockFetch?.pause?.();
+
+            const policyID = Policy.generatePolicyID();
+            const reportFieldName = 'Test Field';
+            const oldInitialValue = 'Old initial value';
+            const newInitialValue = 'New initial value';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportField: Omit<PolicyReportField, 'value'> = {
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: oldInitialValue,
+                values: [],
+                disabledOptions: [],
+                fieldID: reportFieldID,
+                orderWeight: 1,
+                deletable: false,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+            };
+            const fakePolicy = createRandomPolicy(Number(policyID));
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
+            await waitForBatchedUpdates();
+
+            ReportFields.updateReportFieldInitialValue(policyID, reportFieldID, newInitialValue);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // check if the new report field was added to the policy
+            expect(policy?.fieldList).toStrictEqual({
+                [reportFieldKey]: {
+                    ...reportField,
+                    defaultValue: newInitialValue,
+                },
             });
 
             // Check for success data
