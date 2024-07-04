@@ -8,6 +8,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -45,23 +46,44 @@ function NetSuiteImportCustomFieldEdit({
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
     const customRecord: CustomRecord | undefined = allRecords.find((record) => record.internalID === internalID);
-    const fieldValue = (customRecord?.[fieldName] ?? '') as string;
+    const fieldValue = customRecord?.[fieldName as keyof CustomRecord] ?? '';
 
     const updateRecord = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>) => {
+            const newValue = formValues[fieldName as keyof typeof formValues];
+
+            if (customRecord) {
+                const updatedRecords = allRecords.map((record) => {
+                    if (record.internalID === internalID) {
+                        return {
+                            ...record,
+                            [fieldName]: newValue,
+                        };
+                    }
+                    return record;
+                });
+
+                if ('segmentName' in customRecord) {
+                    updateNetSuiteCustomSegments(policyID, updatedRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
+                } else {
+                    updateNetSuiteCustomLists(policyID, updatedRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
+                }
+            }
+
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, internalID));
         },
-        [importCustomField, internalID, policyID],
+        [allRecords, customRecord, fieldName, importCustomField, internalID, policyID],
     );
 
     const validate = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM> = {};
 
-            if (formValues[fieldName]) {
-                return;
+            const key = fieldName as keyof typeof formValues;
+            if (!formValues[key]) {
+                ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
             }
-            ErrorUtils.addErrorMessage(errors, fieldName, translate('common.error.fieldRequired'));
+
             return errors;
         },
         [fieldName, translate],
