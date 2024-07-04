@@ -37,7 +37,7 @@ if (cpuProfiles.length === 0) {
 } else {
     // Construct the command
     const cpuprofileName = cpuProfiles[0];
-    const command = `npx react-native-release-profiler --local ${cpuprofileName} --sourcemap-path ${sourcemapPath}`;
+    const command = `npx react-native-release-profiler --local "${cpuprofileName}" --sourcemap-path "${sourcemapPath}"`;
 
     console.log(`Executing: ${command}`);
 

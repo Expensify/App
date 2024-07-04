@@ -11,9 +11,9 @@ const get = (config: NativeConfig, key: string, defaultValue: string): string =>
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const newExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'NEW_EXPENSIFY_URL', 'http://localhost:9000/'));
-const expensifyURL = Url.addTrailingForwardSlash(get(Config, 'EXPENSIFY_URL', 'http://localhost:9000/'));
-const stagingExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'STAGING_EXPENSIFY_URL', 'http://localhost:9000/'));
+const newExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
+const expensifyURL = Url.addTrailingForwardSlash(get(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
+const stagingExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
 const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
 const ngrokURL = Url.addTrailingForwardSlash(get(Config, 'NGROK_URL', ''));
 const secureNgrokURL = Url.addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', ''));

@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-release-profiler/src/index.tsx b/node_modules/react-native-release-profiler/src/index.tsx
+index 9484c92..1b9f115 100644
+--- a/node_modules/react-native-release-profiler/src/index.tsx
++++ b/node_modules/react-native-release-profiler/src/index.tsx
+@@ -21,6 +21,6 @@ export function startProfiling(): Boolean {
+   return ReleaseProfiler.startProfiling();
+ }
+ 
+-export function stopProfiling(saveToDownloads = false): Promise<string> {
++export function stopProfiling(saveToDownloads = false, _fileName = ""): Promise<string> {
+   return ReleaseProfiler.stopProfiling(saveToDownloads);
+ }
