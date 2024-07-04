@@ -25,13 +25,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
-type InitialValuePagePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
-function InitialValuePage({
+type ReportFieldInitialValuePagePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
+function ReportFieldInitialValuePage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: InitialValuePagePageProps) {
+}: ReportFieldInitialValuePagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -97,7 +97,7 @@ function InitialValuePage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={InitialValuePage.displayName}
+                testID={ReportFieldInitialValuePage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -145,6 +145,6 @@ function InitialValuePage({
     );
 }
 
-InitialValuePage.displayName = 'InitialValuePage';
+ReportFieldInitialValuePage.displayName = 'ReportFieldInitialValuePage';
 
-export default withPolicyAndFullscreenLoading(InitialValuePage);
+export default withPolicyAndFullscreenLoading(ReportFieldInitialValuePage);

@@ -366,7 +366,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/ReportFieldAddListValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/ValueSettingsPage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/EditReportFieldPage').default,
-    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/InitialValuePage').default,
+    [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/ReportFieldInitialValuePage').default,
     [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: () => require<ReactComponentModule>('../../../../pages/workspace/reportFields/ReportFieldEditValuePage').default,
 });
 
