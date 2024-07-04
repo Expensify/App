@@ -2007,7 +2007,7 @@ function getIcons(
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorAccountID = parentReportAction?.actorAccountID;
+        const actorAccountID = getReportActionActorAccountID(parentReportAction, report);
         const actorDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[actorAccountID ?? -1], '', false);
         const actorIcon = {
             id: actorAccountID,
@@ -4029,77 +4029,11 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
-function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
-    const policy = getPolicy(report?.policyID);
-
-    if (report?.ownerAccountID !== currentUserAccountID && policy?.role === CONST.POLICY.ROLE.ADMIN) {
-        const ownerPersonalDetail = getPersonalDetailsForAccountID(report?.ownerAccountID ?? -1);
-        const ownerDisplayName = `${ownerPersonalDetail.displayName ?? ''}${ownerPersonalDetail.displayName !== ownerPersonalDetail.login ? ` (${ownerPersonalDetail.login})` : ''}`;
-
-        return [
-            {
-                style: 'normal',
-                text: 'You (on behalf of ',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-            {
-                style: 'strong',
-                text: ownerDisplayName,
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-            {
-                style: 'normal',
-                text: ' via admin-submit)',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-            {
-                style: 'normal',
-                text: ' submitted this report',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-            {
-                style: 'normal',
-                text: ' to ',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-            {
-                style: 'strong',
-                text: 'you',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-        ];
-    }
-
-    const submittedToPersonalDetail = getPersonalDetailsForAccountID(PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? 0));
-    let submittedToDisplayName = `${submittedToPersonalDetail.displayName ?? ''}${
-        submittedToPersonalDetail.displayName !== submittedToPersonalDetail.login ? ` (${submittedToPersonalDetail.login})` : ''
-    }`;
-    if (submittedToPersonalDetail?.accountID === currentUserAccountID) {
-        submittedToDisplayName = 'yourself';
-    }
-
-    return [
-        {
-            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            style: 'strong',
-            text: 'You',
-        },
-        {
-            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            style: 'normal',
-            text: ' submitted this report',
-        },
-        {
-            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            style: 'normal',
-            text: ' to ',
-        },
-        {
-            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            style: 'strong',
-            text: submittedToDisplayName,
-        },
-    ];
+function getIOUSubmittedMessage(reportID: string) {
+    const report = getReportOrDraftReport(reportID);
+    const linkedReport = isChatThread(report) ? getParentReport(report) : report;
+    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(linkedReport?.total ?? 0), linkedReport?.currency);
+    return Localize.translateLocal('iou.submittedAmount', {formattedAmount});
 }
 
 /**
@@ -4113,11 +4047,6 @@ function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
  */
 function getIOUReportActionMessage(iouReportID: string, type: string, total: number, comment: string, currency: string, paymentType = '', isSettlingUp = false): Message[] {
     const report = getReportOrDraftReport(iouReportID);
-
-    if (type === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-        return getIOUSubmittedMessage(!isEmptyObject(report) ? report : undefined);
-    }
-
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isEmptyObject(report)
             ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(report).totalDisplaySpend, currency)
@@ -4153,6 +4082,9 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
             iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            break;
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+            iouMessage = Localize.translateLocal('iou.submittedAmount', {formattedAmount: amount});
             break;
         default:
             break;
@@ -7216,6 +7148,7 @@ export {
     getGroupChatName,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
+    getIOUSubmittedMessage,
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
