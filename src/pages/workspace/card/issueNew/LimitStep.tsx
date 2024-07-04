@@ -54,7 +54,9 @@ function LimitStep() {
                 // TODO: change the submitButtonText to 'common.confirm' when editing and navigate to ConfirmationStep
                 submitButtonText={translate('common.next')}
                 onSubmit={submit}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.flex1]}
+                submitButtonStyles={[styles.mh5, styles.mt0]}
+                submitFlexEnabled={false}
             >
                 <InputWrapper
                     InputComponent={AmountForm}
