@@ -114,6 +114,11 @@ const newActionUnsubscribeMap: Record<string, () => void> = {};
 // internal states are resetted or recreated.
 const cacheUnreadMarkers = new Map<string, string>();
 
+// If the report has unread marker, we should store the separator timestamp, i.e: all the messages sent after that timestamp will be marked as "unread"
+// This could be useful to re-calculate the unread marker if the report action list change (e.g: Messages are deleted/hidden/...)
+// Seems that there is an architecture issue that prevent us from using useRef for this, as the useRef value gets reset when the reportID changes, so we use a global variable to keep track
+const unreadMarkerTimestampCache = new Map<string, string | undefined>();
+
 // Seems that there is an architecture issue that prevents us from using the reportID with useRef
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID: string | null = null;
@@ -488,23 +493,21 @@ function ReportActionsList({
         return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report);
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
-    // storing the last read time used to render the unread marker
-    const markerLastReadTimeRef = useRef<string | undefined>();
-
     useEffect(() => {
         if (currentUnreadMarker) {
             return;
         }
-        markerLastReadTimeRef.current = undefined;
-    }, [currentUnreadMarker]);
+        unreadMarkerTimestampCache.clear();
+    }, [currentUnreadMarker, report.reportID]);
 
     const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
         // This is to avoid a warning of:
         // Cannot update a component (ReportActionsList) while rendering a different component (CellRenderer).
         let markerFound = false;
+        const markerTimestamp: string | undefined = unreadMarkerTimestampCache.get(report.reportID);
         sortedVisibleReportActions.forEach((reportAction, index) => {
-            if (!shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current, false)) {
+            if (!shouldDisplayNewMarker(reportAction, index, markerTimestamp, false)) {
                 return;
             }
             markerFound = true;
@@ -515,11 +518,11 @@ function ReportActionsList({
         });
 
         // if marker can be found, set the markerLastReadTimeRef to the last read time if necessary
-        if (markerFound && !markerLastReadTimeRef.current) {
-            markerLastReadTimeRef.current = lastReadTimeRef.current;
+        if (markerFound && !markerTimestamp) {
+            unreadMarkerTimestampCache.set(report.reportID, lastReadTimeRef.current);
         }
 
-        if (!markerFound && !linkedReportActionID) {
+        if (!markerFound && linkedReportActionID === '-1') {
             setCurrentUnreadMarker(null);
         }
     }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker, linkedReportActionID]);
@@ -570,6 +573,8 @@ function ReportActionsList({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isFocused, isVisible]);
 
+    const markerLastReadTime = unreadMarkerTimestampCache.get(report.reportID);
+
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
@@ -584,7 +589,7 @@ function ReportActionsList({
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index, markerLastReadTimeRef.current, true)}
+                shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index, markerLastReadTime, true)}
                 shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
                 isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
@@ -592,6 +597,7 @@ function ReportActionsList({
         ),
         [
             report,
+            markerLastReadTime,
             linkedReportActionID,
             sortedVisibleReportActions,
             mostRecentIOUReportActionID,
