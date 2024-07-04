@@ -69,10 +69,10 @@ function ReportFieldListValuesPage({
 
             reportFieldValues = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {});
             reportFieldDisabledValues = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {});
+        } else {
+            reportFieldValues = formDraft?.listValues ?? [];
+            reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
         }
-
-        reportFieldValues = formDraft?.listValues ?? [];
-        reportFieldDisabledValues = formDraft?.disabledListValues ?? [];
 
         return [reportFieldValues, reportFieldDisabledValues];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
