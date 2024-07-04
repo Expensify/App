@@ -114,6 +114,92 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     return {optimisticData, failureData, successData};
 }
 
+function updateNetSuiteSyncOptionsOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']['syncOptions']>(
+    policyID: string,
+    settingName: TSettingName,
+    settingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
+    oldSettingValue: Partial<Connections['netsuite']['options']['config']['syncOptions'][TSettingName]>,
+) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        options: {
+                            config: {
+                                syncOptions: {
+                                    [settingName]: settingValue ?? null,
+                                    pendingFields: {
+                                        [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    },
+                                },
+                                errorFields: {
+                                    [settingName]: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        options: {
+                            config: {
+                                syncOptions: {
+                                    [settingName]: oldSettingValue ?? null,
+                                    pendingFields: {
+                                        [settingName]: null,
+                                    },
+                                },
+                                errorFields: {
+                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        options: {
+                            config: {
+                                syncOptions: {
+                                    [settingName]: settingValue ?? null,
+                                    pendingFields: {
+                                        [settingName]: null,
+                                    },
+                                },
+                                errorFields: {
+                                    [settingName]: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+    return {optimisticData, failureData, successData};
+}
+
 function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryParam, oldSubsidiary: SubsidiaryParam) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -198,85 +284,7 @@ function updateNetSuiteSubsidiary(policyID: string, newSubsidiary: SubsidiaryPar
 }
 
 function updateNetSuiteSyncTaxConfiguration(policyID: string, isSyncTaxEnabled: boolean) {
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    connections: {
-                        netsuite: {
-                            options: {
-                                config: {
-                                    syncOptions: {
-                                        syncTax: isSyncTaxEnabled,
-                                    },
-                                    // TODO: Fixing in the PR for Import Mapping https://github.com/Expensify/App/pull/44743
-                                    // pendingFields: {
-                                    //     syncTax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                    // },
-                                    errorFields: {
-                                        syncTax: null,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    connections: {
-                        netsuite: {
-                            options: {
-                                config: {
-                                    syncOptions: {
-                                        syncTax: isSyncTaxEnabled,
-                                    },
-                                    // TODO: Fixing in the PR for Import Mapping https://github.com/Expensify/App/pull/44743
-                                    // pendingFields: {
-                                    //     syncTax: null
-                                    // },
-                                    errorFields: {
-                                        syncTax: null,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    connections: {
-                        netsuite: {
-                            options: {
-                                config: {
-                                    syncOptions: {
-                                        syncTax: !isSyncTaxEnabled,
-                                    },
-                                    // pendingFields: {
-                                    //     syncTax: null,
-                                    // },
-                                    errorFields: {
-                                        syncTax: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        ],
-    };
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_TAX, isSyncTaxEnabled, !isSyncTaxEnabled);
 
     const params = {
         policyID,
@@ -451,6 +459,142 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
 
+function updateNetSuiteAutoSync(policyID: string, value: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        config: {
+                            autoSync: {
+                                enabled: value,
+                            },
+                            pendingFields: {
+                                autoSync: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                autoSync: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        config: {
+                            autoSync: {
+                                enabled: !value,
+                            },
+                            pendingFields: {
+                                autoSync: null,
+                            },
+                            errorFields: {
+                                autoSync: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                connections: {
+                    netsuite: {
+                        config: {
+                            autoSync: {
+                                enabled: value,
+                            },
+                            pendingFields: {
+                                autoSync: null,
+                            },
+                            errorFields: {
+                                autoSync: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
+}
+
+function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, value, !value);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
+}
+
+function updateNetSuiteSyncPeople(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE, value, !value);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE, parameters, onyxData);
+}
+
+function updateNetSuiteAutoCreateEntities(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES, value, !value);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_CREATE_ENTITIES, parameters, onyxData);
+}
+
+function updateNetSuiteEnableNewCategories(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES, value, !value);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
+}
+
+function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string, value: boolean) {
+    const data = {
+        enabled: value,
+    };
+    const oldData = {
+        enabled: !value,
+    };
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS, data, oldData);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_ENABLED, parameters, onyxData);
+}
+
 export {
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,
@@ -469,5 +613,11 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    updateNetSuiteAutoSync,
+    updateNetSuiteSyncReimbursedReports,
+    updateNetSuiteSyncPeople,
+    updateNetSuiteAutoCreateEntities,
+    updateNetSuiteEnableNewCategories,
+    updateNetSuiteCustomFormIDOptionsEnabled,
     connectPolicyToNetSuite,
 };
