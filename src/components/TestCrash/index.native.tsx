@@ -3,17 +3,17 @@ import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
 import useLocalize from '@hooks/useLocalize';
 import testCrash from '@libs/testCrash';
-import BaseTestToolMenu from './BaseTestToolMenu';
+import {View} from "react-native";
 
 const config = require('../../../firebase.json');
 
-function TestToolMenu() {
+function TestCrash() {
     const {translate} = useLocalize();
 
     const isCrashlyticsDebugEnabled = config['react-native'].crashlytics_debug_enabled;
 
     return (
-        <BaseTestToolMenu>
+        <View>
             {isCrashlyticsDebugEnabled ? (
                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.nativeCrash')}>
                     <Button
@@ -25,8 +25,8 @@ function TestToolMenu() {
                     />
                 </TestToolRow>
             ) : null}
-        </BaseTestToolMenu>
+        </View>
     );
 }
 
-export default TestToolMenu;
+export default TestCrash;

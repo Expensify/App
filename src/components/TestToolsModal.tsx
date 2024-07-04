@@ -12,11 +12,11 @@ import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import TestToolMenu from "./TestToolMenu";
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
 import ProfilingToolMenu from './ProfilingToolMenu';
-import TestToolMenu from './TestToolMenu';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 

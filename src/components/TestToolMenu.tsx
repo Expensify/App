@@ -15,6 +15,7 @@ import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
+import TestCrash from "./TestCrash";
 
 type TestToolMenuOnyxProps = {
     /** User object in Onyx */
@@ -27,7 +28,7 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
 };
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
-function BaseTestToolMenu({user = USER_DEFAULT, network, children}: React.PropsWithChildren<TestToolMenuProps>) {
+function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -89,17 +90,17 @@ function BaseTestToolMenu({user = USER_DEFAULT, network, children}: React.PropsW
                 />
             </TestToolRow>
 
-            {children}
+            <TestCrash />
         </>
     );
 }
 
-BaseTestToolMenu.displayName = 'BaseTestToolMenu';
+TestToolMenu.displayName = 'TestToolMenu';
 
 export default withNetwork()(
     withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
         user: {
             key: ONYXKEYS.USER,
         },
-    })(BaseTestToolMenu),
+    })(TestToolMenu),
 );

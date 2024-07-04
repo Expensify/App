@@ -14,7 +14,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Switch from '@components/Switch';
-import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -31,6 +30,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import getLightbulbIllustrationStyle from './getLightbulbIllustrationStyle';
+import TestToolMenu from "@components/TestToolMenu";
 
 type BaseMenuItem = {
     translationKey: TranslationPaths;
