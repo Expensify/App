@@ -15,7 +15,9 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
 function showSuccessAlert(successMessage?: string) {
     Alert.alert(
         Localize.translateLocal('fileDownload.success.title'),
-        successMessage ?? Localize.translateLocal('fileDownload.success.message'),
+        // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        successMessage || Localize.translateLocal('fileDownload.success.message'),
         [
             {
                 text: Localize.translateLocal('common.ok'),
@@ -252,6 +254,13 @@ function validateImageForCorruption(file: FileObject): Promise<void> {
     });
 }
 
+function isLocalFile(receiptUri?: string | number): boolean {
+    if (!receiptUri) {
+        return false;
+    }
+    return typeof receiptUri === 'number' || receiptUri?.startsWith('blob:') || receiptUri?.startsWith('file:') || receiptUri?.startsWith('/');
+}
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -264,5 +273,6 @@ export {
     appendTimeToFileName,
     readFileAsync,
     base64ToFile,
+    isLocalFile,
     validateImageForCorruption,
 };

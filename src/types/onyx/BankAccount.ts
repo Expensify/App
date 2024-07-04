@@ -17,11 +17,17 @@ type BankAccountAdditionalData = {
     /** In which bank is the bank account */
     bankName?: BankName;
 
+    /** Plaid account id */
+    plaidAccountID?: string;
+
     /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
 
     /** In which country is the bank account */
     country?: string;
+
+    /** Is billing card */
+    isBillingCard?: boolean;
 };
 
 /** Model of bank account */

@@ -54,7 +54,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
-        const {report = {reportID: ''}, route, isLoadingApp = true} = props;
+        const {report = {reportID: ''}, route, isLoadingApp = true, reportDraft} = props;
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
             .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
             .includes(route.params?.iouType);
@@ -62,7 +62,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         useEffect(() => {
-            if (!!report?.reportID || !route.params.reportID) {
+            if (!!report?.reportID || !route.params.reportID || !!reportDraft) {
                 return;
             }
 
@@ -92,13 +92,13 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
 
     return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '-1'}`,
         },
         isLoadingApp: {
             key: ONYXKEYS.IS_LOADING_APP,
         },
         reportDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '0'}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '-1'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }

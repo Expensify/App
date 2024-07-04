@@ -27,7 +27,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '-1';
     const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
     const {collectionAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};

@@ -80,7 +80,7 @@ function MoneyReportView({report, policy}: MoneyReportViewProps) {
                                     <MenuItemWithTopDescription
                                         description={Str.UCFirst(reportField.name)}
                                         title={fieldValue}
-                                        onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '', reportField.fieldID))}
+                                        onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', reportField.fieldID))}
                                         shouldShowRightIcon
                                         disabled={isFieldDisabled}
                                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}

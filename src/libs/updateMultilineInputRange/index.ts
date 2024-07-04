@@ -14,10 +14,10 @@ const updateMultilineInputRange: UpdateMultilineInputRange = (input, shouldAutoF
         return;
     }
 
-    if ('value' in input && input.value && input.setSelectionRange) {
+    if ('value' in input && typeof input.value === 'string' && input.setSelectionRange) {
         const length = input.value.length;
         if (shouldAutoFocus) {
-            input.setSelectionRange(length, length);
+            (input as HTMLInputElement).setSelectionRange(length, length);
         }
         // eslint-disable-next-line no-param-reassign
         input.scrollTop = input.scrollHeight;

@@ -245,10 +245,10 @@ function BaseVideoPlayer({
     );
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullScreenRef.current) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL) {
             return;
         }
-        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading);
+        shareVideoPlayerElements(videoPlayerRef.current, videoPlayerElementParentRef.current, videoPlayerElementRef.current, isUploading || isFullScreenRef.current);
     }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef]);
 
     // append shared video element to new parent (used for example in attachment modal)

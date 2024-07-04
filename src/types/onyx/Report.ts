@@ -82,6 +82,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
         hasOutstandingChildRequest?: boolean;
 
+        /** Whether the report has a child task that is awaiting action from the current user */
+        hasOutstandingChildTask?: boolean;
+
         /** List of icons for report participants */
         icons?: OnyxCommon.Icon[];
 
@@ -279,6 +282,18 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
+
+        /** The trip data for a trip room */
+        tripData?: {
+            /** The start date of a trip */
+            startDate: string;
+
+            /** The end date of a trip */
+            endDate: string;
+
+            /** The trip ID in spotnana */
+            tripID: string;
+        };
     },
     PolicyReportField['fieldID']
 >;

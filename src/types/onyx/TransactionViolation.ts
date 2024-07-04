@@ -62,12 +62,15 @@ type TransactionViolationData = {
 
     /** Whether the current violation is `pending RTER` */
     pendingPattern?: boolean;
+
+    /** List of duplicate transactions */
+    duplicates?: string[];
 };
 
 /** Model of a transaction violation */
 type TransactionViolation = {
-    /** Type of transaction violation ('violation', 'notice', 'warning', ...) */
-    type: string;
+    /** Type of transaction violation */
+    type: ValueOf<typeof CONST.VIOLATION_TYPES>;
 
     /** Name of the transaction violation */
     name: ViolationName;
