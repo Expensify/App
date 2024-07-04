@@ -391,7 +391,7 @@ function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
 function getReimbursable(transaction: Transaction): boolean {
-    return transaction.reimbursable ?? true;
+    return transaction?.reimbursable ?? true;
 }
 
 /**
