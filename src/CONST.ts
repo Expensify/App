@@ -74,6 +74,9 @@ const onboardingChoices = {
 type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
 
 const CONST = {
+    DEFAULT_DB_NAME: 'OnyxDB',
+    DEFAULT_TABLE_NAME: 'keyvaluepairs',
+    DEFAULT_ONYX_DUMP_FILE_NAME: 'onyx-state.txt',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
 
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
@@ -364,6 +367,9 @@ const CONST = {
         NETSUITE_ON_NEW_EXPENSIFY: 'netsuiteOnNewExpensify',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         WORKSPACE_FEEDS: 'workspaceFeeds',
+        NETSUITE_USA_TAX: 'netsuiteUsaTax',
+        INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
+        COMMENT_LINKING: 'commentLinking',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1287,6 +1293,7 @@ const CONST = {
         REPORT_FIELD: 'REPORT_FIELD',
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
+        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
@@ -1337,10 +1344,6 @@ const CONST = {
         },
     },
 
-    NETSUITE_CONFIG: {
-        SUBSIDIARY: 'subsidiary',
-    },
-
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -1352,6 +1355,135 @@ const CONST = {
         REPORT_EXPORTED: 'REPORT_EXPORTED',
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
+
+    NETSUITE_CONFIG: {
+        SUBSIDIARY: 'subsidiary',
+        EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
+        DEFAULT_VENDOR: 'defaultVendor',
+        REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
+        PAYABLE_ACCT: 'payableAcct',
+        JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
+        INVOICE_ITEM_PREFERENCE: 'invoiceItemPreference',
+        INVOICE_ITEM: 'invoiceItem',
+        TAX_POSTING_ACCOUNT: 'taxPostingAccount',
+        PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
+        ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
+        EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
+        IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        SYNC_OPTIONS: {
+            SYNC_TAX: 'syncTax',
+        },
+    },
+
+    NETSUITE_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        EXPORTED: 'EXPORTED',
+        SUBMITTED: 'SUBMITTED',
+    },
+
+    NETSUITE_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'EXPENSE_REPORT',
+        VENDOR_BILL: 'VENDOR_BILL',
+        JOURNAL_ENTRY: 'JOURNAL_ENTRY',
+    },
+
+    NETSUITE_INVOICE_ITEM_PREFERENCE: {
+        CREATE: 'create',
+        SELECT: 'select',
+    },
+
+    NETSUITE_JOURNAL_POSTING_PREFERENCE: {
+        JOURNALS_POSTING_INDIVIDUAL_LINE: 'JOURNALS_POSTING_INDIVIDUAL_LINE',
+        JOURNALS_POSTING_TOTAL_LINE: 'JOURNALS_POSTING_TOTAL_LINE',
+    },
+
+    NETSUITE_EXPENSE_TYPE: {
+        REIMBURSABLE: 'reimbursable',
+        NON_REIMBURSABLE: 'nonreimbursable',
+    },
+
+    /**
+     * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)
+     *
+     * Should mirror the list on the OldDot.
+     */
+    NETSUITE_TAX_COUNTRIES: [
+        '_canada',
+        '_unitedKingdomGB',
+        '_unitedKingdom',
+        '_australia',
+        '_southAfrica',
+        '_india',
+        '_france',
+        '_netherlands',
+        '_germany',
+        '_singapore',
+        '_spain',
+        '_ireland',
+        '_denmark',
+        '_brazil',
+        '_japan',
+        '_philippines',
+        '_china',
+        '_argentina',
+        '_newZealand',
+        '_switzerland',
+        '_sweden',
+        '_portugal',
+        '_mexico',
+        '_israel',
+        '_thailand',
+        '_czechRepublic',
+        '_egypt',
+        '_ghana',
+        '_indonesia',
+        '_iranIslamicRepublicOf',
+        '_jordan',
+        '_kenya',
+        '_kuwait',
+        '_lebanon',
+        '_malaysia',
+        '_morocco',
+        '_myanmar',
+        '_nigeria',
+        '_pakistan',
+        '_saudiArabia',
+        '_sriLanka',
+        '_unitedArabEmirates',
+        '_vietnam',
+        '_austria',
+        '_bulgaria',
+        '_greece',
+        '_cyprus',
+        '_norway',
+        '_romania',
+        '_poland',
+        '_hongKong',
+        '_luxembourg',
+        '_lithuania',
+        '_malta',
+        '_finland',
+        '_koreaRepublicOf',
+        '_italy',
+        '_georgia',
+        '_hungary',
+        '_latvia',
+        '_estonia',
+        '_slovenia',
+        '_serbia',
+        '_croatiaHrvatska',
+        '_belgium',
+        '_turkey',
+        '_taiwan',
+        '_azerbaijan',
+        '_slovakRepublic',
+        '_costaRica',
+    ] as string[],
 
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
@@ -1721,6 +1853,11 @@ const CONST = {
             MAKE_MEMBER: 'makeMember',
             MAKE_ADMIN: 'makeAdmin',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            DISABLE: 'disable',
+            ENABLE: 'enable',
+        },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',
             ARE_TAGS_ENABLED: 'areTagsEnabled',
@@ -1728,22 +1865,8 @@ const CONST = {
             ARE_WORKFLOWS_ENABLED: 'areWorkflowsEnabled',
             ARE_REPORT_FIELDS_ENABLED: 'areReportFieldsEnabled',
             ARE_CONNECTIONS_ENABLED: 'areConnectionsEnabled',
+            ARE_EXPENSIFY_CARDS_ENABLED: 'areExpensifyCardsEnabled',
             ARE_TAXES_ENABLED: 'tax',
-        },
-        CATEGORIES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        TAGS_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
-        },
-        DISTANCE_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         DEFAULT_CATEGORIES: [
             'Advertising',
@@ -1774,11 +1897,6 @@ const CONST = {
             SUBSCRIPTION: 'subscription',
             DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
             FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
-        },
-        TAX_RATES_BULK_ACTION_TYPES: {
-            DELETE: 'delete',
-            DISABLE: 'disable',
-            ENABLE: 'enable',
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
@@ -2058,6 +2176,7 @@ const CONST = {
         WORKSPACE_INVOICES: 'WorkspaceSendInvoices',
         WORKSPACE_TRAVEL: 'WorkspaceBookTravel',
         WORKSPACE_MEMBERS: 'WorkspaceManageMembers',
+        WORKSPACE_EXPENSIFY_CARD: 'WorkspaceExpensifyCard',
         WORKSPACE_WORKFLOWS: 'WorkspaceWorkflows',
         WORKSPACE_BANK_ACCOUNT: 'WorkspaceBankAccount',
         WORKSPACE_SETTINGS: 'WorkspaceSettings',
@@ -2126,6 +2245,7 @@ const CONST = {
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
     TAG_NAME_LIMIT: 256,
+    WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
@@ -3948,13 +4068,13 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Categories*.\n' +
                         '4. Enable and disable default categories.\n' +
                         '5. Click *Add categories* to make your own.\n' +
@@ -3965,13 +4085,13 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *More features*.\n' +
                         '4. Enable *Workflows*.\n' +
                         '5. In *Workflows*, enable *Add approvals*.\n' +
@@ -3982,13 +4102,13 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    description:
+                    description: ({workspaceLink}: {workspaceLink: string}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        `2. Go to [*Workspaces* > [your workspace]](${workspaceLink}).\n` +
                         '3. Click *Members* > *Invite member*.\n' +
                         '4. Enter emails or phone numbers. \n' +
                         '5. Add an invite message if you want.\n' +
@@ -4899,6 +5019,14 @@ const CONST = {
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
         },
+        BULK_ACTION_TYPES: {
+            DELETE: 'delete',
+            HOLD: 'hold',
+            UNHOLD: 'unhold',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
     },
 
     REFERRER: {
@@ -4915,10 +5043,6 @@ const CONST = {
     },
 
     SUBSCRIPTION_PRICE_FACTOR: 2,
-    SUBSCRIPTION_POSSIBLE_COST_SAVINGS: {
-        COLLECT_PLAN: 10,
-        CONTROL_PLAN: 18,
-    },
     FEEDBACK_SURVEY_OPTIONS: {
         TOO_LIMITED: {
             ID: 'tooLimited',
@@ -4938,7 +5062,19 @@ const CONST = {
         },
     },
 
+    WORKSPACE_CARDS_LIST_LABEL_TYPE: {
+        CURRENT_BALANCE: 'currentBalance',
+        REMAINING_LIMIT: 'remainingLimit',
+        CASH_BACK: 'cashBack',
+    },
+
     EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+
+    REPORT_FIELD_TYPES: {
+        TEXT: 'text',
+        DATE: 'date',
+        LIST: 'dropdown',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
