@@ -53,6 +53,7 @@ function canUseReportFieldsFeature(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseWorkspaceFeeds(betas: OnyxEntry<Beta[]>): boolean {
+    return true;
     return !!betas?.includes(CONST.BETAS.WORKSPACE_FEEDS) || canUseAllBetas(betas);
 }
 
