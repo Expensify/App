@@ -169,16 +169,14 @@ function ReportListItem<TItem extends ListItem>({
                         </View>
                     </View>
                     {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
-                                <ActionCell
-                                    isLargeScreenWidth={isLargeScreenWidth}
-                                    onButtonPress={handleOnButtonPress}
-                                    action={reportItem.action}
-                                    isSelected={item.isSelected}
-                                />
-                            </View>
-                        </>
+                        <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
+                            <ActionCell
+                                isLargeScreenWidth={isLargeScreenWidth}
+                                onButtonPress={handleOnButtonPress}
+                                action={reportItem.action}
+                                isSelected={item.isSelected}
+                            />
+                        </View>
                     )}
                 </View>
                 {reportItem.transactions.map((transaction) => (
