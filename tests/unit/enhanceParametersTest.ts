@@ -24,6 +24,7 @@ test('Enhance parameters adds correct parameters for Log command with no authTok
             isFromDevEnv: true,
             platform: 'ios',
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
+            clientUpdateID: -1,
         });
     });
 });
@@ -44,6 +45,7 @@ test('Enhance parameters adds correct parameters for a command that requires aut
             isFromDevEnv: true,
             platform: 'ios',
             authToken,
+            clientUpdateID: -1,
             referer: CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER,
         });
     });
