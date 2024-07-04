@@ -71,7 +71,7 @@ function WorkspaceReportFieldsPage({
             orderWeight: reportField.orderWeight,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
-            pendingAction: policy?.pendingFields?.[reportKey] ?? null,
+            pendingAction: policy?.pendingFields?.[reportKey as 'areReportFieldsEnabled'] ?? null,
             rightElement: (
                 <ListItemRightCaretWithLabel
                     shouldShowCaret={false}
