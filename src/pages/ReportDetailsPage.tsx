@@ -447,9 +447,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         : '';
 
     let holdReportAction: OnyxTypes.ReportAction | undefined;
-    if (caseID === CASES.MONEY_REQUEST) {
+    if (caseID == CASES.MONEY_REQUEST) {
         holdReportAction = parentReportAction;
-    } else if (caseID === CASES.MONEY_REPORT) {
+    } else if (caseID == CASES.MONEY_REPORT) {
         holdReportAction = requestParentReportAction;
     }
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(holdReportAction);
@@ -475,7 +475,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         result.push(PromotedActions.share(report));
 
         return result;
-    }, [report, holdReportAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
+    }, [report, parentReportAction, canJoin, isExpenseReport, shouldShowHoldAction, canHoldUnholdReportAction.canHoldRequest]);
 
     const nameSectionExpenseIOU = (
         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
