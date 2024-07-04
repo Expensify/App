@@ -2474,6 +2474,16 @@ export default {
                 disableCardTitle: 'Deshabilitar la Tarjeta Expensify',
                 disableCardPrompt: 'No puedes deshabilitar la Tarjeta Expensify porque ya está en uso. Por favor, contacta con Concierge para conocer los pasos a seguir.',
                 disableCardButton: 'Chatear con Concierge',
+                feed: {
+                    title: 'Consigue la Tarjeta Expensify',
+                    subTitle: 'Optimiza tu negocio con la Tarjeta Expensify',
+                    features: {
+                        cashBack: 'Hasta un 2% de devolución en cada compra en Estadios Unidos',
+                        unlimited: 'Emitir un número ilimitado de tarjetas virtuales',
+                        spend: 'Controles de gastos y límites personalizados',
+                    },
+                    ctaTitle: 'Emitir nueva tarjeta',
+                },
             },
             distanceRates: {
                 title: 'Tasas de distancia',

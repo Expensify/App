@@ -5022,6 +5022,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        expensifyCardIllustrationContainer: {
+            width: 680,
+            height: 220,
+        },
+
         computerIllustrationContainer: {
             width: 272,
             height: 188,
