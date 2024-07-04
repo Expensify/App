@@ -369,7 +369,6 @@ const CONST = {
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
-        COMMENT_LINKING: 'commentLinking',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1374,10 +1373,30 @@ const CONST = {
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
+        AUTO_SYNC: 'autoSync',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT: 'collectionAccount',
+        AUTO_CREATE_ENTITIES: 'autoCreateEntities',
+        APPROVAL_ACCOUNT: 'approvalAccount',
+        CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
+        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_KEYS: {
+            0: 'installBundle',
+            1: 'enableTokenAuthentication',
+            2: 'enableSoapServices',
+            3: 'createAccessToken',
+            4: 'enterCredentials',
+        },
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         CUSTOM_SEGMENT_FIELDS: ['segmentName', 'internalID', 'scriptID', 'mapping'],
         CUSTOM_LIST_FIELDS: ['listName', 'internalID', 'transactionFieldID', 'mapping'],
         SYNC_OPTIONS: {
+            SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
+            SYNC_PEOPLE: 'syncPeople',
+            ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+            EXPORT_REPORTS_TO: 'exportReportsTo',
+            EXPORT_VENDOR_BILLS_TO: 'exportVendorBillsTo',
+            EXPORT_JOURNALS_TO: 'exportJournalsTo',
             SYNC_TAX: 'syncTax',
             CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
             MAPPING: {
@@ -1406,6 +1425,12 @@ const CONST = {
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
+    NETSUITE_MAP_EXPORT_DESTINATION: {
+        EXPENSE_REPORT: 'expenseReport',
+        VENDOR_BILL: 'vendorBill',
+        JOURNAL_ENTRY: 'journalEntry',
+    },
+
     NETSUITE_INVOICE_ITEM_PREFERENCE: {
         CREATE: 'create',
         SELECT: 'select',
@@ -1420,6 +1445,27 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonreimbursable',
     },
+
+    NETSUITE_REPORTS_APPROVAL_LEVEL: {
+        REPORTS_APPROVED_NONE: 'REPORTS_APPROVED_NONE',
+        REPORTS_SUPERVISOR_APPROVED: 'REPORTS_SUPERVISOR_APPROVED',
+        REPORTS_ACCOUNTING_APPROVED: 'REPORTS_ACCOUNTING_APPROVED',
+        REPORTS_APPROVED_BOTH: 'REPORTS_APPROVED_BOTH',
+    },
+
+    NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL: {
+        VENDOR_BILLS_APPROVED_NONE: 'VENDOR_BILLS_APPROVED_NONE',
+        VENDOR_BILLS_APPROVAL_PENDING: 'VENDOR_BILLS_APPROVAL_PENDING',
+        VENDOR_BILLS_APPROVED: 'VENDOR_BILLS_APPROVED',
+    },
+
+    NETSUITE_JOURNALS_APPROVAL_LEVEL: {
+        JOURNALS_APPROVED_NONE: 'JOURNALS_APPROVED_NONE',
+        JOURNALS_APPROVAL_PENDING: 'JOURNALS_APPROVAL_PENDING',
+        JOURNALS_APPROVED: 'JOURNALS_APPROVED',
+    },
+
+    NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
 
     /**
      * Countries where tax setting is permitted (Strings are in the format of Netsuite's Country type/enum)

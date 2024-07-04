@@ -15,6 +15,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ROUTES from '@src/ROUTES';
 
 const parser = new ExpensiMark();
 
@@ -49,34 +50,33 @@ function NetSuiteImportMappingPage({
 
     const listFooterContent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.mt2, styles.mb4]}>
+            <View style={[styles.ph5, styles.mt3, styles.mb4]}>
                 <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
             </View>
         ),
-        [importField, importValue, styles.mb4, styles.mt2, styles.ph5, translate],
+        [importField, importValue, styles.mb4, styles.mt3, styles.ph5, translate],
     );
 
     const listHeaderComponent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.mt2, styles.mb8]}>
+            <View style={[styles.ph5, styles.pb5]}>
                 <View style={[styles.flexRow]}>
                     <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
                 </View>
             </View>
         ),
-        [styles.ph5, styles.mt2, styles.mb8, styles.flexRow, translate, importField],
+        [styles.ph5, styles.pb5, styles.flexRow, translate, importField],
     );
 
     const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
 
-    const inputSectionData: ImportListItem[] =
-        inputOptions.map((inputOption) => ({
-            text: translate(`workspace.netsuite.import.importTypes.${inputOption}.label`),
-            keyForList: inputOption,
-            isSelected: importValue === inputOption,
-            value: inputOption,
-            alternateText: translate(`workspace.netsuite.import.importTypes.${inputOption}.description`),
-        })) ?? [];
+    const inputSectionData: ImportListItem[] = inputOptions.map((inputOption) => ({
+        text: translate(`workspace.netsuite.import.importTypes.${inputOption}.label`),
+        keyForList: inputOption,
+        isSelected: importValue === inputOption,
+        value: inputOption,
+        alternateText: translate(`workspace.netsuite.import.importTypes.${inputOption}.description`),
+    }));
 
     const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
 
@@ -97,13 +97,13 @@ function NetSuiteImportMappingPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={NetSuiteImportMappingPage.displayName}
-            sections={inputSectionData.length > 0 ? [{data: inputSectionData}] : []}
+            sections={[{data: inputSectionData}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={(selection: SelectorType) => updateImportMapping(selection as ImportListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
             headerContent={listHeaderComponent}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
             title={titleKey}
             listFooterContent={listFooterContent}
         />

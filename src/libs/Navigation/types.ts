@@ -416,6 +416,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {
         policyID: string;
     };
@@ -486,6 +489,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {

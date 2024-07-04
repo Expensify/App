@@ -2101,14 +2101,11 @@ export default {
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             outOfPocketLocationEnabledError: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
             advancedConfig: {
-                advanced: 'Advanced',
-                autoSync: 'Auto-sync',
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
-                reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
@@ -2173,11 +2170,8 @@ export default {
             salesInvoice: 'Sales invoice',
             exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
             advancedConfig: {
-                advanced: 'Advanced',
-                autoSync: 'Auto-sync',
                 autoSyncDescription: 'Expensify will automatically sync with Xero every day.',
                 purchaseBillStatusTitle: 'Purchase bill status',
-                reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero bill payment account',
                 xeroInvoiceCollectionAccount: 'Xero invoice collections account',
@@ -2296,6 +2290,49 @@ export default {
                     },
                 },
             },
+            advancedConfig: {
+                autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the NetSuite account below.',
+                reimbursementsAccount: 'Reimbursements account',
+                collectionsAccount: 'Collections account',
+                approvalAccount: 'A/P approval account',
+                defaultApprovalAccount: 'NetSuite default',
+                inviteEmployees: 'Invite employees and set approvals',
+                inviteEmployeesDescription:
+                    'Import NetSuite employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be further configured on the *Members* page.',
+                autoCreateEntities: 'Auto-create employees/vendors',
+                enableCategories: 'Enable newly imported categories',
+                customFormID: 'Custom form ID',
+                customFormIDDescription:
+                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you have the option to designate a specific transaction form to be used.',
+                customFormIDReimbursable: 'Reimbursable expense',
+                customFormIDNonReimbursable: 'Non-reimbursable expense',
+                exportReportsTo: {
+                    label: 'Expense report approval level',
+                    values: {
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_SUPERVISOR_APPROVED]: 'Only supervisor approved',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_ACCOUNTING_APPROVED]: 'Only accounting approved',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Supervisor and accounting approved',
+                    },
+                },
+                exportVendorBillsTo: {
+                    label: 'Vendor bill approval level',
+                    values: {
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVAL_PENDING]: 'Pending approval',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED]: 'Approved for posting',
+                    },
+                },
+                exportJournalsTo: {
+                    label: 'Journal entry approval level',
+                    values: {
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVAL_PENDING]: 'Pending approval',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Approved for posting',
+                    },
+                },
+            },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
@@ -2304,6 +2341,37 @@ export default {
             noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+            tokenInput: {
+                title: 'NetSuite setup',
+                formSteps: {
+                    installBundle: {
+                        title: 'Install the Expensify bundle',
+                        description: 'In NetSuite, go to *Customization > SuiteBundler > Search & Install Bundles* > search for "Expensify" > install the bundle.',
+                    },
+                    enableTokenAuthentication: {
+                        title: 'Enable token-based authentication',
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *token-based authentication*.',
+                    },
+                    enableSoapServices: {
+                        title: 'Enable SOAP web services',
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *SOAP Web Services*.',
+                    },
+                    createAccessToken: {
+                        title: 'Create an access token',
+                        description:
+                            'In NetSuite, go to *Setup > Users/Roles > Access Tokens* > create an access token for the "Expensify" app and either the "Expensify Integration" or "Administrator" role.\n\n*Important:* Make sure you save the *Token ID* and *Token Secret* from this step. You\'ll need it for the next step.',
+                    },
+                    enterCredentials: {
+                        title: 'Enter your NetSuite credentials',
+                        formInputs: {
+                            netSuiteAccountID: 'NetSuite Account ID',
+                            netSuiteTokenID: 'Token ID',
+                            netSuiteTokenSecret: 'Token Secret',
+                        },
+                        netSuiteAccountIDDescription: 'In NetSuite, go to *Setup > Integration > SOAP Web Services Preferences*.',
+                    },
+                },
+            },
             import: {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
@@ -2469,6 +2537,16 @@ export default {
                 disableCardTitle: 'Disable Expensify Card',
                 disableCardPrompt: 'You can’t disable the Expensify Card because it’s already in use. Reach out to Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
+                feed: {
+                    title: 'Get the Expensify Card',
+                    subTitle: 'Streamline your business with the Expensify Card',
+                    features: {
+                        cashBack: 'Up to 2% cash back on every US purchase',
+                        unlimited: 'Issue unlimited virtual cards',
+                        spend: 'Spend controls and custom limits',
+                    },
+                    ctaTitle: 'Issue new card',
+                },
             },
             workflows: {
                 title: 'Workflows',
@@ -2874,6 +2952,8 @@ export default {
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportAs: 'Export as',
             defaultVendor: 'Default vendor',
+            autoSync: 'Auto-sync',
+            reimbursedReports: 'Sync reimbursed reports',
         },
         bills: {
             manageYourBills: 'Manage your bills',

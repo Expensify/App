@@ -960,6 +960,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
@@ -1048,6 +1052,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/provincial-tax-posting-account/select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/provincial-tax-posting-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',

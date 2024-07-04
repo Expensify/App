@@ -259,8 +259,15 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
     UPDATE_NETSUITE_CUSTOM_SEGMENTS: 'UpdateNetSuiteCustomSegments',
     UPDATE_NETSUITE_CUSTOM_LISTS: 'UpdateNetSuiteCustomLists',
+    UPDATE_NETSUITE_AUTO_SYNC: 'UpdateNetSuiteAutoSync',
+    UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS: 'UpdateNetSuiteSyncReimbursedReports',
+    UPDATE_NETSUITE_SYNC_PEOPLE: 'UpdateNetSuiteSyncPeople',
+    UPDATE_NETSUITE_AUTO_CREATE_ENTITIES: 'UpdateNetSuiteAutoCreateEntities',
+    UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES: 'UpdateNetSuiteEnableNewCategories',
+    UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_ENABLED: 'UpdateNetSuiteCustomFormIDOptionsEnabled',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
+    CONNECT_POLICY_TO_NETSUITE: 'ConnectPolicyToNetSuite',
     CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
 } as const;
 
@@ -503,6 +510,7 @@ type WriteCommandParameters = {
 
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE]: Parameters.ConnectPolicyToNetSuiteParams;
 
     // Workspace report field parameters
     [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
@@ -532,6 +540,12 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_SEGMENTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customSegments', string>; // JSON string NetSuiteCustomSegment[]
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_LISTS]: Parameters.UpdateNetSuiteGenericTypeParams<'customLists', string>; // JSON string NetSuiteCustomList[]
+    [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_CREATE_ENTITIES]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_ENABLED]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
 };
 
 const READ_COMMANDS = {
