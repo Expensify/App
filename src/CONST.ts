@@ -369,7 +369,6 @@ const CONST = {
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
-        COMMENT_LINKING: 'commentLinking',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
