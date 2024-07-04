@@ -41,7 +41,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
             } else {
                 // when we enable any field, and if the other one already has a value set, we should set that,
-                const otherFieldValue = importField === 'jobs' ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
+                const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
                 if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
                     newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
                 } else {
@@ -78,7 +78,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
                 onToggle={(isEnabled: boolean) => {
-                    updateMapping('customers', isEnabled);
+                    updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, isEnabled);
                 }}
                 pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
@@ -90,7 +90,7 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
                 onToggle={(isEnabled: boolean) => {
-                    updateMapping('jobs', isEnabled);
+                    updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS, isEnabled);
                 }}
                 pendingAction={config?.syncOptions?.mapping?.pendingFields?.jobs}
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
