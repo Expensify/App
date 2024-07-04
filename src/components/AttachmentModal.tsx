@@ -202,6 +202,8 @@ function AttachmentModal({
 
     useEffect(() => {
         const fileName = file?.name ?? '';
+        // To prevent crashes on iOS when toggling the modal footer during carousel scrolling via arrow buttons,
+        // delay any toggles until scrolling completes.        
         if (!file || (isAttachmentCarouselScrolling && !FileUtils.isImage(fileName))) {
             return;
         }
