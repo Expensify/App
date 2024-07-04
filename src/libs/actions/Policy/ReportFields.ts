@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldsForm} from '@src/types/form/WorkspaceReportFieldsForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let listValues: string[];
@@ -206,24 +205,14 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
 }
 
 /**
- * Renames a report field.
- */
-function renameReportField(policyID: string, reportFieldName: string, newName: string) {
-    console.debug('renameReportField', policyID, reportFieldName, newName);
-}
-
-/**
- * Updates the type of a report field.
- */
-function updatePolicyReportFieldType(policyID: string, reportFieldName: string, newType: PolicyReportFieldType) {
-    console.debug('updatePolicyReportFieldType', policyID, reportFieldName, newType);
-}
-
-/**
  * Updates the initial value of a report field.
  */
-function updatePolicyReportFieldInitialValue(policyID: string, reportFieldName: string, newInitialValue: string) {
-    console.debug('updatePolicyReportFieldInitialValue', policyID, reportFieldName, newInitialValue);
+function updateReportFieldInitialValue(policyID: string, reportFieldID: string, newInitialValue: string) {
+    console.debug('updateReportFieldInitialValue', policyID, reportFieldID, newInitialValue);
+}
+
+function updateReportFieldListValueEnabled(policyID: string, reportFieldID: string, valueIndex: number, enabled: boolean) {
+    console.debug('updateReportFieldListValueEnabled', policyID, reportFieldID, valueIndex, enabled);
 }
 
 export type {CreateReportFieldArguments};
@@ -235,7 +224,6 @@ export {
     setReportFieldsListValueEnabled,
     deleteReportFieldsListValue,
     createReportField,
-    renameReportField,
-    updatePolicyReportFieldType,
-    updatePolicyReportFieldInitialValue,
+    updateReportFieldInitialValue,
+    updateReportFieldListValueEnabled,
 };
