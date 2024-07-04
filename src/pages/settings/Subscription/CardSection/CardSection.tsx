@@ -1,6 +1,7 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -8,6 +9,7 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,6 +17,7 @@ import * as User from '@libs/actions/User';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
+import * as Subscription from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,6 +28,7 @@ import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner
 import CardSectionActions from './CardSectionActions';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
+import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
 function CardSection() {
@@ -36,8 +40,10 @@ function CardSection() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const subscriptionPlan = useSubscriptionPlan();
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-
+    const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING);
+    const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
+    const [subscriptionRetryBillingStatusFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
+    const {isOffline} = useNetwork();
     const defaultCard = useMemo(() => Object.values(fundList ?? {}).find((card) => card.accountData?.additionalData?.isBillingCard), [fundList]);
 
     const cardMonth = useMemo(() => DateUtils.getMonthNames(preferredLocale)[(defaultCard?.accountData?.cardMonth ?? 1) - 1], [defaultCard?.accountData?.cardMonth, preferredLocale]);
@@ -48,11 +54,23 @@ function CardSection() {
         Navigation.resetToHome();
     }, []);
 
-    const billingStatus = CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData?.cardNumber ?? '');
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
+
+    useEffect(() => {
+        setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
+    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, translate, defaultCard?.accountData]);
+
+    const handleRetryPayment = () => {
+        Subscription.clearOutstandingBalance();
+    };
+
+    const handleBillingBannerClose = () => {
+        setBillingStatus(undefined);
+    };
 
     let BillingBanner: React.ReactNode | undefined;
     if (CardSectionUtils.shouldShowPreTrialBillingBanner()) {
@@ -67,6 +85,8 @@ function CardSection() {
                 isError={billingStatus.isError}
                 icon={billingStatus.icon}
                 rightIcon={billingStatus.rightIcon}
+                onRightIconPress={handleBillingBannerClose}
+                rightIconAccessibilityLabel={translate('common.close')}
             />
         );
     }
@@ -107,6 +127,17 @@ function CardSection() {
 
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
                 {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
+                {billingStatus?.isRetryAvailable !== undefined && (
+                    <Button
+                        text={translate('subscription.cardSection.retryPaymentButton')}
+                        isDisabled={isOffline || !billingStatus?.isRetryAvailable}
+                        isLoading={subscriptionRetryBillingStatusPending}
+                        onPress={handleRetryPayment}
+                        style={[styles.w100, styles.mt5]}
+                        large
+                    />
+                )}
+
                 {!!account?.hasPurchases && (
                     <MenuItem
                         shouldShowRightIcon
@@ -119,6 +150,7 @@ function CardSection() {
                         hoverAndPressStyle={styles.hoveredComponentBG}
                     />
                 )}
+
                 {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                     <MenuItem
                         shouldShowRightIcon
@@ -126,7 +158,7 @@ function CardSection() {
                         wrapperStyle={styles.sectionMenuItemTopDescription}
                         title={translate('subscription.cardSection.requestRefund')}
                         titleStyle={styles.textStrong}
-                        disabled={network?.isOffline}
+                        disabled={isOffline}
                         onPress={() => setIsRequestRefundModalVisible(true)}
                     />
                 )}
