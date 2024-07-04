@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +10,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -18,6 +19,9 @@ import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
 type AssigneeStepProps = {
     // The policy that the card will be issued under
@@ -27,6 +31,8 @@ type AssigneeStepProps = {
 function AssigneeStep({policy}: AssigneeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+
     const [searchTerm, setSearchTerm] = useState('');
 
     const submit = (assignee: ListItem) => {
@@ -37,32 +43,46 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length > 8;
+    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
 
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: OnyxTypes.PolicyEmployee): boolean =>
+            !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
+        [isOffline],
+    );
+
     const membersDetails = useMemo(() => {
+        const membersList: ListItem[] = [];
         if (!policy?.employeeList) {
-            return [];
+            return membersList;
         }
 
-        return Object.keys(policy.employeeList)
-            .map(PersonalDetailsUtils.getPersonalDetailByEmail)
-            .map((detail) => ({
-                keyForList: detail?.login,
-                text: detail?.displayName,
-                alternateText: detail?.login,
-                login: detail?.login,
-                accountID: detail?.accountID,
+        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            if (isDeletedPolicyEmployee(policyEmployee)) {
+                return;
+            }
+
+            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+            membersList.push({
+                keyForList: email,
+                text: personalDetail?.displayName,
+                alternateText: email,
+                login: email,
+                accountID: personalDetail?.accountID,
                 icons: [
                     {
-                        source: detail?.avatar ?? Expensicons.FallbackAvatar,
-                        name: formatPhoneNumber(detail?.login ?? ''),
+                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
-                        id: detail?.accountID,
+                        id: personalDetail?.accountID,
                     },
                 ],
-            }));
-    }, [policy?.employeeList]);
+            });
+        });
+
+        return membersList;
+    }, [isDeletedPolicyEmployee, policy?.employeeList]);
 
     const sections = useMemo(() => {
         if (!searchTerm) {
