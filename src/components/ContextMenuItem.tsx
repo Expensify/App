@@ -56,7 +56,11 @@ type ContextMenuItemProps = {
     /** Handles what to do when the item loose focus */
     onBlur?: () => void;
 
+    /** Whether the menu item is disabled or not */
     disabled?: boolean;
+
+    /** Whether the menu item should show loading icon */
+    shouldShowLoadingSpinnerIcon?: boolean;
 };
 
 type ContextMenuItemHandle = {
@@ -81,6 +85,7 @@ function ContextMenuItem(
         onFocus = () => {},
         onBlur = () => {},
         disabled = false,
+        shouldShowLoadingSpinnerIcon = false,
     }: ContextMenuItemProps,
     ref: ForwardedRef<ContextMenuItemHandle>,
 ) {
@@ -139,6 +144,7 @@ function ContextMenuItem(
             onFocus={onFocus}
             onBlur={onBlur}
             disabled={disabled}
+            shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
         />
     );
 }
