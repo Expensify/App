@@ -27,9 +27,9 @@ const expensifyCardFeatures: FeatureListItem[] = [
         translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
     },
 ];
-type WorkspaceCardPageEmptyStateProps = {route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route']};
+type WorkspaceExpensifyCardPageEmptyStateProps = {route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route']};
 
-function WorkspaceCardPageEmptyState({route}: WorkspaceCardPageEmptyStateProps) {
+function WorkspaceExpensifyCardPageEmptyState({route}: WorkspaceExpensifyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -63,6 +63,6 @@ function WorkspaceCardPageEmptyState({route}: WorkspaceCardPageEmptyStateProps) 
     );
 }
 
-WorkspaceCardPageEmptyState.displayName = 'WorkspaceCardPageEmptyState';
+WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
 
-export default WorkspaceCardPageEmptyState;
+export default WorkspaceExpensifyCardPageEmptyState;
