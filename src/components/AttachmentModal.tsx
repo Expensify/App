@@ -555,13 +555,13 @@ function AttachmentModal({
                                 )
                             ))}
                     </View>
-                    {/* If we have an onConfirm method show a confirmation button */}
-                    {((!!onConfirm && !isConfirmButtonDisabled) || (isHighResolutionImage && isUploaded)) && (
+                    {/* If we have an onConfirm method show a confirmation button, if the attachment is High Resolution image show an info*/}
+                    {((!!onConfirm && !isConfirmButtonDisabled) || isHighResolutionImage) && (
                         <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
+                            {({ safeAreaPaddingBottomStyle }) => (
                                 <>
-                                    {isHighResolutionImage && isUploaded && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
+                                    {isHighResolutionImage && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4]}>
                                             <Icon
                                                 src={Expensicons.Info}
                                                 height={variables.iconSizeExtraSmall}
@@ -569,22 +569,22 @@ function AttachmentModal({
                                                 fill={theme.icon}
                                                 additionalStyles={styles.p1}
                                             />
-                                            <Text style={[styles.textLabelSupporting]}>{translate('attachmentPicker.attachmentImageResized')}</Text>
+                                            <Text style={[styles.textLabelSupporting]}>{isUploaded ? translate('attachmentPicker.attachmentImageResized') : translate('attachmentPicker.attachmentImageTooLarge')}</Text>
                                         </View>
                                     )}
-                                    {!!onConfirm && !isConfirmButtonDisabled && (
-                                        <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                    {!!onConfirm && !isConfirmButtonDisabled && (<>
+                                        <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation)]}>
                                             <Button
                                                 success
                                                 large
-                                                style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                                style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen, isHighResolutionImage ? styles.mt0 : {}]}
                                                 textStyles={[styles.buttonConfirmText]}
                                                 text={translate('common.send')}
                                                 onPress={submitAndClose}
                                                 isDisabled={isConfirmButtonDisabled}
                                                 pressOnEnter
                                             />
-                                        </Animated.View>
+                                        </Animated.View></>
                                     )}
                                 </>
                             )}
