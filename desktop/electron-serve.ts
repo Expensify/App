@@ -2,8 +2,6 @@
 
 /* eslint-disable rulesdir/no-negated-variables */
 
-/* eslint-disable no-param-reassign */
-
 /* eslint-disable @lwc/lwc/no-async-await */
 
 /**
@@ -56,15 +54,15 @@ export default function electronServe(options: ServeOptions) {
         ...options,
     };
 
-    if (!options.directory) {
+    if (!mandatoryOptions.directory) {
         throw new Error('The `directory` option is required');
     }
 
-    options.directory = path.resolve(app.getAppPath(), options.directory);
+    mandatoryOptions.directory = path.resolve(app.getAppPath(), mandatoryOptions.directory);
 
     const handler: HandlerType = async (request, callback) => {
-        const filePath = path.join(options.directory, decodeURIComponent(new URL(request.url).pathname));
-        const resolvedPath = (await getPath(filePath)) ?? path.join(options.directory, `${options.file}.html`);
+        const filePath = path.join(mandatoryOptions.directory, decodeURIComponent(new URL(request.url).pathname));
+        const resolvedPath = (await getPath(filePath)) ?? path.join(mandatoryOptions.directory, `${mandatoryOptions.file}.html`);
 
         try {
             const data = await fs.promises.readFile(resolvedPath);
@@ -89,7 +87,7 @@ export default function electronServe(options: ServeOptions) {
                 secure: true,
                 allowServiceWorkers: true,
                 supportFetchAPI: true,
-                corsEnabled: options.isCorsEnabled,
+                corsEnabled: mandatoryOptions.isCorsEnabled,
             },
         },
     ]);
@@ -103,6 +101,6 @@ export default function electronServe(options: ServeOptions) {
     // eslint-disable-next-line @typescript-eslint/naming-convention
     return async (window_: BrowserWindow, searchParameters?: URLSearchParams) => {
         const queryString = searchParameters ? `?${new URLSearchParams(searchParameters).toString()}` : '';
-        await window_.loadURL(`${options.scheme}://${options.hostname}${queryString}`);
+        await window_.loadURL(`${mandatoryOptions.scheme}://${mandatoryOptions.hostname}${queryString}`);
     };
 }
