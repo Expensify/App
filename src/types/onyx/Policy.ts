@@ -934,7 +934,7 @@ type NetSuiteConnection = {
     source: JobSourceValues;
 
     /** Config object used solely to store autosync settings */
-    config: {
+    config: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** NetSuite auto synchronization configs */
         autoSync: {
             /** Whether data should be automatically synched between the app and NetSuite */
@@ -943,7 +943,13 @@ type NetSuiteConnection = {
             /** The bedrock job associated with the NetSuite Auto Sync job */
             jobID: string;
         };
-    };
+
+        /** Collection of errors coming from BE */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    }>;
 
     /** Encrypted token secret for authenticating to NetSuite */
     tokenSecret: string;
