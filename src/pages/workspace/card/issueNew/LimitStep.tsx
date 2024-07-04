@@ -4,7 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,6 +13,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,17 @@ function LimitStep() {
     const handleBackButtonPress = useCallback(() => {
         Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
     }, []);
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
+            const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.LIMIT]);
+            if (!Number(values.limit)) {
+                errors.limit = translate('iou.error.invalidAmount');
+            }
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper
@@ -60,6 +72,7 @@ function LimitStep() {
                 submitButtonStyles={[styles.mh5, styles.mt0]}
                 submitFlexEnabled={false}
                 enabledWhenOffline
+                validate={validate}
             >
                 <InputWrapper
                     InputComponent={AmountForm}
