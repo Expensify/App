@@ -90,7 +90,7 @@ function AddressSearch(
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [searchValue, setSearchValue] = useState(value || defaultValue || '');
+    const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
@@ -323,11 +323,11 @@ function AddressSearch(
     }, []);
 
     const filteredPredefinedPlaces = useMemo(() => {
-        if (!isOffline || !searchValue) {
+        if (!searchValue) {
             return predefinedPlaces ?? [];
         }
         return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [isOffline, predefinedPlaces, searchValue]);
+    }, [predefinedPlaces, searchValue]);
 
     const listEmptyComponent = useCallback(
         () => (!isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
