@@ -27,7 +27,6 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
     /** Function to change the download button Visibility */
     setDownloadButtonVisibility?: (isButtonVisible: boolean) => void;
 
-
     /** The report currently being looked at */
     report: Report;
 
@@ -40,7 +39,8 @@ type AttachmentCarouselProps = AttachmentCaraouselOnyxProps & {
     /** A callback that is called when swipe-down-to-close gesture happens */
     onClose: () => void;
 
-    onHiResImageAttachment?: (isHiResImage: boolean) => void;
+    /** A callback that is called when the pager's scrolling state changes. */
+    onIsPagerScrollingChange?: (isScrolling: boolean) => void;
 };
 
 export type {AttachmentCarouselProps, UpdatePageProps, AttachmentCaraouselOnyxProps};

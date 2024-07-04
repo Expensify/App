@@ -187,7 +187,7 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
     const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
-
+    const [isAttachmentCarouselScrolling, setIsAttachmentCarouselScrolling] = useState(false);
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName
             ? {
@@ -197,9 +197,19 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
     const isDimensionAvailable = file && 'width' in file && 'height' in file;
-    const isHighResolutionImage = file && isDimensionAvailable && ((file.height ?? 0) > 5000 || (file.width ?? 0) > 5000);
+
+    const [isHighResolutionImage, setIsHighResolutionImage] = useState(false);
+
+    useEffect(() => {
+        if (isAttachmentCarouselScrolling || !file) {
+            return;
+        }
+        const isDimensionAvailable = file && 'width' in file && 'height' in file;
+        const isHighResolutionImage = file && isDimensionAvailable && ((file.height ?? 0) > 5000 || (file.width ?? 0) > 5000);
+        setIsHighResolutionImage(isHighResolutionImage ?? false);
+    }, [file, isAttachmentCarouselScrolling]);
+
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
@@ -461,7 +471,7 @@ function AttachmentModal({
         }),
         [closeModal, nope, sourceForAttachmentView],
     );
-
+    const isUploaded = !isEmptyObject(report);
     return (
         <>
             <Modal
@@ -519,6 +529,7 @@ function AttachmentModal({
                                     onClose={closeModal}
                                     source={source}
                                     setDownloadButtonVisibility={setDownloadButtonVisibility}
+                                    onIsPagerScrollingChange={setIsAttachmentCarouselScrolling}
                                 />
                             ) : (
                                 !!sourceForAttachmentView &&
@@ -536,18 +547,18 @@ function AttachmentModal({
                                             fallbackSource={fallbackSource}
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
-                                            isUploaded={!isEmptyObject(report)}
+                                            isUploaded={isUploaded}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )
                             ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {((!!onConfirm && !isConfirmButtonDisabled) || isHighResolutionImage) && (
+                    {((!!onConfirm && !isConfirmButtonDisabled) || (isHighResolutionImage && isUploaded)) && (
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <>
-                                    {isHighResolutionImage && (
+                                    {(isHighResolutionImage && isUploaded) && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
                                             <Icon
                                                 src={Expensicons.Info}

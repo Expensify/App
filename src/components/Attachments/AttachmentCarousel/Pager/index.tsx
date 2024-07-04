@@ -6,7 +6,7 @@ import type {NativeViewGestureHandlerProps} from 'react-native-gesture-handler';
 import {createNativeWrapper} from 'react-native-gesture-handler';
 import type {PagerViewProps} from 'react-native-pager-view';
 import PagerView from 'react-native-pager-view';
-import Animated, {useAnimatedProps, useSharedValue} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
 import CarouselItem from '@components/Attachments/AttachmentCarousel/CarouselItem';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,10 +49,13 @@ type AttachmentCarouselPagerProps = {
 
     /** A callback that is called when swipe-down-to-close gesture happens */
     onClose: () => void;
+
+    /** A callback that is called when the pager's scrolling state changes. */
+    onIsPagerScrollingChange?: (isScrolling: boolean) => void;
 };
 
 function AttachmentCarouselPager(
-    {items, activeSource, initialPage, onPageSelected, onRequestToggleArrows, onClose}: AttachmentCarouselPagerProps,
+    {items, activeSource, initialPage, onPageSelected, onRequestToggleArrows, onClose, onIsPagerScrollingChange}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const styles = useThemeStyles();
@@ -72,13 +75,26 @@ function AttachmentCarouselPager(
         isPagerScrolling.value = e.offset !== 0;
     }, []);
 
+    useAnimatedReaction(
+        () => isPagerScrolling.value,
+        (isScrolling, previousIsScrolling) => {
+            if (isScrolling !== previousIsScrolling) {
+                runOnJS(onIsPagerScrollingChange ?? (() => {}))(isScrolling);
+            }
+        },
+        [onIsPagerScrollingChange],
+    );
+
     useEffect(() => {
         setActivePageIndex(initialPage);
         activePage.value = initialPage;
     }, [activePage, initialPage]);
 
     /** The `pagerItems` object that passed down to the context. Later used to detect current page, whether it's a single image gallery etc. */
-    const pagerItems = useMemo(() => items.map((item, index) => ({source: item.source, previewSource: item.previewSource, index, isActive: index === activePageIndex})), [activePageIndex, items]);
+    const pagerItems = useMemo(
+        () => items.map((item, index) => ({source: item.source, previewSource: item.previewSource, index, isActive: index === activePageIndex})),
+        [activePageIndex, items],
+    );
 
     /**
      * This callback is passed to the MultiGestureCanvas/Lightbox through the AttachmentCarouselPagerContext.

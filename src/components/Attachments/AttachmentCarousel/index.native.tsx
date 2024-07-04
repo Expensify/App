@@ -18,7 +18,7 @@ import AttachmentCarouselPager from './Pager';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, onClose, type, accountID, onIsPagerScrollingChange}: AttachmentCarouselProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
@@ -87,13 +87,16 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             if (page === undefined) {
                 return;
             }
+
+            // Initially set the scroll value to false by default on each navigation action, then immediately switch it to true after clicking the carousel arrow.
+            onIsPagerScrollingChange?.(true);
             const nextPageIndex = page + deltaSlide;
             updatePage(nextPageIndex);
             pagerRef.current?.setPage(nextPageIndex);
 
             autoHideArrows();
         },
-        [autoHideArrows, page, updatePage],
+        [autoHideArrows, page, updatePage, onIsPagerScrollingChange],
     );
 
     /**
@@ -151,6 +154,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                         onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                         onClose={onClose}
                         ref={pagerRef}
+                        onIsPagerScrollingChange={onIsPagerScrollingChange}        
                     />
                 </>
             )}
