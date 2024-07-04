@@ -40,8 +40,8 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 title: exportConfig?.reimbursable
                     ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${exportConfig.reimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!config?.errorFields?.reimbursable,
-                pendingAction: config?.pendingFields?.reimbursable,
+                hasError: !!config?.errorFields?.reimbursable || !!config?.errorFields?.reimbursableExpenseReportDefaultVendor,
+                pendingAction: config?.pendingFields?.reimbursable || config?.pendingFields?.reimbursableExpenseReportDefaultVendor,
             },
             {
                 description: translate('workspace.sageIntacct.nonReimbursableExpenses.label'),
@@ -49,8 +49,18 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
                 title: exportConfig?.nonReimbursable
                     ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${exportConfig.nonReimbursable}`)
                     : translate('workspace.sageIntacct.notConfigured'),
-                hasError: !!config?.errorFields?.nonReimbursable,
-                pendingAction: config?.pendingFields?.nonReimbursable,
+                hasError:
+                    !!config?.errorFields?.nonReimbursable ||
+                    !!config?.errorFields?.nonReimbursableAccount ||
+                    config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? !!config?.errorFields?.nonReimbursableVendor
+                        : !!config?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+                pendingAction:
+                    config?.pendingFields?.nonReimbursable ||
+                    config?.errorFields?.nonReimbursableAccount ||
+                    config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                        ? config?.pendingFields?.nonReimbursableVendor
+                        : config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
             },
         ],
         [config, exportConfig, policyID, translate],
