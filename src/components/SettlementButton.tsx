@@ -9,7 +9,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
 import * as IOU from '@userActions/IOU';
 import * as PolicyActions from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -98,9 +97,6 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** The anchor alignment of the popover menu for KYC wall popover */
     kycWallAnchorAlignment?: AnchorAlignment;
-
-    /** Whether the personal bank account option should be shown */
-    shouldShowPersonalBankAccountOption?: boolean;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
