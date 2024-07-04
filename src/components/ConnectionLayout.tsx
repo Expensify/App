@@ -101,7 +101,7 @@ function ConnectionLayout({
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
     shouldBeBlocked = false,
-    isForEmptyConnection = true,
+    isForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
