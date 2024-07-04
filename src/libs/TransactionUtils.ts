@@ -852,7 +852,7 @@ function compareDuplicateTransactionFields(transactionID: string): {keep: Partia
     const change: Record<string, any[]> = {};
 
     const fieldsToCompare: FieldsToCompare = {
-        merchant: ['modifiedMerchant'],
+        merchant: ['merchant', 'modifiedMerchant'],
         category: ['category'],
         tag: ['tag'],
         description: ['comment'],
