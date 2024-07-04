@@ -313,8 +313,8 @@ describe('actions/ReportFields', () => {
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
             const valueIndexToUpdate = 1;
-            const oldEnabledFlag = false;
-            const newEnabledFlag = true;
+            const oldDisabledFlag = false;
+            const newDisabledFlag = true;
             const oldInitialValue = 'Value 2';
             const newInitialValue = '';
             const reportFieldID = generateFieldID(reportFieldName);
@@ -324,7 +324,7 @@ describe('actions/ReportFields', () => {
                 type: CONST.REPORT_FIELD_TYPES.LIST,
                 defaultValue: oldInitialValue,
                 values: ['Value 1', oldInitialValue, 'Value 3'],
-                disabledOptions: [false, oldEnabledFlag, true],
+                disabledOptions: [false, oldDisabledFlag, true],
                 fieldID: reportFieldID,
                 orderWeight: 1,
                 deletable: false,
@@ -338,7 +338,7 @@ describe('actions/ReportFields', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexToUpdate, newEnabledFlag);
+            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexToUpdate, !newDisabledFlag);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -352,11 +352,11 @@ describe('actions/ReportFields', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual({
+            expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
                 [reportFieldKey]: {
                     ...reportField,
                     defaultValue: newInitialValue,
-                    disabledOptions: [false, newEnabledFlag, true],
+                    disabledOptions: [false, newDisabledFlag, true],
                 },
             });
 
