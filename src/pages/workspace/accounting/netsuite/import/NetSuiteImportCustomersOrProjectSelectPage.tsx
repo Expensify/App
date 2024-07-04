@@ -40,10 +40,10 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
         ({value}: ImportListItem) => {
             if (value !== importedValue) {
                 if (importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-                    updateNetSuiteImportMapping(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS, value, importMappings?.jobs);
+                    updateNetSuiteImportMapping(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS, value, importMappings?.jobs);
                 }
                 if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-                    updateNetSuiteImportMapping(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, value, importMappings?.customers);
+                    updateNetSuiteImportMapping(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, value, importMappings?.customers);
                 }
             }
             Navigation.goBack();

@@ -1397,7 +1397,7 @@ const CONST = {
             EXPORT_JOURNALS_TO: 'exportJournalsTo',
             SYNC_TAX: 'syncTax',
             CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
-            MAPPING: {
+            CUSTOMER_MAPPINGS: {
                 CUSTOMERS: 'customers',
                 JOBS: 'jobs',
             },
