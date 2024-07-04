@@ -18,6 +18,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import Overlay from './Overlay';
 
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
@@ -34,6 +35,8 @@ function OnboardingModalNavigator() {
             return onboarding?.hasCompletedGuidedSetupFlow;
         },
     });
+    
+    useDisableModalDismissOnEscape();
 
     useEffect(() => {
         if (!hasCompletedGuidedSetupFlow) {
