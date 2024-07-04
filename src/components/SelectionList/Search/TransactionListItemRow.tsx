@@ -1,11 +1,13 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ReceiptImage from '@components/ReceiptImage';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,9 +44,13 @@ type TransactionListItemRowProps = {
     item: TransactionListItemType;
     showTooltip: boolean;
     onButtonPress: () => void;
+    onCheckboxPress: () => void;
     showItemHeaderOnNarrowLayout?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     isChildListItem?: boolean;
+    isDisabled: boolean;
+    canSelectMultiple: boolean;
+    isButtonSelected?: boolean;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -106,11 +112,18 @@ function DateCell({transactionItem, showTooltip, isLargeScreenWidth}: Transactio
 
 function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: TransactionCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const description = TransactionUtils.getDescription(transactionItem);
+    let merchant = transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description;
+
+    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
+        merchant = translate('iou.receiptStatusTitle');
+    }
+
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={transactionItem.shouldShowMerchant ? transactionItem.formattedMerchant : description}
+            text={merchant}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -118,12 +131,18 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
 
 function TotalCell({showTooltip, isLargeScreenWidth, transactionItem}: TotalCellProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const currency = TransactionUtils.getCurrency(transactionItem);
+    let amount = CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency);
+
+    if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem)) {
+        amount = translate('iou.receiptStatusTitle');
+    }
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(transactionItem.formattedTotal, currency)}
+            text={amount}
             style={[styles.optionDisplayName, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
@@ -195,7 +214,18 @@ function TaxCell({transactionItem, showTooltip}: TransactionCellProps) {
     );
 }
 
-function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeaderOnNarrowLayout = true, containerStyle, isChildListItem = false}: TransactionListItemRowProps) {
+function TransactionListItemRow({
+    item,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onButtonPress,
+    onCheckboxPress,
+    showItemHeaderOnNarrowLayout = true,
+    containerStyle,
+    isChildListItem = false,
+    isButtonSelected = false,
+}: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
@@ -266,7 +296,16 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+            {canSelectMultiple && (
+                <Checkbox
+                    isChecked={item.isSelected}
+                    onPress={onCheckboxPress}
+                    disabled={!!item.isDisabled || isDisabled}
+                    accessibilityLabel={item.text ?? ''}
+                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
+                />
+            )}
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, canSelectMultiple && styles.ph4]}>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
@@ -347,6 +386,7 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                     <ActionCell
                         onButtonPress={onButtonPress}
                         action={item.action}
+                        isSelected={isButtonSelected}
                     />
                 </View>
             </View>

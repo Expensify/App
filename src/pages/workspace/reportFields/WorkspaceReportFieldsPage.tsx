@@ -20,11 +20,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
@@ -69,7 +71,12 @@ function WorkspaceReportFieldsPage({
             orderWeight: reportField.orderWeight,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
-            rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(reportField.type)} />,
+            rightElement: (
+                <ListItemRightCaretWithLabel
+                    shouldShowCaret={false}
+                    labelText={Str.recapitalize(reportField.type)}
+                />
+            ),
         }));
     }, [filteredPolicyFieldList, policy, selectedReportFields]);
 
@@ -89,16 +96,16 @@ function WorkspaceReportFieldsPage({
             <Button
                 medium
                 success
-                onPress={() => {}}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addField')}
-                style={[isSmallScreenWidth && styles.flex1]}
+                style={isSmallScreenWidth && styles.flex1}
             />
         </View>
     );
 
     const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
             <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.type')}</Text>
         </View>
@@ -135,7 +142,7 @@ function WorkspaceReportFieldsPage({
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
+                        style={styles.flex1}
                         color={theme.spinner}
                     />
                 )}
