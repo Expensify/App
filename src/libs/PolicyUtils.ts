@@ -545,11 +545,12 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     const importFields: string[] = [];
     const importCustomer = importMapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const importJobs = importMapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-    const importedValue = importMapping?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
 
-    if (!importedValue || importedValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+    if (importCustomer === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && importJobs === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
         return undefined;
     }
+
+    const importedValue = importMapping?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
 
     if (importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.customers'));

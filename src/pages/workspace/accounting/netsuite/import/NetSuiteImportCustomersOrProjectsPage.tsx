@@ -41,7 +41,8 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
             } else {
                 // when we enable any field, and if the other one already has a value set, we should set that,
-                const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
+                const otherFieldValue =
+                    importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
                 if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
                     newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
                 } else {
@@ -78,11 +79,11 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
                 onToggle={(isEnabled: boolean) => {
-                    updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, isEnabled);
+                    updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, isEnabled);
                 }}
                 pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
-                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS)}
+                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS)}
             />
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}
@@ -90,11 +91,11 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
                 switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
                 onToggle={(isEnabled: boolean) => {
-                    updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS, isEnabled);
+                    updateMapping(CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS, isEnabled);
                 }}
                 pendingAction={config?.syncOptions?.mapping?.pendingFields?.jobs}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
-                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
+                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
             />
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}
@@ -112,14 +113,14 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
             {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
                 <OfflineWithFeedback
                     errors={
-                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ??
-                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)
+                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS) ??
+                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)
                     }
                     errorRowStyles={[styles.ph5]}
                     pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
                     onClose={() => {
-                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
-                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
+                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS);
+                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS);
                     }}
                 >
                     <MenuItemWithTopDescription
