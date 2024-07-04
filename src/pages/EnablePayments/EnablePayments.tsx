@@ -43,7 +43,6 @@ function EnablePaymentsPage() {
                 testID={EnablePaymentsPage.displayName}
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
-                shouldShowOfflineIndicator
             >
                 <HeaderWithBackButton
                     title={translate('personalInfoStep.personalInfo')}
