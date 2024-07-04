@@ -166,6 +166,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...value,
+                from: data.personalDetailsList?.[value.accountID],
+                to: data.personalDetailsList?.[value.managerID],
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -199,7 +201,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
             } else {
-                reportIDToTransactions[reportKey] = {transactions: [transaction]};
+                reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
     }
