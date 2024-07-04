@@ -1345,10 +1345,6 @@ const CONST = {
         },
     },
 
-    NETSUITE_CONFIG: {
-        SUBSIDIARY: 'subsidiary',
-    },
-
     SAGE_INTACCT_CONFIG: {
         MAPPING_VALUE: {
             NONE: 'NONE',
