@@ -13,11 +13,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getCurrency} from "@libs/TransactionUtils";
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
-import {getCurrency, transformedTaxRates} from "@libs/TransactionUtils";
 
 type IOURequestStepTaxRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
