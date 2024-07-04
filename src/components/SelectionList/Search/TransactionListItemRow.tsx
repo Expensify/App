@@ -172,7 +172,21 @@ function CategoryCell({isLargeScreenWidth, showTooltip, transactionItem}: Transa
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.category}
-            style={isLargeScreenWidth ? [styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter] : [styles.textMicro, styles.mnh0]}
+            style={
+                isLargeScreenWidth
+                    ? [styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]
+                    : [
+                          styles.optionDisplayName,
+                          styles.label,
+                          styles.pre,
+                          styles.justifyContentCenter,
+                          styles.textMicro,
+                          styles.textSupporting,
+                          styles.flexShrink1,
+                          styles.textMicro,
+                          styles.mnh0,
+                      ]
+            }
         />
     );
 }
