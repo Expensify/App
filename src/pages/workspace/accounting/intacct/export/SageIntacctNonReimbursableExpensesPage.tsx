@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -51,58 +51,72 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         [config?.export.nonReimbursable, policyID],
     );
 
-    const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
-    const defaultVendorSection = {
-        description: translate('workspace.sageIntacct.defaultVendor'),
-        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
-        title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
-        hasError:
-            config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                ? !!config?.export?.errorFields?.nonReimbursableVendor
-                : !!config?.export?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
-        pendingAction:
-            config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                ? config?.export?.pendingFields?.nonReimbursableVendor
-                : config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
-    };
+    const defaultVendor = useMemo(() => {
+        const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
+        const defaultVendorSection = {
+            description: translate('workspace.sageIntacct.defaultVendor'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
+            title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
+            hasError:
+                config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                    ? !!config?.export?.errorFields?.nonReimbursableVendor
+                    : !!config?.export?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+            pendingAction:
+                config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+                    ? config?.export?.pendingFields?.nonReimbursableVendor
+                    : config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
+        };
 
-    const defaultVendor = (
-        <OfflineWithFeedback
-            key={defaultVendorSection.description}
-            pendingAction={defaultVendorSection.pendingAction}
-        >
-            <MenuItemWithTopDescription
-                title={defaultVendorSection.title}
-                description={defaultVendorSection.description}
-                shouldShowRightIcon
-                onPress={defaultVendorSection.action}
-                brickRoadIndicator={defaultVendorSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            />
-        </OfflineWithFeedback>
-    );
+        return (
+            <OfflineWithFeedback
+                key={defaultVendorSection.description}
+                pendingAction={defaultVendorSection.pendingAction}
+            >
+                <MenuItemWithTopDescription
+                    title={defaultVendorSection.title}
+                    description={defaultVendorSection.description}
+                    shouldShowRightIcon
+                    onPress={defaultVendorSection.action}
+                    brickRoadIndicator={defaultVendorSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+        );
+    }, [
+        config?.export?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+        config?.export?.errorFields?.nonReimbursableVendor,
+        config?.export.nonReimbursable,
+        config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
+        config?.export?.pendingFields?.nonReimbursableVendor,
+        intacctData?.vendors,
+        policy,
+        policyID,
+        translate,
+    ]);
 
-    const creditCardAccountSection = {
-        description: translate('workspace.sageIntacct.creditCardAccount'),
-        action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
-        title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.export?.errorFields?.nonReimbursableAccount,
-        pendingAction: config?.export?.pendingFields?.nonReimbursableAccount,
-    };
+    const creditCardAccount = useMemo(() => {
+        const creditCardAccountSection = {
+            description: translate('workspace.sageIntacct.creditCardAccount'),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
+            title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
+            hasError: !!config?.export?.errorFields?.nonReimbursableAccount,
+            pendingAction: config?.export?.pendingFields?.nonReimbursableAccount,
+        };
 
-    const creditCardAccount = (
-        <OfflineWithFeedback
-            key={creditCardAccountSection.description}
-            pendingAction={creditCardAccountSection.pendingAction}
-        >
-            <MenuItemWithTopDescription
-                title={creditCardAccountSection.title}
-                description={creditCardAccountSection.description}
-                shouldShowRightIcon
-                onPress={creditCardAccountSection.action}
-                brickRoadIndicator={creditCardAccountSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            />
-        </OfflineWithFeedback>
-    );
+        return (
+            <OfflineWithFeedback
+                key={creditCardAccountSection.description}
+                pendingAction={creditCardAccountSection.pendingAction}
+            >
+                <MenuItemWithTopDescription
+                    title={creditCardAccountSection.title}
+                    description={creditCardAccountSection.description}
+                    shouldShowRightIcon
+                    onPress={creditCardAccountSection.action}
+                    brickRoadIndicator={creditCardAccountSection.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+        );
+    }, [config?.export?.errorFields?.nonReimbursableAccount, config?.export.nonReimbursableAccount, config?.export?.pendingFields?.nonReimbursableAccount, policyID, translate]);
 
     return (
         <ConnectionLayout
