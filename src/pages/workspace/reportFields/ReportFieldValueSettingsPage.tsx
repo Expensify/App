@@ -68,7 +68,7 @@ function ReportFieldValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, Number(valueIndex), value);
+            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
             return;
         }
 

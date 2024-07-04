@@ -382,24 +382,20 @@ describe('actions/ReportFields', () => {
     });
 
     describe('updateReportFieldListValueEnabled', () => {
-        it('updates the enabled flag of a report field list value', async () => {
+        it('updates the enabled flag of report field list values', async () => {
             mockFetch?.pause?.();
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
-            const valueIndexToUpdate = 1;
-            const oldDisabledFlag = false;
-            const newDisabledFlag = true;
-            const oldInitialValue = 'Value 2';
-            const newInitialValue = '';
+            const valueIndexesTpUpdate = [1, 2];
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const reportField: PolicyReportField = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.LIST,
-                defaultValue: oldInitialValue,
-                values: ['Value 1', oldInitialValue, 'Value 3'],
-                disabledOptions: [false, oldDisabledFlag, true],
+                defaultValue: 'Value 2',
+                values: ['Value 1', 'Value 2', 'Value 3'],
+                disabledOptions: [false, false, true],
                 fieldID: reportFieldID,
                 orderWeight: 1,
                 deletable: false,
@@ -413,7 +409,7 @@ describe('actions/ReportFields', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexToUpdate, !newDisabledFlag);
+            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesTpUpdate, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -430,8 +426,8 @@ describe('actions/ReportFields', () => {
             expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
                 [reportFieldKey]: {
                     ...reportField,
-                    defaultValue: newInitialValue,
-                    disabledOptions: [false, newDisabledFlag, true],
+                    defaultValue: '',
+                    disabledOptions: [false, true, true],
                 },
             });
 
@@ -460,19 +456,15 @@ describe('actions/ReportFields', () => {
 
             const policyID = Policy.generatePolicyID();
             const reportFieldName = 'Test Field';
-            const valueIndexToUpdate = 1;
-            const oldDisabledFlag = false;
-            const newDisabledFlag = true;
-            const oldInitialValue = 'Value 2';
-            const newInitialValue = '';
+            const valueIndexesToUpdate = [1];
             const reportFieldID = generateFieldID(reportFieldName);
             const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
             const reportField: PolicyReportField = {
                 name: reportFieldName,
                 type: CONST.REPORT_FIELD_TYPES.LIST,
-                defaultValue: oldInitialValue,
-                values: ['Value 1', oldInitialValue, 'Value 3'],
-                disabledOptions: [false, oldDisabledFlag, true],
+                defaultValue: 'Value 2',
+                values: ['Value 1', 'Value 2', 'Value 3'],
+                disabledOptions: [false, false, true],
                 fieldID: reportFieldID,
                 orderWeight: 1,
                 deletable: false,
@@ -486,7 +478,7 @@ describe('actions/ReportFields', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
             await waitForBatchedUpdates();
 
-            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexToUpdate, !newDisabledFlag);
+            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexesToUpdate, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -503,8 +495,8 @@ describe('actions/ReportFields', () => {
             expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
                 [reportFieldKey]: {
                     ...reportField,
-                    defaultValue: newInitialValue,
-                    disabledOptions: [false, newDisabledFlag, true],
+                    defaultValue: '',
+                    disabledOptions: [false, true, true],
                 },
             });
 
