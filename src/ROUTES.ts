@@ -820,11 +820,11 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/account` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',

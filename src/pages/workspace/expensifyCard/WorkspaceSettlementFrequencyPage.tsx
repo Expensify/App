@@ -9,15 +9,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS>) {
+function WorkspaceSettlementFrequencyPage({route}: StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
@@ -31,7 +29,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCardSettingsPage.displayName}
+                testID={WorkspaceSettlementFrequencyPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
@@ -46,7 +44,6 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                                 description="Settlement account"
                                 title="xxxxxxxxxxxx1234"
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}
                             />
                         </OfflineWithFeedback>
                         <OfflineWithFeedback
@@ -59,10 +56,6 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                                 description="Settlement frequency"
                                 title="Monthly"
                                 shouldShowRightIcon
-                                onPress={() => {
-                                    console.log(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID));
-                                    Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID));
-                                }}
                             />
                         </OfflineWithFeedback>
                     </View>
@@ -72,6 +65,6 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
     );
 }
 
-WorkspaceCardSettingsPage.displayName = 'WorkspaceCardSettingsPage';
+WorkspaceSettlementFrequencyPage.displayName = 'WorkspaceSettlementFrequencyPage';
 
-export default WorkspaceCardSettingsPage;
+export default WorkspaceSettlementFrequencyPage;
