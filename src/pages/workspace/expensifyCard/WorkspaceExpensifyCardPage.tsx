@@ -28,7 +28,7 @@ import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardPageProps = {route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route']};
 
-// TODO: remove when Onyx data is available
+// TODO: remove this const altogether and take the card data from component prop when Onyx data is available
 const mockedCards: OnyxEntry<WorkspaceCardsList> = {
     test1: {
         // @ts-expect-error TODO: change cardholder to accountID

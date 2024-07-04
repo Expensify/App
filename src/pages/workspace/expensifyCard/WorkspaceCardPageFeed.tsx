@@ -12,7 +12,7 @@ import WorkspaceExpensifyCardPage from './WorkspaceExpensifyCardPage';
 
 type WorkspaceCardPageFeedProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-// TODO: remove when Onyx data is available
+// TODO: remove when Onyx data is available, and pass the data to 'WorkspaceExpensifyCardPage' so that we will not make the same 'Onyx' call twice
 const cardsList: OnyxEntry<WorkspaceCardsList> = {};
 
 function WorkspaceCardPageFeed({route}: WorkspaceCardPageFeedProps) {
