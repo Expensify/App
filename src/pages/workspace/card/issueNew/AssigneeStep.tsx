@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +34,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
     const submit = (assignee: ListItem) => {
         Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, {assigneeEmail: assignee?.login ?? ''});
@@ -48,7 +49,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
 
     const membersDetails = useMemo(() => {
-        const membersList: ListItem[] = [];
+        let membersList: ListItem[] = [];
         if (!policy?.employeeList) {
             return membersList;
         }
@@ -76,11 +77,13 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             });
         });
 
+        membersList = OptionsListUtils.sortItemsAlphabetically(membersList);
+
         return membersList;
-    }, [policy?.employeeList]);
+    }, [isOffline, policy?.employeeList]);
 
     const sections = useMemo(() => {
-        if (!searchTerm) {
+        if (!debouncedSearchTerm) {
             return [
                 {
                     data: membersDetails,
@@ -89,7 +92,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
             ];
         }
 
-        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm).toLowerCase();
+        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
         const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
 
         return [
@@ -99,7 +102,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
                 shouldShow: true,
             },
         ];
-    }, [membersDetails, searchTerm]);
+    }, [membersDetails, debouncedSearchTerm]);
 
     return (
         <ScreenWrapper

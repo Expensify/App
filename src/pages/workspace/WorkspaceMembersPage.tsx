@@ -43,7 +43,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployeeList, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -368,9 +368,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-        result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
+        result = OptionsListUtils.sortItemsAlphabetically(result);
         return result;
     }, [
+        isOffline,
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
