@@ -439,7 +439,7 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
 
-function updateNetSuiteAutoSync(policyID: string, value: boolean, oldValue: boolean) {
+function updateNetSuiteAutoSync(policyID: string, value: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -473,7 +473,7 @@ function updateNetSuiteAutoSync(policyID: string, value: boolean, oldValue: bool
                     netsuite: {
                         config: {
                             autoSync: {
-                                enabled: oldValue,
+                                enabled: !value,
                             },
                             pendingFields: {
                                 autoSync: null,
@@ -519,8 +519,8 @@ function updateNetSuiteAutoSync(policyID: string, value: boolean, oldValue: bool
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_SYNC, parameters, {optimisticData, failureData, successData});
 }
 
-function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean, oldValue: boolean) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, value, oldValue);
+function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_REIMBURSED_REPORTS, value, !value);
 
     const parameters = {
         policyID,
@@ -529,8 +529,8 @@ function updateNetSuiteSyncReimbursedReports(policyID: string, value: boolean, o
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_REIMBURSED_REPORTS, parameters, onyxData);
 }
 
-function updateNetSuiteSyncPeople(policyID: string, value: boolean, oldValue: boolean) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE, value, oldValue);
+function updateNetSuiteSyncPeople(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.SYNC_PEOPLE, value, !value);
 
     const parameters = {
         policyID,
@@ -539,8 +539,8 @@ function updateNetSuiteSyncPeople(policyID: string, value: boolean, oldValue: bo
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_PEOPLE, parameters, onyxData);
 }
 
-function updateNetSuiteAutoCreateEntities(policyID: string, value: boolean, oldValue: boolean) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES, value, oldValue);
+function updateNetSuiteAutoCreateEntities(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.AUTO_CREATE_ENTITIES, value, !value);
 
     const parameters = {
         policyID,
@@ -549,8 +549,8 @@ function updateNetSuiteAutoCreateEntities(policyID: string, value: boolean, oldV
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_AUTO_CREATE_ENTITIES, parameters, onyxData);
 }
 
-function updateNetSuiteEnableNewCategories(policyID: string, value: boolean, oldValue?: boolean) {
-    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES, value, oldValue);
+function updateNetSuiteEnableNewCategories(policyID: string, value: boolean) {
+    const onyxData = updateNetSuiteSyncOptionsOnyxData(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.ENABLE_NEW_CATEGORIES, value, !value);
 
     const parameters = {
         policyID,
@@ -559,12 +559,12 @@ function updateNetSuiteEnableNewCategories(policyID: string, value: boolean, old
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_ENABLE_NEW_CATEGORIES, parameters, onyxData);
 }
 
-function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string, value: boolean, oldValue?: boolean) {
+function updateNetSuiteCustomFormIDOptionsEnabled(policyID: string, value: boolean) {
     const data = {
         enabled: value,
     };
     const oldData = {
-        enabled: oldValue,
+        enabled: !value,
     };
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS, data, oldData);
 
