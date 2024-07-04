@@ -182,7 +182,7 @@ function IOURequestStepDistance({
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID, index.toString(), Navigation.getActiveRouteWithoutParams()),
+                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID, index.toString(), Navigation.getActiveRoute()),
             );
         },
         [action, transactionID, report?.reportID],
