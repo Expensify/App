@@ -290,6 +290,7 @@ const SCREENS = {
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
+            SAGE_INTACCT_ENTITY: 'Policy_Sage_Intacct_Entity',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',

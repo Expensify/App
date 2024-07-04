@@ -949,11 +949,29 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
+/** One of the SageIntacctConnectionData object elements with value */
+type SageIntacctDataElementWithValue = SageIntacctDataElement & {
+    /** Element value */
+    value: string;
+};
+
 /**
  * Connection data for Sage Intacct
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
-type SageIntacctConnectionData = {};
+type SageIntacctConnectionData = {
+    /** Collection of vendors */
+    entities: SageIntacctDataElementWithValue[];
+};
 
 /**
  * Connection config for Sage Intacct
@@ -970,6 +988,11 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Sage Intacct userID */
         userID: string;
     };
+
+    /**
+     *
+     */
+    entity?: string;
 
     /** Collection of Sage Intacct config errors */
     errors?: OnyxCommon.Errors;
@@ -1345,6 +1368,7 @@ export type {
     QBONonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    SageIntacctConnectiosConfig,
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,

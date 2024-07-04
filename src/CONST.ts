@@ -1485,6 +1485,10 @@ const CONST = {
         '_costaRica',
     ] as string[],
 
+    SAGE_INTACCT_CONFIG: {
+        ENTITY: 'entity',
+    },
+
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
         REPORT_EXPORTED: 'REPORT_EXPORTED',
