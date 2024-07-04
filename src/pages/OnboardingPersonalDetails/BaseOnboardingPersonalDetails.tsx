@@ -30,7 +30,13 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected, onboardingAdminsChatReportID}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({
+    currentUserPersonalDetails,
+    shouldUseNativeStyles,
+    onboardingPurposeSelected,
+    onboardingAdminsChatReportID,
+    onboardingPolicyID,
+}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -62,6 +68,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     lastName,
                 },
                 onboardingAdminsChatReportID ?? undefined,
+                onboardingPolicyID,
             );
 
             Welcome.setOnboardingAdminsChatReportID();
@@ -85,7 +92,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [isSmallScreenWidth, onboardingPurposeSelected, onboardingAdminsChatReportID, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -194,6 +201,9 @@ export default withCurrentUserPersonalDetails(
         },
         onboardingAdminsChatReportID: {
             key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
+        },
+        onboardingPolicyID: {
+            key: ONYXKEYS.ONBOARDING_POLICY_ID,
         },
     })(BaseOnboardingPersonalDetails),
 );

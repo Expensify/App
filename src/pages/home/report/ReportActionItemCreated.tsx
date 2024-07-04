@@ -68,7 +68,7 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
                     <OfflineWithFeedback pendingAction={props.report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                            style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
+                            style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
