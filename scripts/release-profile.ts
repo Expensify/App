@@ -19,6 +19,8 @@ if (argsMap.platform === 'ios') {
     sourcemapPath = 'main.jsbundle.map';
 } else if (argsMap.platform === 'android') {
     sourcemapPath = 'android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map';
+} else if (argsMap.platform === 'web') {
+    sourcemapPath = 'dist/merged-source-map.js.map';
 } else {
     console.error('Please specify the platform using --platform=ios or --platform=android');
     process.exit(1);

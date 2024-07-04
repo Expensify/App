@@ -234,7 +234,7 @@ Within Xcode head to the build phase - `Bundle React Native code and images`.
 5. Upon completion, the generated source map can be found at:
   Android: `android/app/build/generated/sourcemaps/react/productionRelease/index.android.bundle.map`
   IOS: `main.jsbundle.map`
-  web: `dist/444-{hash}.bundle.js.map`
+  web: `dist/merged-source-map.js.map`
 
 ### Recording a Trace:
 1. Ensure you have generated the source map as outlined above.
@@ -266,7 +266,7 @@ Build info:
 4. Use the following commands to symbolicate the trace for Android and iOS, respectively:
 Android: `npm run symbolicate-release:android`
 IOS: `npm run symbolicate-release:ios`
-web: ???
+web: `npm run symbolicate-release:web`
 5. A new file named `Profile_trace_for_<app version>-converted.json` will appear in your project's root folder.
 6. Open this file in your tool of choice:
     - SpeedScope ([https://www.speedscope.app](https://www.speedscope.app/))
