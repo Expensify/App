@@ -1,7 +1,6 @@
 import {isEmpty} from 'lodash';
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -121,28 +120,25 @@ function SelectionScreen({
                     title={translate(title)}
                     onBackButtonPress={onBackButtonPress}
                 />
-                <View style={[styles.flexGrow1, styles.flexShrink1]}>
-                    <OfflineWithFeedback
-                        errors={errors}
-                        errorRowStyles={errorRowStyles}
-                        onClose={onClose}
-                        style={[styles.flexGrow1, styles.flexShrink1]}
-                        contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
-                    >
-                        <SelectionList
-                            onSelectRow={onSelectRow}
-                            headerContent={headerContent}
-                            sections={sections}
-                            ListItem={listItem}
-                            showScrollIndicator
-                            shouldShowTooltips={false}
-                            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                            listEmptyContent={listEmptyContent}
-                            listFooterContent={listFooterContent}
-                            containerStyle={[styles.flexReset, styles.flexGrow1, styles.flexShrink1]}
-                        />
-                    </OfflineWithFeedback>
-                </View>
+                <OfflineWithFeedback
+                    errors={errors}
+                    errorRowStyles={[errorRowStyles]}
+                    onClose={onClose}
+                    style={[styles.flex1]}
+                    contentContainerStyle={[styles.flex1]}
+                >
+                    <SelectionList
+                        onSelectRow={onSelectRow}
+                        headerContent={headerContent}
+                        sections={sections}
+                        ListItem={listItem}
+                        showScrollIndicator
+                        shouldShowTooltips={false}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        listEmptyContent={listEmptyContent}
+                        listFooterContent={listFooterContent}
+                    />
+                </OfflineWithFeedback>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
