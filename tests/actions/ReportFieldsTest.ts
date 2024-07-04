@@ -79,13 +79,12 @@ describe('actions/ReportFields', () => {
             });
 
             // Check for success data
-            (fetch as MockFetch)?.resume?.();
+            mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.POLICY,
-                    waitForCollectionCallback: true,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
                         Onyx.disconnect(connectionID);
                         resolve(workspace);
@@ -146,20 +145,18 @@ describe('actions/ReportFields', () => {
             });
 
             // Check for success data
-            (fetch as MockFetch)?.resume?.();
+            mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.POLICY,
-                    waitForCollectionCallback: true,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
                         Onyx.disconnect(connectionID);
                         resolve(workspace);
                     },
                 });
             });
-
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
             expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
@@ -216,13 +213,12 @@ describe('actions/ReportFields', () => {
             });
 
             // Check for success data
-            (fetch as MockFetch)?.resume?.();
+            mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.POLICY,
-                    waitForCollectionCallback: true,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
                         Onyx.disconnect(connectionID);
                         resolve(workspace);
@@ -286,13 +282,12 @@ describe('actions/ReportFields', () => {
             });
 
             // Check for success data
-            (fetch as MockFetch)?.resume?.();
+            mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.POLICY,
-                    waitForCollectionCallback: true,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
                         Onyx.disconnect(connectionID);
                         resolve(workspace);
@@ -432,7 +427,7 @@ describe('actions/ReportFields', () => {
             });
 
             // Check for success data
-            (fetch as MockFetch)?.resume?.();
+            mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {
