@@ -10,6 +10,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateReportFieldInitialValue} from '@libs/actions/Policy/ReportFields';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -43,14 +44,14 @@ function ReportFieldInitialValuePage({
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            console.debug('submitForm', policyID, values);
+            updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
             Navigation.goBack();
         },
-        [policyID],
+        [policyID, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {
-        console.debug('submitListValueUpdate', policyID, reportFieldID, value);
+        updateReportFieldInitialValue(policyID, reportFieldID, value);
         Navigation.goBack();
     };
 
