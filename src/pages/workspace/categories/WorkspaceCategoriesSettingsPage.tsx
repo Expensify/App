@@ -26,7 +26,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
-    const toggleSubtitle = `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.`;
+    const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${currentConnectionName}.` : undefined;
 
     const updateWorkspaceRequiresCategory = (value: boolean) => {
         setWorkspaceRequiresCategory(policyID, value);
@@ -48,8 +48,8 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                 <View style={styles.flexGrow1}>
                     <ToggleSettingOptionRow
                         title={translate('workspace.categories.requiresCategory')}
-                        subtitle={isConnectedToAccounting ? toggleSubtitle : undefined}
-                        switchAccessibilityLabel={toggleSubtitle}
+                        subtitle={toggleSubtitle}
+                        switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
                         isActive={policy?.requiresCategory ?? false}
                         onToggle={updateWorkspaceRequiresCategory}
                         pendingAction={policy?.pendingFields?.requiresCategory}
