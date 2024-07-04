@@ -9,7 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {ModalStatus} from '@pages/home/report/ReportDetailsExportPage';
+import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -26,7 +26,7 @@ function ExportWithDropdownMenu({report, connectionName}: ExportWithDropdownMenu
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [modalStatus, setModalStatus] = useState<ModalStatus>(null);
+    const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD, {selector: (paymentMethod) => paymentMethod ?? {}});
 
     const iconToDisplay = ReportUtils.getIntegrationIcon(connectionName);
