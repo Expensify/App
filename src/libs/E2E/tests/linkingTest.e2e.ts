@@ -75,7 +75,8 @@ const test = (config: NativeConfig) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
                     name: 'Comment linking',
-                    duration: entry.duration,
+                    metric: entry.duration,
+                    unit: 'ms',
                 });
 
                 switchReportResolve();

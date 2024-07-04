@@ -23,6 +23,7 @@ import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
+import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -31,6 +32,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getCurrentUserAccountID} from '@libs/actions/Report';
 import Timing from '@libs/actions/Timing';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
@@ -38,6 +40,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {AuthScreensParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as ComposerActions from '@userActions/Composer';
@@ -160,6 +163,29 @@ function ReportScreen({
 
     const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
+
+    // Check if there's a reportID in the route. If not, set it to the last accessed reportID
+    const lastAccessedReportID = useLastAccessedReportID(!!route.params.openOnAdminRoom);
+    useEffect(() => {
+        // Don't update if there is a reportID in the params already
+        if (route.params.reportID) {
+            const reportActionID = route?.params?.reportActionID;
+            const isValidReportActionID = ValidationUtils.isNumeric(reportActionID);
+            if (reportActionID && !isValidReportActionID) {
+                navigation.setParams({reportActionID: ''});
+            }
+            return;
+        }
+
+        // It's possible that reports aren't fully loaded yet
+        // in that case the reportID is undefined
+        if (!lastAccessedReportID) {
+            return;
+        }
+
+        Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
+        navigation.setParams({reportID: lastAccessedReportID});
+    }, [lastAccessedReportID, navigation, route]);
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -420,16 +446,6 @@ function ReportScreen({
     }, [reportIDFromRoute, reportActionIDFromRoute]);
 
     useEffect(() => {
-        if (!report.reportID) {
-            return;
-        }
-
-        if (report?.errorFields?.notFound) {
-            Report.clearReportNotFoundErrors(report.reportID);
-        }
-    }, [report?.errorFields?.notFound, report.reportID]);
-
-    useEffect(() => {
         if (!report.reportID || !isFocused) {
             return;
         }
@@ -550,7 +566,8 @@ function ReportScreen({
             isClosedTopLevelPolicyRoom
         ) {
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
-            if (!isFocused) {
+            // Prevent auto navigation for report in RHP
+            if (!isFocused || isReportOpenInRHP) {
                 return;
             }
             Navigation.dismissModal();
@@ -581,6 +598,7 @@ function ReportScreen({
 
         fetchReportIfNeeded();
         ComposerActions.setShouldShowComposeInput(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         route,
         report,
@@ -682,6 +700,14 @@ function ReportScreen({
             Navigation.setParams({reportActionID: ''});
         });
     }, [isInaccessibleWhisper]);
+
+    useEffect(() => {
+        if (!!report.lastReadTime || !ReportUtils.isTaskReport(report)) {
+            return;
+        }
+        // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
+        Report.readNewestAction(report.reportID);
+    }, [report]);
 
     if ((!isInaccessibleWhisper && isLinkedReportActionDeleted) ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
         return (

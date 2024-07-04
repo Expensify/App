@@ -1,7 +1,7 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -26,7 +26,7 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: 'category' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TYPE]: 'type' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
 };
@@ -73,14 +73,19 @@ function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTyp
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
-        return merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+        return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
     });
 }
 
 const currentYear = new Date().getFullYear();
 
-function isReportListItemType(item: TransactionListItemType | ReportListItemType): item is ReportListItemType {
+function isReportListItemType(item: ListItem): item is ReportListItemType {
     return 'transactions' in item;
+}
+
+function isTransactionListItemType(item: TransactionListItemType | ReportListItemType): item is TransactionListItemType {
+    const transactionListItem = item as TransactionListItemType;
+    return transactionListItem.transactionID !== undefined;
 }
 
 function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']): boolean {
@@ -138,9 +143,9 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory: metadata?.columnsToShow.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow.shouldShowTaxColumn,
+                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
+                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
+                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
@@ -161,6 +166,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...value,
+                from: data.personalDetailsList?.[value.accountID],
+                to: data.personalDetailsList?.[value.managerID],
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -185,16 +192,16 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 formattedMerchant,
                 date,
                 shouldShowMerchant,
-                shouldShowCategory: metadata?.columnsToShow.shouldShowCategoryColumn,
-                shouldShowTag: metadata?.columnsToShow.shouldShowTagColumn,
-                shouldShowTax: metadata?.columnsToShow.shouldShowTaxColumn,
+                shouldShowCategory: metadata?.columnsToShow?.shouldShowCategoryColumn,
+                shouldShowTag: metadata?.columnsToShow?.shouldShowTagColumn,
+                shouldShowTax: metadata?.columnsToShow?.shouldShowTaxColumn,
                 keyForList: transactionItem.transactionID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
             if (reportIDToTransactions[reportKey]?.transactions) {
                 reportIDToTransactions[reportKey].transactions.push(transaction);
             } else {
-                reportIDToTransactions[reportKey] = {transactions: [transaction]};
+                reportIDToTransactions[reportKey].transactions = [transaction];
             }
         }
     }
@@ -212,7 +219,7 @@ const searchTypeToItemMap: SearchTypeToItemMap = {
         listItem: ReportListItem,
         getSections: getReportSections,
         // sorting for ReportItems not yet implemented
-        getSortedSections: (data) => data,
+        getSortedSections: getSortedReportData,
     },
 };
 
@@ -254,8 +261,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = a[sortingProperty];
-        const bValue = b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment.comment : a[sortingProperty];
+        const bValue = sortingProperty === 'comment' ? b.comment.comment : b[sortingProperty];
 
         if (aValue === undefined || bValue === undefined) {
             return 0;
@@ -273,10 +280,23 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
+function getSortedReportData(data: ReportListItemType[]) {
+    return data.sort((a, b) => {
+        const aValue = a?.created;
+        const bValue = b?.created;
+
+        if (aValue === undefined || bValue === undefined) {
+            return 0;
+        }
+
+        return bValue.toLowerCase().localeCompare(aValue);
+    });
+}
+
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     return topmostCentralPaneRoute?.params as AuthScreensParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear, isReportListItemType, isTransactionListItemType};
 export type {SearchColumnType, SortOrder};

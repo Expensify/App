@@ -17,6 +17,7 @@ import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -81,41 +82,48 @@ function getOrderedReportIDs(
     const allReportsDictValues = Object.values(allReports ?? {});
 
     // Filter out all the reports that shouldn't be displayed
-    let reportsToDisplay = allReportsDictValues.filter((report) => {
+    let reportsToDisplay: Array<ChatReportSelector & {hasErrorsOtherThanFailedReceipt?: boolean}> = [];
+    allReportsDictValues.forEach((report) => {
         if (!report) {
-            return false;
+            return;
         }
-
-        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
-        const parentReportActions = allReportActions?.[parentReportActionsKey];
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
-        const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
-        const doesReportHaveViolations = !!(
-            betas?.includes(CONST.BETAS.VIOLATIONS) &&
-            !!parentReportAction &&
-            ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
-        );
+        const doesReportHaveViolations = OptionsListUtils.shouldShowViolations(report, betas ?? [], transactionViolations);
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt =
             doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
+        if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
+            return;
+        }
+        if (hasErrorsOtherThanFailedReceipt) {
+            reportsToDisplay.push({
+                ...report,
+                hasErrorsOtherThanFailedReceipt: true,
+            });
+            return;
+        }
         const isSystemChat = ReportUtils.isSystemChat(report);
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || isSystemChat || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
-            return false;
+            return;
         }
 
-        return ReportUtils.shouldReportBeInOptionList({
-            report,
-            currentReportId: currentReportId ?? '-1',
-            isInFocusMode,
-            betas,
-            policies: policies as OnyxCollection<Policy>,
-            excludeEmptyChats: true,
-            doesReportHaveViolations,
-            includeSelfDM: true,
-        });
+        if (
+            ReportUtils.shouldReportBeInOptionList({
+                report,
+                currentReportId: currentReportId ?? '-1',
+                isInFocusMode,
+                betas,
+                policies: policies as OnyxCollection<Policy>,
+                excludeEmptyChats: true,
+                doesReportHaveViolations,
+                includeSelfDM: true,
+            })
+        ) {
+            reportsToDisplay.push(report);
+        }
     });
 
     // The LHN is split into four distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -127,10 +135,12 @@ function getOrderedReportIDs(
     // 4. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
+
     const pinnedAndGBRReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
     const nonArchivedReports: MiniReport[] = [];
     const archivedReports: MiniReport[] = [];
+    const errorReports: MiniReport[] = [];
 
     if (currentPolicyID || policyMemberAccountIDs.length > 0) {
         reportsToDisplay = reportsToDisplay.filter(
@@ -139,7 +149,7 @@ function getOrderedReportIDs(
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((reportToDisplay) => {
-        const report = reportToDisplay as OnyxEntry<Report>;
+        const report = reportToDisplay;
         const miniReport: MiniReport = {
             reportID: report?.reportID,
             displayName: ReportUtils.getReportName(report),
@@ -154,6 +164,8 @@ function getOrderedReportIDs(
             draftReports.push(miniReport);
         } else if (ReportUtils.isArchivedRoom(report)) {
             archivedReports.push(miniReport);
+        } else if (report?.hasErrorsOtherThanFailedReceipt) {
+            errorReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
         }
@@ -161,6 +173,7 @@ function getOrderedReportIDs(
 
     // Sort each group of reports accordingly
     pinnedAndGBRReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
+    errorReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
     draftReports.sort((a, b) => (a?.displayName && b?.displayName ? localeCompare(a.displayName, b.displayName) : 0));
 
     if (isInDefaultMode) {
@@ -181,7 +194,9 @@ function getOrderedReportIDs(
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    const LHNReports = [...pinnedAndGBRReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
+
+    const LHNReports = [...pinnedAndGBRReports, ...errorReports, ...draftReports, ...nonArchivedReports, ...archivedReports].map((report) => report?.reportID ?? '-1');
+
     return LHNReports;
 }
 
@@ -230,6 +245,8 @@ function getOptionData({
         searchText: undefined,
         isPinned: false,
         hasOutstandingChildRequest: false,
+        hasOutstandingChildTask: false,
+        hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
         isArchivedRoom: false,
@@ -283,6 +300,8 @@ function getOptionData({
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
+    result.hasOutstandingChildTask = report.hasOutstandingChildTask;
+    result.hasParentAccess = report.hasParentAccess;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -361,6 +380,8 @@ function getOptionData({
             result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG) {
+            result.alternateText = PolicyUtils.getCleanedTagName(ReportActionsUtils.getReportActionMessage(lastAction)?.text ?? '');
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
