@@ -253,25 +253,12 @@ function addSubscriptionPaymentCard(cardData: {
         },
     ];
 
-    if (currency === CONST.PAYMENT_CARD_CURRENCY.GBP) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.ADD_PAYMENT_CARD_GBR, parameters, {optimisticData, successData, failureData}).then((response) => {
-            if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                return;
-            }
-            // TODO 3ds flow will be done as a part https://github.com/Expensify/App/issues/42432
-            // We will use this onyx key to open Modal and preview iframe. Potentially we can save the whole object which come from side effect
-            Onyx.set(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, (response as {authenticationLink: string}).authenticationLink);
-        });
-    } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        });
-        Navigation.goBack();
-    }
+    API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+    Navigation.goBack();
 }
 
 /**
