@@ -23,7 +23,11 @@ import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 
 type ReportFieldAddListValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
-function ReportFieldAddListValuePage({route}: ReportFieldAddListValuePageProps) {
+function ReportFieldAddListValuePage({
+    route: {
+        params: {policyID, reportFieldID},
+    },
+}: ReportFieldAddListValuePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -35,16 +39,23 @@ function ReportFieldAddListValuePage({route}: ReportFieldAddListValuePageProps) 
         [formDraft],
     );
 
-    const createValue = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-        ReportFields.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
-        Keyboard.dismiss();
-        Navigation.goBack();
-    }, []);
+    const createValue = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+            if (reportFieldID) {
+                ReportFields.addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+            } else {
+                ReportFields.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+            }
+            Keyboard.dismiss();
+            Navigation.goBack();
+        },
+        [policyID, reportFieldID],
+    );
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper

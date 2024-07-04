@@ -339,6 +339,14 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
     API.write(WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
+/**
+ * Adds a new list value to the workspace report fields.
+ */
+function addReportFieldListValue(policyID: string, reportFieldID: string, valueName: string) {
+    // eslint-disable-next-line no-console
+    console.info('addReportFieldListValue', policyID, reportFieldID, valueName);
+}
+
 export type {CreateReportFieldArguments};
 
 export {
@@ -350,4 +358,5 @@ export {
     createReportField,
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
+    addReportFieldListValue,
 };

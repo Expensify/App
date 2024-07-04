@@ -242,7 +242,7 @@ function ReportFieldListValuesPage({
                 success
                 icon={Expensicons.Plus}
                 text={translate('workspace.reportFields.addValue')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID))}
+                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.getRoute(policyID, reportFieldID))}
             />
         );
     };
