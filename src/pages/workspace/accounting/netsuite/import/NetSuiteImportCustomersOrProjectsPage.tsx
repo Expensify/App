@@ -60,7 +60,6 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
         <ConnectionLayout
             displayName={NetSuiteImportCustomersOrProjectsPage.displayName}
             headerTitle="workspace.netsuite.import.customersOrJobs.title"
-            headerSubtitle={config?.subsidiary ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -68,76 +67,70 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
-            <View style={[styles.ph5, styles.flexRow, styles.mb8]}>
-                <RenderHTML html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</muted-text></comment>`} />
+            <View style={[styles.ph5, styles.flexRow, styles.pb5]}>
+                <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.customersOrJobs.subtitle` as TranslationPaths))}</comment>`} />
             </View>
 
-            <View style={[styles.ph5, styles.mb8]}>
-                <ToggleSettingOptionRow
-                    title={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
-                    isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
-                    switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
-                    onToggle={(isEnabled: boolean) => {
-                        updateMapping('customers', isEnabled);
-                    }}
-                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
-                />
-            </View>
-
-            <View style={[styles.ph5, styles.mb8]}>
-                <ToggleSettingOptionRow
-                    title={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
-                    isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
-                    switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
-                    onToggle={(isEnabled: boolean) => {
-                        updateMapping('jobs', isEnabled);
-                    }}
-                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.jobs}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
-                />
-            </View>
-            <View style={[styles.ph5, styles.mb8]}>
-                <ToggleSettingOptionRow
-                    title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
-                    isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
-                    switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
-                    onToggle={(isEnabled: boolean) => {
-                        updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
-                    }}
-                    pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
-                    errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                    onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
-                />
-            </View>
+            <ToggleSettingOptionRow
+                wrapperStyle={[styles.mv3, styles.ph5]}
+                title={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
+                isActive={(config?.syncOptions?.mapping?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
+                switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importCustomers')}
+                onToggle={(isEnabled: boolean) => {
+                    updateMapping('customers', isEnabled);
+                }}
+                pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
+                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS)}
+            />
+            <ToggleSettingOptionRow
+                wrapperStyle={[styles.mv3, styles.ph5]}
+                title={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
+                isActive={(config?.syncOptions?.mapping?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT}
+                switchAccessibilityLabel={translate('workspace.netsuite.import.customersOrJobs.importJobs')}
+                onToggle={(isEnabled: boolean) => {
+                    updateMapping('jobs', isEnabled);
+                }}
+                pendingAction={config?.syncOptions?.mapping?.pendingFields?.jobs}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
+                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)}
+            />
+            <ToggleSettingOptionRow
+                wrapperStyle={[styles.mv3, styles.ph5]}
+                title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                isActive={config?.syncOptions?.crossSubsidiaryCustomers ?? false}
+                switchAccessibilityLabel={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
+                onToggle={(isEnabled: boolean) => {
+                    updateNetSuiteCrossSubsidiaryCustomersConfiguration(policyID, isEnabled);
+                }}
+                pendingAction={config?.syncOptions?.pendingFields?.crossSubsidiaryCustomers}
+                errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+                onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
+            />
 
             {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
-                <View style={[styles.mb4]}>
-                    <OfflineWithFeedback
-                        errors={
-                            ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ??
-                            ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)
-                        }
-                        errorRowStyles={[styles.ph5, styles.mt2, styles.mb4]}
-                        pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
-                        onClose={() => {
-                            Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
-                            Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
+                <OfflineWithFeedback
+                    errors={
+                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS) ??
+                        ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS)
+                    }
+                    errorRowStyles={[styles.ph5]}
+                    pendingAction={config?.syncOptions?.mapping?.pendingFields?.customers ?? config?.syncOptions?.mapping?.pendingFields?.jobs}
+                    onClose={() => {
+                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS);
+                        Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.MAPPING.JOBS);
+                    }}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.common.displayedAs')}
+                        title={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT.getRoute(policyID));
                         }}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate('workspace.common.displayedAs')}
-                            title={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
-                            shouldShowRightIcon
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT.getRoute(policyID));
-                            }}
-                            brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                    </OfflineWithFeedback>
-                </View>
+                        brickRoadIndicator={!!config?.errorFields?.customers || !!config?.errorFields?.jobs ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
             )}
         </ConnectionLayout>
     );
