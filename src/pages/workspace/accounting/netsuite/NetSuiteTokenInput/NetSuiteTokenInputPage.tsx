@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import type {ForwardedRef} from 'react';
+import type {ComponentType, ForwardedRef} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -14,8 +14,10 @@ import CONST from '@src/CONST';
 import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
 import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
-const staticContentSteps = Array(4).fill(NetSuiteTokenSetupContent);
-const tokenInputSteps: Array<React.ComponentType<SubStepProps & {policyID: string}>> = [...staticContentSteps, NetSuiteTokenInputForm];
+type SubStepWithPolicy = SubStepProps & {policyID: string};
+
+const staticContentSteps = Array<ComponentType<SubStepWithPolicy>>(4).fill(NetSuiteTokenSetupContent);
+const tokenInputSteps: Array<ComponentType<SubStepWithPolicy>> = [...staticContentSteps, NetSuiteTokenInputForm];
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -33,7 +35,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
         prevScreen,
         screenIndex,
         moveTo,
-    } = useSubStep<SubStepProps & {policyID: string}>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+    } = useSubStep<SubStepWithPolicy>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
