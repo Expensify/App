@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
+import Permissions from '@libs/Permissions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
@@ -21,6 +22,21 @@ import * as PolicyUtils from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
+
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (reports) => {
+        allReports = reports;
+    },
+});
+
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connect({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
 
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
@@ -92,8 +108,17 @@ function getOrderedReportIDs(
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
+        const transactionReportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+        const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, transactionReportActions, undefined);
+        let doesTransactionThreadReportHasViolations = false;
+        if (oneTransactionThreadReportID) {
+            const transactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+            doesTransactionThreadReportHasViolations = OptionsListUtils.shouldShowViolations(transactionReport, betas ?? [], transactionViolations);
+        }
         const hasErrorsOtherThanFailedReceipt =
-            doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
+            doesTransactionThreadReportHasViolations ||
+            doesReportHaveViolations ||
+            Object.values(allReportErrors).some((error) => error?.[0] !== Localize.translateLocal('iou.error.genericSmartscanFailureMessage'));
         if (ReportUtils.isOneTransactionThread(report.reportID, report.parentReportID ?? '0')) {
             return;
         }
@@ -211,6 +236,7 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
+    transactionViolations,
 }: {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -219,6 +245,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -278,6 +305,21 @@ function getOptionData({
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
     result.brickRoadIndicator = hasErrors || hasViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const oneTransactionThreadReportID = ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, ReportActionsUtils.getAllReportActions(report.reportID));
+    if (oneTransactionThreadReportID) {
+        const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
+
+        if (
+            Permissions.canUseViolations(allBetas) &&
+            ReportUtils.shouldDisplayTransactionThreadViolations(
+                oneTransactionThreadReport,
+                transactionViolations,
+                ReportActionsUtils.getAllReportActions(report.reportID)[oneTransactionThreadReport?.parentReportActionID ?? '-1'],
+            )
+        ) {
+            result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+    }
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
