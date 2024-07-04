@@ -2349,6 +2349,17 @@ export default {
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
             cashBack: 'Cash back',
             cashBackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
+            settlementAccount: 'Settlement account',
+            settlementAccountDescription: 'Choose an account to pay your Expensify Card balance.',
+            settlementAccountInfo: 'Make sure this account matches your reconciliation account so Continuous Reconciliation works properly.',
+            settlementFrequency: 'Settlement frequency',
+            settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
+            settlementFrequencyInfo:
+                'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history. Learn more.',
+            frequency: {
+                daily: 'Daily',
+                monthly: 'Monthly',
+            },
         },
         categories: {
             deleteCategories: 'Delete categories',

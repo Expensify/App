@@ -2059,6 +2059,10 @@ const CONST = {
             CARD_NAME: 'CardName',
             CONFIRMATION: 'Confirmation',
         },
+        FREQUENCY_SETTING: {
+            DAILY: 'daily',
+            MONTHLY: 'monthly',
+        },
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,

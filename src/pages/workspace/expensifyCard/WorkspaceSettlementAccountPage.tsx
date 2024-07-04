@@ -1,25 +1,21 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 function WorkspaceSettlementAccountPage({route}: StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     return (
         <AccessOrNotFoundWrapper
@@ -31,35 +27,15 @@ function WorkspaceSettlementAccountPage({route}: StackScreenProps<SettingsNaviga
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceSettlementAccountPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <View>
-                        <OfflineWithFeedback
-                            // errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
-                            // pendingAction={''}
-                            errorRowStyles={styles.mh5}
-                            // onClose={() => clearErrorFields('attributes')}
-                        >
-                            <MenuItemWithTopDescription
-                                description="Settlement account"
-                                title="xxxxxxxxxxxx1234"
-                                shouldShowRightIcon
-                            />
-                        </OfflineWithFeedback>
-                        <OfflineWithFeedback
-                            // errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
-                            // pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
-                            errorRowStyles={styles.mh5}
-                            // onClose={() => clearErrorFields('defaultCategory')}
-                        >
-                            <MenuItemWithTopDescription
-                                description="Settlement frequency"
-                                title="Monthly"
-                                shouldShowRightIcon
-                            />
-                        </OfflineWithFeedback>
-                    </View>
-                </ScrollView>
+                <HeaderWithBackButton title={translate('workspace.expensifyCard.settlementAccount')} />
+                <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
+                <SelectionList
+                    sections={[{data: []}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={() => {}}
+                    shouldDebounceRowSelect
+                    initiallyFocusedOptionKey={null}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

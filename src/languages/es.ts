@@ -2391,6 +2391,17 @@ export default {
                 'A la hora de calcular tu límite restante, tenemos en cuenta una serie de factores: su antigüedad como cliente, la información relacionada con tu negocio que nos facilitaste al darte de alta y el efectivo disponible en tu cuenta bancaria comercial. Tu límite restante puede fluctuar a diario.',
             cashBack: 'Reembolso',
             cashBackDescription: 'El saldo de devolución se basa en el gasto mensual realizado con la tarjeta Expensify en tu espacio de trabajo.',
+            settlementAccount: 'Cuenta de liquidación',
+            settlementAccountDescription: 'Elige una cuenta para pagar el saldo de tu Tarjeta Expensify.',
+            settlementAccountInfo: 'Asegúrate de que esta cuenta coincide con tu cuenta de conciliación para que Reconciliación Continua funcione correctamente.',
+            settlementFrequency: 'Frecuencia de liquidación',
+            settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
+            settlementFrequencyInfo:
+                'Si deseas cambiar a la liquidación mensual, deberás conectar tu cuenta bancaria a través de Plaid y tener un historial de saldo positivo en los últimos 90 días. Más información.',
+            frequency: {
+                daily: 'Cada día',
+                monthly: 'Mensual',
+            },
         },
         categories: {
             deleteCategories: 'Eliminar categorías',

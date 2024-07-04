@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+// import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,7 +13,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+// import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -21,7 +21,7 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    // const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     return (
         <AccessOrNotFoundWrapper
@@ -36,33 +36,20 @@ function WorkspaceCardSettingsPage({route}: StackScreenProps<SettingsNavigatorPa
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView contentContainerStyle={styles.flexGrow1}>
                     <View>
-                        <OfflineWithFeedback
-                            // errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'attributes')}
-                            // pendingAction={''}
-                            errorRowStyles={styles.mh5}
-                            // onClose={() => clearErrorFields('attributes')}
-                        >
+                        <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
-                                description="Settlement account"
+                                description={translate('workspace.expensifyCard.settlementAccount')}
                                 title="xxxxxxxxxxxx1234"
                                 shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID))}
                             />
                         </OfflineWithFeedback>
-                        <OfflineWithFeedback
-                            // errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID] ?? {}, 'defaultCategory')}
-                            // pendingAction={customUnits[customUnitID]?.pendingFields?.defaultCategory}
-                            errorRowStyles={styles.mh5}
-                            // onClose={() => clearErrorFields('defaultCategory')}
-                        >
+                        <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
-                                description="Settlement frequency"
+                                description={translate('workspace.expensifyCard.settlementFrequency')}
                                 title="Monthly"
                                 shouldShowRightIcon
-                                onPress={() => {
-                                    console.log(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID));
-                                    Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID));
-                                }}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.getRoute(policyID))}
                             />
                         </OfflineWithFeedback>
                     </View>
