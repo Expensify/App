@@ -343,8 +343,67 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
  * Adds a new list value to the workspace report fields.
  */
 function addReportFieldListValue(policyID: string, reportFieldID: string, valueName: string) {
-    // eslint-disable-next-line no-console
-    console.info('addReportFieldListValue', policyID, reportFieldID, valueName);
+    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = previousFieldList[fieldKey];
+    const updatedReportField = cloneDeep(reportField);
+
+    updatedReportField.values.push(valueName);
+    updatedReportField.disabledOptions.push(false);
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: updatedReportField,
+                    },
+                    pendingFields: {
+                        [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    pendingFields: {
+                        [fieldKey]: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: reportField,
+                    },
+                    pendingFields: {
+                        [fieldKey]: null,
+                    },
+                    errorFields: {
+                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnableWorkspaceReportFieldListValueParams = {
+        policyID,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
 export type {CreateReportFieldArguments};
