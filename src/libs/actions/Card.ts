@@ -185,12 +185,8 @@ function revealVirtualCardDetails(cardID: number): Promise<ExpensifyCardDetails>
     });
 }
 
-function setIssueNewCardStep(step: IssueNewCardStep | null) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {currentStep: step});
-}
-
-function setIssueNewCardDataAndGoToStep(data: Partial<IssueNewCardData>, step: IssueNewCardStep) {
-    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, currentStep: step});
+function setIssueNewCardStepAndData(currentStep?: IssueNewCardStep, data?: Partial<IssueNewCardData>) {
+    Onyx.merge(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD, {data, currentStep});
 }
 
 function clearIssueNewCardFlow() {
@@ -206,8 +202,7 @@ export {
     clearCardListErrors,
     reportVirtualExpensifyCardFraud,
     revealVirtualCardDetails,
-    setIssueNewCardStep,
-    setIssueNewCardDataAndGoToStep,
+    setIssueNewCardStepAndData,
     clearIssueNewCardFlow,
 };
 export type {ReplacementReason};

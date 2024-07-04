@@ -36,11 +36,12 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const submit = (assignee: ListItem) => {
-        Card.setIssueNewCardDataAndGoToStep({assigneeEmail: assignee?.login ?? ''}, CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE, {assigneeEmail: assignee?.login ?? ''});
     };
 
     const handleBackButtonPress = () => {
         Navigation.goBack();
+        Card.clearIssueNewCardFlow();
     };
 
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;

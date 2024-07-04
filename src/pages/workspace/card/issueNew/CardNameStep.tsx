@@ -9,6 +9,7 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -20,6 +21,7 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 function CardNameStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const validate = useCallback(
@@ -34,11 +36,11 @@ function CardNameStep() {
     );
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-        Card.setIssueNewCardDataAndGoToStep({cardTitle: values.cardTitle}, CONST.EXPENSIFY_CARD.STEP.CONFIRMATION);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, {cardTitle: values.cardTitle});
     }, []);
 
     const handleBackButtonPress = useCallback(() => {
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT);
     }, []);
 
     return (
@@ -78,7 +80,7 @@ function CardNameStep() {
                     // TODO: default value for card name
                     defaultValue={issueNewCard?.data?.cardTitle}
                     containerStyles={[styles.mb6]}
-                    autoFocus={!issueNewCard?.data?.cardTitle}
+                    ref={inputCallbackRef}
                 />
             </FormProvider>
         </ScreenWrapper>

@@ -26,17 +26,19 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
-    const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType);
+
+    const areApprovalsConfigured = !isEmptyObject(policy?.approver) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    const defaultType = areApprovalsConfigured ? CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART : CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY;
+
+    const [typeSelected, setTypeSelected] = useState(issueNewCard?.data?.limitType ?? defaultType);
 
     const submit = useCallback(() => {
-        Card.setIssueNewCardDataAndGoToStep({limitType: typeSelected}, CONST.EXPENSIFY_CARD.STEP.LIMIT);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT, {limitType: typeSelected});
     }, [typeSelected]);
 
     const handleBackButtonPress = useCallback(() => {
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_TYPE);
     }, []);
-
-    const areApprovalsConfigured = !isEmptyObject(policy?.approver) && policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     const data = useMemo(() => {
         const options = [];
@@ -53,18 +55,18 @@ function LimitTypeStep({policy}: LimitTypeStepProps) {
 
         options.push(
             {
-                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
-                text: translate('workspace.card.issueNewCard.fixedAmount'),
-                alternateText: translate('workspace.card.issueNewCard.fixedAmountDescription'),
-                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
-                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
-            },
-            {
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
                 text: translate('workspace.card.issueNewCard.monthly'),
                 alternateText: translate('workspace.card.issueNewCard.monthlyDescription'),
                 keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
                 isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+            },
+            {
+                value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                text: translate('workspace.card.issueNewCard.fixedAmount'),
+                alternateText: translate('workspace.card.issueNewCard.fixedAmountDescription'),
+                keyForList: CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
+                isSelected: typeSelected === CONST.EXPENSIFY_CARD.LIMIT_TYPES.FIXED,
             },
         );
 

@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -19,16 +20,17 @@ import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
 function LimitStep() {
     const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
 
     const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         const limit = CurrencyUtils.convertToBackendAmount(Number(values?.limit) ?? 0);
-        Card.setIssueNewCardDataAndGoToStep({limit}, CONST.EXPENSIFY_CARD.STEP.CARD_NAME);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.CARD_NAME, {limit});
     }, []);
 
     const handleBackButtonPress = useCallback(() => {
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
     }, []);
 
     return (
@@ -64,7 +66,7 @@ function LimitStep() {
                     defaultValue={CurrencyUtils.convertToFrontendAmountAsString(issueNewCard?.data?.limit, false)}
                     isCurrencyPressable={false}
                     inputID={INPUT_IDS.LIMIT}
-                    autoFocus={!issueNewCard?.data?.limit}
+                    ref={inputCallbackRef}
                 />
             </FormProvider>
         </ScreenWrapper>

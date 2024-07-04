@@ -18,11 +18,11 @@ function CardTypeStep() {
     const styles = useThemeStyles();
 
     const submit = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.CARD_TYPE>) => {
-        Card.setIssueNewCardDataAndGoToStep({cardType: value}, CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, {cardType: value});
     };
 
     const handleBackButtonPress = () => {
-        Card.setIssueNewCardStep(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE);
+        Card.setIssueNewCardStepAndData(CONST.EXPENSIFY_CARD.STEP.ASSIGNEE);
     };
 
     return (
