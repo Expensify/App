@@ -24,7 +24,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '-1';
-
+    const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const creditCardSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctCreditCards(policy, exportConfig?.nonReimbursableAccount), [exportConfig?.nonReimbursableAccount, policy]);
@@ -77,9 +77,9 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
-            errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
+            errorRowStyles={[styles.ph5, styles.mv2]}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
         />
     );
 }

@@ -42,12 +42,12 @@ function prepareOnyxData(policyID: string, settingName: keyof Connections['intac
                         config: {
                             export: {
                                 [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                            },
+                            pendingFields: {
+                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            },
+                            errorFields: {
+                                [settingName]: null,
                             },
                         },
                     },
@@ -64,14 +64,11 @@ function prepareOnyxData(policyID: string, settingName: keyof Connections['intac
                 connections: {
                     intacct: {
                         config: {
-                            export: {
-                                [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                                },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -88,14 +85,11 @@ function prepareOnyxData(policyID: string, settingName: keyof Connections['intac
                 connections: {
                     intacct: {
                         config: {
-                            export: {
-                                [settingName]: settingValue,
-                                pendingFields: {
-                                    [settingName]: null,
-                                },
-                                errorFields: {
-                                    [settingName]: null,
-                                },
+                            pendingFields: {
+                                [settingName]: null,
+                            },
+                            errorFields: {
+                                [settingName]: null,
                             },
                         },
                     },

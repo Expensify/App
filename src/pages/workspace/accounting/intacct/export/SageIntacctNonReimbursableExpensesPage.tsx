@@ -60,12 +60,12 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         title: activeDefaultVendor ? getDefaultVendorName(activeDefaultVendor, intacctData?.vendors ?? []) : translate('workspace.sageIntacct.notConfigured'),
         hasError:
             config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                ? !!config?.export?.errorFields?.nonReimbursableVendor
-                : !!config?.export?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+                ? !!config?.errorFields?.nonReimbursableVendor
+                : !!config?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
         pendingAction:
             config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                ? config?.export?.pendingFields?.nonReimbursableVendor
-                : config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
+                ? config?.pendingFields?.nonReimbursableVendor
+                : config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
     };
 
     const defaultVendor = (
@@ -87,8 +87,8 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
         description: translate('workspace.sageIntacct.creditCardAccount'),
         action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.getRoute(policyID)),
         title: config?.export.nonReimbursableAccount ? config.export.nonReimbursableAccount : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.export?.errorFields?.nonReimbursableAccount,
-        pendingAction: config?.export?.pendingFields?.nonReimbursableAccount,
+        hasError: !!config?.errorFields?.nonReimbursableAccount,
+        pendingAction: config?.pendingFields?.nonReimbursableAccount,
     };
 
     const creditCardAccount = (
@@ -121,9 +121,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
-                errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
+                errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
                 errorRowStyles={[styles.ph5]}
-                onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
+                onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >
@@ -152,7 +152,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                                 updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR, vendor);
                             }}
                             wrapperStyle={[styles.ph5, styles.pv3]}
-                            pendingAction={config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor}
+                            pendingAction={config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor}
+                            errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)}
+                            onCloseError={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR)}
                         />
                         {!!config?.export.nonReimbursableCreditCardChargeDefaultVendor && defaultVendor}
                     </View>

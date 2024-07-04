@@ -975,58 +975,61 @@ type SageIntacctConnectionData = {
     vendors: SageIntacctDataElementWithValue[];
 };
 
+/** Sage Intacct export configs */
+type SageIntacctExportConfig = {
+    /** Export date type */
+    exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+
+    /** The e-mail of the exporter */
+    exporter: string;
+
+    /** Defines how non-reimbursable expenses are exported */
+    nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
+
+    /** Account that receives the non-reimbursable expenses */
+    nonReimbursableAccount: string;
+
+    /** Default vendor used for credit card transactions of non-reimbursable bill */
+    nonReimbursableCreditCardChargeDefaultVendor: string | null;
+
+    /** Default vendor of non-reimbursable bill */
+    nonReimbursableVendor: string | null;
+
+    /** Defines how reimbursable expenses are exported */
+    reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
+
+    /** Default vendor of reimbursable bill */
+    reimbursableExpenseReportDefaultVendor: string | null;
+};
+
 /**
  * Connection config for Sage Intacct
  */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Sage Intacct credentials */
-    credentials: {
-        /** Sage Intacct companyID */
-        companyID: string;
+type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Sage Intacct credentials */
+        credentials: {
+            /** Sage Intacct companyID */
+            companyID: string;
 
-        /** Sage Intacct password */
-        password: string;
+            /** Sage Intacct password */
+            password: string;
 
-        /** Sage Intacct userID */
-        userID: string;
-    };
+            /** Sage Intacct userID */
+            userID: string;
+        };
 
-    /** Sage Intacct export configs */
-    export: OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** Export date type */
-        exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
+        /** Sage Intacct export configs */
+        export: SageIntacctExportConfig;
 
-        /** The e-mail of the exporter */
-        exporter: string;
+        /** Collection of Sage Intacct config errors */
+        errors?: OnyxCommon.Errors;
 
-        /** Defines how non-reimbursable expenses are exported */
-        nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
-
-        /** Account that receives the non-reimbursable expenses */
-        nonReimbursableAccount: string;
-
-        /** Default vendor used for credit card transactions of non-reimbursable bill */
-        nonReimbursableCreditCardChargeDefaultVendor: string | null;
-
-        /** Default vendor of non-reimbursable bill */
-        nonReimbursableVendor: string | null;
-
-        /** Defines how reimbursable expenses are exported */
-        reimbursable: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
-
-        /** Default vendor of reimbursable bill */
-        reimbursableExpenseReportDefaultVendor: string | null;
-
-        /** Collection of mapping field errors, which will be triggered when update action fails  */
+        /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
-    }>;
-
-    /** Collection of Sage Intacct config errors */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+    },
+    keyof SageIntacctExportConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {

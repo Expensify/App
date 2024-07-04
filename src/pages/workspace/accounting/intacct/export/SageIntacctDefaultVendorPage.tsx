@@ -31,6 +31,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
 
     const policyID = route.params.policyID ?? '-1';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
 
     const isReimbursable = route.params.reimbursable === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
@@ -106,9 +107,9 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            errors={ErrorUtils.getLatestErrorField(exportConfig ?? {}, settingName)}
+            errors={ErrorUtils.getLatestErrorField(config, settingName)}
             errorRowStyles={[styles.ph5, styles.mv2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, settingName)}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, settingName)}
         />
     );
 }

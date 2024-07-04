@@ -61,8 +61,8 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
         title: reimbursableExpenseReportDefaultVendor
             ? getDefaultVendorName(reimbursableExpenseReportDefaultVendor, intacctData?.vendors ?? [])
             : translate('workspace.sageIntacct.notConfigured'),
-        hasError: !!config?.export?.errorFields?.reimbursableExpenseReportDefaultVendor,
-        pendingAction: config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor,
+        hasError: !!config?.errorFields?.reimbursableExpenseReportDefaultVendor,
+        pendingAction: config?.pendingFields?.reimbursableExpenseReportDefaultVendor,
     };
 
     const defaultVendor = (
@@ -95,9 +95,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
-                errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
+                errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
                 errorRowStyles={[styles.ph5]}
-                onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
+                onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
                 style={[styles.flexGrow1, styles.flexShrink1]}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink1]}
             >
@@ -123,9 +123,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                             updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
                         }}
                         wrapperStyle={[styles.ph5, styles.pv3]}
-                        pendingAction={config?.export?.pendingFields?.reimbursableExpenseReportDefaultVendor}
-                        errors={ErrorUtils.getLatestErrorField(config?.export ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
-                        onCloseError={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
+                        pendingAction={config?.pendingFields?.reimbursableExpenseReportDefaultVendor}
+                        errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
+                        onCloseError={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
                     />
                     {!!reimbursableExpenseReportDefaultVendor && defaultVendor}
                 </View>

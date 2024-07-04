@@ -26,6 +26,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyOwner = policy?.owner ?? '';
+    const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfiguration} = policy?.connections?.intacct?.config ?? {};
     const exporters = getAdminEmployees(policy);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -97,9 +98,9 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
             title="workspace.sageIntacct.preferredExporter"
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            errors={ErrorUtils.getLatestErrorField(exportConfiguration ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
             errorRowStyles={[styles.ph5, styles.mv2]}
-            onClose={() => Policy.clearSageIntacctExportErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORTER)}
         />
     );
 }
