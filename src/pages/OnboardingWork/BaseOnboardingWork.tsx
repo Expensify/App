@@ -23,11 +23,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { OnboardingModalNavigatorParamList } from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -49,9 +52,9 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, o
                 Policy.updateGeneralSettings(onboardingPolicyID, work);
             }
 
-            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
         },
-        [onboardingPurposeSelected, onboardingPolicyID],
+        [onboardingPurposeSelected, onboardingPolicyID, route.params?.backTo],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {

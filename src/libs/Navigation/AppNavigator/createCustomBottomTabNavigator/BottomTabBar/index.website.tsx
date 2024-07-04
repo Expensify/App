@@ -52,8 +52,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && !isCentralPaneName(currentRoute.name)) || Session.isAnonymousUser()) {
             return;
         }
-
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
+        const activeRoute =  Navigation.getActiveRouteWithoutParams();
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(activeRoute))});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 

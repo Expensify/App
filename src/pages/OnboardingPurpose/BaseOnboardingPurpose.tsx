@@ -38,7 +38,7 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
@@ -76,12 +76,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         }
 
         if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-            Navigation.navigate(ROUTES.ONBOARDING_WORK);
+            Navigation.navigate(ROUTES.ONBOARDING_WORK.getRoute(route.params?.backTo));
             return;
         }
-
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
-    }, [selectedPurpose]);
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+    }, [selectedPurpose, route]);
 
     const [errorMessage, setErrorMessage] = useState<string>('');
 

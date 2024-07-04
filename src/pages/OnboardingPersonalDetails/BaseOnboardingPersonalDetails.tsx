@@ -29,6 +29,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type { OnboardingModalNavigatorParamList } from '@libs/Navigation/types';
+import type SCREENS from '@src/SCREENS';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
 function BaseOnboardingPersonalDetails({
@@ -37,7 +40,8 @@ function BaseOnboardingPersonalDetails({
     onboardingPurposeSelected,
     onboardingAdminsChatReportID,
     onboardingPolicyID,
-}: BaseOnboardingPersonalDetailsProps) {
+    route
+}: BaseOnboardingPersonalDetailsProps & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -77,7 +81,7 @@ function BaseOnboardingPersonalDetails({
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
-            if (!isSmallScreenWidth) {
+            if (!isSmallScreenWidth && !route.params?.backTo) {
                 if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
                     Report.navigateToSystemChat();
                 } else {
@@ -91,7 +95,7 @@ function BaseOnboardingPersonalDetails({
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, accountID],
+        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, isSmallScreenWidth, route.params?.backTo, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
