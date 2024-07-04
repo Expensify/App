@@ -305,4 +305,79 @@ describe('actions/ReportFields', () => {
             expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
         });
     });
+
+    describe('updateReportFieldListValueEnabled', () => {
+        it('updates the enabled flag of a report field list value', async () => {
+            mockFetch?.pause?.();
+
+            const policyID = Policy.generatePolicyID();
+            const reportFieldName = 'Test Field';
+            const valueIndexToUpdate = 1;
+            const oldEnabledFlag = false;
+            const newEnabledFlag = true;
+            const oldInitialValue = 'Value 2';
+            const newInitialValue = '';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const reportField: PolicyReportField = {
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.LIST,
+                defaultValue: oldInitialValue,
+                values: ['Value 1', oldInitialValue, 'Value 3'],
+                disabledOptions: [false, oldEnabledFlag, true],
+                fieldID: reportFieldID,
+                orderWeight: 1,
+                deletable: false,
+                keys: [],
+                externalIDs: [],
+                isTax: false,
+                value: CONST.REPORT_FIELD_TYPES.LIST,
+            };
+            const fakePolicy = createRandomPolicy(Number(policyID));
+
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...fakePolicy, fieldList: {[reportFieldKey]: reportField}});
+            await waitForBatchedUpdates();
+
+            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valueIndexToUpdate, newEnabledFlag);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // check if the new report field was added to the policy
+            expect(policy?.fieldList).toStrictEqual({
+                [reportFieldKey]: {
+                    ...reportField,
+                    defaultValue: newInitialValue,
+                    disabledOptions: [false, newEnabledFlag, true],
+                },
+            });
+
+            // Check for success data
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.POLICY,
+                    waitForCollectionCallback: true,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the policy pending action was cleared
+            // @ts-expect-error pendingFields is not null
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+        });
+    });
 });
