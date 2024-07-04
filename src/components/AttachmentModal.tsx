@@ -197,19 +197,20 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const isDimensionAvailable = file && 'width' in file && 'height' in file;
 
     const [isHighResolutionImage, setIsHighResolutionImage] = useState(false);
 
     useEffect(() => {
-        if (isAttachmentCarouselScrolling || !file) {
+        // Combine conditions for early return to streamline logic
+        if (isAttachmentCarouselScrolling || !file || !FileUtils.isImage(file.name ?? '')) {
             return;
         }
-        const isDimensionAvailable = file && 'width' in file && 'height' in file;
-        const isHighResolutionImage = file && isDimensionAvailable && ((file.height ?? 0) > 5000 || (file.width ?? 0) > 5000);
-        setIsHighResolutionImage(isHighResolutionImage ?? false);
-    }, [file, isAttachmentCarouselScrolling]);
 
+        // Simplify high resolution check by directly comparing dimensions with threshold
+        const isHighRes = file && file.width && file.height && file.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && file.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
+
+        setIsHighResolutionImage(!!isHighRes);
+    }, [file, isAttachmentCarouselScrolling]);
 
     useEffect(() => {
         setFile(originalFileName ? {name: originalFileName} : undefined);
@@ -558,7 +559,7 @@ function AttachmentModal({
                         <SafeAreaConsumer>
                             {({safeAreaPaddingBottomStyle}) => (
                                 <>
-                                    {(isHighResolutionImage && isUploaded) && (
+                                    {isHighResolutionImage && isUploaded && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
                                             <Icon
                                                 src={Expensicons.Info}

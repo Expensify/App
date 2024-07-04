@@ -12,7 +12,7 @@ type Attachment = {
 
     /** URL to full-sized attachment, SVG function, or numeric static image on native platforms */
     source: AttachmentSource;
-    
+
     previewSource?: AttachmentSource;
 
     /** File object can be an instance of File or Object */

@@ -78,9 +78,10 @@ function AttachmentCarouselPager(
     useAnimatedReaction(
         () => isPagerScrolling.value,
         (isScrolling, previousIsScrolling) => {
-            if (isScrolling !== previousIsScrolling) {
-                runOnJS(onIsPagerScrollingChange ?? (() => {}))(isScrolling);
+            if (isScrolling === previousIsScrolling) {
+                return;
             }
+            runOnJS(onIsPagerScrollingChange ?? (() => {}))(isScrolling);
         },
         [onIsPagerScrollingChange],
     );

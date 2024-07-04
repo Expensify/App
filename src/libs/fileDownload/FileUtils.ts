@@ -275,4 +275,5 @@ export {
     base64ToFile,
     isLocalFile,
     validateImageForCorruption,
+    isImage,
 };

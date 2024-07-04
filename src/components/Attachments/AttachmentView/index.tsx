@@ -239,7 +239,6 @@ function AttachmentView({
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     const isFileNameImage = file?.name && Str.isImage(file.name);
     const isFileImage = isSourceImage || isFileNameImage;
