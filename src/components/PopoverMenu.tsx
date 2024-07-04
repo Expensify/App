@@ -109,7 +109,7 @@ function PopoverMenu({
     const selectedItemIndex = useRef<number | null>(null);
 
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
-    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<number[]>([]);
+    const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
 
@@ -156,7 +156,7 @@ function PopoverMenu({
                 onPress={() => {
                     setCurrentMenuItems(previousMenuItems);
                     setFocusedIndex(-1);
-                    enteredSubMenuIndexes.splice(-1);
+                    setEnteredSubMenuIndexes(enteredSubMenuIndexes.slice(0, -1))
                 }}
             />
         );
@@ -186,7 +186,7 @@ function PopoverMenu({
         if (menuItems.length === 0) {
             return;
         }
-        setEnteredSubMenuIndexes([]);
+        setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
         setCurrentMenuItems(menuItems);
     }, [menuItems]);
 
@@ -197,7 +197,7 @@ function PopoverMenu({
             anchorAlignment={anchorAlignment}
             onClose={() => {
                 setCurrentMenuItems(menuItems);
-                setEnteredSubMenuIndexes([]);
+                setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
                 onClose();
             }}
             isVisible={isVisible}
