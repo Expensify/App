@@ -56,4 +56,5 @@ export type {WorkForm} from './WorkForm';
 export type {SubscriptionSizeForm} from './SubscriptionSizeForm';
 export type {WorkspaceReportFieldsForm} from './WorkspaceReportFieldsForm';
 export type {SageIntactCredentialsForm} from './SageIntactCredentialsForm';
+export type {NetSuiteCustomFieldForm} from './NetSuiteCustomFieldForm';
 export type {default as Form} from './Form';

@@ -79,6 +79,7 @@ function NetSuiteImportCustomFieldView({
                                 description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
                                 shouldShowRightIcon
                                 title={customRecord[fieldName as keyof CustomRecord]}
+                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, internalID, fieldName))}
                             />
                         ))}
                     </View>
