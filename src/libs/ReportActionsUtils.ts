@@ -374,7 +374,7 @@ function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextRepo
 }
 
 /**
- * Returns filtered list for one transaction view
+ * Returns filtered list for one transaction view as we don't want to display IOU action type in the one-transaction view
  * Separated it from getCombinedReportActions, so it can be reused
  */
 function getFilteredForOneTransactionView(reportActions: ReportAction[]): ReportAction[] {
