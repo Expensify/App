@@ -1019,6 +1019,7 @@ type AuthScreensParamList = CentralPaneScreensParamList &
         };
         [SCREENS.REPORT_AVATAR]: {
             reportID: string;
+            isNewGroupChat: boolean;
         };
         [SCREENS.NOT_FOUND]: undefined;
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: NavigatorScreenParams<LeftModalNavigatorParamList>;
