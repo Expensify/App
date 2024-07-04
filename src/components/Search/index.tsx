@@ -90,7 +90,6 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
 
     if (isLoadingItems) {
         return (
@@ -100,18 +99,6 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
                     hash={hash}
                 />
                 <TableListItemSkeleton shouldAnimate />
-            </>
-        );
-    }
-
-    if (shouldShowEmptyState) {
-        return (
-            <>
-                <SearchPageHeader
-                    query={query}
-                    hash={hash}
-                />
-                <EmptySearchView />
             </>
         );
     }
@@ -151,6 +138,19 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const data = SearchUtils.getSections(searchResults?.data ?? {}, searchResults?.search ?? {}, type);
     const sortedData = SearchUtils.getSortedSections(type, data, sortBy, sortOrder);
+
+    const shouldShowEmptyState = !isLoadingItems && !sortedData.length;
+    if (shouldShowEmptyState) {
+        return (
+            <>
+                <SearchPageHeader
+                    query={query}
+                    hash={hash}
+                />
+                <EmptySearchView />
+            </>
+        );
+    }
 
     const onSortPress = (column: SearchColumnType, order: SortOrder) => {
         navigation.setParams({
