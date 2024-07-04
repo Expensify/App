@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
-import useLastAccessedReportID from '@hooks/useLastAccessedReportID';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -83,7 +82,7 @@ function shouldOpenOnAdminRoom() {
     return url ? new URL(url).searchParams.get('openOnAdminRoom') === 'true' : false;
 }
 
-function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAccessedReportID?: string): Partial<ValueOf<CentralPaneScreensParamList>> {
+function getCentralPaneScreenInitialParams(screenName: CentralPaneName): Partial<ValueOf<CentralPaneScreensParamList>> {
     if (screenName === SCREENS.SEARCH.CENTRAL_PANE) {
         return {sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE, sortOrder: CONST.SEARCH.SORT_ORDER.DESC};
     }
@@ -91,7 +90,6 @@ function getCentralPaneScreenInitialParams(screenName: CentralPaneName, lastAcce
     if (screenName === SCREENS.REPORT) {
         return {
             openOnAdminRoom: shouldOpenOnAdminRoom() ? true : undefined,
-            reportID: lastAccessedReportID,
         };
     }
 
@@ -198,7 +196,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const lastAccessedReportID = useLastAccessedReportID(shouldOpenOnAdminRoom());
     const screenOptions = getRootNavigatorScreenOptions(isSmallScreenWidth, styles, StyleUtils);
     const onboardingModalScreenOptions = useMemo(() => screenOptions.onboardingModalNavigator(shouldUseNarrowLayout), [screenOptions, shouldUseNarrowLayout]);
     const onboardingScreenOptions = useMemo(
@@ -474,7 +471,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             <RootStack.Screen
                                 key={centralPaneName}
                                 name={centralPaneName}
-                                initialParams={getCentralPaneScreenInitialParams(centralPaneName, lastAccessedReportID)}
+                                initialParams={getCentralPaneScreenInitialParams(centralPaneName)}
                                 getComponent={componentGetter}
                                 options={CentralPaneScreenOptions}
                             />

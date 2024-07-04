@@ -1,11 +1,24 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type ConnectPolicyToSageIntacctParams from '@libs/API/parameters/ConnectPolicyToSageIntacctParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Connections} from '@src/types/onyx/Policy';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+
+type SageIntacctCredentials = {companyID: string; userID: string; password: string};
+
+function connectToSageIntacct(policyID: string, credentials: SageIntacctCredentials) {
+    const parameters: ConnectPolicyToSageIntacctParams = {
+        policyID,
+        intacctCompanyID: credentials.companyID,
+        intacctUserID: credentials.userID,
+        intacctPassword: credentials.password,
+    };
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT, parameters, {});
+}
 
 function prepareOnyxData(policyID: string, settingName: keyof Connections['intacct']['config'], settingValue: string | boolean | null) {
     const optimisticData: OnyxUpdate[] = [
@@ -220,4 +233,4 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string, vendorID:
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
-export {updateSageIntacctAutoSync, updateSageIntacctImportEmployees, updateSageIntacctApprovalMode, updateSageIntacctSyncReimbursedReports, updateSageIntacctSyncReimbursementAccountID};
+export {connectToSageIntacct, updateSageIntacctAutoSync, updateSageIntacctImportEmployees, updateSageIntacctApprovalMode, updateSageIntacctSyncReimbursedReports, updateSageIntacctSyncReimbursementAccountID};
