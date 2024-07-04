@@ -5,18 +5,19 @@ import {generateFieldID} from '@libs/WorkspaceReportFieldsUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
-import * as ReportFields from '@src/libs/actions/Policy/ReportFields';
-import type {CreateReportFieldArguments} from '@src/libs/actions/Policy/ReportFields';
+import * as ReportField from '@src/libs/actions/Policy/ReportField';
+import type {CreateReportFieldArguments} from '@src/libs/actions/Policy/ReportField';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
 import type {PolicyReportField, Policy as PolicyType} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
-describe('actions/ReportFields', () => {
+describe('actions/ReportField', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -59,7 +60,7 @@ describe('actions/ReportFields', () => {
                 initialValue: 'Default Value',
             };
 
-            ReportFields.createReportField(policyID, createReportFieldArguments);
+            ReportField.createReportField(policyID, createReportFieldArguments);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -126,7 +127,7 @@ describe('actions/ReportFields', () => {
                 initialValue: defaultDate,
             };
 
-            ReportFields.createReportField(policyID, createReportFieldArguments);
+            ReportField.createReportField(policyID, createReportFieldArguments);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -196,7 +197,7 @@ describe('actions/ReportFields', () => {
                 initialValue: '',
             };
 
-            ReportFields.createReportField(policyID, createReportFieldArguments);
+            ReportField.createReportField(policyID, createReportFieldArguments);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
@@ -228,6 +229,75 @@ describe('actions/ReportFields', () => {
                     },
                 });
             });
+
+            // Check if the policy pending action was cleared
+            // @ts-expect-error pendingFields is not null
+            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+        });
+    });
+
+    describe('deleteReportField', () => {
+        it('Deleted a report field from a workspace', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const reportFieldName = 'Test Field';
+            const reportFieldID = generateFieldID(reportFieldName);
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+            const fakeReportField = {
+                name: reportFieldName,
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: 'Default Value',
+                values: [],
+                disabledOptions: [],
+                fieldID: reportFieldID,
+                orderWeight: 1,
+                deletable: false,
+                keys: [],
+                value: 'default',
+                externalIDs: [],
+                isTax: false,
+            };
+            fakePolicy.fieldList = {
+                [reportFieldKey]: fakeReportField,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // check if the report field exists in the policy
+            expect(policy?.fieldList).toStrictEqual({
+                [reportFieldKey]: fakeReportField,
+            });
+
+            ReportField.deletePolicyReportFields(fakePolicy.id, [reportFieldKey]);
+            await waitForBatchedUpdates();
+
+            // Check for success data
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            policy = await new Promise((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.POLICY,
+                    waitForCollectionCallback: true,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connectionID);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Check if the policy report field was removed
+            // @ts-expect-error fieldList is not null
+            expect(policy?.fieldList?.[reportFieldKey]).toBeFalsy();
 
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
