@@ -2356,7 +2356,7 @@ export default {
             sageIntacctLastSync: (formattedDate: string) => `Sage Intacct - Última sincronización ${formattedDate}`,
             employeeDefault: 'Sage Intacct empleado por defecto',
             employeeDefaultDescription: 'El departamento por defecto del empleado se aplicará a sus gastos en Sage Intacct si existe.',
-            displayedAsTagDescription: 'El departamento será seleccionable para cada gasto individual en el informe de un empleado.',
+            displayedAsTagDescription: 'Se podrá seleccionar el departamento para cada gasto individual en el informe de un empleado.',
             displayedAsReportFieldDescription: 'La selección de departamento se aplicará a todos los gastos que figuren en el informe de un empleado.',
             toggleImportTitleFirstPart: 'Elija cómo gestionar Sage Intacct ',
             toggleImportTitleSecondPart: ' en Expensify.',

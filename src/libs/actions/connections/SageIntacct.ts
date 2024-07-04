@@ -7,7 +7,14 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SageIntacctConnectiosConfig, SageIntacctDimension, SageIntacctMappingType, SageIntacctMappingValue, SageIntacctOfflineStateKeys} from '@src/types/onyx/Policy';
+import type {
+    SageIntacctConnectiosConfig,
+    SageIntacctDimension,
+    SageIntacctMappingName,
+    SageIntacctMappingType,
+    SageIntacctMappingValue,
+    SageIntacctOfflineStateKeys,
+} from '@src/types/onyx/Policy';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -116,7 +123,7 @@ function getCommandForMapping(mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CON
     }
 }
 
-function updateSageIntacctMappingValue(policyID: string, mappingName: ValueOf<typeof CONST.SAGE_INTACCT_CONFIG.MAPPINGS>, mappingValue: SageIntacctMappingValue) {
+function updateSageIntacctMappingValue(policyID: string, mappingName: SageIntacctMappingName, mappingValue: SageIntacctMappingValue) {
     const command = getCommandForMapping(mappingName);
     if (!command) {
         return;
@@ -300,7 +307,7 @@ function editSageIntacctUserDimensions(
 function removeSageIntacctUserDimensions(policyID: string, name: string, existingUserDimensions: SageIntacctDimension[]) {
     const newDimensions = existingUserDimensions.filter((userDimension) => name !== userDimension.name);
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION, {policyID, name, mapping: undefined}, prepareOnyxDataForUserDimensionUpdate(policyID, name, newDimensions));
 }
 
 function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectiosConfig) {

@@ -972,7 +972,6 @@ type SageIntacctConnectionData = {
     creditCards: SageIntacctDataElement[];
 
     /** Collection of entities */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     entities: SageIntacctDataElementWithValue[];
 
     /** Collection of bank accounts */

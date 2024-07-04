@@ -66,6 +66,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.flex1}
+            shouldUseScrollView={false}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
@@ -119,7 +120,7 @@ function SageIntacctEditUserDimensionPage({route}: SageIntacctEditUserDimensionP
                     isVisible={isDeleteModalOpen}
                     onConfirm={() => {
                         setIsDeleteModalOpen(false);
-                        removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions);
+                        removeSageIntacctUserDimensions(policyID, editedUserDimensionName, userDimensions ?? []);
                         Navigation.goBack();
                     }}
                     onCancel={() => setIsDeleteModalOpen(false)}
