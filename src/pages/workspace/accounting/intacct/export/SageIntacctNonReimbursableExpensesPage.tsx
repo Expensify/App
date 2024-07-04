@@ -84,11 +84,11 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             </OfflineWithFeedback>
         );
     }, [
-        config?.export?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
-        config?.export?.errorFields?.nonReimbursableVendor,
+        config?.errorFields?.nonReimbursableCreditCardChargeDefaultVendor,
+        config?.errorFields?.nonReimbursableVendor,
         config?.export.nonReimbursable,
-        config?.export?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
-        config?.export?.pendingFields?.nonReimbursableVendor,
+        config?.pendingFields?.nonReimbursableCreditCardChargeDefaultVendor,
+        config?.pendingFields?.nonReimbursableVendor,
         intacctData?.vendors,
         policy,
         policyID,
@@ -118,7 +118,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
                 />
             </OfflineWithFeedback>
         );
-    }, [config?.export?.errorFields?.nonReimbursableAccount, config?.export.nonReimbursableAccount, config?.export?.pendingFields?.nonReimbursableAccount, policyID, translate]);
+    }, [config?.errorFields?.nonReimbursableAccount, config?.export.nonReimbursableAccount, config?.pendingFields?.nonReimbursableAccount, policyID, translate]);
 
     return (
         <ConnectionLayout
