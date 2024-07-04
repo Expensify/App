@@ -51,12 +51,14 @@ type ValidInputs =
     | typeof AddPlaidBankAccount
     | typeof EmojiPickerButtonDropdown;
 
-type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country';
+type ValueTypeKey = 'string' | 'boolean' | 'date' | 'country' | 'reportFields' | 'disabledListValues';
 type ValueTypeMap = {
     string: string;
     boolean: boolean;
     date: Date;
     country: Country | '';
+    reportFields: string[];
+    disabledListValues: boolean[];
 };
 type FormValue = ValueOf<ValueTypeMap>;
 

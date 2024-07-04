@@ -784,6 +784,30 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/reportFields',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
     },
+    WORKSPACE_CREATE_REPORT_FIELD: {
+        route: 'settings/workspaces/:policyID/reportFields/new',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
+    },
+    WORKSPACE_REPORT_FIELD_LIST_VALUES: {
+        route: 'settings/workspaces/:policyID/reportFields/new/listValues',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new/listValues` as const,
+    },
+    WORKSPACE_REPORT_FIELD_ADD_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/addValue',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new/addValue` as const,
+    },
+    WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}` as const,
+    },
+    WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD: {
+        route: 'settings/workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
+    },
     // TODO: uncomment after development is done
     // WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
     // route: 'settings/workspaces/:policyID/expensify-card/issues-new',
@@ -794,10 +818,6 @@ const ROUTES = {
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD: {
-        route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'settings/workspaces/:policyID/distance-rates/new',
@@ -938,8 +958,12 @@ const ROUTES = {
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/net-suite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/net-suite/subsidiary-selector` as const,
+        route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
