@@ -14,11 +14,11 @@ const FS = {
      */
     init: () => {
         Environment.getEnvironment().then((envName: string) => {
-            // We don't want to 
-            if(envName === CONST.ENVIRONMENT.STAGING) {
-                return;
+            // We only want to start fullstory if the app is running in
+            // production
+            if(envName === CONST.ENVIRONMENT.PRODUCTION) {
+                FullStory.restart();
             }
-            FullStory.restart();
         })
     },
 
