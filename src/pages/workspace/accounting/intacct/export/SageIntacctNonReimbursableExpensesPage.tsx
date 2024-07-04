@@ -121,6 +121,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyProps) {
             shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
+                pendingAction={config?.pendingFields?.nonReimbursable}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}
                 errorRowStyles={[styles.ph5]}
                 onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE)}

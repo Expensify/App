@@ -77,6 +77,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={config?.pendingFields?.nonReimbursableAccount}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.mv2]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_ACCOUNT)}

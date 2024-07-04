@@ -95,6 +95,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
+                pendingAction={config?.pendingFields?.reimbursable}
                 errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
                 errorRowStyles={[styles.ph5]}
                 onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE)}
@@ -122,9 +123,9 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
                             const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id ?? null : null;
                             updateSageIntacctDefaultVendor(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR, vendor);
                         }}
-                        wrapperStyle={[styles.ph5, styles.pv3]}
                         pendingAction={config?.pendingFields?.reimbursableExpenseReportDefaultVendor}
                         errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
+                        wrapperStyle={[styles.ph5, styles.pv3]}
                         onCloseError={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR)}
                     />
                     {!!reimbursableExpenseReportDefaultVendor && defaultVendor}

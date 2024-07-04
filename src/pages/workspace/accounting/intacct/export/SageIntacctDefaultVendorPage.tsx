@@ -107,6 +107,7 @@ function SageIntacctDefaultVendorPage({route}: SageIntacctDefaultVendorPageProps
             listEmptyContent={listEmptyContent}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={config?.pendingFields?.[settingName]}
             errors={ErrorUtils.getLatestErrorField(config, settingName)}
             errorRowStyles={[styles.ph5, styles.mv2]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, settingName)}

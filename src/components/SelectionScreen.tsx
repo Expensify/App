@@ -69,6 +69,9 @@ type SelectionScreenProps = {
     /** Name of the current connection */
     connectionName: ConnectionName;
 
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction | null;
+
     /** The errors to display  */
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
 
@@ -95,6 +98,7 @@ function SelectionScreen({
     featureName,
     shouldBeBlocked,
     connectionName,
+    pendingAction,
     errors,
     errorRowStyles,
     onClose,
@@ -120,7 +124,9 @@ function SelectionScreen({
                     title={translate(title)}
                     onBackButtonPress={onBackButtonPress}
                 />
+                {headerContent}
                 <OfflineWithFeedback
+                    pendingAction={pendingAction}
                     errors={errors}
                     errorRowStyles={[errorRowStyles]}
                     onClose={onClose}
@@ -129,7 +135,6 @@ function SelectionScreen({
                 >
                     <SelectionList
                         onSelectRow={onSelectRow}
-                        headerContent={headerContent}
                         sections={sections}
                         ListItem={listItem}
                         showScrollIndicator

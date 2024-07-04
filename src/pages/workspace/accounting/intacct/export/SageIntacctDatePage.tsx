@@ -68,6 +68,7 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={config?.pendingFields?.exportDate}
             errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.mv2]}
             onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
