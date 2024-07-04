@@ -201,11 +201,10 @@ function AttachmentModal({
     const [isHighResolutionImage, setIsHighResolutionImage] = useState(false);
 
     useEffect(() => {
-        // Combine conditions for early return to streamline logic
-        if (isAttachmentCarouselScrolling || !file || !FileUtils.isImage(file.name ?? '')) {
+        const fileName = file?.name ?? '';
+        if (!file || (isAttachmentCarouselScrolling && !FileUtils.isImage(fileName))) {
             return;
         }
-
         // Simplify high resolution check by directly comparing dimensions with threshold
         const isHighRes = file && file.width && file.height && file.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && file.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
 
