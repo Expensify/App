@@ -18,12 +18,14 @@ import type {
     EnablePolicyWorkflowsParams,
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyExpensifyCardsPageParams,
     OpenPolicyMoreFeaturesPageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    RequestExpensifyCardLimitIncreaseParams,
     SetWorkspaceApprovalModeParams,
     SetWorkspaceAutoReportingFrequencyParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
@@ -185,7 +187,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
  */
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? '-1'];
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
 
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
@@ -1931,6 +1933,17 @@ function openPolicyTaxesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
 }
 
+function openPolicyExpensifyCardsPage(policyID: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: OpenPolicyExpensifyCardsPageParams = {
+        policyID,
+        authToken,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -1949,6 +1962,17 @@ function openDraftWorkspaceRequest(policyID: string) {
     const params: OpenDraftWorkspaceRequestParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_DRAFT_WORKSPACE_REQUEST, params);
+}
+
+function requestExpensifyCardLimitIncrease(settlementBankAccountID: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const params: RequestExpensifyCardLimitIncreaseParams = {
+        authToken,
+        settlementBankAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
 function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
@@ -3048,6 +3072,8 @@ export {
     buildPolicyData,
     enableExpensifyCard,
     createPolicyExpenseChats,
+    openPolicyExpensifyCardsPage,
+    requestExpensifyCardLimitIncrease,
     getPoliciesConnectedToSageIntacct,
 };
 
