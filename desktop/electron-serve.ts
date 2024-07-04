@@ -1,18 +1,27 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+
 /* eslint-disable rulesdir/no-negated-variables */
+
 /* eslint-disable no-param-reassign */
+
 /* eslint-disable @lwc/lwc/no-async-await */
 
 /**
  * This file is a modified version of the electron-serve package.
  * We keep the same interface, but instead of file protocol we use buffer protocol (with support of JS self profiling).
  */
-const {app, protocol, session} = require('electron');
-const path = require('path');
-const fs = require('fs');
+import type {BrowserWindow, Protocol} from 'electron';
+import {app, protocol, session} from 'electron';
+import fs from 'fs';
+import path from 'path';
+
+type RegisterBufferProtocol = Protocol['registerBufferProtocol'];
+type HandlerType = Parameters<RegisterBufferProtocol>[1];
+type Optional<T> = T | null | undefined;
 
 const FILE_NOT_FOUND = -6;
 
-const getPath = async (filePath) => {
+const getPath = async (filePath: string): Promise<Optional<string>> => {
     try {
         const result = await fs.promises.stat(filePath);
 
@@ -21,6 +30,7 @@ const getPath = async (filePath) => {
         }
 
         if (result.isDirectory()) {
+            // eslint-disable-next-line @typescript-eslint/return-await
             return getPath(path.join(filePath, 'index.html'));
         }
     } catch {
@@ -28,8 +38,17 @@ const getPath = async (filePath) => {
     }
 };
 
-export default function electronServe(options) {
-    options = {
+type ServeOptions = {
+    directory: string;
+    isCorsEnabled?: boolean;
+    scheme?: string;
+    hostname?: string;
+    file?: string;
+    partition?: string;
+};
+
+export default function electronServe(options: ServeOptions) {
+    const mandatoryOptions = {
         isCorsEnabled: true,
         scheme: 'app',
         hostname: '-',
@@ -43,9 +62,9 @@ export default function electronServe(options) {
 
     options.directory = path.resolve(app.getAppPath(), options.directory);
 
-    const handler = async (request, callback) => {
+    const handler: HandlerType = async (request, callback) => {
         const filePath = path.join(options.directory, decodeURIComponent(new URL(request.url).pathname));
-        const resolvedPath = (await getPath(filePath)) || path.join(options.directory, `${options.file}.html`);
+        const resolvedPath = (await getPath(filePath)) ?? path.join(options.directory, `${options.file}.html`);
 
         try {
             const data = await fs.promises.readFile(resolvedPath);
@@ -53,6 +72,7 @@ export default function electronServe(options) {
                 mimeType: 'text/html',
                 data: Buffer.from(data),
                 headers: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'Document-Policy': 'js-profiling',
                 },
             });
@@ -63,7 +83,7 @@ export default function electronServe(options) {
 
     protocol.registerSchemesAsPrivileged([
         {
-            scheme: options.scheme,
+            scheme: mandatoryOptions.scheme,
             privileges: {
                 standard: true,
                 secure: true,
@@ -75,12 +95,13 @@ export default function electronServe(options) {
     ]);
 
     app.on('ready', () => {
-        const partitionSession = options.partition ? session.fromPartition(options.partition) : session.defaultSession;
+        const partitionSession = mandatoryOptions.partition ? session.fromPartition(mandatoryOptions.partition) : session.defaultSession;
 
-        partitionSession.protocol.registerBufferProtocol(options.scheme, handler);
+        partitionSession.protocol.registerBufferProtocol(mandatoryOptions.scheme, handler);
     });
 
-    return async (window_, searchParameters) => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    return async (window_: BrowserWindow, searchParameters?: URLSearchParams) => {
         const queryString = searchParameters ? `?${new URLSearchParams(searchParameters).toString()}` : '';
         await window_.loadURL(`${options.scheme}://${options.hostname}${queryString}`);
     };
