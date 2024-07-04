@@ -63,8 +63,9 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
-    /** Block the screen when the connection is not empty */
-    reverseConnectionEmptyCheck?: boolean;
+    
+    /** Whether the screen should load for empty connection */
+    isForEmptyConnection?: boolean;
 
     /** Handler for back button press */
     onBackButtonPress?: () => void;
@@ -100,7 +101,7 @@ function ConnectionLayout({
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
     shouldBeBlocked = false,
-    reverseConnectionEmptyCheck = false,
+    isForEmptyConnection = true,
     onBackButtonPress = () => Navigation.goBack(),
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
@@ -121,14 +122,14 @@ function ConnectionLayout({
         [title, titleStyle, children, titleAlreadyTranslated],
     );
 
-    const connectionEmptyCheck = reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty;
+    const shouldBlockByConnection = isForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || connectionEmptyCheck}
+            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
 
         >
             <ScreenWrapper
