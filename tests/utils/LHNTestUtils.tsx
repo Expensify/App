@@ -33,8 +33,8 @@ type MockedSidebarLinksProps = {
     currentReportID?: string;
 };
 
-jest.mock('@react-navigation/native', (): typeof Navigation => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', (): typeof Navigation => {
             addListener: jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    } as typeof Navigation;
+    };
 });
 
 const fakePersonalDetails: PersonalDetailsList = {
