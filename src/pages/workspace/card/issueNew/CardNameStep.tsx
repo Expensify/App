@@ -66,6 +66,7 @@ function CardNameStep() {
                 onSubmit={submit}
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
+                enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={TextInput}

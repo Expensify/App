@@ -57,6 +57,7 @@ function LimitStep() {
                 style={[styles.flex1]}
                 submitButtonStyles={[styles.mh5, styles.mt0]}
                 submitFlexEnabled={false}
+                enabledWhenOffline
             >
                 <InputWrapper
                     InputComponent={AmountForm}
