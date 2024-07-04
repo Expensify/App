@@ -45,6 +45,8 @@
 	<dict>
 		<key>OrgId</key>
 		<string>o-1WN56P-na1</string>
+		<key>RecordOnStart</key>
+		<false/>
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
