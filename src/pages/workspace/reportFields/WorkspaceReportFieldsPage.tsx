@@ -53,7 +53,8 @@ function WorkspaceReportFieldsPage({
         if (!policy?.fieldList) {
             return {};
         }
-        return Object.fromEntries(Object.entries(policy.fieldList).filter(([key]) => key !== 'text_title'));
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
     const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
 
