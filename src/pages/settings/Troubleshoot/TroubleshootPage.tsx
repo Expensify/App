@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,7 +13,9 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
+import TestToolRow from '@components/TestToolRow';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
@@ -21,6 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -49,6 +52,18 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
     const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth} = useWindowDimensions();
     const illustrationStyle = getLightbulbIllustrationStyle();
+    const [shouldMaskOnyxState, setShouldMaskOnyxState] = useState(true);
+
+    const exportOnyxState = useCallback(() => {
+        ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
+            let dataToShare = value;
+            if (shouldMaskOnyxState) {
+                dataToShare = ExportOnyxState.maskFragileData(value);
+            }
+
+            ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
+        });
+    }, [shouldMaskOnyxState]);
 
     const menuItems = useMemo(() => {
         const debugConsoleItem: BaseMenuItem = {
@@ -62,6 +77,11 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 translationKey: 'initialSettingsPage.troubleshoot.clearCacheAndRestart',
                 icon: Expensicons.RotateLeft,
                 action: () => setIsConfirmationModalVisible(true),
+            },
+            {
+                translationKey: 'initialSettingsPage.troubleshoot.exportOnyxState',
+                icon: Expensicons.Download,
+                action: exportOnyxState,
             },
         ];
 
@@ -78,7 +98,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
             }))
             .reverse();
-    }, [shouldStoreLogs, translate, waitForNavigate, styles.sectionMenuItemTopDescription]);
+    }, [waitForNavigate, exportOnyxState, shouldStoreLogs, translate, styles.sectionMenuItemTopDescription]);
 
     return (
         <ScreenWrapper
@@ -118,6 +138,13 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
                                 <ClientSideLoggingToolMenu />
+                                <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
+                                    <Switch
+                                        accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                        isOn={shouldMaskOnyxState}
+                                        onToggle={setShouldMaskOnyxState}
+                                    />
+                                </TestToolRow>
                             </View>
                             <MenuItemList
                                 menuItems={menuItems}

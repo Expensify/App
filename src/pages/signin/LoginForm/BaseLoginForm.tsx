@@ -267,7 +267,6 @@ function BaseLoginForm({account, credentials, closeAccount, blurOnSubmit = false
                     onSubmitEditing={validateAndSubmitForm}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    autoFocus
                     inputMode={CONST.INPUT_MODE.EMAIL}
                     errorText={formError}
                     hasError={shouldShowServerError}
