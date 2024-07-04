@@ -173,9 +173,6 @@ function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolea
                 connections: {
                     intacct: {
                         config: {
-                            tax: {
-                                syncTax: enabled,
-                            },
                             pendingFields: {
                                 tax: null,
                             },
@@ -296,7 +293,7 @@ function editSageIntacctUserDimensions(
 ) {
     const newDimensions = existingUserDimensions.map((userDimension) => {
         if (userDimension.name === previousName) {
-            return {name, mapping, pendingAction: null, errors: undefined};
+            return {name, mapping};
         }
         return userDimension;
     });
