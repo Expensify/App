@@ -4046,12 +4046,6 @@ const styles = (theme: ThemeColors) =>
             width: 1,
         },
 
-        userDimensionsSubtitle: {
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.lineHeightXLarge,
-            color: theme.textSupporting,
-        },
-
         taskCheckboxWrapper: {
             height: variables.fontSizeNormalHeight,
             ...flex.justifyContentCenter,

@@ -39,6 +39,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
+            onBackButtonPressRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)}
         >
             {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>
@@ -50,11 +51,11 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
 
                     <View style={[styles.w100, styles.pt5]}>
                         <View style={[styles.justifyContentCenter, styles.ph5]}>
-                            <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{translate('workspace.intacct.addAUserDefinedDimension')}</Text>
+                            <Text style={[styles.notFoundTextHeader]}>{translate('workspace.intacct.addAUserDefinedDimension')}</Text>
                         </View>
 
                         <View style={[styles.ph5]}>
-                            <Text style={[styles.userDimensionsSubtitle, styles.textAlignCenter]}>
+                            <Text style={[styles.textAlignCenter]}>
                                 <TextLink
                                     style={styles.link}
                                     onPress={() => {
@@ -71,7 +72,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             ) : (
                 <>
                     <View style={[styles.ph5]}>
-                        <Text style={[styles.userDimensionsSubtitle, styles.textAlignLeft]}>
+                        <Text style={[styles.textAlignLeft]}>
                             <TextLink
                                 style={styles.link}
                                 onPress={() => {
