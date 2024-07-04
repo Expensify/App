@@ -8,7 +8,7 @@ const SEMANTIC_VERSION_LEVELS = {
 } as const;
 type SemverLevel = ValueOf<typeof SEMANTIC_VERSION_LEVELS>;
 
-const MAX_INCREMENTS = 99 as const;
+const MAX_INCREMENTS = 99;
 
 function isValidSemverLevel(str: string): str is SemverLevel {
     return Object.keys(SEMANTIC_VERSION_LEVELS).includes(str);
