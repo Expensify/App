@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -14,19 +14,23 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportFields from '@libs/actions/Policy/ReportFields';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldValueSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
+type ReportFieldValueSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS>;
 
 function ReportFieldValueSettingsPage({
+    policy,
     route: {
-        params: {policyID, valueIndex},
+        params: {policyID, valueIndex, reportFieldID},
     },
 }: ReportFieldValueSettingsPageProps) {
     const styles = useThemeStyles();
@@ -35,8 +39,22 @@ function ReportFieldValueSettingsPage({
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
 
-    const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
-    const currentValueDisabled = formDraft?.disabledListValues?.[valueIndex] ?? false;
+    const [currentValueName, currentValueDisabled] = useMemo(() => {
+        let reportFieldValue: string;
+        let reportFieldDisabledValue: boolean;
+
+        if (reportFieldID) {
+            const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+
+            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.[valueIndex] ?? '';
+            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.[valueIndex] ?? false;
+        } else {
+            reportFieldValue = formDraft?.listValues?.[valueIndex] ?? '';
+            reportFieldDisabledValue = formDraft?.disabledListValues?.[valueIndex] ?? false;
+        }
+
+        return [reportFieldValue, reportFieldDisabledValue];
+    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
 
     if (!currentValueName) {
         return <NotFoundPage />;
@@ -49,6 +67,11 @@ function ReportFieldValueSettingsPage({
     };
 
     const updateListValueEnabled = (value: boolean) => {
+        if (reportFieldID) {
+            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, Number(valueIndex), value);
+            return;
+        }
+
         ReportFields.setReportFieldsListValueEnabled([valueIndex], value);
     };
 
@@ -96,8 +119,9 @@ function ReportFieldValueSettingsPage({
                     <MenuItemWithTopDescription
                         title={currentValueName}
                         description={translate('common.value')}
+                        shouldShowRightIcon={!reportFieldID}
+                        interactive={!reportFieldID}
                         onPress={navigateToEditValue}
-                        shouldShowRightIcon
                     />
                     <MenuItem
                         icon={Expensicons.Trashcan}
@@ -112,4 +136,4 @@ function ReportFieldValueSettingsPage({
 
 ReportFieldValueSettingsPage.displayName = 'ReportFieldValueSettingsPage';
 
-export default ReportFieldValueSettingsPage;
+export default withPolicyAndFullscreenLoading(ReportFieldValueSettingsPage);

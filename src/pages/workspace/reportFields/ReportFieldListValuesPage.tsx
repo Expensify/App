@@ -134,7 +134,7 @@ function ReportFieldListValuesPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, valueItem.index));
+        Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
 
         setSelectedValues({});
     };

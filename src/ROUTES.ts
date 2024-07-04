@@ -796,8 +796,9 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new/addValue` as const,
     },
     WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex',
-        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}` as const,
+        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/:reportFieldID?',
+        getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
+            `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
     WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
         route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',

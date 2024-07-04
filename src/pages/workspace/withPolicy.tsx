@@ -40,6 +40,7 @@ type PolicyRoute = RouteProp<
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT
     | typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE
+    | typeof SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS
 >;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
