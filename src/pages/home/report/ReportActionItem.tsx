@@ -876,7 +876,6 @@ function ReportActionItem({
             accessible
         >
             <Hoverable
-                shouldFreezeCapture={modal?.willAlertModalBecomeVisible}
                 shouldHandleScroll
                 isDisabled={draftMessage !== undefined}
             >
