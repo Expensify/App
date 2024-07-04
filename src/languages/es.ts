@@ -2344,6 +2344,37 @@ export default {
             noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+            tokenInput: {
+                title: 'Netsuite configuración',
+                formSteps: {
+                    installBundle: {
+                        title: 'Instala el paquete de Expensify',
+                        description: 'En NetSuite, ir a *Personalización > SuiteBundler > Buscar e Instalar Paquetes* > busca "Expensify" > instala el paquete.',
+                    },
+                    enableTokenAuthentication: {
+                        title: 'Habilitar la autenticación basada en token',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar Funciones > SuiteCloud* > activar *autenticación basada en token*.',
+                    },
+                    enableSoapServices: {
+                        title: 'Habilitar servicios web SOAP',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > habilitar *Servicios Web SOAP*.',
+                    },
+                    createAccessToken: {
+                        title: 'Crear un token de acceso',
+                        description:
+                            'En NetSuite, ir a *Configuración > Usuarios/Roles > Tokens de Acceso* > crear un token de acceso para la aplicación "Expensify" y tambiém para el rol de "Integración Expensify" o "Administrador".\n\n*Importante:* Asegúrese de guardar el ID y el secreto del Token en este paso. Los necesitará para el siguiente paso.',
+                    },
+                    enterCredentials: {
+                        title: 'Ingresa tus credenciales de NetSuite',
+                        formInputs: {
+                            netSuiteAccountID: 'ID de Cuenta NetSuite',
+                            netSuiteTokenID: 'ID de Token',
+                            netSuiteTokenSecret: 'Secreto de Token',
+                        },
+                        netSuiteAccountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.',
+                    },
+                },
+            },
             import: {
                 expenseCategories: 'Categorías de gastos',
                 expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
@@ -2356,7 +2387,7 @@ export default {
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
-                    customSegments: 'Segmentos/registros personalizado',
+                    customSegments: 'Segmentos/registros personalizados',
                     customLists: 'Listas personalizado',
                 },
             },

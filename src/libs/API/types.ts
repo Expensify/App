@@ -253,6 +253,7 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD: 'UpdateNetSuiteExportToNextOpenPeriod',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
+    CONNECT_POLICY_TO_NETSUITE: 'ConnectPolicyToNetSuite',
     CLEAR_OUTSTANDING_BALANCE: 'ClearOutstandingBalance',
 } as const;
 
@@ -495,6 +496,7 @@ type WriteCommandParameters = {
 
     // Netsuite parameters
     [WRITE_COMMANDS.UPDATE_NETSUITE_SUBSIDIARY]: Parameters.UpdateNetSuiteSubsidiaryParams;
+    [WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE]: Parameters.ConnectPolicyToNetSuiteParams;
 
     // Workspace report field parameters
     [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
