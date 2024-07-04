@@ -1372,6 +1372,7 @@ const CONST = {
         PROVINCIAL_TAX_POSTING_ACCOUNT: 'provincialTaxPostingAccount',
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
+        IMPORT_FIELDS: ['departments', 'classes', 'locations'],
         AUTO_SYNC: 'autoSync',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT: 'collectionAccount',
@@ -1386,7 +1387,6 @@ const CONST = {
             3: 'createAccessToken',
             4: 'enterCredentials',
         },
-        IMPORT_FIELDS: ['departments', 'classes', 'locations', 'customers', 'jobs'],
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         SYNC_OPTIONS: {
             SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
@@ -1396,6 +1396,11 @@ const CONST = {
             EXPORT_VENDOR_BILLS_TO: 'exportVendorBillsTo',
             EXPORT_JOURNALS_TO: 'exportJournalsTo',
             SYNC_TAX: 'syncTax',
+            CROSS_SUBSIDIARY_CUSTOMERS: 'crossSubsidiaryCustomers',
+            CUSTOMER_MAPPINGS: {
+                CUSTOMERS: 'customers',
+                JOBS: 'jobs',
+            },
         },
     },
 

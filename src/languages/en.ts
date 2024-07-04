@@ -1,4 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -2374,17 +2375,52 @@ export default {
             import: {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
                 importFields: {
-                    departments: 'Departments',
-                    classes: 'Classes',
-                    locations: 'Locations',
-                    customers: 'Customers',
-                    jobs: 'Projects (jobs)',
+                    departments: {
+                        title: 'Departments',
+                        subtitle: 'Choose how to handle the NetSuite *departments* in Expensify.',
+                    },
+                    classes: {
+                        title: 'Classes',
+                        subtitle: 'Choose how to handle *classes* in Expensify.',
+                    },
+                    locations: {
+                        title: 'Locations',
+                        subtitle: 'Choose how to handle *locations* in Expensify.',
+                    },
+                },
+                customersOrJobs: {
+                    title: 'Customers / projects',
+                    subtitle: 'Choose how to handle NetSuite *customers* and *projects* in Expensify.',
+                    importCustomers: 'Import customers',
+                    importJobs: 'Import projects',
+                    customers: 'customers',
+                    jobs: 'projects',
+                    label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
                     customSegments: 'Custom segments/records',
                     customLists: 'Custom lists',
+                },
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'NetSuite employee default',
+                        description: 'Not imported into Expensify, applied on export',
+                        footerContent: (importField: string) =>
+                            `If you use ${importField} in NetSuite, we'll apply the default set on the employee record upon export to Expense Report or Journal Entry.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Tags',
+                        description: 'Line-item level',
+                        footerContent: (importField: string) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Report fields',
+                        description: 'Report level',
+                        footerContent: (importField: string) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
+                    },
                 },
             },
         },

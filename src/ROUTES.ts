@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
@@ -967,6 +967,19 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
+        getRoute: (policyID: string, importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
