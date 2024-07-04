@@ -1,10 +1,13 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {SelectorType} from '@components/SelectionScreen';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +24,9 @@ import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Po
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+type ImportListItem = SelectorType & {
+    value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
+};
 
 type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     route: {
@@ -49,7 +55,7 @@ function NetSuiteImportCustomFieldEdit({
     const fieldValue = customRecord?.[fieldName as keyof CustomRecord] ?? '';
 
     const updateRecord = useCallback(
-        (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>) => {
+        (formValues: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM>>) => {
             const newValue = formValues[fieldName as keyof typeof formValues];
 
             if (customRecord) {
@@ -89,22 +95,12 @@ function NetSuiteImportCustomFieldEdit({
         [fieldName, translate],
     );
 
-    return (
-        <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldEdit.displayName}
-            headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[styles.pb2, styles.ph5, styles.flex1]}
-            titleStyle={styles.ph5}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={!customRecord}
-        >
-            {customRecord && (
+    const renderForm = useMemo(
+        () =>
+            customRecord && (
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM}
-                    style={styles.flexGrow1}
+                    style={[styles.flexGrow1, styles.ph5]}
                     validate={validate}
                     onSubmit={updateRecord}
                     submitButtonText={translate('common.save')}
@@ -126,7 +122,50 @@ function NetSuiteImportCustomFieldEdit({
                         />
                     </View>
                 </FormProvider>
-            )}
+            ),
+        [customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.mb4, styles.ph5, translate, updateRecord, validate],
+    );
+
+    const renderSelection = useMemo(() => {
+        const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
+
+        const selectorData: ImportListItem[] =
+            options.map((option) => ({
+                text: translate(`workspace.netsuite.import.importTypes.${option}.label`),
+                keyForList: option,
+                isSelected: fieldValue === option,
+                value: option,
+                alternateText: translate(`workspace.netsuite.import.importTypes.${option}.description`),
+            })) ?? [];
+
+        return (
+            customRecord && (
+                <SelectionList
+                    onSelectRow={(selected: ImportListItem) =>
+                        updateRecord({
+                            [fieldName]: selected.value,
+                        })
+                    }
+                    sections={[{data: selectorData}]}
+                    ListItem={RadioListItem}
+                />
+            )
+        );
+    }, [customRecord, fieldName, fieldValue, translate, updateRecord]);
+
+    return (
+        <ConnectionLayout
+            displayName={NetSuiteImportCustomFieldEdit.displayName}
+            headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.flex1]}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            shouldBeBlocked={!customRecord}
+        >
+            {fieldName === 'mapping' ? renderSelection : renderForm}
         </ConnectionLayout>
     );
 }
