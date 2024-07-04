@@ -239,6 +239,8 @@ export type {default as HoldMoneyRequestOnSearchParams} from './HoldMoneyRequest
 export type {default as UnholdMoneyRequestOnSearchParams} from './UnholdMoneyRequestOnSearchParams';
 export type {default as UpdateNetSuiteSubsidiaryParams} from './UpdateNetSuiteSubsidiaryParams';
 export type {default as CreateWorkspaceReportFieldParams} from './CreateWorkspaceReportFieldParams';
+export type {default as UpdateWorkspaceReportFieldInitialValueParams} from './UpdateWorkspaceReportFieldInitialValueParams';
+export type {default as EnableWorkspaceReportFieldListValueParams} from './EnableWorkspaceReportFieldListValueParams';
 export type {default as OpenPolicyExpensifyCardsPageParams} from './OpenPolicyExpensifyCardsPageParams';
 export type {default as RequestExpensifyCardLimitIncreaseParams} from './RequestExpensifyCardLimitIncreaseParams';
 export type {default as UpdateNetSuiteGenericTypeParams} from './UpdateNetSuiteGenericTypeParams';

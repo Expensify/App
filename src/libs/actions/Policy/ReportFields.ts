@@ -1,7 +1,7 @@
 import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CreateWorkspaceReportFieldParams} from '@libs/API/parameters';
+import type {CreateWorkspaceReportFieldParams, EnableWorkspaceReportFieldListValueParams, UpdateWorkspaceReportFieldInitialValueParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -208,11 +208,132 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
  * Updates the initial value of a report field.
  */
 function updateReportFieldInitialValue(policyID: string, reportFieldID: string, newInitialValue: string) {
-    console.debug('updateReportFieldInitialValue', policyID, reportFieldID, newInitialValue);
+    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const updatedReportField: PolicyReportField = {
+        ...previousFieldList[fieldKey],
+        defaultValue: newInitialValue,
+    };
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: updatedReportField,
+                    },
+                    pendingFields: {
+                        [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    pendingFields: {
+                        [fieldKey]: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: null,
+                    },
+                    pendingFields: {
+                        [fieldKey]: null,
+                    },
+                    errorFields: {
+                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                    },
+                },
+            },
+        ],
+    };
+    const parameters: UpdateWorkspaceReportFieldInitialValueParams = {
+        policyID,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE, parameters, onyxData);
 }
 
 function updateReportFieldListValueEnabled(policyID: string, reportFieldID: string, valueIndex: number, enabled: boolean) {
-    console.debug('updateReportFieldListValueEnabled', policyID, reportFieldID, valueIndex, enabled);
+    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = previousFieldList[fieldKey];
+    const shouldResetDefaultValue = !enabled && reportField.defaultValue === reportField.values[valueIndex];
+    const updatedReportField: PolicyReportField = {
+        ...reportField,
+        disabledOptions: reportField.disabledOptions.map((value, index) => (index === valueIndex ? !enabled : value)),
+    };
+
+    if (shouldResetDefaultValue) {
+        updatedReportField.defaultValue = '';
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: updatedReportField,
+                    },
+                    pendingFields: {
+                        [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    pendingFields: {
+                        [fieldKey]: null,
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: null,
+                    },
+                    pendingFields: {
+                        [fieldKey]: null,
+                    },
+                    errorFields: {
+                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                    },
+                },
+            },
+        ],
+    };
+    const parameters: EnableWorkspaceReportFieldListValueParams = {
+        policyID,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
+
+    API.write(WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
 export type {CreateReportFieldArguments};

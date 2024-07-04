@@ -235,6 +235,8 @@ const WRITE_COMMANDS = {
     REQUEST_REFUND: 'User_RefundPurchase',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
     CREATE_WORKSPACE_REPORT_FIELD: 'CreatePolicyReportField',
+    UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE: 'SetPolicyReportFieldDefault',
+    ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE: 'EnablePolicyReportFieldOption',
     UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION: 'UpdateNetSuiteSyncTaxConfiguration',
     UPDATE_NETSUITE_EXPORTER: 'UpdateNetSuiteExporter',
     UPDATE_NETSUITE_EXPORT_DATE: 'UpdateNetSuiteExportDate',
@@ -498,6 +500,8 @@ type WriteCommandParameters = {
 
     // Workspace report field parameters
     [WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD]: Parameters.CreateWorkspaceReportFieldParams;
+    [WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE]: Parameters.UpdateWorkspaceReportFieldInitialValueParams;
+    [WRITE_COMMANDS.ENABLE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.EnableWorkspaceReportFieldListValueParams;
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORTER]: Parameters.UpdateNetSuiteGenericTypeParams<'email', string>;
