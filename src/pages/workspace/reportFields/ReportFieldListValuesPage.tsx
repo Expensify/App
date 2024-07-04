@@ -178,6 +178,12 @@ function ReportFieldListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedValues({});
+
+                        if (reportFieldID) {
+                            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToDisable, false);
+                            return;
+                        }
+
                         ReportFields.setReportFieldsListValueEnabled(valuesToDisable, false);
                     },
                 });
@@ -204,6 +210,12 @@ function ReportFieldListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedValues({});
+
+                        if (reportFieldID) {
+                            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToEnable, true);
+                            return;
+                        }
+
                         ReportFields.setReportFieldsListValueEnabled(valuesToEnable, true);
                     },
                 });
