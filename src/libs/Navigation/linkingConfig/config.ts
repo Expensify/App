@@ -354,6 +354,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_BILL_PAYMENT_ACCOUNT_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_SUBSIDIARY_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: {
                             path: ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.route,
@@ -527,6 +528,21 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: {
                             path: ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE]: {
+                            path: ROUTES.WORKSPACE_CREATE_REPORT_FIELD.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_LIST_VALUES]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_ADD_VALUE.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_VALUE_SETTINGS.route,
+                        },
+                        [SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_VALUE]: {
+                            path: ROUTES.WORKSPACE_REPORT_FIELD_EDIT_VALUE.route,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,

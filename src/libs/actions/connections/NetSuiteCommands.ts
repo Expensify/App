@@ -2,6 +2,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
+import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -13,6 +14,25 @@ type SubsidiaryParam = {
     subsidiaryID: string;
     subsidiary: string;
 };
+
+function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.NETSUITE_SYNC_CONNECTION,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+                timestamp: new Date().toISOString(),
+            },
+        },
+    ];
+    const parameters: ConnectPolicyToNetSuiteParams = {
+        policyID,
+        ...credentials,
+    };
+    API.write(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, parameters, {optimisticData});
+}
 
 function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite']['options']['config']>(
     policyID: string,
@@ -599,4 +619,5 @@ export {
     updateNetSuiteAutoCreateEntities,
     updateNetSuiteEnableNewCategories,
     updateNetSuiteCustomFormIDOptionsEnabled,
+    connectPolicyToNetSuite,
 };
