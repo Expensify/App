@@ -2,12 +2,26 @@ import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import * as Environment from '@src/libs/Environment/Environment';
 import type {UserMetadata} from '@src/types/onyx';
+import CONST from '@src/CONST';
 
 /**
  * Fullstory React-Native lib adapter
  * Proxy function calls to React-Native lib
  * */
 const FS = {
+    /**
+     * Initializes FullStory
+     */
+    init: () => {
+        Environment.getEnvironment().then((envName: string) => {
+            // We don't want to 
+            if(envName === CONST.ENVIRONMENT.STAGING) {
+                return;
+            }
+            FullStory.restart();
+        })
+    },
+
     /**
      * Sets the identity as anonymous using the FullStory library.
      */
