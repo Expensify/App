@@ -27,7 +27,7 @@ const useExtraSafePaddingBottomStyle = () => {
             return {};
         }
         return styles.pb5;
-    }, [willKeyboardShow, paddingBottom]);
+    }, [willKeyboardShow, paddingBottom, styles.pb5]);
     return extraPaddingBottomStyle;
 };
 
