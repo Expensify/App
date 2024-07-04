@@ -18,14 +18,14 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type EditReportFieldPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT>;
+type ReportFieldEditPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT>;
 
-function EditReportFieldPage({
+function ReportFieldEditPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: EditReportFieldPageProps) {
+}: ReportFieldEditPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -47,7 +47,7 @@ function EditReportFieldPage({
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={styles.defaultModalContainer}
-                testID={EditReportFieldPage.displayName}
+                testID={ReportFieldEditPage.displayName}
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -95,6 +95,6 @@ function EditReportFieldPage({
     );
 }
 
-EditReportFieldPage.displayName = 'EditReportFieldPage';
+ReportFieldEditPage.displayName = 'ReportFieldEditPage';
 
-export default withPolicyAndFullscreenLoading(EditReportFieldPage);
+export default withPolicyAndFullscreenLoading(ReportFieldEditPage);
