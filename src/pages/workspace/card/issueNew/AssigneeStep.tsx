@@ -15,11 +15,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
 
@@ -47,12 +47,6 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
     const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
 
-    const isDeletedPolicyEmployee = useCallback(
-        (policyEmployee: OnyxTypes.PolicyEmployee): boolean =>
-            !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
-        [isOffline],
-    );
-
     const membersDetails = useMemo(() => {
         const membersList: ListItem[] = [];
         if (!policy?.employeeList) {
@@ -60,7 +54,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         }
 
         Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
-            if (isDeletedPolicyEmployee(policyEmployee)) {
+            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
@@ -83,7 +77,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
         });
 
         return membersList;
-    }, [isDeletedPolicyEmployee, policy?.employeeList]);
+    }, [policy?.employeeList]);
 
     const sections = useMemo(() => {
         if (!searchTerm) {

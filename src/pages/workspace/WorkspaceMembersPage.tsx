@@ -305,14 +305,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         [route.params.policyID],
     );
 
-    /**
-     * Check if the policy member is deleted from the workspace
-     */
-    const isDeletedPolicyEmployee = useCallback(
-        (policyEmployee: PolicyEmployee): boolean => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
-        [isOffline],
-    );
-
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
@@ -321,7 +313,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
 
         Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-            if (isDeletedPolicyEmployee(policyEmployee)) {
+            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
@@ -382,7 +374,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        isDeletedPolicyEmployee,
         isPolicyAdmin,
         personalDetails,
         policy?.owner,
