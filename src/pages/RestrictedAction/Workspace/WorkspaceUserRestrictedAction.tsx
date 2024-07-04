@@ -10,7 +10,6 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Report from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
@@ -28,7 +27,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
 
     const openPolicyExpenseReport = useCallback(() => {
         const reportID = ReportUtils.findPolicyExpenseChatByPolicyID(policyID)?.reportID ?? '-1';
-        Report.openReport(reportID);
+        Navigation.closeRHPFlow();
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policyID]);
 
