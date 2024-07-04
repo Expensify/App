@@ -54,19 +54,12 @@ function isBottomTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefin
     return BOTTOM_TAB_SCREEN_NAMES.has(screen);
 }
 
-function isSettingTabName(screen: string | undefined): screen is any {
-    if (!screen) {
-        return false;
-    }
-    return SETTINGS_TAB_SCREEN_NAMES.has(screen as any);
-}
-
-+function isSettingTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefined) {
+function isSettingTabName(screen: TupleToUnion<typeof SETTINGS_SCREENS> | undefined) {
     if (!screen) {
         return false;
     }
     return SETTINGS_TAB_SCREEN_NAMES.has(screen);
-};
+}
 
 function isSearchTabName(screen: TupleToUnion<typeof SEARCH_SCREENS> | undefined) {
     if (!screen) {
