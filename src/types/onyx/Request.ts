@@ -74,7 +74,7 @@ type PaginationConfig = {
 };
 
 /**
- *
+ * A paginated request object.
  */
 type PaginatedRequest = Request &
     PaginationConfig & {
