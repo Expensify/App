@@ -60,6 +60,10 @@ function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
 }
 
+function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.COMMENT_LINKING) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -82,4 +86,5 @@ export default {
     canUseReportFieldsFeature,
     canUseWorkspaceFeeds,
     canUseNetSuiteUSATax,
+    canUseCommentLinking,
 };
