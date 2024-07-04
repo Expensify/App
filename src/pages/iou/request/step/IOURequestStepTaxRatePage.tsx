@@ -17,6 +17,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import {getCurrency, transformedTaxRates} from "@libs/TransactionUtils";
 
 type IOURequestStepTaxRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -38,7 +39,7 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
     const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
     const taxPercentage = getTaxValue(selectedTaxCode);
     if (taxPercentage) {
-        return TransactionUtils.calculateTaxAmount(taxPercentage, amount);
+        return TransactionUtils.calculateTaxAmount(taxPercentage, amount, getCurrency(transaction));
     }
 }
 

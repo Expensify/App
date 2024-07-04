@@ -117,6 +117,10 @@ describe('CurrencyUtils', () => {
         });
     });
 
+    /**
+     * VND uses 0 decimals, so this test is needed.
+     * https://github.com/Expensify/App/pull/43948
+     */
     describe('convertToFrontendAmountAsInteger VND', () => {
         test.each([
             [2500, 25],
@@ -143,6 +147,10 @@ describe('CurrencyUtils', () => {
         });
     });
 
+    /**
+     * VND uses 0 decimals, so this test is needed.
+     * https://github.com/Expensify/App/pull/43948
+     */
     describe('convertToFrontendAmountAsString VND', () => {
         test.each([
             [2500, '25'],
