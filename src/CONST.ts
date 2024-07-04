@@ -5084,7 +5084,6 @@ const CONST = {
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',
-        GBP: 'GBP',
         NZD: 'NZD',
     },
 
