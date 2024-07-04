@@ -129,7 +129,7 @@ function NetSuiteImportCustomFieldEdit({
     const renderSelection = useMemo(() => {
         const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
 
-        const selectorData: ImportListItem[] =
+        const selectionData: ImportListItem[] =
             options.map((option) => ({
                 text: translate(`workspace.netsuite.import.importTypes.${option}.label`),
                 keyForList: option,
@@ -146,8 +146,9 @@ function NetSuiteImportCustomFieldEdit({
                             [fieldName]: selected.value,
                         })
                     }
-                    sections={[{data: selectorData}]}
+                    sections={[{data: selectionData}]}
                     ListItem={RadioListItem}
+                    initiallyFocusedOptionKey={selectionData?.find((record) => record.isSelected)?.keyForList}
                 />
             )
         );

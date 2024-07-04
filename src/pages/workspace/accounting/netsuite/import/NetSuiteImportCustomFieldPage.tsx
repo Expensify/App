@@ -1,13 +1,13 @@
-import {ExpensiMark} from 'expensify-common';
 import React, {useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
@@ -16,10 +16,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-const parser = new ExpensiMark();
 
 type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
@@ -30,6 +29,27 @@ type NetSuiteImportCustomFieldPageProps = WithPolicyConnectionsProps & {
         };
     };
 };
+
+type HelpLinkComponentProps = {
+    importCustomField: ImportCustomFieldsKeys;
+    translate: LocaleContextProps['translate'];
+    styles: ThemeStyles;
+    alignmentStyle: StyleProp<TextStyle>;
+};
+
+function HelpLinkComponent({importCustomField, styles, translate, alignmentStyle}: HelpLinkComponentProps) {
+    return (
+        <Text style={[styles.mb3, alignmentStyle]}>
+            <TextLink
+                href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
+                style={[styles.link]}
+            >
+                {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLinkText`)}
+            </TextLink>
+            {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpText`)}
+        </Text>
+    );
+}
 
 function NetSuiteImportCustomFieldPage({
     policy,
@@ -44,40 +64,37 @@ function NetSuiteImportCustomFieldPage({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
-    const helpLinkComponent = useMemo(
-        () => (
-            <Text style={[styles.mb3, styles.textAlignCenter]}>
-                <TextLink
-                    href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
-                    style={[styles.link]}
-                >
-                    {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLinkText`)}
-                </TextLink>
-                {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpText`)}
-            </Text>
-        ),
-        [importCustomField, styles.link, styles.mb3, styles.textAlignCenter, translate],
-    );
-
     const listEmptyComponent = useMemo(
         () => (
             <WorkspaceEmptyStateSection
                 title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
                 icon={Illustrations.EmptyStateRecords}
-                subtitleComponent={helpLinkComponent}
+                subtitleComponent={
+                    <HelpLinkComponent
+                        importCustomField={importCustomField}
+                        styles={styles}
+                        translate={translate}
+                        alignmentStyle={styles.textAlignCenter}
+                    />
+                }
                 containerStyle={[styles.flex1, styles.justifyContentCenter]}
             />
         ),
-        [helpLinkComponent, importCustomField, styles.flex1, styles.justifyContentCenter, translate],
+        [importCustomField, styles, translate],
     );
 
     const listHeaderComponent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.dFlex, styles.mt2, styles.mb4, styles.w100]}>
-                <RenderHTML html={`<comment><muted-text>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`))}</muted-text></comment>`} />
+            <View style={[styles.ph5, styles.dFlex, styles.mt2, styles.mb4, styles.w100, styles.textAlignLeft]}>
+                <HelpLinkComponent
+                    importCustomField={importCustomField}
+                    styles={styles}
+                    translate={translate}
+                    alignmentStyle={styles.textAlignLeft}
+                />
             </View>
         ),
-        [styles.ph5, styles.dFlex, styles.mt2, styles.mb4, styles.w100, translate, importCustomField],
+        [styles, importCustomField, translate],
     );
 
     return (
