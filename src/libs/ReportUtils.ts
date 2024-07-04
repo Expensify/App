@@ -4724,7 +4724,7 @@ function buildOptimisticGroupChatReport(
  */
 function buildOptimisticCreatedReportAction(emailCreatingAction: string, created = DateUtils.getDBTime(), reportActionID?: string): OptimisticCreatedReportAction {
     return {
-        reportActionID: reportActionID || NumberUtils.rand64(),
+        reportActionID: reportActionID ?? NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
