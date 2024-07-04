@@ -1091,8 +1091,8 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
             const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
-            const parentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
-            const isParentOptionDisabled = !parentOption || !parentOption.enabled || parentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
+            const isParentOptionDisabled = !selectedParentOption || !selectedParentOption.enabled || selectedParentOption.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (optionCollection.has(searchText)) {
                 return;
@@ -1104,7 +1104,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 searchText,
                 tooltipText: optionName,
                 isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : isParentOptionDisabled,
-                isSelected: isChild ? !!option.isSelected : !!selectedOptions.find((selectedOption) => selectedOption.name === searchText),
+                isSelected: isChild ? !!option.isSelected : !!selectedParentOption,
                 pendingAction: option.pendingAction,
             });
         });
