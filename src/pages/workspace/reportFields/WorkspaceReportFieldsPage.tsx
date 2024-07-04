@@ -64,13 +64,14 @@ function WorkspaceReportFieldsPage({
         if (!policy) {
             return [];
         }
-        return Object.values(filteredPolicyFieldList).map((reportField) => ({
+        return Object.entries(filteredPolicyFieldList).map(([reportKey, reportField]) => ({
             value: reportField.name,
             fieldID: reportField.fieldID,
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
+            pendingAction: policy?.pendingFields?.[reportKey] ?? null,
             rightElement: (
                 <ListItemRightCaretWithLabel
                     shouldShowCaret={false}
