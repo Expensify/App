@@ -842,7 +842,6 @@ export default withCurrentReportID(
             },
             reportActionPages: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getReportID(route)}`,
-                canEvict: false,
             },
             reportNameValuePairs: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getReportID(route)}`,
