@@ -41,7 +41,8 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
             } else {
                 // when we enable any field, and if the other one already has a value set, we should set that,
-                const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
+                const otherFieldValue =
+                    importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? config?.syncOptions?.mapping?.customers : config?.syncOptions?.mapping?.jobs;
                 if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
                     newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
                 } else {
