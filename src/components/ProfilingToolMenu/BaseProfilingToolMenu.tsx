@@ -15,9 +15,9 @@ import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import pkg from '../../../package.json';
 import RNFS from './RNFS';
 import Share from './Share';
-import pkg from '../../../package.json';
 
 type BaseProfilingToolMenuOnyxProps = {
     isProfilingInProgress: OnyxEntry<boolean>;
