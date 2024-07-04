@@ -248,7 +248,7 @@ function updateReportFieldInitialValue(policyID: string, reportFieldID: string, 
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: null,
+                        [fieldKey]: previousFieldList[fieldKey],
                     },
                     pendingFields: {
                         [fieldKey]: null,
@@ -316,7 +316,7 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: null,
+                        [fieldKey]: reportField,
                     },
                     pendingFields: {
                         [fieldKey]: null,
