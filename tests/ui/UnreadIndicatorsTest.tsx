@@ -105,92 +105,80 @@ let reportAction9CreatedDate: string;
 /**
  * Sets up a test with a logged in user that has one unread chat from another user. Returns the <App/> test instance.
  */
-async function signInAndGetAppWithUnreadChat() {
+function signInAndGetAppWithUnreadChat(): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
-    await waitForBatchedUpdatesWithAct();
-    await waitForBatchedUpdatesWithAct();
+    return waitForBatchedUpdatesWithAct()
+        .then(async () => {
+            await waitForBatchedUpdatesWithAct();
+            const hintText = Localize.translateLocal('loginForm.loginForm');
+            const loginForm = screen.queryAllByLabelText(hintText);
+            expect(loginForm).toHaveLength(1);
 
-    const hintText = Localize.translateLocal('loginForm.loginForm');
-    const loginForm = screen.queryAllByLabelText(hintText);
-    expect(loginForm).toHaveLength(1);
+            await act(async () => {
+                await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
+            });
+            return waitForBatchedUpdatesWithAct();
+        })
+        .then(() => {
+            User.subscribeToUserEvents();
+            return waitForBatchedUpdates();
+        })
+        .then(async () => {
+            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
+            reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
+            reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-    await act(async () => {
-        await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
-    });
-    await waitForBatchedUpdatesWithAct();
-
-    User.subscribeToUserEvents();
-    await waitForBatchedUpdates();
-
-    const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-    reportAction3CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
-    reportAction9CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 90), CONST.DATE.FNS_DB_FORMAT_STRING);
-
-    // Simulate setting an unread report and personal details
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-        reportID: REPORT_ID,
-        reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
-        lastReadTime: reportAction3CreatedDate,
-        lastVisibleActionCreated: reportAction9CreatedDate,
-        lastMessageText: 'Test',
-        participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
-        lastActorAccountID: USER_B_ACCOUNT_ID,
-        type: CONST.REPORT.TYPE.CHAT,
-    });
-    const createdReportActionID = NumberUtils.rand64().toString();
-    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-        [createdReportActionID]: {
-            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-            automatic: false,
-            created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
-            reportActionID: createdReportActionID,
-            message: [
-                {
-                    style: 'strong',
-                    text: '__FAKE__',
-                    type: 'TEXT',
+            // Simulate setting an unread report and personal details
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                reportID: REPORT_ID,
+                reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
+                lastReadTime: reportAction3CreatedDate,
+                lastVisibleActionCreated: reportAction9CreatedDate,
+                lastMessageText: 'Test',
+                participants: {[USER_B_ACCOUNT_ID]: {hidden: false}},
+                lastActorAccountID: USER_B_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.CHAT,
+            });
+            const createdReportActionID = NumberUtils.rand64().toString();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [createdReportActionID]: {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    automatic: false,
+                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
+                    reportActionID: createdReportActionID,
+                    message: [
+                        {
+                            style: 'strong',
+                            text: '__FAKE__',
+                            type: 'TEXT',
+                        },
+                        {
+                            style: 'normal',
+                            text: 'created this report',
+                            type: 'TEXT',
+                        },
+                    ],
                 },
-                {
-                    style: 'normal',
-                    text: 'created this report',
-                    type: 'TEXT',
-                },
-            ],
-        },
-        1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
-        2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
-        3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-        4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
-        5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
-        6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
-        7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
-        8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
-        9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
-    });
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-    });
+                1: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 20), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 40), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 50), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 70), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(format(addSeconds(TEN_MINUTES_AGO, 80), CONST.DATE.FNS_DB_FORMAT_STRING), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+            });
 
-    // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
-    AppActions.setSidebarLoaded();
-
-    await waitForBatchedUpdatesWithAct();
+            // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
+            AppActions.setSidebarLoaded();
+            return waitForBatchedUpdatesWithAct();
+        });
 }
-
-let lastComment = 'Current User Comment 1';
-async function addComment() {
-    const num = Number.parseInt(lastComment.slice(-1), 10);
-    lastComment = `${lastComment.slice(0, -1)}${num + 1}`;
-    const comment = lastComment;
-    Report.addComment(REPORT_ID, comment);
-    await waitForBatchedUpdatesWithAct();
-
-    // Verify the comment is visible (it will appear twice, once in the LHN and once on the report screen)
-    expect(screen.getAllByText(comment)[0]).toBeOnTheScreen();
-}
-
-const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
 
 describe('Unread Indicators', () => {
     afterEach(() => {
@@ -236,6 +224,7 @@ describe('Unread Indicators', () => {
                 expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
@@ -251,6 +240,7 @@ describe('Unread Indicators', () => {
             .then(async () => {
                 await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
                 // Verify the unread indicator is present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
             })
@@ -273,6 +263,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 // Tap on the chat again
@@ -280,6 +271,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the unread indicator is not present
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
                 expect(areYouOnChatListScreen()).toBe(false);
@@ -389,6 +381,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => {
                 // Verify the indicator appears above the last action
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
                 const reportActionID = unreadIndicator[0]?.props?.['data-action-id'];
@@ -423,6 +416,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -431,23 +425,30 @@ describe('Unread Indicators', () => {
                 return waitFor(() => expect(isNewMessagesBadgeVisible()).toBe(false));
             }));
 
-    it('Keep showing the new line indicator when a new message is created by the current user', async () => {
-        await signInAndGetAppWithUnreadChat();
+    it('Keep showing the new line indicator when a new message is created by the current user', () =>
+        signInAndGetAppWithUnreadChat()
+            .then(() => {
+                // Verify we are on the LHN and that the chat shows as unread in the LHN
+                expect(areYouOnChatListScreen()).toBe(true);
 
-        // Verify we are on the LHN and that the chat shows as unread in the LHN
-        expect(areYouOnChatListScreen()).toBe(true);
+                // Navigate to the report and verify the indicator is present
+                return navigateToSidebarOption(0);
+            })
+            .then(async () => {
+                await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
 
-        // Navigate to the report and verify the indicator is present
-        await navigateToSidebarOption(0);
-        await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-        let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-        expect(unreadIndicator).toHaveLength(1);
-
-        // Leave a comment as the current user and verify the indicator is not removed
-        await addComment();
-        unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
-        expect(unreadIndicator).toHaveLength(1);
-    });
+                // Leave a comment as the current user and verify the indicator is removed
+                Report.addComment(REPORT_ID, 'Current User Comment 1');
+                return waitForBatchedUpdates();
+            })
+            .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
+                const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
+                expect(unreadIndicator).toHaveLength(1);
+            }));
 
     xit('Keeps the new line indicator when the user moves the App to the background', () =>
         signInAndGetAppWithUnreadChat()
@@ -459,6 +460,7 @@ describe('Unread Indicators', () => {
                 return navigateToSidebarOption(0);
             })
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -467,6 +469,7 @@ describe('Unread Indicators', () => {
             })
             .then(() => navigateToSidebarOption(0))
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 const unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(0);
 
@@ -475,6 +478,7 @@ describe('Unread Indicators', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
+                const newMessageLineIndicatorHintText = Localize.translateLocal('accessibilityHints.newMessageLineIndicator');
                 let unreadIndicator = screen.queryAllByLabelText(newMessageLineIndicatorHintText);
                 expect(unreadIndicator).toHaveLength(1);
 
@@ -498,10 +502,11 @@ describe('Unread Indicators', () => {
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOption(0))
-                .then(() =>
+                .then(() => {
                     // Leave a comment as the current user
-                    addComment(),
-                )
+                    Report.addComment(REPORT_ID, 'Current User Comment 1');
+                    return waitForBatchedUpdates();
+                })
                 .then(() => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
@@ -519,7 +524,7 @@ describe('Unread Indicators', () => {
                     expect(alternateText).toHaveLength(1);
 
                     // This message is visible on the sidebar and the report screen, so there are two occurrences.
-                    expect(screen.getAllByText(lastComment)[0]).toBeOnTheScreen();
+                    expect(screen.getAllByText('Current User Comment 1')[0]).toBeOnTheScreen();
 
                     if (lastReportAction) {
                         Report.deleteReportComment(REPORT_ID, lastReportAction);
