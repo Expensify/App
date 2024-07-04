@@ -369,7 +369,6 @@ const CONST = {
         WORKSPACE_FEEDS: 'workspaceFeeds',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         INTACCT_ON_NEW_EXPENSIFY: 'intacctOnNewExpensify',
-        COMMENT_LINKING: 'commentLinking',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1374,6 +1373,14 @@ const CONST = {
         ALLOW_FOREIGN_CURRENCY: 'allowForeignCurrency',
         EXPORT_TO_NEXT_OPEN_PERIOD: 'exportToNextOpenPeriod',
         IMPORT_FIELDS: ['departments', 'classes', 'locations'],
+        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_KEYS: {
+            0: 'installBundle',
+            1: 'enableTokenAuthentication',
+            2: 'enableSoapServices',
+            3: 'createAccessToken',
+            4: 'enterCredentials',
+        },
         IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
         SYNC_OPTIONS: {
             SYNC_TAX: 'syncTax',

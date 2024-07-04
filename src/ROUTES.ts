@@ -960,6 +960,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,

@@ -275,6 +275,7 @@ const SCREENS = {
             NETSUITE_IMPORT_MAPPING: 'Policy_Accounting_NetSuite_Import_Mapping',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
             NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',
+            NETSUITE_TOKEN_INPUT: 'Policy_Accounting_NetSuite_Token_Input',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
             NETSUITE_EXPORT: 'Policy_Accounting_NetSuite_Export',
