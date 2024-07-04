@@ -270,7 +270,7 @@ function TransactionListItemRow({
                         {item.category && (
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
                                 <CategoryCell
-                                    isLargeScreenWidth={isLargeScreenWidth}
+                                    isLargeScreenWidth={false}
                                     showTooltip={showTooltip}
                                     transactionItem={item}
                                 />
@@ -281,19 +281,19 @@ function TransactionListItemRow({
                         <TotalCell
                             showTooltip={showTooltip}
                             transactionItem={item}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth={false}
                             isChildListItem={isChildListItem}
                         />
                         <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <TypeCell
                                 transactionItem={item}
-                                isLargeScreenWidth={isLargeScreenWidth}
+                                isLargeScreenWidth={false}
                                 showTooltip={false}
                             />
                             <DateCell
                                 transactionItem={item}
                                 showTooltip={showTooltip}
-                                isLargeScreenWidth={isLargeScreenWidth}
+                                isLargeScreenWidth={false}
                             />
                         </View>
                     </View>
@@ -317,7 +317,7 @@ function TransactionListItemRow({
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                     <ReceiptCell
                         transactionItem={item}
-                        isLargeScreenWidth={false}
+                        isLargeScreenWidth={true}
                         showTooltip={false}
                     />
                 </View>
@@ -325,14 +325,14 @@ function TransactionListItemRow({
                     <DateCell
                         transactionItem={item}
                         showTooltip={showTooltip}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth={true}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}>
                     <MerchantCell
                         transactionItem={item}
                         showTooltip={showTooltip}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth={true}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
@@ -350,7 +350,7 @@ function TransactionListItemRow({
                 {item.shouldShowCategory && (
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY)]}>
                         <CategoryCell
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth={true}
                             showTooltip={showTooltip}
                             transactionItem={item}
                         />
@@ -359,7 +359,7 @@ function TransactionListItemRow({
                 {item.shouldShowTag && (
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAG)]}>
                         <TagCell
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth={true}
                             showTooltip={showTooltip}
                             transactionItem={item}
                         />
@@ -369,7 +369,7 @@ function TransactionListItemRow({
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT)]}>
                         <TaxCell
                             transactionItem={item}
-                            isLargeScreenWidth={isLargeScreenWidth}
+                            isLargeScreenWidth={true}
                             showTooltip={showTooltip}
                         />
                     </View>
@@ -379,14 +379,14 @@ function TransactionListItemRow({
                     <TotalCell
                         showTooltip={showTooltip}
                         transactionItem={item}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth={true}
                         isChildListItem={isChildListItem}
                     />
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>
                     <TypeCell
                         transactionItem={item}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth={true}
                         showTooltip={false}
                     />
                 </View>
