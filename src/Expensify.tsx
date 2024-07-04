@@ -8,6 +8,7 @@ import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import FocusModeNotification from './components/FocusModeNotification';
+import FS from '@libs/Fullstory';
 import GrowlNotification from './components/GrowlNotification';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -146,6 +147,9 @@ function Expensify({
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
+
+        // Initialize Fullstory lib
+        FS.init();
 
         // Used for the offline indicator appearing when someone is offline
         const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
