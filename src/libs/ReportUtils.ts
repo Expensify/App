@@ -1455,6 +1455,22 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string): bo
 }
 
 /**
+ * Checks if a report contains only Non-Reimbursable transactions
+ */
+function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
+    if (!iouReportID) {
+        return false;
+    }
+
+    const transactions = TransactionUtils.getAllReportTransactions(iouReportID);
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
+    return transactions.every((transaction) => !TransactionUtils.getReimbursable(transaction));
+}
+
+/**
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(reportID: string): boolean {
@@ -1550,6 +1566,11 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
  */
 function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
+        return false;
+    }
+
+    const policy = getPolicy(moneyRequestReport?.policyID);
+    if (PolicyUtils.isInstantSubmitEnabled(policy) && PolicyUtils.isSubmitAndClose(policy) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID)) {
         return false;
     }
 
@@ -7383,6 +7404,7 @@ export {
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
     isIndividualInvoiceRoom,
+    hasOnlyNonReimbursableTransactions,
 };
 
 export type {
