@@ -32,6 +32,7 @@ function BaseListItem<TItem extends ListItem>({
     shouldSyncFocus = true,
     onFocus = () => {},
     hoverStyle,
+    onLongPressRow,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -71,6 +72,9 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
+                onLongPress={() => {
+                    onLongPressRow?.(item);
+                }}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action

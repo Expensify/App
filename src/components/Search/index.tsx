@@ -34,6 +34,8 @@ type SearchProps = {
     policyIDs?: string;
     sortBy?: SearchColumnType;
     sortOrder?: SortOrder;
+    isMobileSelectionModeActive?: boolean;
+    setIsMobileSelectionModeActive?: (isMobileSelectionModeActive: boolean) => void;
 };
 
 const sortableSearchTabs: SearchQuery[] = [CONST.SEARCH.TAB.ALL];
@@ -41,11 +43,10 @@ const transactionItemMobileHeight = 100;
 const reportItemTransactionHeight = 52;
 const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
 const searchHeaderHeight = 54;
-
-function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
+function Search({query, policyIDs, sortBy, sortOrder, isMobileSelectionModeActive, setIsMobileSelectionModeActive}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth, isSmallScreenWidth} = useWindowDimensions();
     const navigation = useNavigation<StackNavigationProp<AuthScreensParamList>>();
     const lastSearchResultsRef = useRef<OnyxEntry<SearchResults>>();
 
@@ -163,6 +164,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const shouldShowYear = SearchUtils.shouldShowYear(searchResults?.data);
 
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeActive : true;
+
     return (
         <SearchListWithHeader
             query={query}
@@ -170,17 +173,19 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             data={sortedData}
             searchType={searchResults?.search?.type as SearchDataTypes}
             customListHeader={
-                <SearchTableHeader
-                    data={searchResults?.data}
-                    metadata={searchResults?.search}
-                    onSortPress={onSortPress}
-                    sortOrder={sortOrder}
-                    isSortingAllowed={isSortingAllowed}
-                    sortBy={sortBy}
-                    shouldShowYear={shouldShowYear}
-                />
+                !isLargeScreenWidth ? null : (
+                    <SearchTableHeader
+                        data={searchResults?.data}
+                        metadata={searchResults?.search}
+                        onSortPress={onSortPress}
+                        sortOrder={sortOrder}
+                        isSortingAllowed={isSortingAllowed}
+                        sortBy={sortBy}
+                        shouldShowYear={shouldShowYear}
+                    />
+                )
             }
-            canSelectMultiple={isLargeScreenWidth}
+            canSelectMultiple={canSelectMultiple}
             customListHeaderHeight={searchHeaderHeight}
             // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
             // we have configured a larger windowSize and a longer delay between batch renders.
@@ -203,6 +208,8 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
             showScrollIndicator={false}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}
+            setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
+            isMobileSelectionModeActive={isMobileSelectionModeActive}
             listFooterContent={
                 isLoadingMoreItems ? (
                     <TableListItemSkeleton

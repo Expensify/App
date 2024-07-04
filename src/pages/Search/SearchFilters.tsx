@@ -16,6 +16,7 @@ import SearchFiltersNarrow from './SearchFiltersNarrow';
 
 type SearchFiltersProps = {
     query: string;
+    isMobileSelectionModeActive: boolean;
 };
 
 type SearchMenuFilterItem = {
@@ -25,7 +26,7 @@ type SearchMenuFilterItem = {
     route: Route;
 };
 
-function SearchFilters({query}: SearchFiltersProps) {
+function SearchFilters({query, isMobileSelectionModeActive}: SearchFiltersProps) {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {singleExecution} = useSingleExecution();
@@ -58,6 +59,10 @@ function SearchFilters({query}: SearchFiltersProps) {
         },
     ];
     const activeItemIndex = filterItems.findIndex((item) => item.query === query);
+
+    if (isMobileSelectionModeActive) {
+        return null;
+    }
 
     if (isSmallScreenWidth) {
         return (

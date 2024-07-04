@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
+import React, {useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -29,6 +29,7 @@ function SearchPageBottomTab() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const activeRoute = useActiveRoute();
     const styles = useThemeStyles();
+    const [isMobileSelectionModeActive, setIsMobileSelectionModeActive] = useState(false);
 
     const {
         query: rawQuery,
@@ -64,13 +65,18 @@ function SearchPageBottomTab() {
                     breadcrumbLabel={translate('common.search')}
                     shouldDisplaySearch={false}
                 />
-                <SearchFilters query={query} />
+                <SearchFilters
+                    query={query}
+                    isMobileSelectionModeActive={isMobileSelectionModeActive}
+                />
                 {isSmallScreenWidth && (
                     <Search
                         policyIDs={policyIDs}
                         query={query}
                         sortBy={sortBy}
                         sortOrder={sortOrder}
+                        isMobileSelectionModeActive={isMobileSelectionModeActive}
+                        setIsMobileSelectionModeActive={setIsMobileSelectionModeActive}
                     />
                 )}
             </FullPageNotFoundView>
