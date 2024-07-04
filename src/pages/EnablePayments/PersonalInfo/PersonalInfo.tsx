@@ -10,6 +10,7 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
+import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
 import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import * as Wallet from '@userActions/Wallet';
@@ -41,6 +42,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
@@ -84,6 +86,10 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
             Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             return;
         }
+        if (showIdologyQuestions) {
+            Wallet.setAdditionalDetailsQuestions(null, '');
+            return;
+        }
         prevScreen();
     };
 
@@ -102,11 +108,18 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
                     stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
+            {showIdologyQuestions ? (
+                <IdologyQuestions
+                    questions={walletAdditionalDetails?.questions ?? []}
+                    idNumber={walletAdditionalDetails?.idNumber ?? ''}
+                />
+            ) : (
+                <SubStep
+                    isEditing={isEditing}
+                    onNext={nextScreen}
+                    onMove={moveTo}
+                />
+            )}
         </ScreenWrapper>
     );
 }
