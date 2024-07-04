@@ -258,6 +258,10 @@ function ReportActionsList({
         } else {
             userActiveSince.current = DateUtils.getDBTime();
         }
+        if (prevReportID && prevReportID !== report.reportID) {
+            // in case the reportID change, we should clear the unread marker timestamp of the previous report
+            unreadMarkerTimestampCache.delete(prevReportID);
+        }
         prevReportID = report.reportID;
     }, [report.reportID]);
 
@@ -497,7 +501,8 @@ function ReportActionsList({
         if (currentUnreadMarker) {
             return;
         }
-        unreadMarkerTimestampCache.clear();
+        // in case the unread marker is reset to null, we should clear the marker timestamp
+        unreadMarkerTimestampCache.delete(report.reportID);
     }, [currentUnreadMarker, report.reportID]);
 
     const calculateUnreadMarker = useCallback(() => {
