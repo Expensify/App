@@ -59,7 +59,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const isConnectedToQbo = !!policy?.connections?.quickbooksOnline;
+    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
 
     const fetchCategories = useCallback(() => {
         Category.openPolicyCategoriesPage(policyId);
@@ -159,7 +159,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [];
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (selectedCategoriesArray.length > 0) {
@@ -167,7 +167,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 options.push({
                     icon: Expensicons.Trashcan,
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
+                    value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
                 });
             }
@@ -187,7 +187,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 options.push({
                     icon: Expensicons.DocumentSlash,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
-                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
+                    value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedCategories({});
                         setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
@@ -209,7 +209,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 options.push({
                     icon: Expensicons.Document,
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
-                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
+                    value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories({});
                         setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
@@ -256,7 +256,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const isLoading = !isOffline && policyCategories === null;
 
-    const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
+    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
@@ -267,7 +267,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         style={[styles.textNormal, styles.link]}
                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
                     >
-                        {`${translate(isConnectedToQbo ? 'workspace.accounting.qbo' : 'workspace.accounting.xero')} ${translate('workspace.accounting.settings')}`}
+                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
                     </TextLink>
                     <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
                 </Text>
@@ -309,7 +309,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!shouldUseNarrowLayout || shouldShowEmptyState || isLoading) && getHeaderText()}
+                {(!shouldUseNarrowLayout || categoryList.length === 0 || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -317,14 +317,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         color={theme.spinner}
                     />
                 )}
-                {shouldShowEmptyState && (
+                {!hasVisibleCategories && !isLoading && (
                     <WorkspaceEmptyStateSection
                         title={translate('workspace.categories.emptyCategories.title')}
                         icon={Illustrations.EmptyStateExpenses}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     />
                 )}
-                {!shouldShowEmptyState && !isLoading && (
+                {hasVisibleCategories && !isLoading && (
                     <SelectionList
                         canSelectMultiple
                         sections={[{data: categoryList, isDisabled: false}]}
