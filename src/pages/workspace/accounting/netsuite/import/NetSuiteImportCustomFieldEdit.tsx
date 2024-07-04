@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
@@ -107,23 +106,18 @@ function NetSuiteImportCustomFieldEdit({
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
-                    <View
-                        style={styles.mb4}
-                        key={fieldName}
-                    >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={fieldName}
-                            label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                            aria-label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                            role={CONST.ROLE.PRESENTATION}
-                            spellCheck={false}
-                            defaultValue={fieldValue ?? ''}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={fieldName}
+                        label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                        aria-label={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                        role={CONST.ROLE.PRESENTATION}
+                        spellCheck={false}
+                        defaultValue={fieldValue ?? ''}
+                    />
                 </FormProvider>
             ),
-        [customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.mb4, styles.ph5, translate, updateRecord, validate],
+        [customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
     );
 
     const renderSelection = useMemo(() => {

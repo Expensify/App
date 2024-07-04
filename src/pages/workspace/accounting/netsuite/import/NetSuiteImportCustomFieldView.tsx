@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
@@ -71,30 +70,26 @@ function NetSuiteImportCustomFieldView({
             shouldBeBlocked={!customRecord}
         >
             {customRecord && (
-                <View style={styles.flex1}>
-                    <View style={styles.mb4}>
-                        {fieldList.map((fieldName) => (
-                            <MenuItemWithTopDescription
-                                key={fieldName}
-                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                                shouldShowRightIcon
-                                title={
-                                    fieldName === 'mapping'
-                                        ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord]}.label` as TranslationPaths)
-                                        : customRecord[fieldName as keyof CustomRecord]
-                                }
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, internalID, fieldName))}
-                            />
-                        ))}
-                    </View>
-                    <View style={styles.flex1}>
-                        <MenuItem
-                            icon={Expensicons.Trashcan}
-                            title={translate('common.remove')}
-                            onPress={() => setIsRemoveModalOpen(true)}
+                <>
+                    {fieldList.map((fieldName) => (
+                        <MenuItemWithTopDescription
+                            key={fieldName}
+                            description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                            shouldShowRightIcon
+                            title={
+                                fieldName === 'mapping'
+                                    ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord]}.label` as TranslationPaths)
+                                    : customRecord[fieldName as keyof CustomRecord]
+                            }
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, internalID, fieldName))}
                         />
-                    </View>
-                </View>
+                    ))}
+                    <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.remove')}
+                        onPress={() => setIsRemoveModalOpen(true)}
+                    />
+                </>
             )}
 
             <ConfirmModal

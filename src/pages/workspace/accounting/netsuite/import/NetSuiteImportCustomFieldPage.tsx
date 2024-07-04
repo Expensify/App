@@ -85,7 +85,7 @@ function NetSuiteImportCustomFieldPage({
 
     const listHeaderComponent = useMemo(
         () => (
-            <View style={[styles.ph5, styles.dFlex, styles.mt2, styles.mb4, styles.w100, styles.textAlignLeft]}>
+            <View style={[styles.ph5]}>
                 <HelpLinkComponent
                     importCustomField={importCustomField}
                     styles={styles}
@@ -101,7 +101,6 @@ function NetSuiteImportCustomFieldPage({
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldPage.displayName}
             headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.title`}
-            headerSubtitle={config?.subsidiary ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -109,20 +108,17 @@ function NetSuiteImportCustomFieldPage({
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
         >
-            {data.length === 0 && listEmptyComponent}
-            {data.length > 0 && listHeaderComponent}
+            {data.length === 0 ? listEmptyComponent : listHeaderComponent}
 
-            <View>
-                {data.map((record) => (
-                    <MenuItemWithTopDescription
-                        key={record.internalID}
-                        description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
-                        shouldShowRightIcon
-                        title={'listName' in record ? record.listName : record.segmentName}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, record.internalID))}
-                    />
-                ))}
-            </View>
+            {data.map((record) => (
+                <MenuItemWithTopDescription
+                    key={record.internalID}
+                    description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
+                    shouldShowRightIcon
+                    title={'listName' in record ? record.listName : record.segmentName}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, record.internalID))}
+                />
+            ))}
 
             <FixedFooter style={[styles.mtAuto]}>
                 <Button

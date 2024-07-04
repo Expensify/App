@@ -111,24 +111,21 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 />
             )}
 
-
-                {CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.map((importField) => (
-                    <OfflineWithFeedback
-                        key={importField}
-                        errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}
-                        errorRowStyles={[styles.ph5]}
-                        onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
-                    >
-                        <MenuItemWithTopDescription
-                            description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField))}
-                            brickRoadIndicator={config?.errorFields?.[importField] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        />
-                    </OfflineWithFeedback>
-                ))}
-            
-
+            {CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.map((importField) => (
+                <OfflineWithFeedback
+                    key={importField}
+                    errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}
+                    errorRowStyles={[styles.ph5]}
+                    onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
+                >
+                    <MenuItemWithTopDescription
+                        description={translate(`workspace.netsuite.import.importCustomFields.${importField}.title`)}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importField))}
+                        brickRoadIndicator={config?.errorFields?.[importField] ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    />
+                </OfflineWithFeedback>
+            ))}
         </ConnectionLayout>
     );
 }

@@ -63,7 +63,7 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
-    
+
     /** Whether the screen should load for empty connection */
     isForEmptyConnection?: boolean;
 
@@ -130,7 +130,6 @@ function ConnectionLayout({
             accessVariants={accessVariants}
             featureName={featureName}
             shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
-
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
