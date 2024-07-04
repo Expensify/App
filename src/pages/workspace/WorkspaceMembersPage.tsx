@@ -353,7 +353,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled: isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors)),
+                isDisabled:
+                    !!details.isOptimisticPersonalDetail ||
+                    (isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))),
+                cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -388,6 +391,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         selectedEmployees,
         session?.accountID,
         translate,
+        styles.cursorDefault,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);
