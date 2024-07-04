@@ -110,8 +110,23 @@ type SearchReport = {
     /** The report type */
     type?: string;
 
+    /** The accountID of the report manager */
+    managerID?: number;
+
+    /** The accountID of the user who created the report  */
+    accountID?: number;
+
+    /** The date the report was created */
+    created?: string;
+
     /** The action that can be performed for the report */
     action?: string;
+
+    /** The net report sender ID */
+    accountID?: number;
+
+    /** The net report recipient ID */
+    managerID?: number;
 };
 
 /** Model of transaction search result */

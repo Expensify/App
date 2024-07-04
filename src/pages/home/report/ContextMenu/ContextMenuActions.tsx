@@ -19,6 +19,7 @@ import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
+import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -425,6 +426,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget) => {
+            if (!Permissions.canUseCommentLinking(betas)) {
+                return false;
+            }
+
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
 
             // Only hide the copylink menu item when context menu is opened over img element.
