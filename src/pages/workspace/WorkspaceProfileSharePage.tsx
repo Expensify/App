@@ -40,7 +40,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
 
     const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}`;
 
-    const hasAvatar = Boolean(policy?.avatarURL);
+    const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
     const defaultWorkspaceAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
