@@ -130,21 +130,6 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => {},
                 onExportPagePress: () => {},
-                onAdvancedPagePress: () => {},
-            };
-        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
-            return {
-                title: translate('workspace.accounting.intacct'),
-                icon: Expensicons.XeroSquare,
-                setupConnectionButton: (
-                    <ConnectToXeroButton
-                        policyID={policyID}
-                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
-                        integrationToDisconnect={integrationToDisconnect}
-                    />
-                ),
-                onImportPagePress: () => {},
-                onExportPagePress: () => {},
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)),
             };
         default:

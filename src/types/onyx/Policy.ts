@@ -604,14 +604,6 @@ type SageIntacctDataElement = {
 };
 
 /**
- * Connection data for Sage Intacct
- */
-type SageIntacctConnectionData = {
-    /** Collection of bank accounts */
-    bankAccounts: SageIntacctDataElement[];
-};
-
-/**
  * Connection config for Sage Intacct
  */
 type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -1022,31 +1014,10 @@ type NetSuiteConnection = {
 /**
  * Connection data for Sage Intacct
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-type SageIntacctConnectionData = {};
-
-/**
- * Connection config for Sage Intacct
- */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Sage Intacct credentials */
-    credentials: {
-        /** Sage Intacct companyID */
-        companyID: string;
-
-        /** Sage Intacct password */
-        password: string;
-
-        /** Sage Intacct userID */
-        userID: string;
-    };
-
-    /** Collection of Sage Intacct config errors */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
+type SageIntacctConnectionData = {
+    /** Collection of bank accounts */
+    bankAccounts: SageIntacctDataElement[];
+};
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
