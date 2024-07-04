@@ -128,6 +128,7 @@ function ReportPreview({
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(iouReport, policy);
+    const hasOnlyHeldExpenses = ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '');
     const {isSmallScreenWidth} = useWindowDimensions();
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
 
@@ -203,6 +204,18 @@ function ReportPreview({
             IOU.approveMoneyRequest(iouReport, true);
         }
     };
+
+    const getSettlementAmount = () => {
+        if (hasOnlyHeldExpenses) {
+            return '';
+        }
+
+        if (ReportUtils.hasHeldExpenses(iouReport?.reportID) && canAllowSettlement) {
+            return nonHeldAmount;
+        }
+
+        return CurrencyUtils.convertToDisplayString(reimbursableSpend, iouReport?.currency);
+    }
 
     const getDisplayAmount = (): string => {
         if (totalDisplaySpend) {
@@ -415,7 +428,7 @@ function ReportPreview({
                                 </View>
                                 {shouldShowSettlementButton && (
                                     <SettlementButton
-                                        formattedAmount={getDisplayAmount() ?? ''}
+                                        formattedAmount={getSettlementAmount() ?? ''}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}
@@ -455,7 +468,7 @@ function ReportPreview({
             </View>
             {isHoldMenuVisible && iouReport && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(iouReport?.reportID ?? '') ? nonHeldAmount : undefined}
+                    nonHeldAmount={!hasOnlyHeldExpenses ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
                     isSmallScreenWidth={isSmallScreenWidth}
