@@ -801,29 +801,6 @@ function updateNetSuiteApprovalAccount(policyID: string, value: string, oldValue
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT, parameters, onyxData);
 }
 
-function getNetSuiteCustomFormIDOptionsParamsAndCommand(policyID: string, isReimbursable: boolean, expenseType: ValueOf<typeof CONST.NETSUITE_MAP_EXPORT_DESTINATION>, value: string) {
-    if (isReimbursable) {
-        return {
-            command: WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE,
-            parameters: {
-                policyID,
-                reimbursable: JSON.stringify({
-                    [expenseType]: value,
-                }),
-            },
-        };
-    }
-    return {
-        command: WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE,
-        parameters: {
-            policyID,
-            nonreimbursable: JSON.stringify({
-                [expenseType]: value,
-            }),
-        },
-    };
-}
-
 function updateNetSuiteCustomFormIDOptions(
     policyID: string,
     value: string,
@@ -842,8 +819,13 @@ function updateNetSuiteCustomFormIDOptions(
     };
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.CUSTOM_FORM_ID_OPTIONS, data, oldData);
 
-    const {command, parameters} = getNetSuiteCustomFormIDOptionsParamsAndCommand(policyID, isReimbursable, CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination], value);
-    API.write(command, parameters, onyxData);
+    const commandName = isReimbursable ? WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE : WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE;
+    const parameters = {
+        policyID,
+        formType: CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination],
+        formID: value,
+    };
+    API.write(commandName, parameters, onyxData);
 }
 
 export {

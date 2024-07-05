@@ -554,8 +554,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_VENDOR_BILLS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
-    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteGenericTypeParams<'reimbursable', string>;
-    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteGenericTypeParams<'nonreimbursable', string>;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
+    [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
 };
 
 const READ_COMMANDS = {
