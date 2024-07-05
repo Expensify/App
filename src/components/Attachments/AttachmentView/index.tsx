@@ -4,11 +4,9 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {FileObject} from '@components/AttachmentModal';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
@@ -20,12 +18,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import getImageResolution from '@libs/fileDownload/getImageResolution';
-import Log from '@libs/Log';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import AttachmentViewImage from './AttachmentViewImage';
@@ -111,7 +107,6 @@ function AttachmentView({
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
-    const [isCalculatingDimension, setIsCalculatingDimension] = useState(true);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
 
@@ -125,35 +120,11 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     useNetwork({onReconnect: () => setImageError(false)});
-    const getFileResolution = (targetFile: FileObject | undefined): Promise<{width: number; height: number} | null> => {
-        if (!targetFile) {
-            return Promise.resolve(null);
-        }
-
-        // If the file already has width and height, return them directly
-        if ('width' in targetFile && 'height' in targetFile) {
-            return Promise.resolve({width: targetFile.width ?? 0, height: targetFile.height ?? 0});
-        }
-
-        // Otherwise, attempt to get the image resolution
-        return getImageResolution(targetFile)
-            .then(({width, height}) => ({width, height}))
-            .catch((error: Error) => {
-                Log.hmmm('Failed to get image resolution:', error);
-                return null;
-            });
-    };
 
     useEffect(() => {
-        setIsCalculatingDimension(true);
-        getFileResolution(file)
-            .then((resolution) => {
-                const isImageHighResolution = resolution !== null && resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
-                setIsHighResolution(isImageHighResolution);
-            })
-            .finally(() => {
-                setIsCalculatingDimension(false);
-            });
+        FileUtils.getFileResolution(file).then((resolution) => {
+            setIsHighResolution(FileUtils.isHighResolutionImage(resolution));
+        });
     }, [file]);
 
     // Handles case where source is a component (ex: SVG) or a number
@@ -242,10 +213,6 @@ function AttachmentView({
     const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
     const isFileNameImage = file?.name && Str.isImage(file.name);
     const isFileImage = isSourceImage || isFileNameImage;
-
-    if (isFileImage && isCalculatingDimension) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     if (isFileImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {

@@ -199,18 +199,34 @@ function AttachmentModal({
     const {isOffline} = useNetwork();
 
     const [isHighResolutionImage, setIsHighResolutionImage] = useState(false);
+    // useEffect(() => {
+    //     setIsCalculatingDimension(true);
+    //     FileUtils.getFileResolution(file)
+    //         .then((resolution) => {
+    //             const isImageHighResolution = resolution !== null && resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
+    //             setIsHighResolution(isImageHighResolution);
+    //         })
+    //         .finally(() => {
+    //             setIsCalculatingDimension(false);
+    //         });
+    // }, [file]);
 
     useEffect(() => {
         const fileName = file?.name ?? '';
-        // To prevent crashes on iOS when toggling the modal footer during carousel scrolling via arrow buttons,
-        // delay any toggles until scrolling completes.        
-        if (!file || (isAttachmentCarouselScrolling && !FileUtils.isImage(fileName))) {
+        // Early return for non-image files or when carousel is scrolling
+        if (!file || isAttachmentCarouselScrolling) {
             return;
         }
-        // Simplify high resolution check by directly comparing dimensions with threshold
-        const isHighRes = file && file.width && file.height && file.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && file.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
 
-        setIsHighResolutionImage(!!isHighRes);
+        if (!FileUtils.isImage(fileName)) {
+            setIsHighResolutionImage(false);
+            return;
+        }
+
+        // Asynchronously determine and set the high resolution status of the image
+        FileUtils.getFileResolution(file).then((resolution) => {
+            setIsHighResolutionImage(FileUtils.isHighResolutionImage(resolution));
+        });
     }, [file, isAttachmentCarouselScrolling]);
 
     useEffect(() => {
@@ -555,10 +571,10 @@ function AttachmentModal({
                                 )
                             ))}
                     </View>
-                    {/* If we have an onConfirm method show a confirmation button, if the attachment is High Resolution image show an info*/}
+                    {/* If we have an onConfirm method show a confirmation button, if the attachment is High Resolution image show an info */}
                     {((!!onConfirm && !isConfirmButtonDisabled) || isHighResolutionImage) && (
                         <SafeAreaConsumer>
-                            {({ safeAreaPaddingBottomStyle }) => (
+                            {({safeAreaPaddingBottomStyle}) => (
                                 <>
                                     {isHighResolutionImage && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
@@ -569,10 +585,12 @@ function AttachmentModal({
                                                 fill={theme.icon}
                                                 additionalStyles={styles.p1}
                                             />
-                                            <Text style={[styles.textLabelSupporting]}>{isUploaded ? translate('attachmentPicker.attachmentImageResized') : translate('attachmentPicker.attachmentImageTooLarge')}</Text>
+                                            <Text style={[styles.textLabelSupporting]}>
+                                                {isUploaded ? translate('attachmentPicker.attachmentImageResized') : translate('attachmentPicker.attachmentImageTooLarge')}
+                                            </Text>
                                         </View>
                                     )}
-                                    {!!onConfirm && !isConfirmButtonDisabled && (<>
+                                    {!!onConfirm && !isConfirmButtonDisabled && (
                                         <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                             <Button
                                                 success
@@ -584,7 +602,7 @@ function AttachmentModal({
                                                 isDisabled={isConfirmButtonDisabled}
                                                 pressOnEnter
                                             />
-                                        </Animated.View></>
+                                        </Animated.View>
                                     )}
                                 </>
                             )}
