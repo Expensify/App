@@ -49,9 +49,10 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={styles.pb2}
+            contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            shouldIncludeSafeAreaPaddingBottom
         >
             <View style={[styles.flexGrow1, styles.ph5]}>
                 <FormProvider
