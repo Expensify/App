@@ -23,14 +23,17 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const styles = useThemeStyles();
     const styleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const screenOptions = useMemo(() => ModalNavigatorScreenOptions(styles), [styles]);
     const isExecutingRef = useRef<boolean>(false);
+    const screenOptions = useMemo(() => {
+        const options = ModalNavigatorScreenOptions(styles);
+        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
+        if (isSafari()) {
+            const customInterpolator = createModalCardStyleInterpolator(styleUtils);
+            screenOptions.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+        }
 
-    // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-    if (isSafari()) {
-        const customInterpolator = createModalCardStyleInterpolator(styleUtils);
-        screenOptions.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
-    }
+        return options;
+    }, [isSmallScreenWidth, styleUtils, styles]);
 
     return (
         <NoDropZone>
