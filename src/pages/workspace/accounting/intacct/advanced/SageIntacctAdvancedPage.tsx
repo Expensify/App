@@ -42,7 +42,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                 description: translate('workspace.sageIntacct.autoSyncDescription'),
                 isActive: !!autoSync?.enabled,
                 onToggle: (enabled: boolean) => updateSageIntacctAutoSync(policyID, enabled),
-                pendingAction: pendingFields?.autoSync,
+                pendingAction: pendingFields?.enabled,
                 error: ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
                 onCloseError: () => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.AUTO_SYNC_ENABLED),
             },

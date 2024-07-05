@@ -972,6 +972,12 @@ type SageIntacctConnectionData = {
     bankAccounts: SageIntacctDataElement[];
 };
 
+/** Configuration of automatic synchronization from Sage Intacct to the app */
+type SageIntacctAutoSyncConfig = {
+    /** Whether changes made in Sage Intacct should be reflected into the app automatically */
+    enabled: boolean;
+};
+
 /** Sage Intacct sync */
 type SageIntacctSyncConfig = {
     /** ID of the bank account for Sage Intacct bill payment account */
@@ -1005,10 +1011,7 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         approvalMode: ValueOf<typeof CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL> | null;
 
         /** Configuration of automatic synchronization from Sage Intacct to the app */
-        autoSync: {
-            /** Whether changes made in Sage Intacct should be reflected into the app automatically */
-            enabled: boolean;
-        };
+        autoSync: SageIntacctAutoSyncConfig;
 
         /** Sage Intacct sync */
         sync: SageIntacctSyncConfig;
@@ -1019,7 +1022,7 @@ type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    keyof SageIntacctSyncConfig
+    keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig
 >;
 
 /** State of integration connection */
