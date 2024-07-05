@@ -3294,7 +3294,12 @@ export default {
                 changeType: ({oldType, newType}: ChangeTypeParams) => `changed type from ${oldType} to ${newType}`,
                 delegateSubmit: ({delegateUser, originalManager}: DelegateSubmitParams) => `sent this report to ${delegateUser} since ${originalManager} is on vacation`,
                 exportedToCSV: `exported this report to CSV`,
-                exportedToIntegration: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}`,
+                exportedToIntegration: {
+                    automatic: ({label}: ExportedToIntegrationParams) => `exported this report to ${label}. `,
+                    manual: ({label}: ExportedToIntegrationParams) => `marked this report as manually exported to ${label}. `,
+                    reimburseableLink: 'View out of pocket expenses. ',
+                    nonReimbursableLink: 'View company card expenses. ',
+                },
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
