@@ -3,8 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import type {RawSourceMap} from 'source-map';
 import {SourceMapConsumer, SourceMapGenerator} from 'source-map';
+import parseCommandLineArguments from './utils/parseCommandLineArguments';
 
-const distDir = path.resolve(__dirname, '..', 'dist');
+const argsMap = parseCommandLineArguments();
+
+const distDir = path.resolve(__dirname, '..', argsMap.path ?? 'dist');
 const outputFile = path.join(distDir, 'merged-source-map.js.map');
 
 async function mergeSourceMaps() {
