@@ -125,10 +125,9 @@ function Suggestions(
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
     }, []);
     const checkIfSuggestionVisible = useCallback((): boolean => {
-        const isEmojiVisible = suggestionEmojiRef.current?.checkIfSuggestionVisible();
-        const isSuggestionVisible = suggestionMentionRef.current?.checkIfSuggestionVisible();
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return isEmojiVisible || isSuggestionVisible || false;
+        const isEmojiVisible = suggestionEmojiRef.current?.checkIfSuggestionVisible() ?? false;
+        const isSuggestionVisible = suggestionMentionRef.current?.checkIfSuggestionVisible() ?? false;
+        return isEmojiVisible || isSuggestionVisible;
     }, []);
 
     useImperativeHandle(

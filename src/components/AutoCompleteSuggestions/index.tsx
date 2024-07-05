@@ -26,6 +26,14 @@ function isSuggestionRenderedAbove(isEnoughSpaceAboveForBig: boolean, isEnoughSp
     return isEnoughSpaceAboveForBig || isEnoughSpaceAboveForSmall;
 }
 
+type IsEnoughSpaceAbove = Pick<MeasureParentContainerAndCursor, 'y' | 'cursorCoordinates' | 'scrollValue'> & {
+    contentHeight: number;
+    topInset: number;
+};
+function isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceAbove): boolean {
+    return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+}
+
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
  * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
@@ -67,8 +75,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
 
     const suggestionsLength = props.suggestions.length;
 
-    // console.log('emoji_FOCUS', isFocused);
-
     useEffect(() => {
         if (!measureParentContainerAndReportCursor) {
             return;
@@ -85,8 +91,9 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
             const widthValue = isSmallScreenWidth ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
-            const isEnoughSpaceAboveForBig = y + (cursorCoordinates.y - scrollValue) > contentMaxHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
-            const isEnoughSpaceAboveForSmall = y + (cursorCoordinates.y - scrollValue) > contentMinHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+            const isEnoughSpaceAboveForBig = isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
+            const isEnoughSpaceAboveForSmall = isEnoughSpaceAbove({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
+
             const newLeftValue = isSmallScreenWidth ? x : leftValueForBigScreen;
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - leftValueForBigScreen) > 150;
@@ -107,7 +114,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             } else {
                 // calculation for big suggestion box below the cursor
                 measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight - 0;
+                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
             }
             setSuggestionHeight(measuredHeight);
             setContainerState({
