@@ -93,6 +93,8 @@ type MenuData = {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
+    subtitle?: string;
+    style?: StyleProp<ViewStyle>;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -204,16 +206,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
 
         if (shouldShowSubscriptionsMenu) {
             items.splice(1, 0, {
-                translationKey: 'allSettingsScreen.subscriptions',
-                icon: Expensicons.MoneyBag,
-                action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);
-                },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL),
-                badgeText: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrial', {numOfDays: SubscriptionUtils.calculateRemainingFreeTrialDays()}) : undefined,
-                badgeStyle: SubscriptionUtils.isUserOnFreeTrial() ? styles.badgeSuccess : undefined,
+                translationKey: 'allSettingsScreen.subscription',
+                icon: Expensicons.CreditCard,
+                routeName: ROUTES.SETTINGS_SUBSCRIPTION,
+                // brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                subtitle: SubscriptionUtils.isUserOnFreeTrial() ? translate('subscription.badge.freeTrialLabel') : undefined,
+                style: SubscriptionUtils.isUserOnFreeTrial() ? styles.lhnSuccessText : undefined,
             });
         }
 
@@ -222,7 +220,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, translate]);
+    }, [policies, styles.lhnSuccessText, styles.workspaceSettingsSectionContainer, translate]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -336,6 +334,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
+                                subtitle={item.subtitle}
+                                style={item.style}
                             />
                         );
                     })}

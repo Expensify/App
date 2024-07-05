@@ -52,7 +52,7 @@ function AllSettingsScreen({policies}: AllSettingsScreenProps) {
             ...(shouldShowSubscriptionsMenu
                 ? [
                       {
-                          translationKey: 'allSettingsScreen.subscriptions',
+                          translationKey: 'allSettingsScreen.subscription',
                           icon: Expensicons.MoneyBag,
                           action: () => {
                               Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_POLICIES_URL);

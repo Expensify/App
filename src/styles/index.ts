@@ -1433,6 +1433,11 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
+        lhnSuccessText: {
+            color: theme.success,
+            fontWeight: FontUtils.fontWeight.bold,
+        },
+
         signInPageHeroCenter: {
             position: 'absolute',
             top: 0,
