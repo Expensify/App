@@ -3351,7 +3351,7 @@ export default {
                     }
                     return `exported this report to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}`;
                 },
-                exportInProgress: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
+                exportInProgress: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}...`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
                 integrationsMessage: (errorMessage: string, label: string) => `failed to export this report to ${label} ("${errorMessage}").`,
                 managerAttachReceipt: `added a receipt`,
