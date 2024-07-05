@@ -176,6 +176,7 @@ type GetOptionsConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
     isCategorizeAction?: boolean;
+    includeDomainEmail?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -1108,7 +1109,7 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], i
                 keyForList: searchText,
                 searchText,
                 tooltipText: optionName,
-                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : true,
+                isDisabled: isChild ? !option.enabled || option.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : !selectedOptionsName.includes(searchText),
                 isSelected: isChild ? !!option.isSelected : selectedOptionsName.includes(searchText),
                 pendingAction: option.pendingAction,
             });
@@ -1749,6 +1750,26 @@ function getUserToInviteOption({
 }
 
 /**
+ * Check whether report has violations
+ */
+function shouldShowViolations(report: Report, betas: OnyxEntry<Beta[]>, transactionViolations: OnyxCollection<TransactionViolation[]>) {
+    if (!Permissions.canUseViolations(betas)) {
+        return false;
+    }
+    const {parentReportID, parentReportActionID} = report ?? {};
+    const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
+    if (!canGetParentReport) {
+        return false;
+    }
+    const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
+    const parentReportAction = parentReportActions[parentReportActionID] ?? null;
+    if (!parentReportAction) {
+        return false;
+    }
+    return ReportUtils.shouldDisplayTransactionThreadViolations(report, transactionViolations, parentReportAction);
+}
+
+/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1791,6 +1812,7 @@ function getOptions(
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
         isCategorizeAction = false,
+        includeDomainEmail = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1856,13 +1878,7 @@ function getOptions(
     // Filter out all the reports that shouldn't be displayed
     const filteredReportOptions = options.reports.filter((option) => {
         const report = option.item;
-
-        const {parentReportID, parentReportActionID} = report ?? {};
-        const canGetParentReport = parentReportID && parentReportActionID && allReportActions;
-        const parentReportActions = allReportActions ? allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`] ?? {} : {};
-        const parentReportAction = canGetParentReport ? parentReportActions[parentReportActionID] ?? null : null;
-        const doesReportHaveViolations =
-            (betas?.includes(CONST.BETAS.VIOLATIONS) && ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)) ?? false;
+        const doesReportHaveViolations = shouldShowViolations(report, betas, transactionViolations);
 
         return ReportUtils.shouldReportBeInOptionList({
             report,
@@ -1873,6 +1889,8 @@ function getOptions(
             isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
+            login: option.login,
+            includeDomainEmail,
         });
     });
 
@@ -1946,7 +1964,9 @@ function getOptions(
         return option;
     });
 
-    const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
+    const havingLoginPersonalDetails = includeP2P
+        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
+        : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
@@ -2598,6 +2618,7 @@ export {
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
     getUserToInviteOption,
+    shouldShowViolations,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
