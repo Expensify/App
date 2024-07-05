@@ -48,7 +48,7 @@ type WorkspaceProfilePageOnyxProps = {
 type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 const parser = new ExpensiMark();
 
-function WorkspaceProfilePage({policyDraft, policy, currencyList = {}, route}: WorkspaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy: policyProp, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -56,6 +56,7 @@ function WorkspaceProfilePage({policyDraft, policy, currencyList = {}, route}: W
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
     const {canUseSpotnanaTravel} = usePermissions();
 
+    const policy = policyDraft?.id ? policyDraft : policyProp;
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
@@ -136,11 +137,6 @@ function WorkspaceProfilePage({policyDraft, policy, currencyList = {}, route}: W
             Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
-
-    // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
-    if (policy === undefined) {
-        return null;
-    }
 
     return (
         <WorkspacePageWithSections
