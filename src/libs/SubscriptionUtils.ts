@@ -351,7 +351,7 @@ function hasSubscriptionRedDotError(): boolean {
  * @returns Whether there is a subscription green dot info.
  */
 function hasSubscriptionGreenDotInfo(): boolean {
-    return !getSubscriptionStatus()?.isError ?? false;
+    return getSubscriptionStatus()?.isError === false;
 }
 
 /**
