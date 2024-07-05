@@ -167,12 +167,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
 
             reportIDToTransactions[reportKey] = {
                 ...value,
-<<<<<<< HEAD
-=======
                 keyForList: value.reportID,
-                from: data.personalDetailsList?.[value.accountID],
-                to: data.personalDetailsList?.[value.managerID],
->>>>>>> 87f5cdd7 (Merge pull request #44882 from nkdengineer/fix/44801)
                 transactions,
             };
         } else if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
