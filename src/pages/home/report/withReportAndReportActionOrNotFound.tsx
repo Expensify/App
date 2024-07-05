@@ -7,7 +7,6 @@ import {withOnyx} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
-import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -53,11 +52,11 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 ): ComponentType<TProps & RefAttributes<TRef>> {
     function WithReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const getReportAction = useCallback(() => {
-            let reportAction: OnyxTypes.ReportAction | Record<string, never> | undefined = props.reportActions?.[`${props.route.params.reportActionID}`];
+            let reportAction: OnyxEntry<OnyxTypes.ReportAction> = props.reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
             if (!reportAction?.reportActionID) {
-                reportAction = props?.parentReportAction ?? {};
+                reportAction = props?.parentReportAction ?? undefined;
             }
 
             return reportAction;
@@ -103,7 +102,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
 
-    return compose(
+    return withWindowDimensions(
         withOnyx<TProps & RefAttributes<TRef>, OnyxProps>({
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
@@ -138,9 +137,8 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
                 },
                 canEvict: false,
             },
-        }),
-        withWindowDimensions,
-    )(React.forwardRef(WithReportOrNotFound));
+        })(React.forwardRef(WithReportOrNotFound)),
+    );
 }
 
 export type {WithReportAndReportActionOrNotFoundProps};

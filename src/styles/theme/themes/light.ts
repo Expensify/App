@@ -1,4 +1,3 @@
-import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
@@ -7,7 +6,7 @@ import SCREENS from '@src/SCREENS';
 const lightTheme = {
     // Figma keys
     appBG: colors.productLight100,
-    splashBG: getSplashBackgroundColor(),
+    splashBG: colors.green400,
     highlightBG: colors.productLight200,
     border: colors.productLight400,
     borderLighter: colors.productLight400,
@@ -81,6 +80,8 @@ const lightTheme = {
     mentionBG: colors.blue100,
     ourMentionText: colors.green600,
     ourMentionBG: colors.green100,
+    tooltipHighlightBG: colors.green100,
+    tooltipHighlightText: colors.green500,
     tooltipSupportingText: colors.productDark800,
     tooltipPrimaryText: colors.productDark900,
     trialBannerBackgroundColor: colors.green100,
@@ -135,8 +136,8 @@ const lightTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.TROUBLESHOOT]: {
-            backgroundColor: colors.blue700,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+            backgroundColor: colors.productLight100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.REFERRAL_DETAILS]: {
             backgroundColor: colors.pink800,

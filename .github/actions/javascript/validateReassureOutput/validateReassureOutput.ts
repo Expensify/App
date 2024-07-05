@@ -3,7 +3,7 @@ import type {CompareResult, PerformanceEntry} from '@callstack/reassure-compare/
 import fs from 'fs';
 
 const run = (): boolean => {
-    const regressionOutput: CompareResult = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
+    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8')) as CompareResult;
     const countDeviation = Number(core.getInput('COUNT_DEVIATION', {required: true}));
     const durationDeviation = Number(core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true}));
 

@@ -94,7 +94,7 @@ function IOURequestStepParticipants({
 
             const firstParticipantReportID = val[0]?.reportID ?? '';
             const rateID = DistanceRequestUtils.getCustomUnitRateID(firstParticipantReportID);
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoom(ReportUtils.getReport(firstParticipantReportID));
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && ReportUtils.isInvoiceRoomWithID(firstParticipantReportID);
             numberOfParticipants.current = val.length;
 
             IOU.setMoneyRequestParticipants(transactionID, val);

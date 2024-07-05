@@ -266,10 +266,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderColor: theme.border,
             justifyContent: 'center',
+            overflow: 'hidden',
             boxShadow: variables.popoverMenuShadow,
-            position: 'absolute',
-            left: 0,
-            right: 0,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
 
@@ -363,7 +361,9 @@ const styles = (theme: ThemeColors) =>
         verticalAlignTop: {
             verticalAlign: 'top',
         },
-
+        lineHeightLarge: {
+            lineHeight: variables.lineHeightLarge,
+        },
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -373,6 +373,10 @@ const styles = (theme: ThemeColors) =>
             color: theme.text,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
+        },
+
+        themeTextColor: {
+            color: theme.text,
         },
 
         mutedTextLabel: {
@@ -446,11 +450,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
-        textNewKansasNormal: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
-            fontSize: variables.fontSizeNormal,
-        },
-
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -490,6 +489,10 @@ const styles = (theme: ThemeColors) =>
 
         textBlue: {
             color: theme.link,
+        },
+
+        textBold: {
+            fontWeight: FontUtils.fontWeight.bold,
         },
 
         textVersion: {
@@ -786,7 +789,7 @@ const styles = (theme: ThemeColors) =>
             height: 140,
         },
 
-        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1285,7 +1288,7 @@ const styles = (theme: ThemeColors) =>
             zIndex: 1,
         },
 
-        picker: (disabled = false, backgroundColor = theme.appBG) =>
+        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
             ({
                 iconContainer: {
                     top: Math.round(variables.inputHeight * 0.5) - 11,
@@ -1509,6 +1512,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        canvasContainer: {
+            // Adding border to prevent a bug with the appearance of lines during gesture events for MultiGestureCanvas
+            borderWidth: 1,
+            borderColor: theme.appBG,
+        },
+
         sidebarHeaderContainer: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -1548,7 +1557,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.success,
         },
 
-        statusIndicator: (backgroundColor = theme.danger) =>
+        statusIndicator: (backgroundColor: string = theme.danger) =>
             ({
                 borderColor: theme.sidebar,
                 backgroundColor,
@@ -1562,7 +1571,7 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        bottomTabStatusIndicator: (backgroundColor = theme.danger) => ({
+        bottomTabStatusIndicator: (backgroundColor: string = theme.danger) => ({
             borderColor: theme.sidebar,
             backgroundColor,
             borderRadius: 8,
@@ -1704,7 +1713,7 @@ const styles = (theme: ThemeColors) =>
 
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
-            paddingVertical: 12,
+            paddingVertical: variables.componentBorderRadiusLarge,
         },
 
         createMenuHeaderText: {
@@ -1796,7 +1805,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarLinkActive: {
-            backgroundColor: theme.buttonHoveredBG,
+            backgroundColor: theme.activeComponentBG,
             textDecorationLine: 'none',
         },
 
@@ -2352,11 +2361,6 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        avatarLarge: {
-            width: variables.avatarSizeLarge,
-            height: variables.avatarSizeLarge,
-        },
-
         avatarXLarge: {
             width: variables.avatarSizeXLarge,
             height: variables.avatarSizeXLarge,
@@ -2582,7 +2586,6 @@ const styles = (theme: ThemeColors) =>
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
             paddingHorizontal: 20,
-            paddingBottom: 20,
         },
 
         reportDetailsRoomInfo: {
@@ -2913,6 +2916,14 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             marginLeft: 8,
             marginRight: 20,
+        },
+
+        dividerLine: {
+            height: 1,
+            backgroundColor: theme.border,
+            flexGrow: 1,
+            ...spacing.mh5,
+            ...spacing.mv3,
         },
 
         unreadIndicatorText: {
@@ -3354,13 +3365,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 84,
-        },
-
-        workspaceListBadge: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 6,
+            justifyContent: 'flex-end',
+            width: 124,
         },
 
         workspaceListRBR: {
@@ -3832,6 +3838,22 @@ const styles = (theme: ThemeColors) =>
             ...wordBreak.breakWord,
         },
 
+        quickActionTooltipWrapper: {
+            backgroundColor: theme.tooltipHighlightBG,
+        },
+
+        quickActionTooltipTitle: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontWeight: FontUtils.fontWeight.bold,
+            fontSize: variables.fontSizeLabel,
+            color: theme.tooltipHighlightText,
+        },
+
+        quickActionTooltipSubtitle: {
+            fontSize: variables.fontSizeLabel,
+            color: theme.textDark,
+        },
+
         quickReactionsContainer: {
             gap: 12,
             flexDirection: 'row',
@@ -4022,6 +4044,11 @@ const styles = (theme: ThemeColors) =>
         formSpaceVertical: {
             height: 20,
             width: 1,
+        },
+
+        taskCheckboxWrapper: {
+            height: variables.fontSizeNormalHeight,
+            ...flex.justifyContentCenter,
         },
 
         taskCheckbox: {
@@ -4993,6 +5020,16 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
+        },
+
+        expensifyCardIllustrationContainer: {
+            width: 680,
+            height: 220,
+        },
+
+        computerIllustrationContainer: {
+            width: 272,
+            height: 188,
         },
 
         tripReservationIconContainer: {
