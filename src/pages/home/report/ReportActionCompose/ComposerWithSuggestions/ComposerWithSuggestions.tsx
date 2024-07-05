@@ -506,6 +506,7 @@ function ComposerWithSuggestions(
             if (nativeText === undefined) {
                 // Assume we are on a platform where the text is stored in another field called value (e.g. web)
                 // @ts-expect-error Not properly typed
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 nativeText = target.value;
             }
 
