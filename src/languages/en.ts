@@ -3349,7 +3349,7 @@ export default {
                         // TODO: Verify translation - it was taken from the backend response, and it is needed here for the optimistic response
                         return `You marked this report as manually exported to`;
                     }
-                    return `exported this report to ${label}`;
+                    return `exported this report to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[label] ?? label}`;
                 },
                 exportInProgress: ({label}: ExportedToIntegrationParams) => `started exporting this report to ${label}...`,
                 forwarded: ({amount, currency}: ForwardedParams) => `approved ${currency}${amount}`,
