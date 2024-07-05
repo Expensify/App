@@ -1253,7 +1253,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         connections?: Connections;
 
         /** Report fields attached to the policy */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField>>;
 
         /** Whether the Categories feature is enabled */
         areCategoriesEnabled?: boolean;

@@ -74,6 +74,7 @@ function WorkspaceReportFieldsPage({
             fieldID: reportField.fieldID,
             keyForList: String(reportField.orderWeight),
             orderWeight: reportField.orderWeight,
+            pendingAction: reportField.pendingAction,
             isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined,
             text: reportField.name,
             rightElement: (
