@@ -175,6 +175,7 @@ type GetOptionsConfig = {
     recentlyUsedPolicyReportFieldOptions?: string[];
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     includeInvoiceRooms?: boolean;
+    includeDomainEmail?: boolean;
 };
 
 type GetUserToInviteConfig = {
@@ -991,7 +992,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
     const sortedCategories = Object.values(categories).sort((a, b) => a.name.localeCompare(b.name));
 
     // An object that respects nesting of categories. Also, can contain only uniq categories.
-    const hierarchy = {};
+    const hierarchy: Hierarchy = {};
     /**
      * Iterates over all categories to set each category in a proper place in hierarchy
      * It gets a path based on a category name e.g. "Parent: Child: Subcategory" -> "Parent.Child.Subcategory".
@@ -1009,7 +1010,7 @@ function sortCategories(categories: Record<string, Category>): Category[] {
      */
     sortedCategories.forEach((category) => {
         const path = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-        const existedValue = lodashGet(hierarchy, path, {});
+        const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
         lodashSet(hierarchy, path, {
             ...existedValue,
             name: category.name,
@@ -1802,6 +1803,7 @@ function getOptions(
         policyReportFieldOptions = [],
         recentlyUsedPolicyReportFieldOptions = [],
         includeInvoiceRooms = false,
+        includeDomainEmail = false,
     }: GetOptionsConfig,
 ): Options {
     if (includeCategories) {
@@ -1878,6 +1880,8 @@ function getOptions(
             isInFocusMode: false,
             excludeEmptyChats: false,
             includeSelfDM,
+            login: option.login,
+            includeDomainEmail,
         });
     });
 
@@ -1951,7 +1955,9 @@ function getOptions(
         return option;
     });
 
-    const havingLoginPersonalDetails = includeP2P ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail) : [];
+    const havingLoginPersonalDetails = includeP2P
+        ? options.personalDetails.filter((detail) => !!detail?.login && !!detail.accountID && !detail?.isOptimisticPersonalDetail && (includeDomainEmail || !Str.isDomainEmail(detail.login)))
+        : [];
     let allPersonalDetailsOptions = havingLoginPersonalDetails;
 
     if (sortPersonalDetailsByAlphaAsc) {
