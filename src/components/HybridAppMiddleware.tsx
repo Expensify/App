@@ -35,7 +35,6 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     const {isSplashHidden, setIsSplashHidden} = useSplashScreen();
     const [startedTransition, setStartedTransition] = useState(false);
     const [finishedTransition, setFinishedTransition] = useState(false);
-    const [forcedTransition, setForcedTransition] = useState(false);
 
     const initialURL = useContext(InitialURLContext);
     const routeParams = useTransitionRouteParams();
@@ -43,22 +42,6 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
 
     const [isAccountLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading ?? false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-
-    const maxTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    // We need to ensure that the BootSplash is always hidden after a certain period.
-    useEffect(() => {
-        if (!NativeModules.HybridAppModule) {
-            return;
-        }
-
-        maxTimeoutRef.current = setTimeout(() => {
-            Log.info('[HybridApp] Forcing transition due to unknown problem', true);
-            setStartedTransition(true);
-            setForcedTransition(true);
-            setExitTo(ROUTES.HOME);
-        }, CONST.HYBRID_APP_MAX_TRANSITION_TIMEOUT);
-    }, []);
 
     // Save `exitTo` when we reach /transition route.
     // `exitTo` should always exist during OldDot -> NewDot transitions.
@@ -81,7 +64,6 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
         setIsSplashHidden(false);
         setStartedTransition(false);
         setFinishedTransition(false);
-        setForcedTransition(false);
         setExitTo(undefined);
     }, [setIsSplashHidden]);
 
@@ -94,16 +76,12 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
         const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL ?? undefined, sessionEmail);
 
         // We need to wait with navigating to exitTo until all login-related actions are complete.
-        if ((!authenticated || isLoggingInAsNewUser || isAccountLoading) && !forcedTransition) {
+        if (!authenticated || isLoggingInAsNewUser || isAccountLoading) {
             return;
         }
 
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
-                if (maxTimeoutRef.current) {
-                    clearTimeout(maxTimeoutRef.current);
-                }
-
                 // We need to remove /transition from route history.
                 // `useTransitionRouteParams` returns undefined for routes other than /transition.
                 if (routeParams) {
@@ -119,7 +97,7 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
                 }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
             });
         }
-    }, [authenticated, exitTo, finishedTransition, forcedTransition, initialURL, isAccountLoading, routeParams, sessionEmail, startedTransition]);
+    }, [authenticated, exitTo, finishedTransition, initialURL, isAccountLoading, routeParams, sessionEmail, startedTransition]);
 
     useEffect(() => {
         if (!finishedTransition || isSplashHidden) {
