@@ -561,7 +561,7 @@ function AttachmentModal({
                             {({ safeAreaPaddingBottomStyle }) => (
                                 <>
                                     {isHighResolutionImage && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4]}>
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
                                             <Icon
                                                 src={Expensicons.Info}
                                                 height={variables.iconSizeExtraSmall}
@@ -573,7 +573,7 @@ function AttachmentModal({
                                         </View>
                                     )}
                                     {!!onConfirm && !isConfirmButtonDisabled && (<>
-                                        <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation)]}>
+                                        <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
                                             <Button
                                                 success
                                                 large
