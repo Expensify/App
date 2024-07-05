@@ -112,8 +112,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }),
         [policy],
     ) as PolicyFeatureStates;
-   
-    const fetchPolicyData = useCallback(() => {        
+
+    const fetchPolicyData = useCallback(() => {
         if (policyDraft?.id) {
             return;
         }
