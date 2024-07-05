@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 
@@ -40,8 +41,9 @@ function SearchSelectedNarrow({options, itemsLength}: SearchSelectedNarrowProps)
                             <Text>{translate('workspace.common.selected', {selectedNumber: itemsLength})}</Text>
                             <Icon
                                 src={Expensicons.DownArrow}
-                                width={14}
-                                height={14}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                                fill={theme.icon}
                                 additionalStyles={styles.ml2}
                             />
                         </View>
