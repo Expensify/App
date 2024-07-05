@@ -24,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchDataTypes, SearchQuery} from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SearchListWithHeader from './SearchListWithHeader';
 import SearchPageHeader from './SearchPageHeader';
@@ -90,7 +89,7 @@ function Search({query, policyIDs, sortBy, sortOrder}: SearchProps) {
 
     const isLoadingItems = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const isLoadingMoreItems = !isLoadingItems && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
-    const shouldShowEmptyState = !isLoadingItems && isEmptyObject(searchResults?.data);
+    const shouldShowEmptyState = !isLoadingItems && SearchUtils.isSearchResultsEmpty(searchResults);
 
     if (isLoadingItems) {
         return (
