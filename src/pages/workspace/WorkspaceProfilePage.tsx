@@ -31,20 +31,24 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { FullScreenNavigatorParamList } from '@libs/Navigation/types';
+import type { StackScreenProps } from '@react-navigation/stack';
+import type SCREENS from '@src/SCREENS';
+import useNetwork from '@hooks/useNetwork';
+import { useFocusEffect } from '@react-navigation/native';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
-type WorkSpaceProfilePageOnyxProps = {
+type WorkspaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
-type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps;
-
+type WorkspaceProfilePageProps = WithPolicyProps & WorkspaceProfilePageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.PROFILE>;
 const parser = new ExpensiMark();
 
-function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
+function WorkspaceProfilePage({policyDraft, policy, currencyList = {}, route}: WorkspaceProfilePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -81,6 +85,23 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
     const readOnly = !PolicyUtils.isPolicyAdmin(policy);
     const imageStyle: StyleProp<ImageStyle> = isSmallScreenWidth ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || formattedAddress;
+
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
+        Policy.openPolicyProfilePage(route.params.policyID);
+    }, [policyDraft?.id, route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    // We have the same focus effect in the WorkspaceInitialPage, this way we can get the policy data in narrow
+    // as well as in the wide layout when looking at policy settings.
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const DefaultAvatar = useCallback(
         () => (
@@ -282,7 +303,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
 WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
-    withOnyx<WorkSpaceProfilePageProps, WorkSpaceProfilePageOnyxProps>({
+    withOnyx<WorkspaceProfilePageProps, WorkspaceProfilePageOnyxProps>({
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );
