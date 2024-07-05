@@ -2384,8 +2384,6 @@ export default {
                     },
                 },
             },
-            noAccountsFound: 'No accounts found',
-            noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
             noVendorsFoundDescription: 'Add vendors in NetSuite and sync the connection again.',
             noItemsFound: 'No invoice items found',

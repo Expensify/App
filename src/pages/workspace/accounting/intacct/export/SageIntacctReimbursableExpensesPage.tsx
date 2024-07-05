@@ -83,7 +83,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyProps) {
             headerTitle="workspace.sageIntacct.reimbursableExpenses.label"
             title="workspace.sageIntacct.reimbursableExpenses.description"
             titleStyle={[styles.ph5, styles.pb5]}
-            onBackButtonPressRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName={SageIntacctReimbursableExpensesPage.displayName}
