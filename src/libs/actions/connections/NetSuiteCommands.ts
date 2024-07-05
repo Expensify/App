@@ -807,9 +807,9 @@ function getNetSuiteCustomFormIDOptionsParamsAndCommand(policyID: string, isReim
             command: WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE,
             parameters: {
                 policyID,
-                reimbursable: {
+                reimbursable: JSON.stringify({
                     [expenseType]: value,
-                },
+                }),
             },
         };
     }
@@ -817,9 +817,9 @@ function getNetSuiteCustomFormIDOptionsParamsAndCommand(policyID: string, isReim
         command: WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE,
         parameters: {
             policyID,
-            nonreimbursable: {
+            nonreimbursable: JSON.stringify({
                 [expenseType]: value,
-            },
+            }),
         },
     };
 }
