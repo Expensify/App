@@ -65,9 +65,8 @@ type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
  * Inverts an object, equivalent of _.invert
  */
 function invertObject(object: Record<string, string>): Record<string, string> {
-    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key]);
-    const inverted: Record<string, string> = Object.fromEntries(invertedEntries);
-    return inverted;
+    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key] as const);
+    return Object.fromEntries(invertedEntries);
 }
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
@@ -355,7 +354,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 accountID,
                 isSelected,
                 isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
-                isDisabled: isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors)),
+                isDisabled:
+                    !!details.isOptimisticPersonalDetail ||
+                    (isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors))),
+                cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -390,6 +392,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         selectedEmployees,
         session?.accountID,
         translate,
+        styles.cursorDefault,
     ]);
 
     const data = useMemo(() => getUsers(), [getUsers]);

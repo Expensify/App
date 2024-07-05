@@ -253,6 +253,8 @@ function getOptionData({
         searchText: undefined,
         isPinned: false,
         hasOutstandingChildRequest: false,
+        hasOutstandingChildTask: false,
+        hasParentAccess: undefined,
         isIOUReportOwner: null,
         isChatRoom: false,
         isArchivedRoom: false,
@@ -306,6 +308,8 @@ function getOptionData({
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
+    result.hasOutstandingChildTask = report.hasOutstandingChildTask;
+    result.hasParentAccess = report.hasParentAccess;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
