@@ -565,7 +565,16 @@ function AttachmentModal({
                             {({safeAreaPaddingBottomStyle}) => (
                                 <>
                                     {isHighResolutionImage && (
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.justifyContentCenter, styles.m4, safeAreaPaddingBottomStyle]}>
+                                        <View
+                                            style={[
+                                                styles.flexRow,
+                                                styles.alignItemsCenter,
+                                                styles.gap2,
+                                                styles.justifyContentCenter,
+                                                styles.m4,
+                                                !!onConfirm && !isConfirmButtonDisabled ? {} : safeAreaPaddingBottomStyle,
+                                            ]}
+                                        >
                                             <Icon
                                                 src={Expensicons.Info}
                                                 height={variables.iconSizeExtraSmall}
