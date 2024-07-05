@@ -5086,6 +5086,9 @@ const CONST = {
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
 
+    PAGINATION_START_ID: '-1',
+    PAGINATION_END_ID: '-2',
+
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
         AUD: 'AUD',

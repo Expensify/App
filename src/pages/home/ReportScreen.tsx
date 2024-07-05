@@ -35,6 +35,7 @@ import Timing from '@libs/actions/Timing';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
+import PaginationUtils from '@libs/PaginationUtils';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -70,6 +71,9 @@ type ReportScreenOnyxProps = {
 
     /** An array containing all report actions related to this report, sorted based on a date criterion */
     sortedAllReportActions: OnyxTypes.ReportAction[];
+
+    /** Pagination data for sortedAllReportActions */
+    reportActionPages: OnyxEntry<OnyxTypes.Pages>;
 
     /** Additional report details */
     reportNameValuePairs: OnyxEntry<OnyxTypes.ReportNameValuePairs>;
@@ -120,6 +124,7 @@ function ReportScreen({
     route,
     reportNameValuePairs,
     sortedAllReportActions,
+    reportActionPages,
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
@@ -287,8 +292,8 @@ function ReportScreen({
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
-    }, [reportActionIDFromRoute, sortedAllReportActions]);
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, reportActionIDFromRoute);
+    }, [reportActionIDFromRoute, sortedAllReportActions, reportActionPages]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
@@ -736,7 +741,7 @@ function ReportScreen({
                     navigation={navigation}
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={isTopMostReportId || isReportOpenInRHP}
-                    testID={ReportScreen.displayName}
+                    testID={`report-screen-${report.reportID}`}
                 >
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
@@ -776,6 +781,7 @@ function ReportScreen({
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={onListLayout}
+                                testID="report-actions-view-wrapper"
                             >
                                 {shouldShowReportActionList && (
                                     <ReportActionsView
@@ -833,6 +839,9 @@ export default withCurrentReportID(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
                 selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
+            },
+            reportActionPages: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getReportID(route)}`,
             },
             reportNameValuePairs: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getReportID(route)}`,

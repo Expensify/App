@@ -5,7 +5,7 @@ import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
 
-type ApiRequest = ValueOf<typeof CONST.API_REQUEST_TYPE>;
+type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
     SET_WORKSPACE_AUTO_REPORTING_FREQUENCY: 'SetWorkspaceAutoReportingFrequency',
@@ -494,7 +494,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
-
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_AUTO_RENEW]: Parameters.UpdateSubscriptionAutoRenewParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_ADD_NEW_USERS_AUTOMATICALLY]: Parameters.UpdateSubscriptionAddNewUsersAutomaticallyParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
@@ -674,4 +673,11 @@ type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameter
 
 export {WRITE_COMMANDS, READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS};
 
-export type {ApiRequest, ApiRequestCommandParameters, WriteCommand, ReadCommand, SideEffectRequestCommand};
+type ApiCommand = WriteCommand | ReadCommand | SideEffectRequestCommand;
+type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE
+    ? WriteCommand
+    : TRequestType extends typeof CONST.API_REQUEST_TYPE.READ
+    ? ReadCommand
+    : SideEffectRequestCommand;
+
+export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, WriteCommand, ReadCommand, SideEffectRequestCommand};
