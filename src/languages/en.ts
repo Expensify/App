@@ -1,4 +1,5 @@
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -16,6 +17,7 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
+    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -355,6 +357,9 @@ export default {
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
+        initialValue: 'Initial value',
+        currentDate: 'Current date',
+        value: 'Value',
     },
     location: {
         useCurrent: 'Use current location',
@@ -699,6 +704,7 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
+        business: 'Business',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} as an individual` : `Pay as an individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pay ${formattedAmount}`,
@@ -788,8 +794,12 @@ export default {
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
+        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
+            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
         confirmPay: 'Confirm payment amount',
-        confirmPayAmount: "Pay what's not on hold, or pay all out-of-pocket spend.",
+        confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
+        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
+            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to pay anyway?`,
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This expense is on',
@@ -972,6 +982,8 @@ export default {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
+            maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
+            exportOnyxState: 'Export Onyx state',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -1987,7 +1999,7 @@ export default {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
-            reportFields: 'Report Fields',
+            reportFields: 'Report fields',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
@@ -2089,14 +2101,11 @@ export default {
             outOfPocketTaxEnabledError: 'Journal entries are unavailable when taxes are enabled. Please choose a different export option.',
             outOfPocketLocationEnabledError: 'Vendor bills are unavailable when locations are enabled. Please choose a different export option.',
             advancedConfig: {
-                advanced: 'Advanced',
-                autoSync: 'Auto-sync',
                 autoSyncDescription: 'Expensify will automatically sync with QuickBooks Online every day.',
                 inviteEmployees: 'Invite employees',
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite employees to this workspace.',
                 createEntities: 'Auto-create entities',
                 createEntitiesDescription: "Expensify will automatically create vendors in QuickBooks Online if they don't exist already, and auto-create customers when exporting invoices.",
-                reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks Online account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
@@ -2161,11 +2170,8 @@ export default {
             salesInvoice: 'Sales invoice',
             exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
             advancedConfig: {
-                advanced: 'Advanced',
-                autoSync: 'Auto-sync',
                 autoSyncDescription: 'Expensify will automatically sync with Xero every day.',
                 purchaseBillStatusTitle: 'Purchase bill status',
-                reimbursedReports: 'Sync reimbursed reports',
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero bill payment account',
                 xeroInvoiceCollectionAccount: 'Xero invoice collections account',
@@ -2284,6 +2290,49 @@ export default {
                     },
                 },
             },
+            advancedConfig: {
+                autoSyncDescription: 'Expensify will automatically sync with NetSuite every day.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the NetSuite account below.',
+                reimbursementsAccount: 'Reimbursements account',
+                collectionsAccount: 'Collections account',
+                approvalAccount: 'A/P approval account',
+                defaultApprovalAccount: 'NetSuite default',
+                inviteEmployees: 'Invite employees and set approvals',
+                inviteEmployeesDescription:
+                    'Import NetSuite employee records and invite employees to this workspace. Your approval workflow will default to manager approval and can be further configured on the *Members* page.',
+                autoCreateEntities: 'Auto-create employees/vendors',
+                enableCategories: 'Enable newly imported categories',
+                customFormID: 'Custom form ID',
+                customFormIDDescription:
+                    'By default, Expensify will create entries using the preferred transaction form set in NetSuite. Alternatively, you have the option to designate a specific transaction form to be used.',
+                customFormIDReimbursable: 'Reimbursable expense',
+                customFormIDNonReimbursable: 'Non-reimbursable expense',
+                exportReportsTo: {
+                    label: 'Expense report approval level',
+                    values: {
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_SUPERVISOR_APPROVED]: 'Only supervisor approved',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_ACCOUNTING_APPROVED]: 'Only accounting approved',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Supervisor and accounting approved',
+                    },
+                },
+                exportVendorBillsTo: {
+                    label: 'Vendor bill approval level',
+                    values: {
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVAL_PENDING]: 'Pending approval',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED]: 'Approved for posting',
+                    },
+                },
+                exportJournalsTo: {
+                    label: 'Journal entry approval level',
+                    values: {
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE]: 'NetSuite default preference',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVAL_PENDING]: 'Pending approval',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Approved for posting',
+                    },
+                },
+            },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
             noVendorsFound: 'No vendors found',
@@ -2292,20 +2341,86 @@ export default {
             noItemsFoundDescription: 'Add invoice items in NetSuite and sync the connection again.',
             noSubsidiariesFound: 'No subsidiaries found',
             noSubsidiariesFoundDescription: 'Add the subsidiary in NetSuite and sync the connection again.',
+            tokenInput: {
+                title: 'NetSuite setup',
+                formSteps: {
+                    installBundle: {
+                        title: 'Install the Expensify bundle',
+                        description: 'In NetSuite, go to *Customization > SuiteBundler > Search & Install Bundles* > search for "Expensify" > install the bundle.',
+                    },
+                    enableTokenAuthentication: {
+                        title: 'Enable token-based authentication',
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *token-based authentication*.',
+                    },
+                    enableSoapServices: {
+                        title: 'Enable SOAP web services',
+                        description: 'In NetSuite, go to *Setup > Company > Enable Features > SuiteCloud* > enable *SOAP Web Services*.',
+                    },
+                    createAccessToken: {
+                        title: 'Create an access token',
+                        description:
+                            'In NetSuite, go to *Setup > Users/Roles > Access Tokens* > create an access token for the "Expensify" app and either the "Expensify Integration" or "Administrator" role.\n\n*Important:* Make sure you save the *Token ID* and *Token Secret* from this step. You\'ll need it for the next step.',
+                    },
+                    enterCredentials: {
+                        title: 'Enter your NetSuite credentials',
+                        formInputs: {
+                            netSuiteAccountID: 'NetSuite Account ID',
+                            netSuiteTokenID: 'Token ID',
+                            netSuiteTokenSecret: 'Token Secret',
+                        },
+                        netSuiteAccountIDDescription: 'In NetSuite, go to *Setup > Integration > SOAP Web Services Preferences*.',
+                    },
+                },
+            },
             import: {
                 expenseCategories: 'Expense categories',
                 expenseCategoriesDescription: 'NetSuite expense categories import into Expensify as categories.',
+                crossSubsidiaryCustomers: 'Cross-subsidiary customer/projects',
                 importFields: {
-                    departments: 'Departments',
-                    classes: 'Classes',
-                    locations: 'Locations',
-                    customers: 'Customers',
-                    jobs: 'Projects (jobs)',
+                    departments: {
+                        title: 'Departments',
+                        subtitle: 'Choose how to handle the NetSuite *departments* in Expensify.',
+                    },
+                    classes: {
+                        title: 'Classes',
+                        subtitle: 'Choose how to handle *classes* in Expensify.',
+                    },
+                    locations: {
+                        title: 'Locations',
+                        subtitle: 'Choose how to handle *locations* in Expensify.',
+                    },
+                },
+                customersOrJobs: {
+                    title: 'Customers / projects',
+                    subtitle: 'Choose how to handle NetSuite *customers* and *projects* in Expensify.',
+                    importCustomers: 'Import customers',
+                    importJobs: 'Import projects',
+                    customers: 'customers',
+                    jobs: 'projects',
+                    label: (importFields: string[], importType: string) => `${importFields.join(' and ')}, ${importType}`,
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
                     customSegments: 'Custom segments/records',
                     customLists: 'Custom lists',
+                },
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'NetSuite employee default',
+                        description: 'Not imported into Expensify, applied on export',
+                        footerContent: (importField: string) =>
+                            `If you use ${importField} in NetSuite, we'll apply the default set on the employee record upon export to Expense Report or Journal Entry.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Tags',
+                        description: 'Line-item level',
+                        footerContent: (importField: string) => `${startCase(importField)} will be selectable for each individual expense on an employee's report.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Report fields',
+                        description: 'Report level',
+                        footerContent: (importField: string) => `${startCase(importField)} selection will apply to all expense on an employee's report.`,
+                    },
                 },
             },
         },
@@ -2390,6 +2505,16 @@ export default {
                 disableCardTitle: 'Disable Expensify Card',
                 disableCardPrompt: 'You can’t disable the Expensify Card because it’s already in use. Reach out to Concierge for next steps.',
                 disableCardButton: 'Chat with Concierge',
+                feed: {
+                    title: 'Get the Expensify Card',
+                    subTitle: 'Streamline your business with the Expensify Card',
+                    features: {
+                        cashBack: 'Up to 2% cash back on every US purchase',
+                        unlimited: 'Issue unlimited virtual cards',
+                        spend: 'Spend controls and custom limits',
+                    },
+                    ctaTitle: 'Issue new card',
+                },
             },
             workflows: {
                 title: 'Workflows',
@@ -2430,9 +2555,42 @@ export default {
                 title: "You haven't created any report fields",
                 subtitle: 'Add a custom field (text, date, or dropdown) that appears on reports.',
             },
-            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information",
+            subtitle: "Report fields apply to all spend and can be helpful when you'd like to prompt for extra information.",
             disableReportFields: 'Disable report fields',
             disableReportFieldsConfirmation: 'Are you sure? Text and date fields will be deleted, and lists will be disabled.',
+            textType: 'Text',
+            dateType: 'Date',
+            dropdownType: 'List',
+            textAlternateText: 'Add a field for free text input.',
+            dateAlternateText: 'Add a calendar for date selection.',
+            dropdownAlternateText: 'Add a list of options to choose from.',
+            nameInputSubtitle: 'Choose a name for the report field.',
+            typeInputSubtitle: 'Choose what type of report field to use.',
+            initialValueInputSubtitle: 'Enter a starting value to show in the report field.',
+            listValuesInputSubtitle: 'These values will appear in your report field dropdown. Enabled values can be selected by members.',
+            listInputSubtitle: 'These values will appear in your report field list. Enabled values can be selected by members.',
+            deleteValue: 'Delete value',
+            deleteValues: 'Delete values',
+            disableValue: 'Disable value',
+            disableValues: 'Disable values',
+            enableValue: 'Enable value',
+            enableValues: 'Enable values',
+            emptyReportFieldsValues: {
+                title: "You haven't created any list values",
+                subtitle: 'Add custom values to appear on reports.',
+            },
+            deleteValuePrompt: 'Are you sure you want to delete this list value?',
+            deleteValuesPrompt: 'Are you sure you want to delete these list values?',
+            listValueRequiredError: 'Please enter a list value name',
+            existingListValueError: 'A list value with this name already exists',
+            editValue: 'Edit value',
+            listValues: 'List values',
+            addValue: 'Add value',
+            existingReportFieldNameError: 'A report field with this name already exists',
+            reportFieldNameRequiredError: 'Please enter a report field name',
+            reportFieldTypeRequiredError: 'Please choose a report field type',
+            reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
+            genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
         },
         tags: {
             tagName: 'Tag name',
@@ -2762,6 +2920,8 @@ export default {
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportAs: 'Export as',
             defaultVendor: 'Default vendor',
+            autoSync: 'Auto-sync',
+            reimbursedReports: 'Sync reimbursed reports',
         },
         bills: {
             manageYourBills: 'Manage your bills',
@@ -2844,6 +3004,8 @@ export default {
         editor: {
             descriptionInputLabel: 'Description',
             nameInputLabel: 'Name',
+            typeInputLabel: 'Type',
+            initialValueInputLabel: 'Initial value',
             nameInputHelpText: "This is the name you'll see on your workspace.",
             nameIsRequiredError: "You'll need to give your workspace a name.",
             currencyInputLabel: 'Default currency',
