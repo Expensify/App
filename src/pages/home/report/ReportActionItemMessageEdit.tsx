@@ -374,23 +374,21 @@ function ReportActionItemMessageEdit(
                 return;
             }
             const keyEvent = e as KeyboardEvent;
-            const isShortcutEnter = keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey;
-            const isShortcutEscape = keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey;
             const isSuggestionActive = suggestionsRef.current?.checkIfSuggestionVisible();
 
-            if (isSuggestionActive && isShortcutEnter) {
+            if (isSuggestionActive && keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                 suggestionsRef.current?.triggerHotkeyActions(keyEvent);
                 return;
             }
-            if (isShortcutEscape && isSuggestionActive) {
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey && isSuggestionActive) {
                 e.preventDefault();
                 hideSuggestionMenu();
                 return;
             }
-            if (isShortcutEnter && !keyEvent.shiftKey) {
+            if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !keyEvent.shiftKey) {
                 e.preventDefault();
                 publishDraft();
-            } else if (isShortcutEscape) {
+            } else if (keyEvent.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
                 e.preventDefault();
                 deleteDraft();
             }
