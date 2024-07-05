@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Account, Credentials, Session} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ValidateCodeFormProps from './types';
+import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 
 type BaseValidateCodeFormOnyxProps = {
     /** The details about the account that the user is signing in with */
@@ -291,7 +292,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
 
     return (
-        <>
+        <SafariFormWrapper>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
             {account?.requiresTwoFactorAuth ? (
                 <View style={[styles.mv3]}>
@@ -402,7 +403,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
                 <Terms />
             </View>
-        </>
+        </SafariFormWrapper>
     );
 }
 
