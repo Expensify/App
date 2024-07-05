@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
-import type {TupleToUnion} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
@@ -20,7 +20,7 @@ import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;;
 
 type NetSuiteImportCustomFieldPageProps = WithPolicyConnectionsProps & {
     route: {

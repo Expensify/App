@@ -111,7 +111,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                 />
             )}
 
-            {CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.map((importField) => (
+            {Object.values(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS).map((importField) => (
                 <OfflineWithFeedback
                     key={importField}
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, importField)}

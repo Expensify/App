@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -22,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
-type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 type ImportListItem = SelectorType & {
     value: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
 };

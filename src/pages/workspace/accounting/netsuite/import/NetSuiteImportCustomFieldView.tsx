@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
-import type {TupleToUnion} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import ConnectionLayout from '@components/ConnectionLayout';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,7 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
-type ImportCustomFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
+type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
 
 type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     route: {

@@ -975,17 +975,17 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
-        getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:internalID',
-        getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string) =>
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${internalID}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:internalID/:fieldName',
-        getRoute: (policyID: string, importCustomField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string, fieldName: string) =>
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string, fieldName: string) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/edit/${internalID}/${fieldName}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {

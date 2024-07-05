@@ -1387,7 +1387,10 @@ const CONST = {
             3: 'createAccessToken',
             4: 'enterCredentials',
         },
-        IMPORT_CUSTOM_FIELDS: ['customSegments', 'customLists'],
+        IMPORT_CUSTOM_FIELDS: {
+            CUSTOM_SEGMENTS: 'customSegments', 
+            CUSTOM_LISTS: 'customLists'
+        },
         CUSTOM_SEGMENT_FIELDS: ['segmentName', 'internalID', 'scriptID', 'mapping'],
         CUSTOM_LIST_FIELDS: ['listName', 'internalID', 'transactionFieldID', 'mapping'],
         SYNC_OPTIONS: {
