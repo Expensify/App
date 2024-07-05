@@ -6,6 +6,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
@@ -20,7 +21,7 @@ function ExportIntegration({action}: ExportIntegrationProps) {
     const {label, markedManually, reimbursableUrls, nonReimbursableUrls} = (ReportActionUtils.getOriginalMessage(action) ?? {}) as OriginalMessageExportIntegration;
     const wasExportedAfterBase62 = (action?.created ?? '') > '2022-11-14';
     const reportID = action?.reportID ?? '';
-    const base62ReportID = 'BASE62REPORTID';
+    const base62ReportID = ReportUtils.getBase62ReportID(Number(reportID));
 
     const exportText = markedManually ? translate('report.actions.type.exportedToIntegration.manual', {label}) : translate('report.actions.type.exportedToIntegration.automatic', {label});
 

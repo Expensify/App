@@ -7059,6 +7059,24 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
     return Object.values(allReports ?? {}).find((report) => isPolicyExpenseChat(report) && report?.policyID === policyID);
 }
 
+/**
+ * Take an integer reportID and convert it to a string representing a Base-62 report ID.
+ *
+ * @return string The reportID in base 62-format, always 12 characters beginning with `R`.
+ */
+function getBase62ReportID(reportID: number): string {
+    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    let remainder = reportID;
+    while (remainder > 0) {
+        const currentVal = remainder % 62;
+        result = alphabet[currentVal] + result;
+        remainder = Math.floor(remainder / 62);
+    }
+
+    return `R${result.padStart(11, '0')}`;
+}
+
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -7338,6 +7356,7 @@ export {
     findPolicyExpenseChatByPolicyID,
     isIndividualInvoiceRoom,
     hasOnlyNonReimbursableTransactions,
+    getBase62ReportID,
 };
 
 export type {
