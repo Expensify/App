@@ -36,7 +36,7 @@ type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & StackScreenPr
 
 function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();
-    const {showSplashScreenOnNextStart} = useHybridAppMiddleware();
+    const showSplashScreenOnNextStart = useHybridAppMiddleware();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -88,8 +88,8 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                     onPress={() => {
                         ExitSurvey.switchToOldDot().then(() => {
                             if (NativeModules.HybridAppModule) {
-                                Navigation.resetToHome();
                                 showSplashScreenOnNextStart();
+                                Navigation.resetToHome();
                                 NativeModules.HybridAppModule.closeReactNativeApp();
                                 return;
                             }

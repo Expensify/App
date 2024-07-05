@@ -154,7 +154,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             }}
         >
             {/* HybridAppMiddleware needs to have access to navigation ref and SplashScreenHidden context */}
-            <HybridAppMiddleware>
+            <HybridAppMiddleware authenticated={authenticated}>
                 <AppNavigator authenticated={authenticated} />
             </HybridAppMiddleware>
         </NavigationContainer>
