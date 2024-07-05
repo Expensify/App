@@ -1,4 +1,4 @@
-import {useNavigationState} from '@react-navigation/native';
+import {useFocusEffect, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -87,7 +87,7 @@ function dismissError(policyID: string, pendingAction: PendingAction | undefined
     }
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -112,6 +112,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }),
         [policy],
     ) as PolicyFeatureStates;
+
+    const fetchPolicyData = useCallback(() => {
+        if (policyDraft?.id) {
+            return;
+        }
+        Policy.openPolicyInitialPage(route.params.policyID);
+    }, [policyDraft?.id, route.params.policyID]);
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
 
     const policyID = policy?.id ?? '-1';
     const policyName = policy?.name ?? '';

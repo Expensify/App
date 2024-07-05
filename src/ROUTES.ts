@@ -866,6 +866,34 @@ const ROUTES = {
         route: 'r/:threadReportID/duplicates/review',
         getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review` as const,
     },
+    TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/merchant',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/merchant` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/category',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/category` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tag',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tag` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/tax-code',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/tax-code` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
+        route: 'r/:threadReportID/duplicates/confirm',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/confirm` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/reimbursable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/reimbursable` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
+        route: 'r/:threadReportID/duplicates/review/billable',
+        getRoute: (threadReportID: string) => `r/${threadReportID}/duplicates/review/billable` as const,
+    },
 
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/xero/import',

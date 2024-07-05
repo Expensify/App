@@ -19,7 +19,9 @@ import type {
     LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
     OpenPolicyExpensifyCardsPageParams,
+    OpenPolicyInitialPageParams,
     OpenPolicyMoreFeaturesPageParams,
+    OpenPolicyProfilePageParams,
     OpenPolicyTaxesPageParams,
     OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
@@ -187,7 +189,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
  */
 function getPrimaryPolicy(activePolicyID?: OnyxEntry<string>): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
-    const primaryPolicy: Policy | null | undefined = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? '-1'];
 
     return primaryPolicy ?? activeAdminWorkspaces[0];
 }
@@ -2849,6 +2851,18 @@ function openPolicyMoreFeaturesPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
 }
 
+function openPolicyProfilePage(policyID: string) {
+    const params: OpenPolicyProfilePageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
+}
+
+function openPolicyInitialPage(policyID: string) {
+    const params: OpenPolicyInitialPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE, params);
+}
+
 function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
     const policy = getPolicy(policyID);
     const originalCustomTaxName = policy?.taxRates?.name;
@@ -3056,6 +3070,8 @@ export {
     enablePolicyWorkflows,
     enableDistanceRequestTax,
     openPolicyMoreFeaturesPage,
+    openPolicyProfilePage,
+    openPolicyInitialPage,
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,

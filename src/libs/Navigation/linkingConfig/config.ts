@@ -772,6 +772,34 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
                             exact: true,
                         },
+                        [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.TAG]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.TAX_CODE]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.REIMBURSABLE]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.route,
+                            exact: true,
+                        },
+                        [SCREENS.TRANSACTION_DUPLICATE.BILLABLE]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.route,
+                            exact: true,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {

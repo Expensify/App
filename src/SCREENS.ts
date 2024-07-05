@@ -186,6 +186,13 @@ const SCREENS = {
 
     TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
+        MERCHANT: 'Transaction_Duplicate_Merchant',
+        CATEGORY: 'Transaction_Duplicate_Category',
+        TAG: 'Transaction_Duplicate_Tag',
+        DESCRIPTION: 'Transaction_Duplicate_Description',
+        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
+        BILLABLE: 'Transaction_Duplicate_Billable',
     },
 
     IOU_SEND: {

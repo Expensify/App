@@ -3938,6 +3938,7 @@ const CONST = {
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
     },
+    REVIEW_DUPLICATES_ORDER: ['merchant', 'category', 'tag', 'description', 'taxCode', 'billable', 'reimbursable'],
 
     /** Context menu types */
     CONTEXT_MENU_TYPES: {
@@ -5097,6 +5098,9 @@ const CONST = {
     },
 
     SUBSCRIPTION_SIZE_LIMIT: 20000,
+
+    PAGINATION_START_ID: '-1',
+    PAGINATION_END_ID: '-2',
 
     PAYMENT_CARD_CURRENCY: {
         USD: 'USD',
