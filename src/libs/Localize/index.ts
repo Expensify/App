@@ -64,8 +64,8 @@ type PluralTranslationPhraseFunction = (count: number, record?: TranslationPhras
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends PluralTranslationPhraseFunction
     ? PluralTranslationPhraseFunction
     : TranslationFlatObject[TKey] extends TranslationPhraseFunction
-    ? TranslationPhraseFunction
-    : string;
+      ? TranslationPhraseFunction
+      : string;
 
 // Update PhraseParameters to handle both types of functions
 type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [number, TranslationPhraseRecord?] : T extends TranslationPhraseFunction ? Parameters<T> : TranslationPhraseArg[];
@@ -98,10 +98,13 @@ type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [number, 
  * in our cache.
  */
 const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>>(
-    Object.values(CONST.LOCALES).reduce((cache, locale) => {
-        cache.push([locale, new Map<TranslationPaths, string>()]);
-        return cache;
-    }, [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>),
+    Object.values(CONST.LOCALES).reduce(
+        (cache, locale) => {
+            cache.push([locale, new Map<TranslationPaths, string>()]);
+            return cache;
+        },
+        [] as Array<[ValueOf<typeof CONST.LOCALES>, Map<TranslationPaths, string>]>,
+    ),
 );
 
 /**

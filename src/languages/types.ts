@@ -257,12 +257,12 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
     [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
         ? `${TPrefix}${TKey & string}`
         : // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        TObject[TKey] extends any[]
-        ? `${TPrefix}${TKey & string}`
-        : // eslint-disable-next-line @typescript-eslint/ban-types
-        TObject[TKey] extends object
-        ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
-        : `${TPrefix}${TKey & string}`;
+          TObject[TKey] extends any[]
+          ? `${TPrefix}${TKey & string}`
+          : // eslint-disable-next-line @typescript-eslint/ban-types
+            TObject[TKey] extends object
+            ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
+            : `${TPrefix}${TKey & string}`;
 }[keyof TObject];
 
 type PluralFormPhrase = {
@@ -284,8 +284,8 @@ type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [number, 
 type TranslateType<TObject, K extends keyof TObject> = TObject[K] extends PluralTranslationPhraseFunction
     ? PluralTranslationPhraseFunction
     : TObject[K] extends TranslationPhraseFunction
-    ? TranslationPhraseFunction
-    : string;
+      ? TranslationPhraseFunction
+      : string;
 
 type CharacterLimitParams = {
     length: number;
@@ -375,7 +375,7 @@ type DateParams = {
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
-}
+};
 
 type EnglishTranslation = typeof en;
 

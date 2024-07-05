@@ -1,4 +1,3 @@
-
 import {CONST as COMMON_CONST, Str} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
@@ -49,9 +48,9 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    NextPaymentDateParams,
     MarkedReimbursedParams,
     MarkReimbursedFromIntegrationParams,
+    NextPaymentDateParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
@@ -93,8 +92,8 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    SyncStageNameParams,
     StripePaidParams,
+    SyncStageNameParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,

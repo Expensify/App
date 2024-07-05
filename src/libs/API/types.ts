@@ -677,7 +677,7 @@ type ApiCommand = WriteCommand | ReadCommand | SideEffectRequestCommand;
 type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends typeof CONST.API_REQUEST_TYPE.WRITE
     ? WriteCommand
     : TRequestType extends typeof CONST.API_REQUEST_TYPE.READ
-    ? ReadCommand
-    : SideEffectRequestCommand;
+      ? ReadCommand
+      : SideEffectRequestCommand;
 
 export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, WriteCommand, ReadCommand, SideEffectRequestCommand};
