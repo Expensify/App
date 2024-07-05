@@ -393,7 +393,8 @@ function getOptionData({
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
             if (!result.alternateText) {
-                result.alternateText = ReportUtils.formatReportLastMessageText(getReportBeginningOfChatHistoryMessage(report) ?? '');
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                result.alternateText = ReportUtils.formatReportLastMessageText(getReportBeginningOfChatHistoryMessage(report) || Localize.translateLocal('report.noActivityYet'));
             }
         }
     } else {
@@ -461,7 +462,18 @@ function getOptionData({
 }
 function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): string | undefined {
     const welcomeMessage = ReportUtils.getWelcomeMessage(report);
-    if (ReportUtils.isPolicyExpenseChat(report)) {
+    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    const isChatRoom = ReportUtils.isChatRoom(report);
+    const isSelfDM = ReportUtils.isSelfDM(report);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
+
+    if (ReportUtils.isChatThread(report)) {
+        return '';
+    }
+
+    if (isPolicyExpenseChat) {
         if (report?.description) {
             return parseHtmlToText(report.description);
         }
@@ -470,22 +482,16 @@ function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): stri
         }`;
     }
 
-    if (ReportUtils.isChatRoom(report)) {
+    if (isChatRoom) {
         if (report?.description) {
             return parseHtmlToText(report.description);
         }
         return `${welcomeMessage.phrase1} ${welcomeMessage.showReportName ? ReportUtils.getReportName(report) : ''} ${welcomeMessage.phrase2 ?? ''}`;
     }
 
-    if (ReportUtils.isSelfDM(report) || ReportUtils.isSystemChat(report)) {
+    if (isSelfDM || isSystemChat) {
         return `${welcomeMessage.phrase1}`;
     }
-    const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
-    const isChatRoom = ReportUtils.isChatRoom(report);
-    const isSelfDM = ReportUtils.isSelfDM(report);
-    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
-    const isSystemChat = ReportUtils.isSystemChat(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemChat);
 
     if (isDefault) {
         const participantAccountIDs = ReportUtils.getParticipantsAccountIDsForDisplay(report);
@@ -513,6 +519,8 @@ function getReportBeginningOfChatHistoryMessage(report: OnyxEntry<Report>): stri
             .join(' ');
         return `${welcomeMessage.phrase1} ${displayNamesWithTooltipsText}`;
     }
+
+    return '';
 }
 
 export default {
