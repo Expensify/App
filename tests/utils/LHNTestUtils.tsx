@@ -33,8 +33,8 @@ type MockedSidebarLinksProps = {
     currentReportID?: string;
 };
 
-jest.mock('@react-navigation/native', (): typeof Navigation => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useRoute: jest.fn(),
@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', (): typeof Navigation => {
             addListener: jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    } as typeof Navigation;
+    };
 });
 
 const fakePersonalDetails: PersonalDetailsList = {
@@ -139,14 +139,12 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     const timestamp = Date.now() - millisecondsInThePast;
     const created = DateUtils.getDBTime(timestamp);
-    const previousReportActionID = lastFakeReportActionID;
     const reportActionID = ++lastFakeReportActionID;
 
     return {
         actor,
         actorAccountID: 1,
         reportActionID: `${reportActionID}`,
-        previousReportActionID: `${previousReportActionID}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,

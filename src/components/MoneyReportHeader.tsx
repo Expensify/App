@@ -137,7 +137,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
 
-    const confirmPayment = (type?: PaymentMethodType | undefined) => {
+    const confirmPayment = (type?: PaymentMethodType | undefined, payAsBusiness?: boolean) => {
         if (!type || !chatReport) {
             return;
         }
@@ -146,7 +146,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (ReportUtils.isInvoiceReport(moneyRequestReport)) {
-            IOU.payInvoice(type, chatReport, moneyRequestReport);
+            IOU.payInvoice(type, chatReport, moneyRequestReport, payAsBusiness);
         } else {
             IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
@@ -368,6 +368,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
+                    transactionCount={transactionIDs.length}
                 />
             )}
             <ConfirmModal
