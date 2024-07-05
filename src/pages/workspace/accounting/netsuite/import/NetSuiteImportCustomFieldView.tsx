@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -43,12 +44,12 @@ function NetSuiteImportCustomFieldView({
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
     const customRecord: CustomRecord | undefined = allRecords[valueIndex];
-    const fieldList = customRecord && 'segmentName' in customRecord ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
+    const fieldList = customRecord && PolicyUtils.isCustomSegmentRecord(customRecord) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
 
     const removeRecord = useCallback(() => {
         if (customRecord) {
             const filteredRecords = allRecords.filter((record) => record.internalID !== customRecord?.internalID);
-            if ('segmentName' in customRecord) {
+            if (PolicyUtils.isCustomSegmentRecord(customRecord)) {
                 updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
             } else {
                 updateNetSuiteCustomLists(policyID, filteredRecords as NetSuiteCustomList[], allRecords as NetSuiteCustomList[]);
@@ -60,7 +61,7 @@ function NetSuiteImportCustomFieldView({
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldView.displayName}
-            headerTitleAlreadyTranslated={customRecord && 'segmentName' in customRecord ? customRecord.segmentName : customRecord?.listName ?? ''}
+            headerTitleAlreadyTranslated={customRecord ? PolicyUtils.getNameFromCustomSegmentRecord(customRecord) : ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

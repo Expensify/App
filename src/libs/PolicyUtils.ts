@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
+import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, NetSuiteCustomList, NetSuiteCustomSegment, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
@@ -565,6 +565,14 @@ function getCustomersOrJobsLabelNetSuite(policy: Policy | undefined, translate: 
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 
+function isCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): boolean {
+    return 'segmentName' in customRecord;
+}
+
+function getNameFromCustomSegmentRecord(customRecord: NetSuiteCustomList | NetSuiteCustomSegment): string {
+    return 'segmentName' in customRecord ? customRecord.segmentName : customRecord.listName;
+}
+
 function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connections]) {
     if (!connection) {
         return undefined;
@@ -682,6 +690,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    isCustomSegmentRecord,
+    getNameFromCustomSegmentRecord,
 };
 
 export type {MemberEmailsToAccountIDs};
