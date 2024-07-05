@@ -4,7 +4,6 @@ type PayInvoiceParams = {
     reportID: string;
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
-    payAsBusiness: boolean;
 };
 
 export default PayInvoiceParams;
