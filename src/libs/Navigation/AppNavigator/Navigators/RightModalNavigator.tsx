@@ -6,6 +6,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isSafari} from '@libs/Browser';
 import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import createModalCardStyleInterpolator from '@navigation/AppNavigator/createModalCardStyleInterpolator';
@@ -26,8 +27,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
     const isExecutingRef = useRef<boolean>(false);
 
     // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-    const customInterpolator = createModalCardStyleInterpolator(styleUtils);
-    screenOptions.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+    if (isSafari()) {
+        const customInterpolator = createModalCardStyleInterpolator(styleUtils);
+        screenOptions.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(isSmallScreenWidth, false, false, props);
+    }
 
     return (
         <NoDropZone>
