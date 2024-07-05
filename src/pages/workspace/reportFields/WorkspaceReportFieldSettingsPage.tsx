@@ -33,7 +33,7 @@ function WorkspaceReportFieldSettings({route}: WorkspaceReportFieldSettingsPageP
     }
 
     const deleteReportFieldAndHideModal = () => {
-        ReportField.deletePolicyReportFields(route.params.policyID, [reportFieldKey]);
+        ReportField.deleteReportFields(route.params.policyID, [reportFieldKey]);
         setIsDeleteModalVisible(false);
         Navigation.goBack();
     };

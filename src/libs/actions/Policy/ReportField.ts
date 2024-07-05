@@ -199,7 +199,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD, parameters, onyxData);
 }
 
-function deletePolicyReportFields(policyID: string, reportFieldsToUpdate: string[]) {
+function deleteReportFields(policyID: string, reportFieldsToUpdate: string[]) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const allReportFields = policy?.fieldList ?? {};
 
@@ -264,7 +264,7 @@ function deletePolicyReportFields(policyID: string, reportFieldsToUpdate: string
 export type {CreateReportFieldArguments};
 
 export {
-    deletePolicyReportFields,
+    deleteReportFields,
     setInitialCreateReportFieldsForm,
     createReportFieldsListValue,
     renameReportFieldsListValue,
