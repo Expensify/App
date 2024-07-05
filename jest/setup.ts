@@ -1,5 +1,6 @@
 import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
+import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import 'setimmediate';
 import mockFSLibrary from './setupMockFullstoryLib';
@@ -54,5 +55,4 @@ jest.mock('react-native-share', () => ({
     default: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('react-native-keyboard-controller', () => require('react-native-keyboard-controller/jest'));
+jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
