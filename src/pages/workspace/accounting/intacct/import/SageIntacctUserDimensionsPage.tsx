@@ -39,7 +39,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
-            onBackButtonPressRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)}
+            onBackButtonPressRoute={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
             {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>

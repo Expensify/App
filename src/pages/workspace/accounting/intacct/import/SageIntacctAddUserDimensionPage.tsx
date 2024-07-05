@@ -58,7 +58,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
             shouldUseScrollView={false}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            onBackButtonPressRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID)}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
