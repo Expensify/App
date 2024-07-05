@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
@@ -26,9 +25,9 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '-1';
 
-    const {sync} = policy?.connections?.intacct?.config ?? {};
+    const {config} = policy?.connections?.intacct ?? {};
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, sync?.reimbursementAccountID), [policy, sync?.reimbursementAccountID]);
+    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
 
     const listHeaderComponent = useMemo(
         () => (
@@ -41,13 +40,13 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
-            if (value !== sync?.reimbursementAccountID) {
+            if (value !== config?.sync?.reimbursementAccountID) {
                 updateSageIntacctSyncReimbursementAccountID(policyID, value);
                 updateSageIntacctSyncReimbursedReports(policyID, value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
         },
-        [policyID, sync?.reimbursementAccountID],
+        [policyID, config?.sync?.reimbursementAccountID],
     );
 
     const listEmptyContent = useMemo(
@@ -64,26 +63,24 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     );
 
     return (
-        <OfflineWithFeedback
-            errors={ErrorUtils.getLatestErrorField(sync ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID)}
-            errorRowStyles={[styles.ph5, styles.mt2]}
-            onClose={() => Policy.clearSageIntacctSyncErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID)}
-        >
-            <SelectionScreen
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                displayName={SageIntacctPaymentAccountPage.displayName}
-                sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
-                listItem={RadioListItem}
-                onSelectRow={updateDefaultVendor}
-                initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
-                headerContent={listHeaderComponent}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID))}
-                title="workspace.sageIntacct.paymentAccount"
-                listEmptyContent={listEmptyContent}
-                connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            />
-        </OfflineWithFeedback>
+        <SelectionScreen
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            displayName={SageIntacctPaymentAccountPage.displayName}
+            sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
+            listItem={RadioListItem}
+            onSelectRow={updateDefaultVendor}
+            initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID))}
+            title="workspace.sageIntacct.paymentAccount"
+            listEmptyContent={listEmptyContent}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
+            pendingAction={config?.pendingFields?.reimbursementAccountID}
+            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID)}
+            errorRowStyles={[styles.ph5, styles.mv2]}
+            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.REIMBUSERED_ACCOUNT_ID)}
+        />
     );
 }
 

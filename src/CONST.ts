@@ -1344,8 +1344,8 @@ const CONST = {
     },
 
     SAGE_INTACCT_CONFIG: {
-        IS_AUTO_SYNC_ENABLED: 'isAutoSyncEnabled',
         AUTO_SYNC: 'autoSync',
+        AUTO_SYNC_ENABLED: 'enabled',
         IMPORT_EMPLOYEES: 'importEmployees',
         APPROVAL_MODE: 'approvalMode',
         SYNC: 'sync',

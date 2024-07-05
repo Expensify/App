@@ -594,68 +594,6 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
-/** One of the SageIntacctConnectionData object elements */
-type SageIntacctDataElement = {
-    /** Element ID */
-    id: string;
-
-    /** Element name */
-    name: string;
-};
-
-/**
- * Connection config for Sage Intacct
- */
-type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Whether employees should be imported from Sage Intacct */
-    importEmployees: boolean;
-
-    /** Sage Intacct approval mode */
-    approvalMode: ValueOf<typeof CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL> | null;
-
-    /** Whether auto sync is enabled */
-    isAutoSyncEnabled: boolean;
-
-    /** Sage Intacct credentials */
-    credentials: {
-        /** Sage Intacct companyID */
-        companyID: string;
-
-        /** Sage Intacct password */
-        password: string;
-
-        /** Sage Intacct userID */
-        userID: string;
-    };
-
-    /** Configuration of automatic synchronization from Sage Intacct to the app */
-    autoSync: {
-        /** ID of sync job */
-        jobID: string;
-
-        /** Whether changes made in QuickBooks Online should be reflected into the app automatically */
-        enabled: boolean;
-    };
-
-    /** Sage Intacct sync */
-    sync: OnyxCommon.OnyxValueWithOfflineFeedback<{
-        /** ID of the bank account for Sage Intacct bill payment account */
-        reimbursementAccountID?: string;
-
-        /** Whether the reimbursed reports should be synched */
-        syncReimbursedReports: boolean;
-
-        /** Collection of form field errors  */
-        errorFields?: OnyxCommon.ErrorFields;
-    }>;
-
-    /** Collection of Sage Intacct config errors */
-    errors?: OnyxCommon.Errors;
-
-    /** Collection of form field errors  */
-    errorFields?: OnyxCommon.ErrorFields;
-}>;
-
 /** Data stored about subsidiaries from NetSuite  */
 type NetSuiteSubsidiary = {
     /** ID of the subsidiary */
@@ -1017,6 +955,15 @@ type NetSuiteConnection = {
     tokenSecret: string;
 };
 
+/** One of the SageIntacctConnectionData object elements */
+type SageIntacctDataElement = {
+    /** Element ID */
+    id: string;
+
+    /** Element name */
+    name: string;
+};
+
 /**
  * Connection data for Sage Intacct
  */
@@ -1024,6 +971,56 @@ type SageIntacctConnectionData = {
     /** Collection of bank accounts */
     bankAccounts: SageIntacctDataElement[];
 };
+
+/** Sage Intacct sync */
+type SageIntacctSyncConfig = {
+    /** ID of the bank account for Sage Intacct bill payment account */
+    reimbursementAccountID?: string;
+
+    /** Whether the reimbursed reports should be synched */
+    syncReimbursedReports: boolean | string;
+};
+
+/**
+ * Connection config for Sage Intacct
+ */
+type SageIntacctConnectiosConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Sage Intacct credentials */
+        credentials: {
+            /** Sage Intacct companyID */
+            companyID: string;
+
+            /** Sage Intacct password */
+            password: string;
+
+            /** Sage Intacct userID */
+            userID: string;
+        };
+
+        /** Whether employees should be imported from Sage Intacct */
+        importEmployees: boolean;
+
+        /** Sage Intacct approval mode */
+        approvalMode: ValueOf<typeof CONST.SAGE_INTACCT.APPROVAL_MODE.APPROVAL_MANUAL> | null;
+
+        /** Configuration of automatic synchronization from Sage Intacct to the app */
+        autoSync: {
+            /** Whether changes made in Sage Intacct should be reflected into the app automatically */
+            enabled: boolean;
+        };
+
+        /** Sage Intacct sync */
+        sync: SageIntacctSyncConfig;
+
+        /** Collection of Sage Intacct config errors */
+        errors?: OnyxCommon.Errors;
+
+        /** Collection of form field errors  */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    keyof SageIntacctSyncConfig
+>;
 
 /** State of integration connection */
 type Connection<ConnectionData, ConnectionConfig> = {
@@ -1397,4 +1394,5 @@ export type {
     ConnectionLastSync,
     NetSuiteSubsidiary,
     SageIntacctDataElement,
+    SageIntacctConnectiosConfig,
 };
