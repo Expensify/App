@@ -189,7 +189,7 @@ function MoneyRequestView({
     const tripID = ReportUtils.getTripIDFromTransactionParentReport(parentReport);
     const shouldShowViewTripDetails = TransactionUtils.hasReservationList(transaction) && !!tripID;
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? [], !isReceiptBeingScanned && ReportUtils.isPaidGroupPolicy(report));
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], !isReceiptBeingScanned || !ReportUtils.isPaidGroupPolicy(report));
     const hasViolations = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string): boolean =>
             !!canUseViolations && getViolationsForField(field, data, policyHasDependentTags, tagValue).length > 0,
