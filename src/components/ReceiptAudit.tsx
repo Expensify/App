@@ -7,13 +7,23 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: {notes: string[]; shouldShowAuditSuccess: boolean; shouldShowAuditFailure: boolean}) {
+type ReceiptAuditPropsType = {
+    /** List of audit notes */
+    notes: string[];
+
+    /** Weather to show success message (e.g. When receipt is scanning, we don't want to show `Verified` message) */
+    shouldShowAuditSuccess: boolean;
+
+    /** Weather to show failure message (e.g. When receipt isn't required, we don't want to show `Issues Found` message) */
+    shouldShowAuditFailure: boolean;
+};
+
+function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: ReceiptAuditPropsType) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
     let auditText = '';
-
     if (notes.length > 0 && shouldShowAuditFailure) {
         auditText = translate('iou.receiptIssuesFound', notes.length);
     } else if (!notes.length && shouldShowAuditSuccess) {
