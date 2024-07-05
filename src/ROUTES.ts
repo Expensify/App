@@ -1,4 +1,4 @@
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
@@ -961,9 +961,26 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
+        getRoute: (policyID: string, importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/',
@@ -1021,6 +1038,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/connections/netsuite/export/provincial-tax-posting-account/select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/provincial-tax-posting-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
+        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
