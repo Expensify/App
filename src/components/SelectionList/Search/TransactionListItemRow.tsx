@@ -51,6 +51,7 @@ type TransactionListItemRowProps = {
     isDisabled: boolean;
     canSelectMultiple: boolean;
     isButtonSelected?: boolean;
+    parentAction?: string;
 };
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -225,6 +226,7 @@ function TransactionListItemRow({
     containerStyle,
     isChildListItem = false,
     isButtonSelected = false,
+    parentAction = '',
 }: TransactionListItemRowProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useWindowDimensions();
@@ -388,6 +390,7 @@ function TransactionListItemRow({
                         action={item.action}
                         isSelected={isButtonSelected}
                         isChildListItem={isChildListItem}
+                        parentAction={parentAction}
                     />
                 </View>
             </View>

@@ -143,7 +143,7 @@ function ReportListItem<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                     />
                 )}
-                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, isLargeScreenWidth && styles.mr4]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, isLargeScreenWidth && styles.mr4, styles.mnh40]}>
                     <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex2]}>
                             {canSelectMultiple && (
@@ -181,6 +181,7 @@ function ReportListItem<TItem extends ListItem>({
                 </View>
                 {reportItem.transactions.map((transaction) => (
                     <TransactionListItemRow
+                        parentAction={reportItem.action}
                         item={transaction}
                         showTooltip={showTooltip}
                         onButtonPress={() => {

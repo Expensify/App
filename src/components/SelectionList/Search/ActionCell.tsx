@@ -16,15 +16,16 @@ type ActionCellProps = {
     isLargeScreenWidth?: boolean;
     isSelected?: boolean;
     isChildListItem?: boolean;
+    parentAction?: string;
 };
 
-function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, isChildListItem = false}: ActionCellProps) {
+function ActionCell({onButtonPress, action = CONST.SEARCH.ACTION_TYPES.VIEW, isLargeScreenWidth = true, isSelected = false, isChildListItem = false, parentAction = ''}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    if (action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE) {
+    if ((parentAction !== CONST.SEARCH.ACTION_TYPES.PAID && action === CONST.SEARCH.ACTION_TYPES.PAID) || action === CONST.SEARCH.ACTION_TYPES.DONE) {
         const buttonTextKey = action === CONST.SEARCH.ACTION_TYPES.PAID ? 'iou.settledExpensify' : 'common.done';
         return (
             <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
