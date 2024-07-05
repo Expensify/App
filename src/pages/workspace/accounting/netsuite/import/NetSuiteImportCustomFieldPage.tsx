@@ -107,6 +107,7 @@ function NetSuiteImportCustomFieldPage({
             contentContainerStyle={[styles.pb2, styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            shouldIncludeSafeAreaPaddingBottom
         >
             {data.length === 0 ? listEmptyComponent : listHeaderComponent}
 
