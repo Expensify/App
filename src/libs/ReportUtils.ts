@@ -39,6 +39,7 @@ import type {
     UserWallet,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Status} from '@src/types/onyx/PersonalDetails';
@@ -276,22 +277,11 @@ type OptimisticChatReport = Pick<
     isOptimisticReport: true;
 };
 
-type OptimisticExportAction = Pick<
-    ReportAction,
-    | 'reportActionID'
-    | 'actionName'
-    | 'actorAccountID'
-    | 'avatar'
-    | 'created'
-    | 'lastModified'
-    | 'message'
-    | 'originalMessage'
-    | 'person'
-    | 'shouldShow'
-    | 'pendingAction'
-    | 'errors'
-    | 'automatic'
->;
+type OptimisticExportAction = OriginalMessageExportedToIntegration &
+    Pick<
+        ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>,
+        'reportActionID' | 'actorAccountID' | 'avatar' | 'created' | 'lastModified' | 'message' | 'person' | 'shouldShow' | 'pendingAction' | 'errors' | 'automatic'
+    >;
 
 type OptimisticTaskReportAction = Pick<
     ReportAction,
@@ -5196,10 +5186,10 @@ function buildOptimisticExportIntegrationAction(label = '', markedManually = fal
         created: DateUtils.getDBTime(),
         shouldShow: true,
         originalMessage: {
-            automaticAction: false,
             label,
             lastModified: DateUtils.getDBTime(),
             markedManually,
+            inProgress: true,
         },
     };
 }

@@ -308,7 +308,7 @@ type ChangeTypeParams = {oldType: string; newType: string};
 
 type DelegateSubmitParams = {delegateUser: string; originalManager: string};
 
-type ExportedToIntegrationParams = {label: string; markedManually: boolean};
+type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type ForwardedParams = {amount: string; currency: string};
 
