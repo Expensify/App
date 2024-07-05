@@ -72,7 +72,6 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
-    const isCategorizeAction = action === CONST.IOU.ACTION.CATEGORIZE;
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
     useEffect(() => {
@@ -124,7 +123,7 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
             undefined,
             undefined,
             iouType === CONST.IOU.TYPE.INVOICE,
-            isCategorizeAction,
+            action,
         );
 
         return optionList;
@@ -136,7 +135,6 @@ function MoneyRequestParticipantsSelector({participants = CONST.EMPTY_ARRAY, onF
         didScreenTransitionEnd,
         iouRequestType,
         iouType,
-        isCategorizeAction,
         isCategorizeOrShareAction,
         options.personalDetails,
         options.reports,
