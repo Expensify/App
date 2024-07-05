@@ -3,6 +3,7 @@ import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function TransactionListItem<TItem extends ListItem>({
@@ -29,6 +30,11 @@ function TransactionListItem<TItem extends ListItem>({
         styles.userSelectNone,
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
+
+    // Clean the tag if it exists and starts with ':'
+    if (transactionItem.tag?.startsWith(':')) {
+        transactionItem.tag = PolicyUtils.cleanTagNameFromColon(transactionItem.tag);
+    }
 
     return (
         <BaseListItem
