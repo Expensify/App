@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -16,21 +17,25 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy/Policy';
 import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/WorkForm';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { OnboardingModalNavigatorParamList } from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/WorkForm';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected, onboardingPolicyID, route}: BaseOnboardingWorkProps & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>) {
+function BaseOnboardingWork({
+    shouldUseNativeStyles,
+    onboardingPurposeSelected,
+    onboardingPolicyID,
+    route,
+}: BaseOnboardingWorkProps & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.WORK>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();

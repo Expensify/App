@@ -942,16 +942,16 @@ type FullScreenNavigatorParamList = {
 
 type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: {
-        backTo?: string,
+        backTo?: string;
     };
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
-        backTo?:string;
+        backTo?: string;
     };
     [SCREENS.ONBOARDING.PURPOSE]: {
-        backTo?:string;
+        backTo?: string;
     };
     [SCREENS.ONBOARDING.WORK]: {
-        backTo?:string;
+        backTo?: string;
     };
 };
 

@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -20,6 +21,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
@@ -28,10 +30,8 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import INPUT_IDS from '@src/types/form/DisplayNameForm';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { OnboardingModalNavigatorParamList } from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
 function BaseOnboardingPersonalDetails({
@@ -40,7 +40,7 @@ function BaseOnboardingPersonalDetails({
     onboardingPurposeSelected,
     onboardingAdminsChatReportID,
     onboardingPolicyID,
-    route
+    route,
 }: BaseOnboardingPersonalDetailsProps & StackScreenProps<OnboardingModalNavigatorParamList, typeof SCREENS.ONBOARDING.PERSONAL_DETAILS>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
