@@ -29,15 +29,6 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
 
     const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.paymentAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
-    );
-
     const updateDefaultVendor = useCallback(
         ({value}: SelectorType) => {
             if (value !== config?.sync?.reimbursementAccountID) {
@@ -71,7 +62,6 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
             initiallyFocusedOptionKey={vendorSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
-            headerContent={listHeaderComponent}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID))}
             title="workspace.sageIntacct.paymentAccount"
             listEmptyContent={listEmptyContent}

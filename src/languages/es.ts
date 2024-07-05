@@ -2493,7 +2493,6 @@ export default {
                 'Cuando un informe se reembolsa utilizando Expensify ACH, la factura de compra correspondiente se creará en la cuenta de Sage Intacct a continuación.',
             paymentAccount: 'Cuenta de pago Sage Intacct',
             notConfigured: 'No configurado',
-            paymentAccountDescription: 'Descripción',
         },
         type: {
             free: 'Gratis',

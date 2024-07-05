@@ -2451,7 +2451,6 @@ export default {
             syncReimbursedReportsDescription: 'When a report is reimbursed using Expensify ACH, the corresponding puchase bill will be created in the Sage Intacct account below.',
             paymentAccount: 'Sage Intacct payment account',
             notConfigured: 'Not configured',
-            paymentAccountDescription: 'Some desc',
         },
         type: {
             free: 'Free',

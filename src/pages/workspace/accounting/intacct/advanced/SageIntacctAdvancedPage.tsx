@@ -9,7 +9,13 @@ import Navigation from '@navigation/Navigation';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updateSageIntacctApprovalMode, updateSageIntacctAutoSync, updateSageIntacctImportEmployees, updateSageIntacctSyncReimbursedReports} from '@userActions/connections/SageIntacct';
+import {
+    updateSageIntacctApprovalMode,
+    updateSageIntacctAutoSync,
+    updateSageIntacctImportEmployees,
+    updateSageIntacctSyncReimbursedReports,
+    updateSageIntacctSyncReimbursementAccountID,
+} from '@userActions/connections/SageIntacct';
 import * as Policy from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -66,6 +72,10 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         updateSageIntacctSyncReimbursedReports(policyID, false);
                     } else if (sync?.reimbursementAccountID !== undefined) {
                         updateSageIntacctSyncReimbursedReports(policyID, sync?.reimbursementAccountID);
+                    } else {
+                        const reimbursementAccountID = data?.bankAccounts[0]?.id ?? '-1';
+                        updateSageIntacctSyncReimbursedReports(policyID, reimbursementAccountID);
+                        updateSageIntacctSyncReimbursementAccountID(policyID, reimbursementAccountID);
                     }
                 },
                 pendingAction: pendingFields?.syncReimbursedReports,
