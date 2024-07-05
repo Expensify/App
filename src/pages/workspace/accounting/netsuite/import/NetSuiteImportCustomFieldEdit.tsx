@@ -31,7 +31,7 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     route: {
         params: {
             importCustomField: ImportCustomFieldsKeys;
-            internalID: string;
+            valueIndex: number;
             fieldName: string;
         };
     };
@@ -40,7 +40,7 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
 function NetSuiteImportCustomFieldEdit({
     policy,
     route: {
-        params: {importCustomField, internalID, fieldName},
+        params: {importCustomField, valueIndex, fieldName},
     },
 }: NetSuiteImportCustomFieldViewProps) {
     const policyID = policy?.id ?? '-1';
@@ -50,7 +50,7 @@ function NetSuiteImportCustomFieldEdit({
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
-    const customRecord: CustomRecord | undefined = allRecords.find((record) => record.internalID === internalID);
+    const customRecord: CustomRecord | undefined = allRecords[valueIndex];
     const fieldValue = customRecord?.[fieldName as keyof CustomRecord] ?? '';
 
     const updateRecord = useCallback(
@@ -58,8 +58,8 @@ function NetSuiteImportCustomFieldEdit({
             const newValue = formValues[fieldName as keyof typeof formValues];
 
             if (customRecord) {
-                const updatedRecords = allRecords.map((record) => {
-                    if (record.internalID === internalID) {
+                const updatedRecords = allRecords.map((record, index) => {
+                    if (index === Number(valueIndex)) {
                         return {
                             ...record,
                             [fieldName]: newValue,
@@ -75,12 +75,9 @@ function NetSuiteImportCustomFieldEdit({
                 }
             }
 
-            // Our URLs need internalID, so if we're updating the internalID we need to redirect back with the update internalID
-            const internalIDToRedirect = fieldName === 'internalID' && !!newValue ? newValue : internalID;
-
-            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, internalIDToRedirect));
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, valueIndex));
         },
-        [allRecords, customRecord, fieldName, importCustomField, internalID, policyID],
+        [allRecords, customRecord, fieldName, importCustomField, policyID, valueIndex],
     );
 
     const validate = useCallback(

@@ -1007,14 +1007,14 @@ const ROUTES = {
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:internalID',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${internalID}` as const,
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${valueIndex}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:internalID/:fieldName',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, internalID: string, fieldName: string) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/edit/${internalID}/${fieldName}` as const,
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/edit/${valueIndex}/${fieldName}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',

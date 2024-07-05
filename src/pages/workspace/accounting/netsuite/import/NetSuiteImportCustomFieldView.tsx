@@ -23,7 +23,7 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
     route: {
         params: {
             importCustomField: ImportCustomFieldsKeys;
-            internalID: string;
+            valueIndex: number;
         };
     };
 };
@@ -31,7 +31,7 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
 function NetSuiteImportCustomFieldView({
     policy,
     route: {
-        params: {importCustomField, internalID},
+        params: {importCustomField, valueIndex},
     },
 }: NetSuiteImportCustomFieldViewProps) {
     const policyID = policy?.id ?? '-1';
@@ -42,12 +42,12 @@ function NetSuiteImportCustomFieldView({
     const config = policy?.connections?.netsuite?.options?.config;
     const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
 
-    const customRecord: CustomRecord | undefined = allRecords.find((record) => record.internalID === internalID);
+    const customRecord: CustomRecord | undefined = allRecords[valueIndex];
     const fieldList = customRecord && 'segmentName' in customRecord ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : CONST.NETSUITE_CONFIG.CUSTOM_LIST_FIELDS;
 
     const removeRecord = useCallback(() => {
         if (customRecord) {
-            const filteredRecords = allRecords.filter((record) => record.internalID !== internalID);
+            const filteredRecords = allRecords.filter((record) => record.internalID !== customRecord?.internalID);
             if ('segmentName' in customRecord) {
                 updateNetSuiteCustomSegments(policyID, filteredRecords as NetSuiteCustomSegment[], allRecords as NetSuiteCustomSegment[]);
             } else {
@@ -55,7 +55,7 @@ function NetSuiteImportCustomFieldView({
             }
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, customRecord, importCustomField, internalID, policyID]);
+    }, [allRecords, customRecord, importCustomField, policyID]);
 
     return (
         <ConnectionLayout
@@ -78,10 +78,10 @@ function NetSuiteImportCustomFieldView({
                             shouldShowRightIcon
                             title={
                                 fieldName === 'mapping'
-                                    ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord]}.label` as TranslationPaths)
+                                    ? translate(`workspace.netsuite.import.importTypes.${customRecord[fieldName as keyof CustomRecord].toUpperCase()}.label` as TranslationPaths)
                                     : customRecord[fieldName as keyof CustomRecord]
                             }
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, internalID, fieldName))}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT.getRoute(policyID, importCustomField, valueIndex, fieldName))}
                         />
                     ))}
                     <MenuItem

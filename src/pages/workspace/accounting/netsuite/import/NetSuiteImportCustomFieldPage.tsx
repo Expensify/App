@@ -111,13 +111,13 @@ function NetSuiteImportCustomFieldPage({
         >
             {data.length === 0 ? listEmptyComponent : listHeaderComponent}
 
-            {data.map((record) => (
+            {data.map((record, index) => (
                 <MenuItemWithTopDescription
                     key={record.internalID}
                     description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                     shouldShowRightIcon
                     title={'listName' in record ? record.listName : record.segmentName}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, record.internalID))}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, index))}
                 />
             ))}
 
