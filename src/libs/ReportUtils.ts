@@ -7352,11 +7352,6 @@ export {
     isChatUsedForOnboarding,
     getChatUsedForOnboarding,
     findPolicyExpenseChatByPolicyID,
-<<<<<<< HEAD
-    isIndividualInvoiceRoom,
-=======
-    hasOnlyNonReimbursableTransactions,
->>>>>>> 0460e0d6 (Merge pull request #44891 from Expensify/vit-revert43036)
 };
 
 export type {
