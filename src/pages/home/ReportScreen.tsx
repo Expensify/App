@@ -170,7 +170,8 @@ function ReportScreen({
     const permissions = useDeepCompareRef(reportOnyx?.permissions);
 
     // Check if there's a reportID in the route. If not, set it to the last accessed reportID
-    const lastAccessedReportID = useLastAccessedReportID(!!route.params.openOnAdminRoom);
+    const lastAccessedReportID = useLastAccessedReportID(!!route.params.openOnAdminRoom, !!route.params.reportID);
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (route.params.reportID) {

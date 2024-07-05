@@ -123,12 +123,15 @@ function addSubscriber(subscriber: () => void) {
 
 /**
  * Get the last accessed reportID.
+ * @param skip - Whether to skip the calculation of last accessed report ID
  */
-export default function useLastAccessedReportID(shouldOpenOnAdminRoom: boolean) {
+export default function useLastAccessedReportID(shouldOpenOnAdminRoom: boolean, skip: boolean) {
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-
     const getSnapshot = useCallback(() => {
+        if (skip) {
+            return undefined;
+        }
         const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
         return ReportUtils.findLastAccessedReport(
             reports,
@@ -140,8 +143,7 @@ export default function useLastAccessedReportID(shouldOpenOnAdminRoom: boolean) 
             activeWorkspaceID,
             policyMemberAccountIDs,
         )?.reportID;
-    }, [activeWorkspaceID, canUseDefaultRooms, shouldOpenOnAdminRoom]);
-
+    }, [activeWorkspaceID, canUseDefaultRooms, shouldOpenOnAdminRoom, skip]);
     // We need access to all the data from these Onyx.connect calls, but we don't want to re-render the consuming component
     // unless the derived value (lastAccessedReportID) changes. To address these, we'll wrap everything with useSyncExternalStore
     return useSyncExternalStore(addSubscriber, getSnapshot);
