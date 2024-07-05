@@ -1,6 +1,5 @@
-import React, {useEffect, useRef} from 'react';
-import {Keyboard, View} from 'react-native';
-import useKeyboardState from '@hooks/useKeyboardState';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -30,17 +29,8 @@ type ProcessMoneyRequestHoldMenuProps = {
 
 function ProcessMoneyRequestHoldMenu({isVisible, onClose, onConfirm, anchorPosition, anchorAlignment}: ProcessMoneyRequestHoldMenuProps) {
     const {translate} = useLocalize();
-    const {isKeyboardShown} = useKeyboardState();
     const styles = useThemeStyles();
     const popoverRef = useRef(null);
-
-    // This Popover modal doesn't have a field for user input, so dismiss the device keyboard if shown
-    useEffect(() => {
-        if (!isVisible || !isKeyboardShown) {
-            return;
-        }
-        Keyboard.dismiss();
-    }, [isVisible, isKeyboardShown]);
 
     return (
         <Popover

@@ -107,6 +107,7 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             />
         </>
     );
