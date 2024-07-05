@@ -320,7 +320,7 @@ function AttachmentModal({
             }
             let fileObject = data;
             if ('getAsFile' in data && typeof data.getAsFile === 'function') {
-                fileObject = data.getAsFile();
+                fileObject = data.getAsFile() as FileObject;
             }
             if (!fileObject) {
                 return;

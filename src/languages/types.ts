@@ -395,6 +395,8 @@ type HeldRequestParams = {comment: string};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type ConfirmHoldExpenseParams = {transactionCount: number};
+
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
 type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
@@ -448,6 +450,7 @@ export type {
     CanceledRequestParams,
     CharacterLimitParams,
     CommonSelectedParams,
+    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,

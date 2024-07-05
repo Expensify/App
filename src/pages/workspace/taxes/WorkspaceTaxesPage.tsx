@@ -183,7 +183,7 @@ function WorkspaceTaxesPage({
             options.push({
                 icon: Expensicons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
-                value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DELETE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setIsDeleteModalVisible(true),
             });
         }
@@ -193,7 +193,7 @@ function WorkspaceTaxesPage({
             options.push({
                 icon: Expensicons.DocumentSlash,
                 text: isMultiple ? translate('workspace.taxes.actions.disableMultiple') : translate('workspace.taxes.actions.disable'),
-                value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.DISABLE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => toggleTaxes(false),
             });
         }
@@ -203,7 +203,7 @@ function WorkspaceTaxesPage({
             options.push({
                 icon: Expensicons.Document,
                 text: isMultiple ? translate('workspace.taxes.actions.enableMultiple') : translate('workspace.taxes.actions.enable'),
-                value: CONST.POLICY.TAX_RATES_BULK_ACTION_TYPES.ENABLE,
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                 onSelected: () => toggleTaxes(true),
             });
         }
