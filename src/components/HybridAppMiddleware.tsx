@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useSplashScreen from '@hooks/useSplashScreen';
@@ -11,7 +11,6 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import {InitialURLContext} from './InitialURLContextProvider';
 
 type HybridAppMiddlewareProps = {
