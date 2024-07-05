@@ -2189,6 +2189,12 @@ function deleteReport(reportID: string) {
 
     Onyx.multiSet(onyxData);
 
+    Object.values(reportActionsForReport ?? {}).forEach((reportAction) => {
+        if (reportAction.childReportID) {
+            deleteReport(reportAction.childReportID);
+        }
+    });
+
     // Delete linked IOU report
     if (report?.iouReportID) {
         deleteReport(report.iouReportID);
@@ -2198,9 +2204,12 @@ function deleteReport(reportID: string) {
 /**
  * @param reportID The reportID of the policy report (workspace room)
  */
-function navigateToConciergeChatAndDeleteReport(reportID: string) {
+function navigateToConciergeChatAndDeleteReport(reportID: string, shouldPopToTop?: boolean) {
     // Dismiss the current report screen and replace it with Concierge Chat
-    Navigation.goBack();
+    if (shouldPopToTop) {
+        Navigation.setShouldPopAllStateOnUP();
+    }
+    Navigation.goBack(undefined, undefined, shouldPopToTop);
     navigateToConciergeChat();
     deleteReport(reportID);
 }

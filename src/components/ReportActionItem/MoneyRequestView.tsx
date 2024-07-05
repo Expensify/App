@@ -40,6 +40,7 @@ import * as Link from '@userActions/Link';
 import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import * as Report from '@src/libs/actions/Report';
 import * as ReportActions from '@src/libs/actions/ReportActions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -404,11 +405,14 @@ function MoneyRequestView({
                             if (!transaction?.transactionID) {
                                 return;
                             }
-                            if (
-                                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-                                Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))
-                            ) {
-                                deleteTransaction(parentReport, parentReportAction);
+                            if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                                if (Object.values(transaction?.errors ?? {})?.find((error) => ErrorUtils.isReceiptError(error))) {
+                                    deleteTransaction(parentReport, parentReportAction);
+                                }
+                                const chatReportID = parentReport?.parentReportID ?? '';
+                                if (ReportUtils.getAddWorkspaceRoomOrChatReportErrors(chatReportID)) {
+                                    Report.navigateToConciergeChatAndDeleteReport(chatReportID, true);
+                                }
                             }
                             Transaction.clearError(transaction.transactionID);
                             ReportActions.clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
