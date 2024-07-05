@@ -350,29 +350,6 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     return sortedActions;
 }
 
-function isOptimisticAction(reportAction: ReportAction) {
-    return (
-        !!reportAction.isOptimisticAction ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextReportAction: ReportAction | undefined) {
-    if (!currentReportAction || !nextReportAction) {
-        return false;
-    }
-    return (
-        isOptimisticAction(currentReportAction) ||
-        isOptimisticAction(nextReportAction) ||
-        !!getWhisperedTo(currentReportAction).length ||
-        !!getWhisperedTo(nextReportAction).length ||
-        currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
-        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
-    );
-}
-
 /**
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
@@ -407,51 +384,6 @@ function getCombinedReportActions(
     });
 
     return getSortedReportActions(filteredReportActions, true);
-}
-
-/**
- * Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
- * See unit tests for example of inputs and expected outputs.
- * Note: sortedReportActions sorted in descending order
- */
-function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?: string): ReportAction[] {
-    let index;
-
-    if (id) {
-        index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
-    } else {
-        index = sortedReportActions.findIndex((reportAction) => !isOptimisticAction(reportAction));
-    }
-
-    if (index === -1) {
-        // if no non-pending action is found, that means all actions on the report are optimistic
-        // in this case, we'll assume the whole chain of reportActions is continuous and return it in its entirety
-        return id ? [] : sortedReportActions;
-    }
-
-    let startIndex = index;
-    let endIndex = index;
-
-    // Iterate forwards through the array, starting from endIndex. i.e: newer to older
-    // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
-    // It ignores optimistic actions, whispers and InviteToRoom actions
-    while (
-        (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
-        shouldIgnoreGap(sortedReportActions[endIndex], sortedReportActions[endIndex + 1])
-    ) {
-        endIndex++;
-    }
-
-    // Iterate backwards through the sortedReportActions, starting from startIndex. (older to newer)
-    // This loop ensuress continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
-    while (
-        (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
-        shouldIgnoreGap(sortedReportActions[startIndex], sortedReportActions[startIndex - 1])
-    ) {
-        startIndex--;
-    }
-
-    return sortedReportActions.slice(startIndex, endIndex + 1);
 }
 
 /**
@@ -1256,8 +1188,9 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
         case CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION:
             return Localize.translateLocal('report.actions.type.exportedToIntegration', {label: originalMessage.label});
         case CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
-            const {errorMessage, label} = originalMessage;
-            return Localize.translateLocal('report.actions.type.integrationsMessage', {errorMessage, label});
+            const {result, label} = originalMessage;
+            const errorMessage = result?.messages?.join(', ') ?? '';
+            return Localize.translateLocal('report.actions.type.integrationsMessage', errorMessage, label);
         }
         case CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return Localize.translateLocal('report.actions.type.managerAttachReceipt');
@@ -1509,7 +1442,6 @@ export {
     shouldReportActionBeVisible,
     shouldHideNewMarker,
     shouldReportActionBeVisibleAsLastAction,
-    getContinuousReportActionChain,
     hasRequestFromCurrentAccount,
     getFirstVisibleReportActionID,
     isMemberChangeAction,
