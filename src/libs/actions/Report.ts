@@ -58,6 +58,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
+import {registerPaginationConfig} from '@libs/Middleware/Pagination';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -256,6 +257,17 @@ let quickAction: OnyxEntry<QuickAction> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     callback: (val) => (quickAction = val),
+});
+
+registerPaginationConfig({
+    initialCommand: WRITE_COMMANDS.OPEN_REPORT,
+    previousCommand: READ_COMMANDS.GET_OLDER_ACTIONS,
+    nextCommand: READ_COMMANDS.GET_NEWER_ACTIONS,
+    resourceCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    pageCollectionKey: ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+    sortItems: (reportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions, true),
+    getItemID: (reportAction) => reportAction.reportActionID,
+    isLastItem: (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED,
 });
 
 function clearGroupChat() {
@@ -927,14 +939,24 @@ function openReport(
 
     parameters.clientLastReadTime = ReportConnection.getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.lastReadTime ?? '';
 
+    const paginationConfig = {
+        resourceID: reportID,
+        cursorID: reportActionID,
+    };
+
     if (isFromDeepLink) {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}).finally(() => {
+        API.paginate(
+            CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS,
+            SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT,
+            parameters,
+            {optimisticData, successData, failureData},
+            paginationConfig,
+        ).finally(() => {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
+        API.paginate(CONST.API_REQUEST_TYPE.WRITE, WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData}, paginationConfig);
     }
 }
 
@@ -1090,7 +1112,16 @@ function getOlderActions(reportID: string, reportActionID: string) {
         reportActionID,
     };
 
-    API.read(READ_COMMANDS.GET_OLDER_ACTIONS, parameters, {optimisticData, successData, failureData});
+    API.paginate(
+        CONST.API_REQUEST_TYPE.READ,
+        READ_COMMANDS.GET_OLDER_ACTIONS,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            resourceID: reportID,
+            cursorID: reportActionID,
+        },
+    );
 }
 
 /**
@@ -1135,7 +1166,16 @@ function getNewerActions(reportID: string, reportActionID: string) {
         reportActionID,
     };
 
-    API.read(READ_COMMANDS.GET_NEWER_ACTIONS, parameters, {optimisticData, successData, failureData});
+    API.paginate(
+        CONST.API_REQUEST_TYPE.READ,
+        READ_COMMANDS.GET_NEWER_ACTIONS,
+        parameters,
+        {optimisticData, successData, failureData},
+        {
+            resourceID: reportID,
+            cursorID: reportActionID,
+        },
+    );
 }
 
 /**
@@ -3114,6 +3154,7 @@ function completeOnboarding(
         lastName: string;
     },
     adminsChatReportID?: string,
+    onboardingPolicyID?: string,
 ) {
     const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
@@ -3157,6 +3198,7 @@ function completeOnboarding(
             typeof task.description === 'function'
                 ? task.description({
                       adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '-1')}`,
+                      workspaceLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID ?? '-1')}`,
                   })
                 : task.description;
         const currentTask = ReportUtils.buildOptimisticTaskReport(

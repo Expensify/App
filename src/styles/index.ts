@@ -789,7 +789,7 @@ const styles = (theme: ThemeColors) =>
             height: 140,
         },
 
-        pickerSmall: (disabled = false, backgroundColor = theme.highlightBG) =>
+        pickerSmall: (disabled = false, backgroundColor: string = theme.highlightBG) =>
             ({
                 inputIOS: {
                     fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1288,7 +1288,7 @@ const styles = (theme: ThemeColors) =>
             zIndex: 1,
         },
 
-        picker: (disabled = false, backgroundColor = theme.appBG) =>
+        picker: (disabled = false, backgroundColor: string = theme.appBG) =>
             ({
                 iconContainer: {
                     top: Math.round(variables.inputHeight * 0.5) - 11,
@@ -1512,6 +1512,12 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
         },
 
+        canvasContainer: {
+            // Adding border to prevent a bug with the appearance of lines during gesture events for MultiGestureCanvas
+            borderWidth: 1,
+            borderColor: theme.appBG,
+        },
+
         sidebarHeaderContainer: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -1551,7 +1557,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.success,
         },
 
-        statusIndicator: (backgroundColor = theme.danger) =>
+        statusIndicator: (backgroundColor: string = theme.danger) =>
             ({
                 borderColor: theme.sidebar,
                 backgroundColor,
@@ -1565,7 +1571,7 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        bottomTabStatusIndicator: (backgroundColor = theme.danger) => ({
+        bottomTabStatusIndicator: (backgroundColor: string = theme.danger) => ({
             borderColor: theme.sidebar,
             backgroundColor,
             borderRadius: 8,
@@ -3359,13 +3365,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 84,
-        },
-
-        workspaceListBadge: {
-            flexDirection: 'column',
-            justifyContent: 'flex-start',
-            marginTop: 6,
+            justifyContent: 'flex-end',
+            width: 124,
         },
 
         workspaceListRBR: {
@@ -5019,6 +5020,11 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
             flex: 1,
+        },
+
+        expensifyCardIllustrationContainer: {
+            width: 680,
+            height: 220,
         },
 
         computerIllustrationContainer: {

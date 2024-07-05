@@ -383,6 +383,13 @@ function getDistance(transaction: OnyxInputOrEntry<Transaction>): number {
 }
 
 /**
+ * Return the reimbursable value. Defaults to true to match BE logic.
+ */
+function getReimbursable(transaction: Transaction): boolean {
+    return transaction?.reimbursable ?? true;
+}
+
+/**
  * Return the mccGroup field from the transaction, return the modifiedMCCGroup if present.
  */
 function getMCCGroup(transaction: Transaction): ValueOf<typeof CONST.MCC_GROUPS> | undefined {
@@ -873,6 +880,7 @@ export {
     isCustomUnitRateIDForP2P,
     getRateID,
     getTransaction,
+    getReimbursable,
 };
 
 export type {TransactionChanges};

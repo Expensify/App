@@ -21,17 +21,13 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // mock PortalStateContext
 jest.mock('@gorhom/portal');
 
-jest.mock(
-    'react-native-reanimated',
-    () =>
-        ({
-            ...jest.requireActual('react-native-reanimated/mock'),
-            useAnimatedRef: jest.fn(),
-        } as typeof Animated),
-);
+jest.mock('react-native-reanimated', () => ({
+    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
+    useAnimatedRef: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
         useNavigation: () => ({
@@ -40,11 +36,11 @@ jest.mock('@react-navigation/native', () => {
         }),
         useIsFocused: () => true,
         useNavigationState: () => {},
-    } as typeof Navigation;
+    };
 });
 
 jest.mock('@src/libs/actions/EmojiPickerAction', () => {
-    const actualEmojiPickerAction = jest.requireActual('@src/libs/actions/EmojiPickerAction');
+    const actualEmojiPickerAction = jest.requireActual<EmojiPickerRef>('@src/libs/actions/EmojiPickerAction');
     return {
         ...actualEmojiPickerAction,
         emojiPickerRef: {
@@ -55,7 +51,7 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
         showEmojiPicker: jest.fn(),
         hideEmojiPicker: jest.fn(),
         isActive: () => true,
-    } as EmojiPickerRef;
+    };
 });
 
 jest.mock('@src/components/withNavigationFocus', <TProps extends WithNavigationFocusProps>() => (Component: ComponentType<TProps>) => {

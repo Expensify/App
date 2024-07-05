@@ -390,28 +390,33 @@ function getOptionData({
         }
     } else {
         if (!lastMessageText) {
-            // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
-            // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
-            lastMessageText = ReportUtils.isSelfDM(report)
-                ? Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM')
-                : Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
-                  displayNamesWithTooltips
-                      .map(({displayName, pronouns}, index) => {
-                          const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
+            if (ReportUtils.isSystemChat(report)) {
+                lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySystemDM');
+            } else if (ReportUtils.isSelfDM(report)) {
+                lastMessageText = Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistorySelfDM');
+            } else {
+                // Here we get the beginning of chat history message and append the display name for each user, adding pronouns if there are any.
+                // We also add a fullstop after the final name, the word "and" before the final name and commas between all previous names.
+                lastMessageText =
+                    Localize.translate(preferredLocale, 'reportActionsView.beginningOfChatHistory') +
+                    displayNamesWithTooltips
+                        .map(({displayName, pronouns}, index) => {
+                            const formattedText = !pronouns ? displayName : `${displayName} (${pronouns})`;
 
-                          if (index === displayNamesWithTooltips.length - 1) {
-                              return `${formattedText}.`;
-                          }
-                          if (index === displayNamesWithTooltips.length - 2) {
-                              return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
-                          }
-                          if (index < displayNamesWithTooltips.length - 2) {
-                              return `${formattedText},`;
-                          }
+                            if (index === displayNamesWithTooltips.length - 1) {
+                                return `${formattedText}.`;
+                            }
+                            if (index === displayNamesWithTooltips.length - 2) {
+                                return `${formattedText} ${Localize.translate(preferredLocale, 'common.and')}`;
+                            }
+                            if (index < displayNamesWithTooltips.length - 2) {
+                                return `${formattedText},`;
+                            }
 
-                          return '';
-                      })
-                      .join(' ');
+                            return '';
+                        })
+                        .join(' ');
+            }
         }
 
         result.alternateText =
