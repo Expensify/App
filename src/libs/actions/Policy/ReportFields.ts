@@ -2,7 +2,12 @@ import cloneDeep from 'lodash/cloneDeep';
 import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CreateWorkspaceReportFieldParams, EnableWorkspaceReportFieldListValueParams, UpdateWorkspaceReportFieldInitialValueParams} from '@libs/API/parameters';
+import type {
+    CreateWorkspaceReportFieldParams,
+    EnableWorkspaceReportFieldListValueParams,
+    RemoveWorkspaceReportFieldListValueParams,
+    UpdateWorkspaceReportFieldInitialValueParams,
+} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -344,8 +349,8 @@ function updateReportFieldListValueEnabled(policyID: string, reportFieldID: stri
  */
 function addReportFieldListValue(policyID: string, reportFieldID: string, valueName: string) {
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
-    const fieldKey = ReportUtils.getReportFieldKey(reportFieldID);
-    const reportField = previousFieldList[fieldKey];
+    const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = previousFieldList[reportFieldKey];
     const updatedReportField = cloneDeep(reportField);
 
     updatedReportField.values.push(valueName);
@@ -358,10 +363,10 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: updatedReportField,
+                        [reportFieldKey]: updatedReportField,
                     },
                     pendingFields: {
-                        [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        [reportFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
                     errorFields: null,
                 },
@@ -373,7 +378,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     pendingFields: {
-                        [fieldKey]: null,
+                        [reportFieldKey]: null,
                     },
                     errorFields: null,
                 },
@@ -385,13 +390,13 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: reportField,
+                        [reportFieldKey]: reportField,
                     },
                     pendingFields: {
-                        [fieldKey]: null,
+                        [reportFieldKey]: null,
                     },
                     errorFields: {
-                        [fieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                        [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
                     },
                 },
             },
@@ -406,6 +411,77 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
 }
 
+/**
+ * Removes a list value from the workspace report fields.
+ */
+function removeReportFieldListValue(policyID: string, reportFieldID: string, valueIndexes: number[]) {
+    const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
+    const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = previousFieldList[reportFieldKey];
+    const updatedReportField = cloneDeep(reportField);
+
+    valueIndexes
+        .sort((a, b) => b - a)
+        .forEach((valueIndex) => {
+            const shouldResetDefaultValue = reportField.defaultValue === reportField.values[valueIndex];
+
+            if (shouldResetDefaultValue) {
+                updatedReportField.defaultValue = '';
+            }
+
+            updatedReportField.values.splice(valueIndex, 1);
+            updatedReportField.disabledOptions.splice(valueIndex, 1);
+        });
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [reportFieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [reportFieldKey]: {pendingAction: null},
+                    },
+                    errorFields: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [reportFieldKey]: {...reportField, pendingAction: null},
+                    },
+                    errorFields: {
+                        [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: RemoveWorkspaceReportFieldListValueParams = {
+        policyID,
+        reportFields: JSON.stringify([updatedReportField]),
+    };
+
+    API.write(WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE, parameters, onyxData);
+}
+
 export type {CreateReportFieldArguments};
 
 export {
@@ -418,4 +494,5 @@ export {
     updateReportFieldInitialValue,
     updateReportFieldListValueEnabled,
     addReportFieldListValue,
+    removeReportFieldListValue,
 };

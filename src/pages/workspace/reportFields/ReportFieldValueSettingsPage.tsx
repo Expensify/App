@@ -61,7 +61,12 @@ function ReportFieldValueSettingsPage({
     }
 
     const deleteListValueAndHideModal = () => {
-        ReportFields.deleteReportFieldsListValue([valueIndex]);
+        if (reportFieldID) {
+            ReportFields.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+        } else {
+            ReportFields.deleteReportFieldsListValue([valueIndex]);
+        }
+
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };

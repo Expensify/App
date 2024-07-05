@@ -78,13 +78,14 @@ function ReportFieldListValuesPage({
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
     const listValuesSections = useMemo(() => {
-        const data = listValues.map((value, index) => ({
+        const data = listValues.map<ValueListItem>((value, index) => ({
             value,
             index,
             text: value,
             keyForList: value,
             isSelected: selectedValues[value],
             enabled: !disabledListValues[index] ?? true,
+            pendingAction: reportFieldID ? policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)]?.pendingAction : null,
             rightElement: (
                 <ListItemRightCaretWithLabel
                     shouldShowCaret={false}
@@ -94,7 +95,7 @@ function ReportFieldListValuesPage({
         }));
 
         return [{data, isDisabled: false}];
-    }, [disabledListValues, listValues, selectedValues, translate]);
+    }, [disabledListValues, listValues, policy?.fieldList, reportFieldID, selectedValues, translate]);
 
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
@@ -125,7 +126,12 @@ function ReportFieldListValuesPage({
             return acc;
         }, []);
 
-        ReportFields.deleteReportFieldsListValue(valuesToDelete);
+        if (reportFieldID) {
+            ReportFields.removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+        } else {
+            ReportFields.deleteReportFieldsListValue(valuesToDelete);
+        }
+
         setDeleteValuesConfirmModalVisible(false);
     };
 
