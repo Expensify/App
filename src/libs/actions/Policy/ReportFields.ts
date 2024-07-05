@@ -1,4 +1,4 @@
-import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceReportFieldParams} from '@libs/API/parameters';
@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WorkspaceReportFieldsForm} from '@src/types/form/WorkspaceReportFieldsForm';
 import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
-import type {Policy, PolicyReportField} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 let listValues: string[];
@@ -25,6 +25,13 @@ Onyx.connect({
         listValues = value[INPUT_IDS.LIST_VALUES] ?? [];
         disabledListValues = value[INPUT_IDS.DISABLED_LIST_VALUES] ?? [];
     },
+});
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 const allPolicies: OnyxCollection<Policy> = {};
@@ -136,7 +143,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
     const previousFieldList = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.fieldList ?? {};
     const fieldID = generateFieldID(name);
     const fieldKey = ReportUtils.getReportFieldKey(fieldID);
-    const newReportField: PolicyReportField = {
+    const newReportField: Omit<PolicyReportField, 'value'> = {
         name,
         type,
         defaultValue: initialValue,
@@ -145,11 +152,16 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
         fieldID,
         orderWeight: Object.keys(previousFieldList).length + 1,
         deletable: false,
-        value: type === CONST.REPORT_FIELD_TYPES.LIST ? CONST.REPORT_FIELD_TYPES.LIST : null,
         keys: [],
         externalIDs: [],
         isTax: false,
     };
+
+    const optimisticReportFieldDataForPolicy: PolicyReportField = {
+        ...newReportField,
+        value: type === CONST.REPORT_FIELD_TYPES.LIST ? CONST.REPORT_FIELD_TYPES.LIST : null,
+    };
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -157,7 +169,7 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [fieldKey]: newReportField,
+                        [fieldKey]: optimisticReportFieldDataForPolicy,
                     },
                     pendingFields: {
                         [fieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -196,6 +208,21 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
             },
         ],
     };
+
+    const policyExpenseReports = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && report.type === CONST.REPORT.TYPE.EXPENSE) as Report[];
+
+    onyxData.optimisticData?.push(
+        ...(policyExpenseReports.map((report) => ({
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+                onyxMethod: Onyx.METHOD.MERGE,
+                value: {
+                    fieldList: {
+                        [fieldKey]: newReportField,
+                    },
+                },
+            })) as OnyxUpdate[]),
+    );
+
     const parameters: CreateWorkspaceReportFieldParams = {
         policyID,
         reportFields: JSON.stringify([newReportField]),
