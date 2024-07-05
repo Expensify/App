@@ -2442,7 +2442,7 @@ export default {
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
                     customSegments: {
-                        title: 'Segmentos/registros personalizado',
+                        title: 'Segmentos/registros personalizados',
                         addButtonText: 'Añadir segmento/registro personalizado',
                         recordTitle: 'Segmento personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
@@ -2459,7 +2459,7 @@ export default {
                         removePrompt: '¿Está seguro de que desea eliminar este segmento/registro personalizado?',
                     },
                     customLists: {
-                        title: 'Listas personalizado',
+                        title: 'Listas personalizados',
                         addButtonText: 'Añadir lista personalizado',
                         recordTitle: 'Lista personalizado',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
