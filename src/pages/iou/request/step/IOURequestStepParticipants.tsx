@@ -87,11 +87,11 @@ function IOURequestStepParticipants({
             if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
                 return;
             }
-            const backToParam = ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, action);
             if (!receiptPath && iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToParam));
+                Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(action, iouType, transactionID, reportID), true);
                 return;
             }
+            const backToParam = ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID, action);
             IOU.navigateToStartStepIfScanFileCannotBeRead(
                 receiptFilename ?? '',
                 receiptPath ?? '',

@@ -39,11 +39,11 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
+import useNavigateToNextStepAfterScan from './useNavigateToNextStepAfterScan';
 
 function IOURequestStepScan({
     report,
@@ -234,42 +234,24 @@ function IOURequestStepScan({
         Navigation.goBack(backTo);
     };
 
-    const navigateToParticipantPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
-
-    const navigateToConfirmationPage = useCallback(() => {
-        switch (iouType) {
-            case CONST.IOU.TYPE.REQUEST:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
-                break;
-            case CONST.IOU.TYPE.SEND:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
-                break;
-            default:
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-        }
-    }, [iouType, reportID, transactionID]);
+    const {moveBackToOriginalPage, moveToParticipantSelectionStep, moveToConfirmationStep} = useNavigateToNextStepAfterScan({
+        transaction,
+        reportID,
+        iouType,
+        transactionID,
+        backTo,
+    });
 
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string) => {
             if (backTo) {
-                Navigation.goBack(backTo);
+                moveBackToOriginalPage(file, source);
                 return;
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
             if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
-                navigateToParticipantPage();
+                moveToParticipantSelectionStep(file, source);
                 return;
             }
 
@@ -394,7 +376,7 @@ function IOURequestStepScan({
                 );
                 return;
             }
-            navigateToConfirmationPage();
+            moveToConfirmationStep(file, source);
         },
         [
             iouType,
@@ -406,8 +388,9 @@ function IOURequestStepScan({
             personalDetails,
             shouldSkipConfirmation,
             transaction,
-            navigateToConfirmationPage,
-            navigateToParticipantPage,
+            moveToConfirmationStep,
+            moveToParticipantSelectionStep,
+            moveBackToOriginalPage,
             policy,
             transactionTaxCode,
             transactionTaxAmount,
