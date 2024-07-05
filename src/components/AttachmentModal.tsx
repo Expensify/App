@@ -197,19 +197,7 @@ function AttachmentModal({
     );
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
     const [isHighResolutionImage, setIsHighResolutionImage] = useState(false);
-    // useEffect(() => {
-    //     setIsCalculatingDimension(true);
-    //     FileUtils.getFileResolution(file)
-    //         .then((resolution) => {
-    //             const isImageHighResolution = resolution !== null && resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD && resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD;
-    //             setIsHighResolution(isImageHighResolution);
-    //         })
-    //         .finally(() => {
-    //             setIsCalculatingDimension(false);
-    //         });
-    // }, [file]);
 
     useEffect(() => {
         const fileName = file?.name ?? '';
