@@ -266,7 +266,6 @@ function RoomInvitePage({
                         onSubmit={inviteUsers}
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5, styles.ph5]}
                         enabledWhenOffline
-                        disablePressOnEnter
                         isAlertVisible={false}
                     />
                 </View>
