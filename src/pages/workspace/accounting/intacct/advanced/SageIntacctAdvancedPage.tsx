@@ -96,6 +96,7 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
             sync?.syncReimbursedReports,
             sync?.reimbursementAccountID,
             policyID,
+            data?.bankAccounts,
         ],
     );
 
