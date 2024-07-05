@@ -107,62 +107,44 @@ describe('CurrencyUtils', () => {
 
     describe('convertToFrontendAmountAsInteger', () => {
         test.each([
-            [2500, 25],
-            [2550, 25.5],
-            [25, 0.25],
-            [2500, 25],
-            [2500.5, 25], // The backend should never send a decimal .5 value
-        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, CONST.CURRENCY.USD)).toBe(expectedResult);
-        });
-    });
-
-    /**
-     * VND uses 0 decimals, so this test is needed.
-     * https://github.com/Expensify/App/pull/43948
-     */
-    describe('convertToFrontendAmountAsInteger VND', () => {
-        test.each([
-            [2500, 25],
-            [2550, 26],
-            [25, 0],
-            [2586, 26],
-            [2500.5, 25], // The backend should never send a decimal .5 value
-        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, 'VND')).toBe(expectedResult);
+            [2500, 25, 'USD'],
+            [2550, 25.5, 'USD'],
+            [25, 0.25, 'USD'],
+            [2500, 25, 'USD'],
+            [2500.5, 25, 'USD'], // The backend should never send a decimal .5 value
+            // VND uses 0 decimals.
+            // https://github.com/Expensify/App/pull/43948
+            [2500, 25, 'VND'],
+            [2550, 26, 'VND'],
+            [25, 0, 'VND'],
+            [2586, 26, 'VND'],
+            [2500.5, 25, 'VND'], // The backend should never send a decimal .5 value
+        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult, currency) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, currency)).toBe(expectedResult);
         });
     });
 
     describe('convertToFrontendAmountAsString', () => {
         test.each([
-            [2500, '25.00'],
-            [2550, '25.50'],
-            [25, '0.25'],
-            [2500.5, '25.00'],
-            [null, ''],
-            [undefined, ''],
-            [0, '0.00'],
-        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsString(input, CONST.CURRENCY.USD)).toBe(expectedResult);
-        });
-    });
-
-    /**
-     * VND uses 0 decimals, so this test is needed.
-     * https://github.com/Expensify/App/pull/43948
-     */
-    describe('convertToFrontendAmountAsString VND', () => {
-        test.each([
-            [2500, '25'],
-            [2550, '26'],
-            [25, '0'],
-            [2500.5, '25'],
-            [null, ''],
-            [undefined, ''],
-            [0, '0'],
-            [2586, '26'],
-        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsString(input, 'VND')).toBe(expectedResult);
+            [2500, '25.00', 'USD'],
+            [2550, '25.50', 'USD'],
+            [25, '0.25', 'USD'],
+            [2500.5, '25.00', 'USD'],
+            [null, '', 'USD'],
+            [undefined, '', 'USD'],
+            [0, '0.00', 'USD'],
+            // VND uses 0 decimals.
+            // https://github.com/Expensify/App/pull/43948
+            [2500, '25', 'VND'],
+            [2550, '26', 'VND'],
+            [25, '0', 'VND'],
+            [2500.5, '25', 'VND'],
+            [null, '', 'VND'],
+            [undefined, '', 'VND'],
+            [0, '0', 'VND'],
+            [2586, '26', 'VND'],
+        ])('Correctly converts %s to amount in units handled in frontend as a string', (input, expectedResult, currency) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsString(input, currency ?? CONST.CURRENCY.USD)).toBe(expectedResult);
         });
     });
 
