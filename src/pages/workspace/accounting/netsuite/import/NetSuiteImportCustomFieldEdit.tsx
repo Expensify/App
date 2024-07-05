@@ -75,9 +75,9 @@ function NetSuiteImportCustomFieldEdit({
                 }
             }
 
-            // Our URLs need internalID, so if we're updating the internalID we need to redirect back with the update internalID 
-            const internalIDToRedirect = fieldName === 'internalID' && !!newValue ? newValue: internalID;
-            
+            // Our URLs need internalID, so if we're updating the internalID we need to redirect back with the update internalID
+            const internalIDToRedirect = fieldName === 'internalID' && !!newValue ? newValue : internalID;
+
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW.getRoute(policyID, importCustomField, internalIDToRedirect));
         },
         [allRecords, customRecord, fieldName, importCustomField, internalID, policyID],
