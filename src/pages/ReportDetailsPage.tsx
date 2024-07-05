@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -553,6 +554,47 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const titleField = useMemo<OnyxTypes.PolicyReportField | undefined>((): OnyxTypes.PolicyReportField | undefined => {
+        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
+    }, [report, policy?.fieldList]);
+    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
+    const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
+
+    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerApproverOrReportOwner(report, policy);
+
+    const nameSectionFurtherDetailsContent = (
+        <ParentNavigationSubtitle
+            parentNavigationSubtitleData={parentNavigationSubtitleData}
+            parentReportID={report?.parentReportID}
+            parentReportActionID={report?.parentReportActionID}
+            pressableStyles={[styles.mt1, styles.mw100]}
+        />
+    );
+
+    const nameSectionTitleField = titleField && (
+        <OfflineWithFeedback
+            pendingAction={report.pendingFields?.[fieldKey]}
+            errors={report.errorFields?.[fieldKey]}
+            errorRowStyles={styles.ph5}
+            key={`menuItem-${fieldKey}`}
+            onClose={() => Report.clearReportFieldErrors(report.reportID, titleField)}
+        >
+            <View style={[styles.flex1]}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isFieldDisabled}
+                    interactive={!isFieldDisabled}
+                    title={reportName}
+                    titleStyle={styles.newKansasLarge}
+                    shouldCheckActionAllowedOnPress={false}
+                    description={Str.UCFirst(titleField.name)}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
+                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
+                />
+            </View>
+        </OfflineWithFeedback>
+    );
+
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
@@ -581,8 +623,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && nameSectionExpenseIOU}
+                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
                     </View>
+
+                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
