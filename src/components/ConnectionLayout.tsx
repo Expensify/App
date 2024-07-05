@@ -9,7 +9,6 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Route} from '@src/ROUTES';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
@@ -19,9 +18,6 @@ import Text from './Text';
 type ConnectionLayoutProps = {
     /** Used to set the testID for tests */
     displayName: string;
-
-    /* The route on back button press */
-    onBackButtonPressRoute?: Route;
 
     /** Header title to be translated for the connection component */
     headerTitle?: TranslationPaths;
@@ -64,6 +60,12 @@ type ConnectionLayoutProps = {
 
     /** Name of the current connection */
     connectionName: ConnectionName;
+
+    /** Block the screen when the connection is not empty */
+    reverseConnectionEmptyCheck?: boolean;
+
+    /** Handler for back button press */
+    onBackButtonPress?: () => void;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -81,7 +83,6 @@ function ConnectionLayoutContent({title, titleStyle, children, titleAlreadyTrans
 
 function ConnectionLayout({
     displayName,
-    onBackButtonPressRoute,
     headerTitle,
     children,
     title,
@@ -96,6 +97,8 @@ function ConnectionLayout({
     shouldUseScrollView = true,
     headerTitleAlreadyTranslated,
     titleAlreadyTranslated,
+    reverseConnectionEmptyCheck = false,
+    onBackButtonPress = () => Navigation.goBack(),
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -120,7 +123,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={isConnectionEmpty}
+            shouldBeBlocked={reverseConnectionEmptyCheck ? !isConnectionEmpty : isConnectionEmpty}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
@@ -130,7 +133,7 @@ function ConnectionLayout({
                 <HeaderWithBackButton
                     title={headerTitleAlreadyTranslated ?? (headerTitle ? translate(headerTitle) : '')}
                     subtitle={headerSubtitle}
-                    onBackButtonPress={() => Navigation.goBack(onBackButtonPressRoute)}
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
                     <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
