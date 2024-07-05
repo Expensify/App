@@ -788,17 +788,17 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
     },
     WORKSPACE_REPORT_FIELD_LIST_VALUES: {
-        route: 'settings/workspaces/:policyID/reportFields/new/listValues/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/new/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
+        route: 'settings/workspaces/:policyID/reportFields/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
     WORKSPACE_REPORT_FIELD_ADD_VALUE: {
-        route: 'settings/workspaces/:policyID/reportFields/new/addValue/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/new/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
+        route: 'settings/workspaces/:policyID/reportFields/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
     WORKSPACE_REPORT_FIELD_VALUE_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/:reportFieldID?',
+        route: 'settings/workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
         getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
-            `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
+            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
     },
     WORKSPACE_REPORT_FIELD_EDIT_VALUE: {
         route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
