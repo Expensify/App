@@ -116,13 +116,13 @@ function BaseVideoPlayer({
         if (!canToggleControlOnTap || controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW) {
             return;
         }
-        if (!isPlaying) {
+        if (!isPlaying || isPopoverVisible) {
             debouncedHideControl.cancel();
             return;
         }
 
         debouncedHideControl();
-    }, [isPlaying, debouncedHideControl, controlStatusState, canToggleControlOnTap]);
+    }, [isPlaying, debouncedHideControl, controlStatusState, canToggleControlOnTap, isPopoverVisible]);
 
     const showControl = useCallback(() => {
         if (!canToggleControlOnTap) {
