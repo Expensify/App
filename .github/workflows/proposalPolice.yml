@@ -17,5 +17,5 @@ jobs:
         uses: ./.github/actions/javascript/proposalPoliceComment
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
+          PROPOSAL_POLICE_API_KEY: ${{ secrets.PROPOSAL_POLICE_API_KEY }}
+          PROPOSAL_POLICE_ASSISTANT_ID: ${{ secrets.PROPOSAL_POLICE_ASSISTANT_ID }}

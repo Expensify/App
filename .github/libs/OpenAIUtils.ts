@@ -11,12 +11,12 @@ class OpenAIUtils {
     private static assistantID: string;
 
     static init(apiKey?: string, assistantID?: string) {
-        const key = apiKey ?? getInput('OPENAI_API_KEY', {required: true});
+        const key = apiKey ?? getInput('PROPOSAL_POLICE_API_KEY', {required: true});
         if (!key) {
             throw new Error('Could not initialize OpenAI: No key provided.');
         }
         this.ai = new OpenAI({apiKey: key});
-        this.assistantID = assistantID ?? getInput('OPENAI_ASSISTANT_ID', {required: true});
+        this.assistantID = assistantID ?? getInput('PROPOSAL_POLICE_ASSISTANT_ID', {required: true});
     }
 
     static get openAI() {
