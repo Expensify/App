@@ -40,7 +40,8 @@ function LogOutPreviousUserPage({session, route, isAccountLoading}: LogOutPrevio
         const isSupportalLogin = route.params.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 
         if (isLoggingInAsNewUser) {
-            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin);
+            // We don't want to close react-native app in this particular case.
+            SessionActions.signOutAndRedirectToSignIn(false, isSupportalLogin, false);
             return;
         }
 
