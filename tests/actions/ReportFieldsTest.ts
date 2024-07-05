@@ -566,11 +566,12 @@ describe('actions/ReportFields', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
                     disabledOptions: [...reportField.disabledOptions, false],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             });
 
@@ -590,7 +591,8 @@ describe('actions/ReportFields', () => {
 
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
         });
 
         it('adds a new value to a report field list when api returns an error', async () => {
@@ -634,11 +636,12 @@ describe('actions/ReportFields', () => {
             });
 
             // check if the new report field was added to the policy
-            expect(policy?.fieldList).toStrictEqual<Record<string, PolicyReportField>>({
+            expect(policy?.fieldList).toStrictEqual<Record<string, OnyxValueWithOfflineFeedback<PolicyReportField>>>({
                 [reportFieldKey]: {
                     ...reportField,
                     values: [...reportField.values, newListValueName],
                     disabledOptions: [...reportField.disabledOptions, false],
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
             });
 
@@ -663,7 +666,8 @@ describe('actions/ReportFields', () => {
             });
             // Check if the policy pending action was cleared
             // @ts-expect-error pendingFields is not null
-            expect(policy?.pendingFields?.[reportFieldKey]).toBeFalsy();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            expect(policy?.fieldList?.[reportFieldKey]?.pendingAction).toBeFalsy();
             // Check if the policy errors was set
             // @ts-expect-error errorFields is not null
             expect(policy?.errorFields?.[reportFieldKey]).toBeTruthy();
@@ -717,7 +721,7 @@ describe('actions/ReportFields', () => {
                     defaultValue: '',
                     values: ['Value 1'],
                     disabledOptions: [false],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 
@@ -787,7 +791,7 @@ describe('actions/ReportFields', () => {
                     defaultValue: '',
                     values: ['Value 1'],
                     disabledOptions: [false],
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             });
 

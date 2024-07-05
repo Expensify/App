@@ -363,10 +363,10 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: updatedReportField,
-                    },
-                    pendingFields: {
-                        [reportFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        [reportFieldKey]: {
+                            ...updatedReportField,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
                     },
                     errorFields: null,
                 },
@@ -377,8 +377,8 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
-                    pendingFields: {
-                        [reportFieldKey]: null,
+                    fieldList: {
+                        [reportFieldKey]: {pendingAction: null},
                     },
                     errorFields: null,
                 },
@@ -390,10 +390,7 @@ function addReportFieldListValue(policyID: string, reportFieldID: string, valueN
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: reportField,
-                    },
-                    pendingFields: {
-                        [reportFieldKey]: null,
+                        [reportFieldKey]: {...reportField, pendingAction: null},
                     },
                     errorFields: {
                         [reportFieldKey]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.reportFields.genericFailureMessage'),
@@ -440,7 +437,10 @@ function removeReportFieldListValue(policyID: string, reportFieldID: string, val
                 onyxMethod: Onyx.METHOD.MERGE,
                 value: {
                     fieldList: {
-                        [reportFieldKey]: {...updatedReportField, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                        [reportFieldKey]: {
+                            ...updatedReportField,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
                     },
                     errorFields: null,
                 },
