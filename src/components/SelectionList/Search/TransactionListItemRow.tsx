@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import StringUtils from '@libs/StringUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -123,11 +124,11 @@ function MerchantCell({transactionItem, showTooltip, isLargeScreenWidth}: Transa
     if (TransactionUtils.hasReceipt(transactionItem) && TransactionUtils.isReceiptBeingScanned(transactionItem) && transactionItem.shouldShowMerchant) {
         merchant = translate('iou.receiptStatusTitle');
     }
-
+    const merchantToDisplay = StringUtils.getFirstLine(merchant);
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={merchant}
+            text={merchantToDisplay}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
