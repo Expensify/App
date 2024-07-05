@@ -133,6 +133,14 @@ function assertDesktopJobExecuted(workflowResult: Step[], didExecute = true, isP
         );
     }
 
+    steps.push(
+        createStepAssertion('Archive desktop sourcemaps', true, null, 'DESKTOP', 'Archiving desktop sourcemaps', [
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'desktop-sourcemap-1.2.3'},
+            {key: 'path', value: 'desktop/dist/www/merged-source-map.js.map'},
+        ]),
+    );
+
     steps.forEach((expectedStep) => {
         if (didExecute) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
@@ -241,6 +249,11 @@ function assertWebJobExecuted(workflowResult: Step[], didExecute = true) {
         createStepAssertion('Build web', true, null, 'WEB', 'Building web'),
         createStepAssertion('Build storybook docs', true, null, 'WEB', 'Build storybook docs'),
         createStepAssertion('Deploy to S3', true, null, 'WEB', 'Deploying to S3'),
+        createStepAssertion('Archive web sourcemaps', true, null, 'WEB', 'Archive web sourcemaps', null, [
+            // Note 1.2.3 comes from the ref name that we are on, which is the version we are deploying
+            {key: 'name', value: 'desktop-sourcemap-1.2.3'},
+            {key: 'path', value: 'desktop/dist/www/merged-source-map.js.map'},
+        ]),
         createStepAssertion('Purge Cloudflare cache', true, null, 'WEB', 'Purging Cloudflare cache', null, [{key: 'CF_API_KEY', value: '***'}]),
     );
 
