@@ -11,15 +11,15 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
-import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldsUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
 type ReportFieldAddListValuePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_ADD_VALUE>;
 
@@ -35,16 +35,16 @@ function ReportFieldAddListValuePage({
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.VALUE_NAME),
+            WorkspaceReportFieldUtils.validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.VALUE_NAME),
         [formDraft],
     );
 
     const createValue = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             if (reportFieldID) {
-                ReportFields.addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
+                ReportField.addReportFieldListValue(policyID, reportFieldID, values[INPUT_IDS.VALUE_NAME]);
             } else {
-                ReportFields.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
+                ReportField.createReportFieldsListValue(values[INPUT_IDS.VALUE_NAME]);
             }
             Keyboard.dismiss();
             Navigation.goBack();

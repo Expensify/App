@@ -2,7 +2,7 @@ import type {FormInputErrors} from '@components/Form/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {InputID} from '@src/types/form/WorkspaceReportFieldsForm';
+import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import * as ErrorUtils from './ErrorUtils';
 import * as Localize from './Localize';

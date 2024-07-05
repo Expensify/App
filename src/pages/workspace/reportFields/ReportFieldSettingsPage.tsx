@@ -1,35 +1,42 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getReportFieldInitialValue, getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldsUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import * as ReportField from '@userActions/Policy/ReportField';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportFieldEditPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT>;
+type ReportFieldSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELD_SETTINGS>;
 
-function ReportFieldEditPage({
+function ReportFieldSettingsPage({
     policy,
     route: {
         params: {policyID, reportFieldID},
     },
-}: ReportFieldEditPageProps) {
+}: ReportFieldSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-    const reportField = useMemo(() => policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null, [policy, reportFieldID]);
+    const reportFieldKey = ReportUtils.getReportFieldKey(reportFieldID);
+    const reportField = policy?.fieldList?.[reportFieldKey] ?? null;
 
     if (!reportField) {
         return <NotFoundPage />;
@@ -37,6 +44,12 @@ function ReportFieldEditPage({
 
     const isDateFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.DATE;
     const isListFieldType = reportField.type === CONST.REPORT_FIELD_TYPES.LIST;
+
+    const deleteReportFieldAndHideModal = () => {
+        ReportField.deletePolicyReportFields(policyID, [reportFieldKey]);
+        setIsDeleteModalVisible(false);
+        Navigation.goBack();
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -46,15 +59,13 @@ function ReportFieldEditPage({
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={styles.defaultModalContainer}
-                testID={ReportFieldEditPage.displayName}
-                shouldEnableMaxHeight
+                style={[styles.defaultModalContainer]}
+                testID={ReportFieldSettingsPage.displayName}
             >
                 <HeaderWithBackButton
                     title={reportField.name}
-                    onBackButtonPress={Navigation.goBack}
+                    shouldSetModalVisibility={false}
                 />
-
                 <MenuItemWithTopDescription
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -62,25 +73,22 @@ function ReportFieldEditPage({
                     description={translate('common.name')}
                     interactive={false}
                 />
-
                 <MenuItemWithTopDescription
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    title={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))}
+                    title={Str.recapitalize(translate(WorkspaceReportFieldUtils.getReportFieldTypeTranslationKey(reportField.type)))}
                     description={translate('common.type')}
                     interactive={false}
                 />
-
                 <MenuItemWithTopDescription
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    title={getReportFieldInitialValue(reportField)}
+                    title={WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField)}
                     description={translate('common.initialValue')}
                     shouldShowRightIcon={!isDateFieldType}
                     interactive={!isDateFieldType}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(`${policyID}`, reportFieldID))}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELD_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                 />
-
                 {isListFieldType && (
                     <MenuItemWithTopDescription
                         style={[styles.moneyRequestMenuItem]}
@@ -90,11 +98,29 @@ function ReportFieldEditPage({
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELD_LIST_VALUES.getRoute(policyID, reportFieldID))}
                     />
                 )}
+                <View style={styles.flexGrow1}>
+                    <MenuItem
+                        icon={Expensicons.Trashcan}
+                        title={translate('common.delete')}
+                        onPress={() => setIsDeleteModalVisible(true)}
+                    />
+                </View>
+                <ConfirmModal
+                    title={translate('workspace.reportFields.delete')}
+                    isVisible={isDeleteModalVisible}
+                    onConfirm={deleteReportFieldAndHideModal}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    shouldSetModalVisibility={false}
+                    prompt={translate('workspace.reportFields.deleteConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-ReportFieldEditPage.displayName = 'ReportFieldEditPage';
+ReportFieldSettingsPage.displayName = 'ReportFieldSettingsPage';
 
-export default withPolicyAndFullscreenLoading(ReportFieldEditPage);
+export default withPolicyAndFullscreenLoading(ReportFieldSettingsPage);

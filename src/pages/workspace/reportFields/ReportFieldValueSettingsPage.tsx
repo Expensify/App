@@ -12,7 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -62,9 +62,9 @@ function ReportFieldValueSettingsPage({
 
     const deleteListValueAndHideModal = () => {
         if (reportFieldID) {
-            ReportFields.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
+            ReportField.removeReportFieldListValue(policyID, reportFieldID, [valueIndex]);
         } else {
-            ReportFields.deleteReportFieldsListValue([valueIndex]);
+            ReportField.deleteReportFieldsListValue([valueIndex]);
         }
 
         setIsDeleteTagModalOpen(false);
@@ -73,11 +73,11 @@ function ReportFieldValueSettingsPage({
 
     const updateListValueEnabled = (value: boolean) => {
         if (reportFieldID) {
-            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
+            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, [Number(valueIndex)], value);
             return;
         }
 
-        ReportFields.setReportFieldsListValueEnabled([valueIndex], value);
+        ReportField.setReportFieldsListValueEnabled([valueIndex], value);
     };
 
     const navigateToEditValue = () => {

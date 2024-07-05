@@ -19,7 +19,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -127,9 +127,9 @@ function ReportFieldListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            ReportFields.removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            ReportField.removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
         } else {
-            ReportFields.deleteReportFieldsListValue(valuesToDelete);
+            ReportField.deleteReportFieldsListValue(valuesToDelete);
         }
 
         setDeleteValuesConfirmModalVisible(false);
@@ -186,11 +186,11 @@ function ReportFieldListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToDisable, false);
+                            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToDisable, false);
                             return;
                         }
 
-                        ReportFields.setReportFieldsListValueEnabled(valuesToDisable, false);
+                        ReportField.setReportFieldsListValueEnabled(valuesToDisable, false);
                     },
                 });
             }
@@ -218,11 +218,11 @@ function ReportFieldListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            ReportFields.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToEnable, true);
+                            ReportField.updateReportFieldListValueEnabled(policyID, reportFieldID, valuesToEnable, true);
                             return;
                         }
 
-                        ReportFields.setReportFieldsListValueEnabled(valuesToEnable, true);
+                        ReportField.setReportFieldsListValueEnabled(valuesToEnable, true);
                     },
                 });
             }

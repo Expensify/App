@@ -10,11 +10,11 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateReportFieldInitialValue} from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getReportFieldInitialValue} from '@libs/WorkspaceReportFieldsUtils';
+import * as WorkspaceReportFieldUtils from '@libs/WorkspaceReportFieldUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -24,7 +24,7 @@ import * as ErrorUtils from '@src/libs/ErrorUtils';
 import * as ValidationUtils from '@src/libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WorkspaceReportFieldsForm';
+import INPUT_IDS from '@src/types/form/WorkspaceReportFieldForm';
 
 type ReportFieldInitialValuePagePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE>;
 function ReportFieldInitialValuePage({
@@ -40,18 +40,18 @@ function ReportFieldInitialValuePage({
     const reportField = policy?.fieldList?.[ReportUtils.getReportFieldKey(reportFieldID)] ?? null;
     const availableListValuesLength = (reportField?.disabledOptions ?? []).filter((disabledListValue) => !disabledListValue).length;
 
-    const [initialValue, setInitialValue] = useState(getReportFieldInitialValue(reportField));
+    const [initialValue, setInitialValue] = useState(WorkspaceReportFieldUtils.getReportFieldInitialValue(reportField));
 
     const submitForm = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
+            ReportField.updateReportFieldInitialValue(policyID, reportFieldID, values.initialValue);
             Navigation.goBack();
         },
         [policyID, reportFieldID],
     );
 
     const submitListValueUpdate = (value: string) => {
-        updateReportFieldInitialValue(policyID, reportFieldID, value);
+        ReportField.updateReportFieldInitialValue(policyID, reportFieldID, value);
         Navigation.goBack();
     };
 
