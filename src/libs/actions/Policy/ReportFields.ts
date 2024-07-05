@@ -213,14 +213,14 @@ function createReportField(policyID: string, {name, type, initialValue}: CreateR
 
     onyxData.optimisticData?.push(
         ...(policyExpenseReports.map((report) => ({
-                key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-                onyxMethod: Onyx.METHOD.MERGE,
-                value: {
-                    fieldList: {
-                        [fieldKey]: newReportField,
-                    },
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                fieldList: {
+                    [fieldKey]: newReportField,
                 },
-            })) as OnyxUpdate[]),
+            },
+        })) as OnyxUpdate[]),
     );
 
     const parameters: CreateWorkspaceReportFieldParams = {
