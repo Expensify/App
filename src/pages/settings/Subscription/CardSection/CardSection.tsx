@@ -126,7 +126,6 @@ function CardSection() {
                 </View>
 
                 {isEmptyObject(defaultCard?.accountData) && <CardSectionDataEmpty />}
-                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
                 {billingStatus?.isRetryAvailable !== undefined && (
                     <Button
                         text={translate('subscription.cardSection.retryPaymentButton')}
@@ -137,6 +136,8 @@ function CardSection() {
                         large
                     />
                 )}
+
+                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
 
                 {!!account?.hasPurchases && (
                     <MenuItem

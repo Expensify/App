@@ -4246,7 +4246,6 @@ export default {
                     part2: '.',
                 },
             },
-            submitButton: 'Listo',
             acknowledgement: {
                 part1: 'Al solicitar la cancelación anticipada, reconozco y acepto que Expensify no tiene ninguna obligación de conceder dicha solicitud en virtud de las ',
                 link: 'Condiciones de Servicio',

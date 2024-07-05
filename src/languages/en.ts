@@ -3736,7 +3736,6 @@ export default {
                     part2: '.',
                 },
             },
-            submitButton: 'Done',
             acknowledgement: {
                 part1: 'By requesting early cancellation, I acknowledge and agree that Expensify has no obligation to grant such request under the Expensify ',
                 link: 'Terms of Service',

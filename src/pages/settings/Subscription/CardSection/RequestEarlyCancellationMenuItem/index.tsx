@@ -16,7 +16,7 @@ function RequestEarlyCancellationMenuItem() {
         <MenuItem
             title={translate('subscription.requestEarlyCancellation.title')}
             icon={Expensicons.CalendarSolid}
-            iconFill={theme.icon}
+            iconFill={theme.success}
             shouldShowRightIcon
             wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION)}
