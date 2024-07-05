@@ -111,7 +111,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                     if (ReportUtils.isExported(report)) {
                         setModalStatus(value);
                     } else {
-                        confirmExport();
+                        confirmExport(value);
                     }
                 }}
             />
