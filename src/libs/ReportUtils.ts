@@ -3741,7 +3741,7 @@ function buildOptimisticAddCommentReportAction(
     const accountID = actorAccountID ?? currentUserAccountID ?? -1;
 
     const attachmentHtml = getUploadingAttachmentHtml(file);
-    const htmlForNewComment = `${commentText}${attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
+    const htmlForNewComment = `${commentText}${commentText && attachmentHtml ? '<br /><br />' : ''}${attachmentHtml}`;
     const textForNewComment = Parser.htmlToText(htmlForNewComment);
 
     return {
