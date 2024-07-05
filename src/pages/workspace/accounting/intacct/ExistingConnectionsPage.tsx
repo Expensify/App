@@ -11,7 +11,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ExistingConnectionsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
@@ -20,7 +19,8 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
     const policiesConnectedToSageIntacct = getPoliciesConnectedToSageIntacct();
-    const policyID: string = route.params.policyID;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const policyID: string = route.params.policyID; // I'll need this to reuse existing connection
 
     const menuItems = policiesConnectedToSageIntacct.map((policy) => {
         const lastSuccessfulSyncDate = policy.connections?.intacct.lastSync?.successfulDate;
@@ -33,7 +33,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             description: date ? translate('workspace.intacct.sageIntacctLastSync', date) : translate('workspace.accounting.intacct'),
             onPress: () => {
                 // waiting for backend for reusing existing connections
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+                Navigation.dismissModal();
             },
         };
     });
@@ -47,7 +47,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             <HeaderWithBackButton
                 title={translate('workspace.intacct.existingConnections')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <View style={[styles.flex1]}>
                 <MenuItemList

@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import connectToSageIntacct from '@libs/actions/connections/SageIntacct';
+import {connectToSageIntacct} from '@libs/actions/connections/SageIntacct';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -30,8 +30,7 @@ function EnterSageIntacctCredentialsPage({route}: IntacctPrerequisitesPageProps)
     const confirmCredentials = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM>) => {
             connectToSageIntacct(policyID, values);
-            Navigation.goBack();
-            Navigation.goBack();
+            Navigation.dismissModal();
         },
         [policyID],
     );
