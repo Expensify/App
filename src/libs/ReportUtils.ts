@@ -3708,8 +3708,8 @@ function getUploadingAttachmentHtml(file?: FileObject): string {
     } else if (file.type?.startsWith('video')) {
         return `<video src="${file.source}" data-optimistic-src="${file.source}">${file.name}</video>`;
     } else {
-        // For all other types, a generic preview or message is presented. If applicable, a document preview is generated on the backend.
-        return CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
+        // For all other types, we present a generic preview
+        return `<a href="${file.source}" data-expensify-source="${file.source}">${file.name}</a>`;
     }
 }
 
