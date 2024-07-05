@@ -47,7 +47,7 @@ import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUR
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {getCurrency} from '@libs/TransactionUtils';
+import {getCurrency, getTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -5950,6 +5950,24 @@ type OptimisticHoldReportExpenseActionID = {
     oldReportActionID?: string;
 };
 
+function getHoldReportActions(reportID: string) {
+    const iouReportActions = ReportActionsUtils.getAllReportActions(reportID);
+
+    return Object.values(iouReportActions).filter((action) => {
+        const transactionID = ReportActionsUtils.isMoneyRequestAction(action) ? ReportActionsUtils.getOriginalMessage(action)?.IOUTransactionID ?? null : null;
+        return transactionID ? !getTransaction(transactionID)?.comment?.hold : false;
+    }) as Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
+}
+
+function getHoldTransaction(reportAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>): OnyxEntry<OnyxTypes.Transaction> {
+    const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+    if (transactionID) {
+        const transaction = getTransaction(transactionID);
+        return !transaction?.comment?.hold ? transaction : undefined;
+    }
+    return undefined;
+}
+
 function getReportFromHoldRequestsOnyxData(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxTypes.Report,
@@ -5961,26 +5979,19 @@ function getReportFromHoldRequestsOnyxData(
     optimisticData: OnyxUpdate[];
     failureData: OnyxUpdate[];
 } {
-    const holdTransactions: OnyxTypes.Transaction[] = Object.values(allTransactions).filter(
-        (transaction): transaction is OnyxTypes.Transaction => !!transaction && transaction.reportID === iouReport.reportID && !!transaction.comment?.hold,
-    );
+    const holdReportActions = getHoldReportActions(iouReport.reportID);
+    const firstHoldTransaction = getHoldTransaction(holdReportActions[0]);
 
     const optimisticExpenseReport = ReportUtils.buildOptimisticExpenseReport(
         chatReport.reportID,
         chatReport.policyID ?? iouReport.policyID ?? '',
         recipient.accountID ?? 1,
-        (holdTransactions[0]?.amount ?? 0) * -1,
-        getCurrency(holdTransactions[0]),
+        (firstHoldTransaction?.amount ?? 0) * -1,
+        getCurrency(firstHoldTransaction),
         false,
     );
-    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', holdTransactions[0]);
-    optimisticExpenseReportPreview.isOptimisticAction = true;
+    const optimisticExpenseReportPreview = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticExpenseReport, '', firstHoldTransaction);
 
-    const holdReportActions = Object.values(allReportActions?.[`reportActions_${iouReport.reportID}`] ?? {}).filter((reportAction) =>
-        holdTransactions.find((transaction) => transaction?.transactionID === (reportAction.originalMessage as IOUMessage)?.IOUTransactionID),
-    );
-
-    let previousReportActionID = '0';
     const updateHeldReports: Record<string, OnyxTypes.Report> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
     const deleteHoldReportActions: OnyxTypes.ReportActions = {};
@@ -5988,7 +5999,7 @@ function getReportFromHoldRequestsOnyxData(
 
     holdReportActions.forEach((holdReportAction) => {
         const reportAction = {...holdReportAction};
-        const originalMessage = reportAction.originalMessage as IOUMessage;
+        const originalMessage = ReportActionsUtils.getOriginalMessage(reportAction) as OnyxTypes.OriginalMessageIOU;
 
         deleteHoldReportActions[reportAction.reportActionID] = {
             ...reportAction,
@@ -6005,7 +6016,6 @@ function getReportFromHoldRequestsOnyxData(
         addHoldReportActions[reportActionID] = {
             ...reportAction,
             reportActionID,
-            previousReportActionID,
             originalMessage: {
                 ...originalMessage,
                 IOUReportID: optimisticExpenseReport.reportID,
@@ -6021,8 +6031,6 @@ function getReportFromHoldRequestsOnyxData(
                 parentReportActionID: reportActionID,
             };
         }
-
-        previousReportActionID = reportActionID;
     });
 
     const optimisticData: OnyxUpdate[] = [
@@ -6557,8 +6565,8 @@ function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: 
 
     let optimisticHoldReportID;
     let optimisticHoldActionID;
-    if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, expenseReport.ownerAccountID);
+    if (!full && !!chatReport && !!expenseReport) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         failureData.push(...holdReportOnyxData.failureData);
