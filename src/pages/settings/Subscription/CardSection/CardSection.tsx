@@ -137,8 +137,6 @@ function CardSection() {
                     />
                 )}
 
-                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
-
                 {!!account?.hasPurchases && (
                     <MenuItem
                         shouldShowRightIcon
@@ -148,6 +146,7 @@ function CardSection() {
                         titleStyle={styles.textStrong}
                         onPress={() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH.TAB.ALL))}
                         hoverAndPressStyle={styles.hoveredComponentBG}
+                        style={styles.mt5}
                     />
                 )}
 
@@ -162,6 +161,8 @@ function CardSection() {
                         onPress={() => setIsRequestRefundModalVisible(true)}
                     />
                 )}
+
+                {privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && <RequestEarlyCancellationMenuItem />}
             </Section>
 
             {account?.isEligibleForRefund && (

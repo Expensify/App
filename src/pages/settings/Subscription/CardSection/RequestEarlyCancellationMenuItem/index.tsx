@@ -18,7 +18,7 @@ function RequestEarlyCancellationMenuItem() {
             icon={Expensicons.CalendarSolid}
             iconFill={theme.success}
             shouldShowRightIcon
-            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt5]}
+            wrapperStyle={styles.sectionMenuItemTopDescription}
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION)}
         />
     );
