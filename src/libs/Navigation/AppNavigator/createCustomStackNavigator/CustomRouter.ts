@@ -7,7 +7,7 @@ import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRo
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
-import isCentralPaneName from '@libs/NavigationUtils';
+import {isCentralPaneName} from '@libs/NavigationUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
