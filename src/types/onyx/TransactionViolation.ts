@@ -8,10 +8,10 @@ import type CONST from '@src/CONST';
 type ViolationName = ValueOf<typeof CONST.VIOLATIONS>;
 
 /**
- * Types of violation data.
- * Derived from ONST.VIOLATION_DATA_TYPES` to maintain a single source of truth.
+ * Types for the data in the modifiedAmount violation
+ * Derived from CONST.VIOLATION_DATA_TYPES to maintain a single source of truth.
  */
-type ViolationDataType = ValueOf<typeof CONST.VIOLATION_DATA_TYPES>;
+type ViolationDataType = ValueOf<typeof CONST.MODIFIED_AMOUNT_VIOLATION_DATA>;
 
 /** Model of transaction violation data */
 type TransactionViolationData = {
@@ -69,7 +69,7 @@ type TransactionViolationData = {
     /** Whether the current violation is `pending RTER` */
     pendingPattern?: boolean;
 
-    /** Violation data type */
+    /** modifiedAmount violation type (eg, 'distance', 'card') */
     type?: ViolationDataType;
 
     /** Percent Variance for modified amount violations */

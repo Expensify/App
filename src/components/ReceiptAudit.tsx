@@ -7,7 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: {notes: string[]; shouldShowAuditSuccess?: boolean; shouldShowAuditFailure?: boolean}) {
+function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: {notes: string[]; shouldShowAuditSuccess: boolean; shouldShowAuditFailure: boolean}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();

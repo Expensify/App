@@ -3886,9 +3886,9 @@ const CONST = {
     },
 
     /**
-     * Constants for types of violation data.
+     * Constants with different types for the modifiedAmount violation
      */
-    VIOLATION_DATA_TYPES: {
+    MODIFIED_AMOUNT_VIOLATION_DATA: {
         DISTANCE: 'distance',
         CARD: 'card',
         SMARTSCAN: 'smartscan',
