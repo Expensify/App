@@ -10,6 +10,7 @@ import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedSt
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import {isCentralPaneName, isOnboardingFlowName} from '@libs/NavigationUtils';
 import * as Welcome from '@userActions/Welcome';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type {ResponsiveStackNavigatorRouterOptions} from './types';
@@ -100,7 +101,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
 }
 
 function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: CommonActions.Action | StackActionType) {
-    if (action.type !== 'RESET' || !action?.payload) {
+    if (action.type !== CONST.NAVIGATION_ACTIONS.RESET || !action?.payload) {
         return false;
     }
     const currentFocusedRoute = findFocusedRoute(state);

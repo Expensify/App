@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -27,7 +27,7 @@ import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
+import type {BaseOnboardingPurposeProps} from './types';
 
 const menuIcons = {
     [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
@@ -37,13 +37,15 @@ const menuIcons = {
     [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
 };
 
-function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, onboardingPurposeSelected, onboardingErrorMessage}: BaseOnboardingPurposeProps) {
+function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const theme = useTheme();
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
 
     const PurposeFooterInstance = <OfflineIndicator />;
 
@@ -161,13 +163,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
 BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
-export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxProps>({
-    onboardingPurposeSelected: {
-        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-    },
-    onboardingErrorMessage: {
-        key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-    },
-})(BaseOnboardingPurpose);
+export default BaseOnboardingPurpose;
 
 export type {BaseOnboardingPurposeProps};
