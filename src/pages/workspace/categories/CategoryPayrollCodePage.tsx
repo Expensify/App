@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -20,31 +19,28 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
-import type {PolicyCategories} from '@src/types/onyx';
 
-type WorkspaceEditCategoryPayrollCodePageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<PolicyCategories>;
-};
+type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE>;
 
-type EditCategoryPageProps = WorkspaceEditCategoryPayrollCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE>;
-
-function CategoryPayrollCodePage({route, policyCategories}: EditCategoryPageProps) {
+function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policyId = route.params.policyID ?? '-1';
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+
     const categoryName = route.params.categoryName;
-    const glCode = policyCategories?.[categoryName]?.payrollCode;
+    const payrollCode = policyCategories?.[categoryName]?.payrollCode;
     const {inputCallbackRef} = useAutoFocusInput();
 
     const editGLCode = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newGLCode = values.payrollCode.trim();
-            if (newGLCode !== glCode) {
-                Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newGLCode);
+            const newPayrollCode = values.payrollCode.trim();
+            if (newPayrollCode !== payrollCode) {
+                Category.setPolicyCategoryPayrollCode(route.params.policyID, categoryName, newPayrollCode);
             }
             Navigation.goBack();
         },
-        [categoryName, glCode, route.params.policyID],
+        [categoryName, payrollCode, route.params.policyID],
     );
 
     return (
@@ -73,7 +69,7 @@ function CategoryPayrollCodePage({route, policyCategories}: EditCategoryPageProp
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
-                        defaultValue={glCode}
+                        defaultValue={payrollCode}
                         label={translate('workspace.categories.payrollCode')}
                         accessibilityLabel={translate('workspace.categories.payrollCode')}
                         inputID={INPUT_IDS.PAYROLL_CODE}
@@ -88,8 +84,4 @@ function CategoryPayrollCodePage({route, policyCategories}: EditCategoryPageProp
 
 CategoryPayrollCodePage.displayName = 'CategoryPayrollCodePage';
 
-export default withOnyx<EditCategoryPageProps, WorkspaceEditCategoryPayrollCodePageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
-    },
-})(CategoryPayrollCodePage);
+export default CategoryPayrollCodePage;
