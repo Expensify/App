@@ -633,23 +633,24 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
-            {pdfFile && (
-                <View style={{position: 'absolute', opacity: 0}}>
-                    <PDFThumbnail
-                        previewSourceURL={pdfFile.uri ?? ''}
-                        onPassword={() => {
-                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                        }}
-                        onLoadSuccess={() => {
-                            setPdfFile(null);
+            <View style={{position: 'absolute', opacity: 0}}>
+                <PDFThumbnail
+                    previewSourceURL={pdfFile?.uri ?? ''}
+                    enabled={!!pdfFile}
+                    onLoadSuccess={() => {
+                        setPdfFile(null);
+                        if (pdfFile) {
                             setReceiptAndNavigate(pdfFile, true);
-                        }}
-                        onLoadError={() => {
-                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                        }}
-                    />
-                </View>
-            )}
+                        }
+                    }}
+                    onPassword={() => {
+                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+                    }}
+                    onLoadError={() => {
+                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    }}
+                />
+            </View>
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
