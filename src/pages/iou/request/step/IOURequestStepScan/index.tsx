@@ -515,17 +515,14 @@ function IOURequestStepScan({
         [],
     );
 
-    const PDFThumbnailView = (
+    const PDFThumbnailView = pdfFile ? (
         <View style={{position: 'absolute', opacity: 0, width: 1, height: 1}}>
             <PDFThumbnail
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                previewSourceURL={pdfFile?.uri ?? ''}
-                enabled={!!pdfFile}
+                previewSourceURL={pdfFile.uri ?? ''}
                 onLoadSuccess={() => {
                     setPdfFile(null);
-                    if (pdfFile) {
-                        setReceiptAndNavigate(pdfFile, true);
-                    }
+                    setReceiptAndNavigate(pdfFile, true);
                 }}
                 onPassword={() => {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
@@ -535,7 +532,7 @@ function IOURequestStepScan({
                 }}
             />
         </View>
-    );
+    ) : null;
 
     const mobileCameraView = () => (
         <>
