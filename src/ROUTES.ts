@@ -1018,8 +1018,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom-list/new',
-        getRoute: (policyID: string) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',

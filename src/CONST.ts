@@ -1408,6 +1408,7 @@ const CONST = {
             },
         },
         NETSUITE_CUSTOM_LIST_THRESHOLD: 8,
+        NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES: ['1', '2,', '3', '4'],
     },
 
     NETSUITE_CUSTOM_RECORD_TYPES: {

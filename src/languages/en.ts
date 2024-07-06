@@ -2031,6 +2031,7 @@ export default {
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
             subscription: 'Subscription',
+            letsDoubleCheck: "Let's double check that everything looks right.",
         },
         qbo: {
             importDescription: 'Choose which coding configurations to import from QuickBooks Online to Expensify.',
@@ -2400,6 +2401,7 @@ export default {
                 },
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
+                    chooseOptionBelow: 'Choose an option below:',
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
@@ -2440,7 +2442,6 @@ export default {
                             transactionFieldIDTitle: "What's the transaction field ID?",
                             transactionFieldIDFooter: `You can find transaction field IDS in NetSuite by following these steps:\n\n1. Enter "Transaction Line Fields" in global search.\n2. Click into a custom list.\n3. Find the transaction field ID on the left-hand side.\n\n_For more detailed instructions, [visit our help site](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
                             mappingTitle: 'How should this custom list be displayed in Expensify?',
-                            chooseOptionBelow: 'Choose an option below',
                         },
                     },
                 },

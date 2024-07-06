@@ -10,12 +10,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import ChooseCustomListStep from './substeps/ChooseCustomListStep';
+import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
+import MappingStep from './substeps/MappingStep';
 import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
-const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, TransactionFieldIDStep, TransactionFieldIDStep];
+const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, MappingStep, ConfirmCustomListStep];
 
 function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -24,6 +28,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
 
     const submit = () => {
         // API call and fetch all form values
+        FormActions.clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM);
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
     };
 
@@ -53,7 +58,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     return (
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomListPage.displayName}
-            headerTitle='workspace.netsuite.import.importCustomFields.customLists.addText'
+            headerTitle="workspace.netsuite.import.importCustomFields.customLists.addText"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -67,7 +72,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 <InteractiveStepSubHeader
                     ref={ref}
                     startStepIndex={0}
-                    stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
+                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES}
                 />
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>

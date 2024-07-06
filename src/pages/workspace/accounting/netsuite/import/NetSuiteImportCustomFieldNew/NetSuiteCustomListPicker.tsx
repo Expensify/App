@@ -57,5 +57,5 @@ function NetSuiteCustomListPicker({value, onInputChange, policy}: NetSuiteCustom
     );
 }
 
-NetSuiteCustomListPicker.displayName = 'CustomListPicker';
+NetSuiteCustomListPicker.displayName = 'NetSuiteCustomListPicker';
 export default NetSuiteCustomListPicker;
