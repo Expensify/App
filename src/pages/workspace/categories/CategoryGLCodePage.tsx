@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -20,20 +19,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
-import type {PolicyCategories} from '@src/types/onyx';
 
-type WorkspaceEditCategoryGLCodePageOnyxProps = {
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<PolicyCategories>;
-};
+type EditCategoryPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GL_CODE>;
 
-type EditCategoryPageProps = WorkspaceEditCategoryGLCodePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_GL_CODE>;
-
-function CategoryGLCodePage({route, policyCategories}: EditCategoryPageProps) {
+function CategoryGLCodePage({route}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policyId = route.params.policyID ?? '-1';
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+
     const categoryName = route.params.categoryName;
-    const glCode = policyCategories?.[categoryName]?.glCode;
+    const glCode = policyCategories?.[categoryName]?.['GL Code'];
     const {inputCallbackRef} = useAutoFocusInput();
 
     const editGLCode = useCallback(
@@ -88,8 +84,4 @@ function CategoryGLCodePage({route, policyCategories}: EditCategoryPageProps) {
 
 CategoryGLCodePage.displayName = 'CategoryGLCodePage';
 
-export default withOnyx<EditCategoryPageProps, WorkspaceEditCategoryGLCodePageOnyxProps>({
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route?.params?.policyID}`,
-    },
-})(CategoryGLCodePage);
+export default CategoryGLCodePage;
