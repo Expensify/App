@@ -226,7 +226,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        if(PolicyUtils.hasAccountingConnections(policy)){
+        if (PolicyUtils.hasAccountingConnections(policy)) {
             setIsUnapproveModalVisible(true);
             return;
         }
@@ -422,10 +422,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
+    const connectedIntegration = Object.values(CONST.POLICY.CONNECTIONS.NAME).find((integration) => !!policy?.connections?.[integration]);
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', connectedIntegration) : '';
     const unapproveWarningText = (
         <Text>
-            {/* TODO: Replace with the connected accounting integration name */}
-            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', 'Xero')}</Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text> <Text>{translate('iou.unapproveWithIntegrationWarning', connectedIntegrationName)}</Text>
         </Text>
     );
 
