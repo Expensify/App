@@ -112,8 +112,6 @@ describe('CurrencyUtils', () => {
             [25, 0.25, 'USD'],
             [2500, 25, 'USD'],
             [2500.5, 25, 'USD'], // The backend should never send a decimal .5 value
-            // VND uses 0 decimals.
-            // https://github.com/Expensify/App/pull/43948
             [2500, 25, 'VND'],
             [2550, 26, 'VND'],
             [25, 0, 'VND'],
@@ -133,8 +131,6 @@ describe('CurrencyUtils', () => {
             [null, '', 'USD'],
             [undefined, '', 'USD'],
             [0, '0.00', 'USD'],
-            // VND uses 0 decimals.
-            // https://github.com/Expensify/App/pull/43948
             [2500, '25', 'VND'],
             [2550, '26', 'VND'],
             [25, '0', 'VND'],
