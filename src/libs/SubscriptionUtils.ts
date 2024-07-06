@@ -81,6 +81,7 @@ Onyx.connect({
 let retryBillingSuccessful: OnyxEntry<boolean>;
 Onyx.connect({
     key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
+    initWithStoredValues: false,
     callback: (value) => {
         if (value === undefined) {
             return;
@@ -350,7 +351,7 @@ function hasSubscriptionRedDotError(): boolean {
  * @returns Whether there is a subscription green dot info.
  */
 function hasSubscriptionGreenDotInfo(): boolean {
-    return !getSubscriptionStatus()?.isError ?? false;
+    return getSubscriptionStatus()?.isError === false;
 }
 
 /**
