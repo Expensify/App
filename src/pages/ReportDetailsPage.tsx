@@ -236,7 +236,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             setIsUnapproveModalVisible(true);
             return;
         }
-        setIsUnapproveModalVisible(false);
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
     }, [moneyRequestReport, policy]);
