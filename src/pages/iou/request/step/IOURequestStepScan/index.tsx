@@ -529,28 +529,23 @@ function IOURequestStepScan({
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                {pdfFile && (
-                    <PDFThumbnail
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        previewSourceURL={pdfFile.uri ?? ''}
-                        // We don't support scanning password protected PDF receipt
-                        // enabled={!isAttachmentInvalid}
-                        onLoadSuccess={() => {
-                            setPdfFile(null);
+                <PDFThumbnail
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    previewSourceURL={pdfFile?.uri ?? ''}
+                    enabled={!!pdfFile}
+                    onLoadSuccess={() => {
+                        setPdfFile(null);
+                        if (pdfFile) {
                             setReceiptAndNavigate(pdfFile, true);
-                        }}
-                        onPassword={() => {
-                            // setIsAttachmentInvalid(true);
-                            // setInvalidAttachmentPromt(translate('attachmentPicker.protectedPDFNotSupported'));
-                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                        }}
-                        onLoadError={() => {
-                            // setInvalidAttachmentPromt(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                            // setIsAttachmentInvalid(true);
-                            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                        }}
-                    />
-                )}
+                        }
+                    }}
+                    onPassword={() => {
+                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    }}
+                    onLoadError={() => {
+                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                    }}
+                />
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

@@ -464,26 +464,27 @@ function IOURequestStepScan({
             testID={IOURequestStepScan.displayName}
         >
             <View style={{height: 0, overflow: 'hidden', width: 0, opacity: 0}}>
-                {pdfFile && (
-                    <View style={{height: 1, width: 1}}>
-                        <PDFThumbnail
-                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                            previewSourceURL={pdfFile.uri ?? ''}
-                            onLoadSuccess={() => {
-                                setPdfFile(null);
+                <View style={{height: 1, width: 1}}>
+                    <PDFThumbnail
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        enabled={!!pdfFile}
+                        previewSourceURL={pdfFile?.uri ?? ''}
+                        onLoadSuccess={() => {
+                            setPdfFile(null);
+                            if (pdfFile) {
                                 setReceiptAndNavigate(pdfFile, true);
-                            }}
-                            onPassword={() => {
-                                setPdfFile(null);
-                                Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
-                            }}
-                            onLoadError={() => {
-                                setPdfFile(null);
-                                Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                            }}
-                        />
-                    </View>
-                )}
+                            }
+                        }}
+                        onPassword={() => {
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                        }}
+                        onLoadError={() => {
+                            setPdfFile(null);
+                            Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                        }}
+                    />
+                </View>
             </View>
             {cameraPermissionStatus !== RESULTS.GRANTED && (
                 <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
