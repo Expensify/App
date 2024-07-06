@@ -1054,7 +1054,7 @@ export default {
         copy: 'Copy',
         disable: 'Disable',
         enableTwoFactorAuth: 'Enable two-factor authentication',
-        pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.,
+        pleaseEnableTwoFactorAuth: 'Please enable two-factor authentication.',
         twoFactorAuthIsRequiredDescription: 'Two-factor authentication is required for connecting to Xero. Please enable two-factor authentication to continue.',
         twoFactorAuthIsRequiredForAdminsDescription: 'Two-factor authentication is required for Xero workspace admins. Please enable two-factor authentication to continue.',
     },

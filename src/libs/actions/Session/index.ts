@@ -42,6 +42,7 @@ import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
+import {reconnectApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -942,7 +943,16 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
 
     const params: ValidateTwoFactorAuthParams = {twoFactorAuthCode};
 
-    API.write(WRITE_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData});
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData}).then((response) => {
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return;
+        }
+
+        if (response.authToken) {
+            reconnectApp();
+        }
+    });
 }
 
 /**
