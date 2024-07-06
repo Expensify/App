@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextStyle} from 'react-native';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -714,6 +714,12 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const confirmButtonRef = useRef<View>(null);
+
+    useEffect(() => {
+        confirmButtonRef.current?.focus();
+    }, []);
+
     const footerContent = useMemo(() => {
         if (isReadOnly) {
             return;
@@ -745,6 +751,7 @@ function MoneyRequestConfirmationList({
             />
         ) : (
             <ButtonWithDropdownMenu
+                buttonRef={confirmButtonRef}
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}

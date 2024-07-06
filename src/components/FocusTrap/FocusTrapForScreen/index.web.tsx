@@ -8,6 +8,7 @@ import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type FocusTrapProps from './FocusTrapProps';
 
@@ -51,12 +52,13 @@ function FocusTrapForScreen({children}: FocusTrapProps) {
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
                 fallbackFocus: document.body,
-                // We don't want to ovverride autofocus on these screens.
-                initialFocus: () => {
-                    if (screensWithAutofocus.includes(activeRouteName)) {
+                delayInitialFocus: CONST.ANIMATED_TRANSITION,
+                // We don’t want to override autofocus while there is a focused element.
+                initialFocus: (containers) => {
+                    const hasFocusedElement = containers?.some((container) => container.contains(document.activeElement));
+                    if (hasFocusedElement) {
                         return false;
                     }
-                    return undefined;
                 },
                 setReturnFocus: (element) => {
                     if (screensWithAutofocus.includes(activeRouteName)) {
