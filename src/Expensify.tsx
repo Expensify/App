@@ -38,6 +38,7 @@ import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/Popo
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {Route} from './ROUTES';
 import type {ScreenShareRequest, Session} from './types/onyx';
+import ROUTES from "./ROUTES";
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -130,6 +131,10 @@ function Expensify({
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
     }, []);
+
+    useEffect(() => {
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute('F44733E1401EC789', CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE));
+    })
 
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);

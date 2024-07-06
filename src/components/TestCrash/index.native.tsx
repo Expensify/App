@@ -10,6 +10,7 @@ const config = require('../../../firebase.json');
 function TestCrash() {
     const {translate} = useLocalize();
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const isCrashlyticsDebugEnabled = config['react-native'].crashlytics_debug_enabled;
 
     return (
