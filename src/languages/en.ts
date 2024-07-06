@@ -2440,7 +2440,7 @@ export default {
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
                         return 'NetSuite';
                     default: {
-                        return 'Accounting integration';
+                        return '';
                     }
                 }
             },
