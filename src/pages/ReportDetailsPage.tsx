@@ -239,7 +239,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         setIsUnapproveModalVisible(false);
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
-    }, [moneyRequestReport]);
+    }, [moneyRequestReport, policy]);
 
     const shouldShowLeaveButton =
         !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
