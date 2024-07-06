@@ -376,6 +376,9 @@ function setPolicyCategoryPayrollCode(policyID: string, categoryName: string, pa
                         ...policyCategoryToUpdate,
                         errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updatePayrollCodeFailureMessage'),
                         pendingAction: null,
+                        pendingFields: {
+                            payrollCode: null,
+                        },
                     },
                 },
             },
