@@ -529,7 +529,7 @@ function IOURequestStepScan({
                         }
                     }}
                     onPassword={() => {
-                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
                     }}
                     onLoadError={() => {
                         setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
