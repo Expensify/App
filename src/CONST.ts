@@ -1410,6 +1410,11 @@ const CONST = {
         NETSUITE_CUSTOM_LIST_THRESHOLD: 8,
     },
 
+    NETSUITE_CUSTOM_RECORD_TYPES: {
+        CUSTOM_SEGMENTS: 'customSegments',
+        CUSTOM_RECORDS: 'customRecords',
+    },
+
     NETSUITE_IMPORT: {
         HELP_LINKS: {
             CUSTOM_SEGMENTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments',

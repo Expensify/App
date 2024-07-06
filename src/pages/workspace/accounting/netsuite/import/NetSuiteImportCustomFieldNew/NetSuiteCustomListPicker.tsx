@@ -2,27 +2,27 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
-import type {NetSuiteCustomListSource} from '@src/types/onyx/Policy';
+import type {Policy} from '@src/types/onyx';
 
-type CustomListPickerProps = {
-    selectedCustomList?: string;
-    allCustomLists: NetSuiteCustomListSource[];
-    onSubmit: (item: ListItem) => void;
+type NetSuiteCustomListPickerProps = {
+    value?: string;
+    policy?: Policy;
+    onInputChange?: (value: string) => void;
 };
 
-function CustomListPicker({selectedCustomList, allCustomLists, onSubmit}: CustomListPickerProps) {
+function NetSuiteCustomListPicker({value, onInputChange, policy}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    const {sections, headerMessage} = useMemo(() => {
-        const customListData = allCustomLists.map((customListRecord) => ({
+    const {sections, headerMessage, showTextInput} = useMemo(() => {
+        const customLists = policy?.connections?.netsuite?.options?.data?.customLists ?? [];
+        const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
-            value: customListRecord.id,
-            isSelected: customListRecord.name === selectedCustomList,
+            value: customListRecord.name,
+            isSelected: customListRecord.name === value,
         }));
 
         const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
@@ -38,16 +38,17 @@ function CustomListPicker({selectedCustomList, allCustomLists, onSubmit}: Custom
                       },
                   ],
             headerMessage: isEmpty ? translate('common.noResultsFound') : '',
+            showTextInput: customListData.length > CONST.NETSUITE_CONFIG.NETSUITE_CUSTOM_LIST_THRESHOLD,
         };
-    }, [allCustomLists, debouncedSearchValue, translate, selectedCustomList]);
+    }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, value]);
 
     return (
         <SelectionList
             sections={sections}
             textInputValue={searchValue}
-            textInputLabel={allCustomLists.length > CONST.NETSUITE_CONFIG.NETSUITE_CUSTOM_LIST_THRESHOLD ? translate('common.search') : undefined}
+            textInputLabel={showTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
-            onSelectRow={onSubmit}
+            onSelectRow={(selected) => (onInputChange ? onInputChange(selected.value) : {})}
             headerMessage={headerMessage}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={undefined}
@@ -56,5 +57,5 @@ function CustomListPicker({selectedCustomList, allCustomLists, onSubmit}: Custom
     );
 }
 
-CustomListPicker.displayName = 'CustomListPicker';
-export default CustomListPicker;
+NetSuiteCustomListPicker.displayName = 'CustomListPicker';
+export default NetSuiteCustomListPicker;

@@ -1,47 +1,40 @@
 import React, {useRef} from 'react';
-import type {ComponentType, ForwardedRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import useSubStep from '@hooks/useSubStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import AddCustomRecordStep from './substeps/AddCustomRecordStep';
-import type {SubStepWithPolicy} from './substeps/AddCustomRecordStep';
+import ChooseCustomListStep from './substeps/ChooseCustomListStep';
+import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
-const formSteps = Array<ComponentType<SubStepWithPolicy>>(4).fill(AddCustomRecordStep);
+const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, TransactionFieldIDStep, TransactionFieldIDStep];
 
-type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
-type NetSuiteImportCustomFieldNewPageProps = WithPolicyConnectionsProps & {
-    route: {
-        params: {
-            importCustomField: ImportCustomFieldsKeys;
-        };
-    };
-};
-
-function NetSuiteImportCustomFieldNewPage({
-    policy,
-    route: {
-        params: {importCustomField},
-    },
-}: NetSuiteImportCustomFieldNewPageProps) {
+function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
     const styles = useThemeStyles();
     const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
 
     const submit = () => {
         // API call and fetch all form values
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
     };
 
-    const {componentToRender: SubStep, isEditing, nextScreen, prevScreen, screenIndex, moveTo} = useSubStep<SubStepWithPolicy>({bodyContent: formSteps, startFrom: 0, onFinished: submit});
+    const {
+        componentToRender: SubStep,
+        isEditing,
+        nextScreen,
+        prevScreen,
+        screenIndex,
+        moveTo,
+    } = useSubStep<CustomFieldSubStepWithPolicy>({bodyContent: formSteps, startFrom: 0, onFinished: submit});
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
@@ -59,8 +52,8 @@ function NetSuiteImportCustomFieldNewPage({
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomFieldNewPage.displayName}
-            headerTitle={`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`}
+            displayName={NetSuiteImportAddCustomListPage.displayName}
+            headerTitle='workspace.netsuite.import.importCustomFields.customLists.addText'
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -91,6 +84,6 @@ function NetSuiteImportCustomFieldNewPage({
     );
 }
 
-NetSuiteImportCustomFieldNewPage.displayName = 'NetSuiteImportCustomFieldNewPage';
+NetSuiteImportAddCustomListPage.displayName = 'NetSuiteImportCustomFieldNewPage';
 
-export default withPolicyConnections(NetSuiteImportCustomFieldNewPage);
+export default withPolicyConnections(NetSuiteImportAddCustomListPage);

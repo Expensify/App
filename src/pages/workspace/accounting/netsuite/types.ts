@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 
 type MenuItem = MenuItemProps & {
     /** Type of the item */
@@ -44,4 +46,6 @@ type ExpenseRouteParams = {
     expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
 };
 
-export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams};
+type CustomFieldSubStepWithPolicy = SubStepProps & {policyID: string; policy: Policy | undefined};
+
+export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy};

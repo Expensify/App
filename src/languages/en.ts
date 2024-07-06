@@ -2402,7 +2402,9 @@ export default {
                 importCustomFields: {
                     customSegments: {
                         title: 'Custom segments/records',
-                        addButtonText: 'Add custom segment/record',
+                        addText: 'Add custom segment/record',
+                        addCustomSegmentTitle: 'Add custom segment',
+                        addCustomRecordTitle: 'Add custom record',
                         recordTitle: 'Custom segment',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS,
                         helpLinkText: 'View detailed instructions',
@@ -2419,7 +2421,7 @@ export default {
                     },
                     customLists: {
                         title: 'Custom lists',
-                        addButtonText: 'Add custom list',
+                        addText: 'Add custom list',
                         recordTitle: 'Custom list',
                         helpLink: CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS,
                         helpLinkText: 'View detailed instructions',
@@ -2433,6 +2435,13 @@ export default {
                         },
                         removeTitle: 'Remove custom list',
                         removePrompt: 'Are you sure you want to remove this custom list?',
+                        addForm: {
+                            listNameTitle: 'Choose a custom list',
+                            transactionFieldIDTitle: "What's the transaction field ID?",
+                            transactionFieldIDFooter: `You can find transaction field IDS in NetSuite by following these steps:\n\n1. Enter "Transaction Line Fields" in global search.\n2. Click into a custom list.\n3. Find the transaction field ID on the left-hand side.\n\n_For more detailed instructions, [visit our help site](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            mappingTitle: 'How should this custom list be displayed in Expensify?',
+                            chooseOptionBelow: 'Choose an option below',
+                        },
                     },
                 },
                 importTypes: {
