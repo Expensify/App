@@ -2440,7 +2440,7 @@ export default {
                         addForm: {
                             listNameTitle: 'Choose a custom list',
                             transactionFieldIDTitle: "What's the transaction field ID?",
-                            transactionFieldIDFooter: `You can find transaction field IDS in NetSuite by following these steps:\n\n1. Enter "Transaction Line Fields" in global search.\n2. Click into a custom list.\n3. Find the transaction field ID on the left-hand side.\n\n_For more detailed instructions, [visit our help site](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
+                            transactionFieldIDFooter: `You can find transaction field IDs in NetSuite by following these steps:\n\n1. Enter "Transaction Line Fields" in global search.\n2. Click into a custom list.\n3. Find the transaction field ID on the left-hand side.\n\n_For more detailed instructions, [visit our help site](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_.`,
                             mappingTitle: 'How should this custom list be displayed in Expensify?',
                         },
                     },

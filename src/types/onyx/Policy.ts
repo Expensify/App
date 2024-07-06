@@ -720,6 +720,9 @@ type NetSuiteExportDateOptions = 'SUBMITTED' | 'EXPORTED' | 'LAST_EXPENSE';
 /** NetSuite journal posting preference values */
 type NetSuiteJournalPostingPreferences = 'JOURNALS_POSTING_TOTAL_LINE' | 'JOURNALS_POSTING_INDIVIDUAL_LINE';
 
+/** NetSuite custom segment/records and custom lists mapping values */
+type NetSuiteCustomFieldMapping = 'TAG' | 'REPORT_FIELD';
+
 /** The custom form selection options for transactions (any one will be used at most) */
 type NetSuiteCustomFormIDOptions = {
     /** If the option is expense report */
@@ -744,7 +747,7 @@ type NetSuiteCustomList = {
     transactionFieldID: string;
 
     /** Whether we import this list as a report field or tag */
-    mapping: 'tag' | 'reportField';
+    mapping: NetSuiteCustomFieldMapping;
 };
 
 /** NetSuite custom segments/records */
@@ -759,7 +762,7 @@ type NetSuiteCustomSegment = {
     scriptID: string;
 
     /** Whether we import this segment as a report field or tag */
-    mapping: 'tag' | 'reportField';
+    mapping: 'TAG' | 'REPORT_FIELD';
 };
 
 /** User configuration for the NetSuite accounting integration. */
@@ -1378,4 +1381,5 @@ export type {
     NetSuiteCustomList,
     NetSuiteCustomSegment,
     NetSuiteCustomListSource,
+    NetSuiteCustomFieldMapping,
 };

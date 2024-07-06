@@ -1,14 +1,16 @@
 import {ExpensiMark} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteCustomFieldAddFormSubmit from '@hooks/useNetSuiteCustomFieldAddFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,11 +27,18 @@ function TransactionFieldIDStep({onNext, isEditing}: CustomFieldSubStepWithPolic
         shouldSaveDraft: isEditing,
     });
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
+            ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.TRANSACTION_FIELD_ID]),
+        [],
+    );
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM}
             submitButtonText={translate('common.next')}
             onSubmit={handleSubmit}
+            validate={validate}
             style={[styles.flexGrow1, styles.ph5]}
             submitButtonStyles={[styles.mb0]}
         >
