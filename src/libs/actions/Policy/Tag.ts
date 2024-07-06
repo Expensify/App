@@ -610,6 +610,9 @@ function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: stri
 }
 
 function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
+    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -652,6 +655,51 @@ function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
             },
         ],
     };
+
+    if (isMultiLevelTags) {
+        onyxData.optimisticData?.push({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
+                    acc[key] = {
+                        ...acc[key],
+                        required: requiresTag,
+                    };
+
+                    return acc;
+                }, {}),
+            },
+        });
+        onyxData.failureData?.push({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
+                    acc[key] = {
+                        ...acc[key],
+                        required: !requiresTag,
+                    };
+
+                    return acc;
+                }, {}),
+            },
+        });
+        onyxData.finallyData?.push({
+            key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+            onyxMethod: Onyx.METHOD.MERGE,
+            value: {
+                ...Object.keys(policyTags).reduce<PolicyTagList>((acc, key) => {
+                    acc[key] = {
+                        ...acc[key],
+                        required: !requiresTag,
+                    };
+
+                    return acc;
+                }, {}),
+            },
+        });
+    }
 
     const parameters = {
         policyID,
