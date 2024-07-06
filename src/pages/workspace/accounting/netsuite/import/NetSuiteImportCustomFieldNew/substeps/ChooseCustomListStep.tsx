@@ -6,11 +6,13 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteCustomFieldAddFormSubmit from '@hooks/useNetSuiteCustomFieldAddFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {updateAddCustomLisFormRecord} from '@libs/actions/Policy/Policy';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import NetSuiteCustomListPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+import type {NetSuiteCustomList} from '@src/types/onyx/Policy';
 
 function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
@@ -27,6 +29,10 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
         [],
     );
 
+    const onSelectCustomList = (customList: Partial<NetSuiteCustomList>) => {
+        updateAddCustomLisFormRecord(customList);
+    };
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM}
@@ -42,6 +48,7 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
                 inputID={INPUT_IDS.LIST_NAME}
                 shouldSaveDraft={!isEditing}
                 policy={policy}
+                onSelect={onSelectCustomList}
             />
         </FormProvider>
     );

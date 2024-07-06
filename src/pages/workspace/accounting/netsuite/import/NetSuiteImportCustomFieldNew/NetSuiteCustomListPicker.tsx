@@ -6,14 +6,15 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
+import type {NetSuiteCustomList} from '@src/types/onyx/Policy';
 
 type NetSuiteCustomListPickerProps = {
     value?: string;
     policy?: Policy;
-    onInputChange?: (value: string) => void;
+    onSelect?: (customList: Partial<NetSuiteCustomList>) => void;
 };
 
-function NetSuiteCustomListPicker({value, onInputChange, policy}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -21,7 +22,7 @@ function NetSuiteCustomListPicker({value, onInputChange, policy}: NetSuiteCustom
         const customLists = policy?.connections?.netsuite?.options?.data?.customLists ?? [];
         const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
-            value: customListRecord.name,
+            value: customListRecord.id,
             isSelected: customListRecord.name === value,
         }));
 
@@ -48,7 +49,14 @@ function NetSuiteCustomListPicker({value, onInputChange, policy}: NetSuiteCustom
             textInputValue={searchValue}
             textInputLabel={showTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
-            onSelectRow={(selected) => (onInputChange ? onInputChange(selected.value) : {})}
+            onSelectRow={(selected) =>
+                onSelect
+                    ? onSelect({
+                          listName: selected.text,
+                          internalID: selected.value,
+                      })
+                    : {}
+            }
             headerMessage={headerMessage}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={undefined}
