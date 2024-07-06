@@ -132,10 +132,6 @@ function Expensify({
         Navigation.setIsNavigationReady();
     }, []);
 
-    useEffect(() => {
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT.getRoute('F44733E1401EC789', CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE));
-    })
-
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
         Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);

@@ -984,6 +984,7 @@ export default {
             destroy: 'Destroy',
             maskExportOnyxStateData: 'Mask fragile user data while exporting Onyx state',
             exportOnyxState: 'Export Onyx state',
+            testCrash: 'Test crash',
         },
         debugConsole: {
             saveLog: 'Save log',
