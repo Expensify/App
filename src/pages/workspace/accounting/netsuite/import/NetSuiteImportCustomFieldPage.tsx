@@ -125,7 +125,8 @@ function NetSuiteImportCustomFieldPage({
                 <Button
                     success
                     large
-                    text={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addButtonText`)}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_NEW.getRoute(policyID, importCustomField))}
+                    text={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.addText`)}
                 />
             </FixedFooter>
         </ConnectionLayout>

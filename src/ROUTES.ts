@@ -1016,6 +1016,11 @@ const ROUTES = {
         getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
             `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/edit/${valueIndex}/${fieldName}` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_NEW: {
+        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/new',
+        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
+            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/new` as const,
+    },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,

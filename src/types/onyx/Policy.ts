@@ -661,8 +661,22 @@ type InvoiceItem = {
     name: string;
 };
 
+/**
+ * NetSuite Custom List data modal
+ */
+type NetSuiteCustomListSource = {
+    /** Internal ID of the custom list in NetSuite */
+    id: string;
+
+    /** Name of the custom list */
+    name: string;
+};
+
 /** Data from the NetSuite accounting integration. */
 type NetSuiteConnectionData = {
+    /** Collection of the custom lists in the NetSuite account */
+    customLists: NetSuiteCustomListSource[];
+
     /** Collection of the subsidiaries present in the NetSuite account */
     subsidiaryList: NetSuiteSubsidiary[];
 
@@ -1363,4 +1377,5 @@ export type {
     NetSuiteSubsidiary,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
+    NetSuiteCustomListSource,
 };

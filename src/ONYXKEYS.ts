@@ -562,6 +562,8 @@ const ONYXKEYS = {
         SAGE_INTACCT_CREDENTIALS_FORM_DRAFT: 'sageIntacctCredentialsFormDraft',
         NETSUITE_CUSTOM_FIELD_FORM: 'netSuiteCustomFieldForm',
         NETSUITE_CUSTOM_FIELD_FORM_DRAFT: 'netSuiteCustomFieldFormDraft',
+        NETSUITE_CUSTOM_FIELD_ADD_FORM: 'netSuiteCustomFieldAddForm',
+        NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT: 'netSuiteCustomFieldAddFormDraft',
         NETSUITE_TOKEN_INPUT_FORM: 'netsuiteTokenInputForm',
         NETSUITE_TOKEN_INPUT_FORM_DRAFT: 'netsuiteTokenInputFormDraft',
     },
@@ -628,6 +630,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM]: FormTypes.IssueNewExpensifyCardForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
     [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_FORM]: FormTypes.NetSuiteCustomFieldForm;
+    [ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM]: FormTypes.NetSuiteCustomFieldForm;
     [ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM]: FormTypes.NetSuiteTokenInputForm;
 };
 

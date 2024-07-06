@@ -1407,6 +1407,7 @@ const CONST = {
                 JOBS: 'jobs',
             },
         },
+        NETSUITE_CUSTOM_LIST_THRESHOLD: 8,
     },
 
     NETSUITE_IMPORT: {
