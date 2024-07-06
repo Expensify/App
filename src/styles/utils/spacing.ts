@@ -275,6 +275,10 @@ export default {
         marginTop: -80,
     },
 
+    mbAuto: {
+        marginBottom: 'auto',
+    },
+
     mb0: {
         marginBottom: 0,
     },
@@ -367,6 +371,10 @@ export default {
 
     p5: {
         padding: 20,
+    },
+
+    pb6: {
+        padding: 24,
     },
 
     p8: {
