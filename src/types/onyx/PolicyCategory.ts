@@ -15,7 +15,8 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     areCommentsRequired?: boolean;
 
     /** "General Ledger code" that corresponds to this category in an accounting system. Similar to an ID. */
-    glCode?: string;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'GL Code'?: string;
 
     /** An ID for this category from an external accounting system */
     externalID?: string;
