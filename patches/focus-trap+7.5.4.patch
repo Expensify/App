@@ -32,7 +32,7 @@ index 10d56db..a0ed057 100644
      doc.addEventListener('mousedown', checkPointerDown, {
        capture: true,
 diff --git a/node_modules/focus-trap/index.d.ts b/node_modules/focus-trap/index.d.ts
-index 400db1b..813f427 100644
+index 400db1b..e6d1bc3 100644
 --- a/node_modules/focus-trap/index.d.ts
 +++ b/node_modules/focus-trap/index.d.ts
 @@ -118,7 +118,7 @@ declare module 'focus-trap' {
@@ -40,7 +40,7 @@ index 400db1b..813f427 100644
       * will result in the default behavior.
       */
 -    initialFocus?: FocusTargetOrFalse | undefined | (() => void);
-+    initialFocus?: (containers?: HTMLElement[]) => FocusTargetOrFalse | FocusTargetOrFalse | undefined | (() => void);
++    initialFocus?: FocusTargetValueOrFalse | ((containers?: HTMLElement[]) => FocusTargetValueOrFalse | undefined);
      /**
       * By default, an error will be thrown if the focus trap contains no
       * elements in its tab order. With this option you can specify a
