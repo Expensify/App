@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import Button from '@components/Button';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
-import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -63,6 +63,7 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                 <RequireTwoFactorAuthenticationModal
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
+                        Navigation.dismissModal();
                         Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
