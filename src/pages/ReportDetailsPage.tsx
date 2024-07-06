@@ -226,9 +226,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
     const unapproveExpenseReportOrShowModal = useCallback(() => {
-        // TODO: show modal if report is exported to accounting
-        // setIsUnapproveModalVisible(true);
-
+        if(PolicyUtils.hasAccountingConnections(policy)){
+            setIsUnapproveModalVisible(true);
+            return;
+        }
         setIsUnapproveModalVisible(false);
         Navigation.dismissModal();
         IOU.unapproveExpenseReport(moneyRequestReport);
@@ -677,7 +678,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isUnapproveModalVisible}
                     danger
                     confirmText={translate('iou.unapproveReport')}
-                    onConfirm={unapproveExpenseReportOrShowModal}
+                    onConfirm={() => {
+                        setIsUnapproveModalVisible(false);
+                        Navigation.dismissModal();
+                        IOU.unapproveExpenseReport(moneyRequestReport);
+                    }}
                     cancelText={translate('common.cancel')}
                     onCancel={() => setIsUnapproveModalVisible(false)}
                     prompt={unapproveWarningText}
