@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
+import AccountingConnectionConfirmationModal from '@components/AccountingConnectionConfirmationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,19 +49,14 @@ function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnect
                 isDisabled={isOffline}
             />
             {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
-                <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.QBO)}
-                    isVisible
+                <AccountingConnectionConfirmationModal
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
                         Link.openLink(getXeroSetupLink(policyID), environmentURL);
                         setIsDisconnectModalOpen(false);
                     }}
+                    integrationToConnect={CONST.POLICY.CONNECTIONS.NAME.XERO}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
-                    confirmText={translate('workspace.accounting.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             )}
             {isRequire2FAModalOpen && (

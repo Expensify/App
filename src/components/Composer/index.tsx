@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {flushSync} from 'react-dom';
 // eslint-disable-next-line no-restricted-imports
 import type {DimensionValue, NativeSyntheticEvent, Text as RNText, TextInput, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {DeviceEventEmitter, StyleSheet, View} from 'react-native';
 import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
 import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import Text from '@components/Text';
@@ -20,7 +20,6 @@ import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullCompo
 import * as EmojiUtils from '@libs/EmojiUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import Log from '@libs/Log';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
 import type {ComposerProps} from './types';
@@ -75,7 +74,7 @@ function Composer(
         },
         isReportActionCompose = false,
         isComposerFullSize = false,
-        shouldContainScroll = false,
+        shouldContainScroll = true,
         isGroupPolicyReport = false,
         ...props
     }: ComposerProps,
@@ -106,23 +105,13 @@ function Composer(
     const [isRendered, setIsRendered] = useState(false);
     const isScrollBarVisible = useIsScrollBarVisible(textInput, value ?? '');
     const [prevScroll, setPrevScroll] = useState<number | undefined>();
-
-    // Those useEffects track changes of `shouldClear` and `onClear` independently.
-    useEffect(() => {
-        Log.info('[Composer] `shouldClear` value changed', true, {shouldClear});
-    }, [shouldClear]);
-
-    useEffect(() => {
-        Log.info('[Composer] `onClear` value changed', true, {shouldClear});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [onClear]);
+    const isReportFlatListScrolling = useRef(false);
 
     useEffect(() => {
         if (!shouldClear) {
             return;
         }
         textInput.current?.clear();
-        Log.info('[Composer] `textInput` cleared', true, {shouldClear});
         onClear();
     }, [shouldClear, onClear]);
 
@@ -258,6 +247,29 @@ function Composer(
         textInput.current.addEventListener('scroll', debouncedSetPrevScroll);
         return () => {
             textInput.current?.removeEventListener('scroll', debouncedSetPrevScroll);
+        };
+    }, []);
+
+    useEffect(() => {
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling: boolean) => {
+            isReportFlatListScrolling.current = scrolling;
+        });
+
+        return () => scrollingListener.remove();
+    }, []);
+
+    useEffect(() => {
+        const handleWheel = (e: MouseEvent) => {
+            if (isReportFlatListScrolling.current) {
+                e.preventDefault();
+                return;
+            }
+            e.stopPropagation();
+        };
+        textInput.current?.addEventListener('wheel', handleWheel, {passive: false});
+
+        return () => {
+            textInput.current?.removeEventListener('wheel', handleWheel);
         };
     }, []);
 

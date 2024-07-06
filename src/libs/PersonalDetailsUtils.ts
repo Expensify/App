@@ -1,7 +1,6 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {CurrentUserPersonalDetails} from '@components/withCurrentUserPersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -158,6 +157,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
             login,
             accountID,
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
+            isOptimisticPersonalDetail: true,
         };
 
         /**
@@ -272,7 +272,7 @@ function createDisplayName(login: string, passedPersonalDetails: Pick<PersonalDe
  * If the login is the same as the displayName, then they don't exist,
  * so we return empty strings instead.
  */
-function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: CurrentUserPersonalDetails): FirstAndLastName {
+function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstName, lastName}: PersonalDetails): FirstAndLastName {
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
