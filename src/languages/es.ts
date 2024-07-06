@@ -346,6 +346,7 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        upgrade: 'Mejora',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -3146,6 +3147,30 @@ export default {
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
+        },
+        upgrade: {
+            reportFields: {
+                title: 'Los campos',
+                description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
+                pricing: {
+                    onlyAvailableOnPlan: 'Los campos de informe sólo están disponibles en el plan Control, a partir de ',
+                    amount: '$9 ',
+                    perActiveMember: 'por miembro activo al mes.',
+                },
+            },
+            note: {
+                upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
+                learnMore: 'más información',
+                aboutOurPlans: 'sobre nuestros planes y precios.',
+            },
+            upgradeToUnlock: 'Desbloquear esta función',
+            completed: {
+                headline: 'Has mejorado tu espacio de trabajo.',
+                successMessage: (policyName: string) => `Ha mejorado correctamente su espacio de trabajo ${policyName} al plan Control.`,
+                viewSubscription: 'Ver su suscripción',
+                moreDetails: 'para obtener más información.',
+                gotIt: 'Entendido, gracias.',
+            },
         },
         restrictedAction: {
             restricted: 'Restringido',

@@ -372,6 +372,7 @@ export default {
         shared: 'Shared',
         drafts: 'Drafts',
         finished: 'Finished',
+        upgrade: 'Upgrade',
         companyID: 'Company ID',
         userID: 'User ID',
         disable: 'Disable',
@@ -3120,6 +3121,30 @@ export default {
             errorDescriptionPartOne: 'There was a problem transferring ownership of this workspace. Try again, or',
             errorDescriptionPartTwo: 'reach out to Concierge',
             errorDescriptionPartThree: 'for help.',
+        },
+        upgrade: {
+            reportFields: {
+                title: 'Report fields',
+                description: `Report fields let you specify header-level details, distinct from tags that pertain to expenses on individual line items. These details can encompass specific project names, business trip information, locations, and more.`,
+                pricing: {
+                    onlyAvailableOnPlan: 'Report fields are only available on the Control plan, starting at ',
+                    amount: '$9 ',
+                    perActiveMember: 'per active member per month.',
+                },
+            },
+            note: {
+                upgradeWorkspace: 'Upgrade your workspace to access this feature, or',
+                learnMore: 'learn more',
+                aboutOurPlans: 'about our plans and pricing.',
+            },
+            upgradeToUnlock: 'Unlock this feature',
+            completed: {
+                headline: `You've upgraded your workspace!`,
+                successMessage: (policyName: string) => `You've successfully upgraded your ${policyName} workspace to the Control plan!`,
+                viewSubscription: 'View your subscription',
+                moreDetails: 'for more details.',
+                gotIt: 'Got it, thanks',
+            },
         },
         restrictedAction: {
             restricted: 'Restricted',
