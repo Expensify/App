@@ -291,12 +291,6 @@ Onyx.connect({
     },
 });
 
-let primaryPolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (primaryPolicyID = value),
-});
-
 /**
  * Get the report or draft report given a reportID
  */
@@ -5944,22 +5938,13 @@ function getSendMoneyParams(
 }
 
 function getPayMoneyRequestParams(
-    initialChatReport: OnyxTypes.Report,
+    chatReport: OnyxTypes.Report,
     iouReport: OnyxTypes.Report,
     recipient: Participant,
     paymentMethodType: PaymentMethodType,
     full: boolean,
-    payAsBusiness?: boolean,
 ): PayMoneyRequestData {
     const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport);
-    let chatReport = initialChatReport;
-
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
-        const existingB2BInvoiceRoom = ReportUtils.getInvoiceChatByParticipants(chatReport.policyID ?? '', primaryPolicyID);
-        if (existingB2BInvoiceRoom) {
-            chatReport = existingB2BInvoiceRoom;
-        }
-    }
 
     let total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
     if (ReportUtils.hasHeldExpenses(iouReport.reportID) && !full && !!iouReport.unheldTotal) {
@@ -5992,27 +5977,19 @@ function getPayMoneyRequestParams(
         optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
     }
 
-    const optimisticChatReport = {
-        ...chatReport,
-        lastReadTime: DateUtils.getDBTime(),
-        lastVisibleActionCreated: optimisticIOUReportAction.created,
-        hasOutstandingChildRequest: false,
-        iouReportID: null,
-        lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
-        lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
-    };
-    if (ReportUtils.isIndividualInvoiceRoom(chatReport) && payAsBusiness && primaryPolicyID) {
-        optimisticChatReport.invoiceReceiver = {
-            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
-            policyID: primaryPolicyID,
-        };
-    }
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: optimisticChatReport,
+            value: {
+                ...chatReport,
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
+                hasOutstandingChildRequest: false,
+                iouReportID: null,
+                lastMessageText: ReportActionsUtils.getReportActionText(optimisticIOUReportAction),
+                lastMessageHtml: ReportActionsUtils.getReportActionHtml(optimisticIOUReportAction),
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6634,20 +6611,19 @@ function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.R
     Navigation.dismissModalWithReport(chatReport);
 }
 
-function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report, payAsBusiness = false) {
+function payInvoice(paymentMethodType: PaymentMethodType, chatReport: OnyxTypes.Report, invoiceReport: OnyxTypes.Report) {
     const recipient = {accountID: invoiceReport.ownerAccountID};
     const {
         optimisticData,
         successData,
         failureData,
         params: {reportActionID},
-    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true);
 
     const params: PayInvoiceParams = {
         reportID: invoiceReport.reportID,
         reportActionID,
         paymentMethodType,
-        payAsBusiness,
     };
 
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
