@@ -515,26 +515,32 @@ function IOURequestStepScan({
         [],
     );
 
+    const PDFThumbnailView = (
+        <View style={{position: 'absolute', opacity: 0, width: 1, height: 1}}>
+            <PDFThumbnail
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                previewSourceURL={pdfFile?.uri ?? ''}
+                enabled={!!pdfFile}
+                onLoadSuccess={() => {
+                    setPdfFile(null);
+                    if (pdfFile) {
+                        setReceiptAndNavigate(pdfFile, true);
+                    }
+                }}
+                onPassword={() => {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
+                }}
+                onLoadError={() => {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                }}
+            />
+        </View>
+    );
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
-                <PDFThumbnail
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={pdfFile?.uri ?? ''}
-                    enabled={!!pdfFile}
-                    onLoadSuccess={() => {
-                        setPdfFile(null);
-                        if (pdfFile) {
-                            setReceiptAndNavigate(pdfFile, true);
-                        }
-                    }}
-                    onPassword={() => {
-                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-                    }}
-                    onLoadError={() => {
-                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                    }}
-                />
+                {PDFThumbnailView}
                 {((cameraPermissionState === 'prompt' && !isQueriedPermissionState) || (cameraPermissionState === 'granted' && isEmptyObject(videoConstraints))) && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -633,24 +639,7 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
-            <View style={{position: 'absolute', opacity: 0}}>
-                <PDFThumbnail
-                    previewSourceURL={pdfFile?.uri ?? ''}
-                    enabled={!!pdfFile}
-                    onLoadSuccess={() => {
-                        setPdfFile(null);
-                        if (pdfFile) {
-                            setReceiptAndNavigate(pdfFile, true);
-                        }
-                    }}
-                    onPassword={() => {
-                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.protectedPDFNotSupported');
-                    }}
-                    onLoadError={() => {
-                        setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-                    }}
-                />
-            </View>
+            {PDFThumbnailView}
             <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
