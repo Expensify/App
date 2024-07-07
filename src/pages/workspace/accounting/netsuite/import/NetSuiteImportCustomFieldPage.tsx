@@ -104,7 +104,7 @@ function NetSuiteImportCustomFieldPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[styles.pb2, styles.flex1]}
+            contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldIncludeSafeAreaPaddingBottom
@@ -113,7 +113,8 @@ function NetSuiteImportCustomFieldPage({
 
             {data.map((record, index) => (
                 <MenuItemWithTopDescription
-                    key={record.internalID}
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`${record.internalID}-${index}`}
                     description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.recordTitle`)}
                     shouldShowRightIcon
                     title={'listName' in record ? record.listName : record.segmentName}
@@ -121,7 +122,7 @@ function NetSuiteImportCustomFieldPage({
                 />
             ))}
 
-            <FixedFooter style={[styles.mtAuto, styles.mb3]}>
+            <FixedFooter style={[styles.mtAuto, styles.pt3]}>
                 <Button
                     success
                     large

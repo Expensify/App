@@ -26,7 +26,7 @@ function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () =
             value: customListRecord.name,
             isSelected: customListRecord.name === value,
             keyForList: customListRecord.name,
-            id: customListRecord.id
+            id: customListRecord.id,
         }));
 
         if (!value && customListData.length > 0) {

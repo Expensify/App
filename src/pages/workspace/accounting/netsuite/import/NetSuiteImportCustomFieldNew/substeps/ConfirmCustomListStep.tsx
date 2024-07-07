@@ -35,6 +35,7 @@ function ConfirmCustomListStep({onNext, onMove}: CustomFieldSubStepWithPolicy) {
                     onPress={() => {
                         onMove(index);
                     }}
+                    key={fieldName}
                 />
             ))}
 

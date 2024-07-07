@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldMapping} from '@src/types/onyx/Policy';
+import type {TranslationPaths} from '@src/languages/types';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentList from './substeps/ConfirmCustomSegmentList';
 import CustomSegmentInternalIdStep from './substeps/CustomSegmentInternalIdStep';
@@ -73,11 +74,13 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
         ref.current?.moveNext();
         nextScreen();
     };
+    
+    const segmentType = addCustomSegmentFormDraft?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE];
 
     return (
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomSegmentPage.displayName}
-            headerTitle="workspace.netsuite.import.importCustomFields.customSegments.addText"
+            headerTitle={`workspace.netsuite.import.importCustomFields.customSegments.${segmentType ? `addForm.${segmentType}AddTitle`: 'addText'}` as TranslationPaths}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -87,7 +90,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
         >
-            <View style={[styles.ph5, styles.mb3, styles.mt3]}>
+            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
                     startStepIndex={0}
