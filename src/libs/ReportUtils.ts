@@ -4680,7 +4680,7 @@ function buildOptimisticChatReport(
         description,
         writeCapability,
         avatarUrl,
-        avatarFileName
+        avatarFileName,
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {

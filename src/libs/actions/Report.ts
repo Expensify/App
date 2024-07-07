@@ -982,7 +982,14 @@ function navigateToAndOpenReport(
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
             // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
-            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', avatarFile?.name ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            newChat = ReportUtils.buildOptimisticGroupChatReport(
+                participantAccountIDs,
+                reportName ?? '',
+                avatarUri ?? '',
+                avatarFile?.name ?? '',
+                optimisticReportID,
+                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+            );
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(
                 [...participantAccountIDs, currentUserAccountID],
