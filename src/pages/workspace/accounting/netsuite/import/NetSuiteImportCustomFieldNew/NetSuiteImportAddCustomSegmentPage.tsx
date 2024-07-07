@@ -18,12 +18,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldMapping} from '@src/types/onyx/Policy';
-import ChooseCustomListStep from './substeps/ChooseCustomListStep';
+import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
+import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
 import MappingStep from './substeps/MappingStep';
 import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
-const formSteps = [ChooseCustomListStep, TransactionFieldIDStep, MappingStep, ConfirmCustomListStep];
+const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, TransactionFieldIDStep, MappingStep, ConfirmCustomListStep];
 
 function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
@@ -85,11 +86,11 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
         >
-            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mb3, styles.mt3]}>
                 <InteractiveStepSubHeader
                     ref={ref}
                     startStepIndex={0}
-                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_LIST_STEP_NAMES}
+                    stepNames={CONST.NETSUITE_CONFIG.NETSUITE_ADD_CUSTOM_SEGMENT_STEP_NAMES}
                 />
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
@@ -100,6 +101,7 @@ function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps
                     screenIndex={screenIndex}
                     policyID={policyID}
                     policy={policy}
+                    importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS}
                 />
             </View>
         </ConnectionLayout>

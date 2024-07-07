@@ -85,7 +85,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
         >
-            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+            <View style={[styles.ph5, styles.mb3, styles.mt3]}>
                 <InteractiveStepSubHeader
                     ref={ref}
                     startStepIndex={0}
@@ -100,6 +100,7 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                     screenIndex={screenIndex}
                     policyID={policyID}
                     policy={policy}
+                    importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
                 />
             </View>
         </ConnectionLayout>

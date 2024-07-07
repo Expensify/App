@@ -46,6 +46,6 @@ type ExpenseRouteParams = {
     expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
 };
 
-type CustomFieldSubStepWithPolicy = SubStepProps & {policyID: string; policy: Policy | undefined};
+type CustomFieldSubStepWithPolicy = SubStepProps & {policyID: string; policy: Policy | undefined; importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>};
 
 export type {MenuItem, DividerLineItem, ToggleItem, ExpenseRouteParams, CustomFieldSubStepWithPolicy};
