@@ -7,7 +7,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, Report, TaxRate} from '@src/types/onyx';
 import type {ConnectionLastSync, Connections, CustomUnit, NetSuiteConnection, PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -383,6 +383,10 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
     return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
 }
 
+function hasAdvancedApprovalEnabled(policy: OnyxEntry<Policy>): boolean {
+    return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
@@ -405,6 +409,42 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, employeeAccountID: numb
     }
 
     return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
+function getSubmitToEmail(policy: OnyxEntry<Policy>, employeeAccountID: number): string {
+    const submitToAccountID = getSubmitToAccountID(policy, employeeAccountID);
+    return getLoginsByAccountIDs([submitToAccountID])[0] ?? '';
+}
+
+function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, reportTotal: number): string {
+    if (!hasAdvancedApprovalEnabled(policy)) {
+        return '';
+    }
+
+    const employee = policy?.employeeList?.[employeeEmail];
+    if (!employee) {
+        return '';
+    }
+
+    const positiveReportTotal = Math.abs(reportTotal);
+    if (employee.approvalLimit && positiveReportTotal > employee.approvalLimit) {
+        return employee.overLimitForwardsTo ?? '';
+    }
+
+    return employee.forwardsTo ?? '';
+}
+
+function buildApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
+    const approvalChain: string[] = [];
+
+    let nextApproverEmail = getSubmitToEmail(policy, employeeAccountID);
+
+    while (!approvalChain.includes(nextApproverEmail)) {
+        approvalChain.push(nextApproverEmail);
+        nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
+    }
+
+    return approvalChain.filter((approverEmail) => !!approverEmail);
 }
 
 function getPersonalPolicy() {
@@ -682,6 +722,7 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
+    buildApprovalChain,
 };
 
 export type {MemberEmailsToAccountIDs};
