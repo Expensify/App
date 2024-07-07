@@ -15,15 +15,15 @@ function NetSuiteCustomSegmentTypePicker({value, onInputChange}: NetSuiteCustomL
     const selectionData = [
         {
             text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentTitle`),
-            keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENTS,
-            isSelected: value === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENTS,
-            value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENTS,
+            keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
+            isSelected: value === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
+            value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT,
         },
         {
             text: translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.recordTitle`),
-            keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORDS,
-            isSelected: value === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORDS,
-            value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORDS,
+            keyForList: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
+            isSelected: value === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
+            value: CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_RECORD,
         },
     ];
 

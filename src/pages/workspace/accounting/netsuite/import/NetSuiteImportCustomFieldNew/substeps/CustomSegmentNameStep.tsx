@@ -15,6 +15,8 @@ import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/net
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+import { useOnyx } from 'react-native-onyx';
+import { TranslationPaths } from '@src/languages/types';
 
 const parser = new ExpensiMark();
 
@@ -26,6 +28,9 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const [formValuesDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
+    const customSegmentRecordType = formValuesDraft?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
@@ -42,7 +47,7 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
             style={[styles.flexGrow1, styles.ph5]}
             submitButtonStyles={[styles.mb0]}
         >
-            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentNameTitle`)}</Text>
+            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}NameTitle`)}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.SEGMENT_NAME}
@@ -53,7 +58,7 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
                 spellCheck={false}
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
-                <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.segmentNameFooter`))}</comment>`} />
+                <RenderHTML html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}NameFooter`))}</comment>`} />
             </View>
         </FormProvider>
     );

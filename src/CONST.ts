@@ -1413,8 +1413,8 @@ const CONST = {
     },
 
     NETSUITE_CUSTOM_RECORD_TYPES: {
-        CUSTOM_SEGMENTS: 'customSegments',
-        CUSTOM_RECORDS: 'customRecords',
+        CUSTOM_SEGMENT: 'customSegment',
+        CUSTOM_RECORD: 'customRecord',
     },
 
     NETSUITE_IMPORT: {

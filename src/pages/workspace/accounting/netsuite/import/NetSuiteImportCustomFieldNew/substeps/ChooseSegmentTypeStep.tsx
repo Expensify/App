@@ -11,6 +11,7 @@ import NetSuiteCustomSegmentTypePicker from '@pages/workspace/accounting/netsuit
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+import { useOnyx } from 'react-native-onyx';
 
 function ChooseSegmentTypeStep({onNext, isEditing}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
@@ -20,6 +21,8 @@ function ChooseSegmentTypeStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const [formValues] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
@@ -44,6 +47,7 @@ function ChooseSegmentTypeStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
                 InputComponent={NetSuiteCustomSegmentTypePicker}
                 inputID={INPUT_IDS.CUSTOM_SEGMENT_TYPE}
                 shouldSaveDraft={!isEditing}
+                value={formValues?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? ''}
             />
         </FormProvider>
     );
