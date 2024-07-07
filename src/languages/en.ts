@@ -2414,6 +2414,7 @@ export default {
                             segmentName: 'Name',
                             internalID: 'Internal ID',
                             scriptID: 'Script ID',
+                            customRecordScriptID: 'Transaction column ID',
                             mapping: 'Displayed as',
                         },
                         removeTitle: 'Remove custom segment/record',

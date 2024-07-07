@@ -20,12 +20,12 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldMapping} from '@src/types/onyx/Policy';
 import CustomSegmentInternalIdStep from './CustomSegmentInternalIdStep';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
-import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
+import ConfirmCustomSegmentList from './substeps/ConfirmCustomSegmentList';
 import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
 import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
 import MappingStep from './substeps/MappingStep';
 
-const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, CustomSegmentInternalIdStep, CustomSegmentScriptIdStep, MappingStep, ConfirmCustomListStep];
+const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, CustomSegmentInternalIdStep, CustomSegmentScriptIdStep, MappingStep, ConfirmCustomSegmentList];
 
 function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';
