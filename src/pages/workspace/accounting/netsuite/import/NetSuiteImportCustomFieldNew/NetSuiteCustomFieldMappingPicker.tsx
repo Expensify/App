@@ -28,6 +28,7 @@ function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustom
             sections={[{data: selectionData}]}
             onSelectRow={(selected) => (onInputChange ? onInputChange(selected.value) : {})}
             ListItem={RadioListItem}
+            initiallyFocusedOptionKey={value ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
         />
     );
 }

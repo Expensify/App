@@ -23,9 +23,13 @@ function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListP
         const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
             value: customListRecord.id,
-            isSelected: customListRecord.name === value,
+            isSelected: customListRecord.id === value,
             keyForList: customListRecord.name,
         }));
+
+        if (!value && customListData.length > 0) {
+            customListData[0].isSelected = true;
+        }
 
         const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
         const filteredCustomLists = customListData.filter((customListRecord) => searchRegex.test(customListRecord.text ?? ''));

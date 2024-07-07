@@ -32,6 +32,7 @@ function NetSuiteCustomSegmentTypePicker({value, onInputChange}: NetSuiteCustomL
             sections={[{data: selectionData}]}
             onSelectRow={(selected) => (onInputChange ? onInputChange(selected.value) : {})}
             ListItem={RadioListItem}
+            initiallyFocusedOptionKey={value ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT}
         />
     );
 }
