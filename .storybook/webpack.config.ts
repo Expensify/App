@@ -7,16 +7,18 @@ import type Environment from 'config/webpack/types';
 import dotenv from 'dotenv';
 import path from 'path';
 import {DefinePlugin} from 'webpack';
-import type {Configuration, RuleSetRule} from 'webpack';
+import {Configuration, ProvidePlugin, RuleSetRule} from 'webpack';
 
 type CustomWebpackConfig = {
     resolve: {
         alias: Record<string, string>;
         extensions: string[];
+        fallback?: Record<string, string | false>;
     };
     module: {
         rules: RuleSetRule[];
     };
+    plugins?: (DefinePlugin | ProvidePlugin)[];
 };
 
 type CustomWebpackFunction = ({file, platform}: Environment) => CustomWebpackConfig;
@@ -61,6 +63,23 @@ const webpackConfig = ({config}: {config: Configuration}) => {
         ...custom.resolve.alias,
     };
 
+    config.resolve.fallback = {
+        path: require.resolve('path-browserify'),
+        zlib: require.resolve('browserify-zlib'),
+        http: require.resolve('stream-http'),
+        https: require.resolve('https-browserify'),
+        net: require.resolve('node-libs-browser/mock/net'),
+        tls: require.resolve('node-libs-browser/mock/tls'),
+        stream: require.resolve('stream-browserify'),
+        crypto: require.resolve('crypto-browserify'),
+        buffer: require.resolve('buffer/'),
+        process: require.resolve('process/browser'),
+        os: require.resolve('os-browserify/browser'),
+        vm: require.resolve('vm-browserify'),
+        fs: false,
+        child_process: false,
+    };
+
     // We can ignore the "module not installed" warning from lottie-react-native
     // because we are not using the library for JSON format of Lottie animations.
     config.ignoreWarnings = [{module: new RegExp('node_modules/lottie-react-native/lib/module/LottieView/index.web.js')}];
@@ -97,6 +116,12 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     config.plugins.push(
         new DefinePlugin({
             __DEV__: process.env.NODE_ENV === 'development',
+        }),
+        new ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+        }),
+        new ProvidePlugin({
+            process: 'process/browser',
         }),
     );
 

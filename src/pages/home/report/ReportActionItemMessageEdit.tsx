@@ -1,10 +1,5 @@
-import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
-import {InteractionManager, Keyboard, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {Emoji} from '@assets/emojis/types';
+import React from 'react';
+import type { Emoji } from '@assets/emojis/types';
 import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
@@ -24,23 +19,32 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import type {Selection} from '@libs/focusComposerWithDelay/types';
+import type { Selection } from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
-import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
+import { parseHtmlToMarkdown } from '@libs/OnyxAwareParser';
 import onyxSubscribe from '@libs/onyxSubscribe';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import encodeHTML from '@src/utils/encodeHTML';
+import sanitizeHTML from '@src/utils/sanitizeHTML';
 import * as ComposerActions from '@userActions/Composer';
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
 import * as InputFocus from '@userActions/InputFocus';
 import * as Report from '@userActions/Report';
 import * as User from '@userActions/User';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import he from "he";
+import lodashDebounce from 'lodash/debounce';
+import type { ForwardedRef } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData } from 'react-native';
+import { InteractionManager, Keyboard, View } from 'react-native';
+import { useOnyx } from 'react-native-onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
@@ -92,7 +96,7 @@ function ReportActionItemMessageEdit(
         if (draftMessage) {
             emojisPresentBefore.current = EmojiUtils.extractEmojis(draftMessage);
         }
-        return draftMessage;
+        return he.decode(draftMessage);
     });
     const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
     const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -120,7 +124,7 @@ function ReportActionItemMessageEdit(
         if (ReportActionsUtils.isDeletedAction(action) || !!(action.message && draftMessage === originalMessage) || !!(prevDraftMessage === draftMessage || isCommentPendingSaved.current)) {
             return;
         }
-        setDraft(draftMessage);
+        setDraft(he.decode(draftMessage));
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
@@ -244,8 +248,8 @@ function ReportActionItemMessageEdit(
                 }
             }
             emojisPresentBefore.current = emojis;
-
-            setDraft(newDraft);
+            const safeDraft = sanitizeHTML(he.encode(newDraft));
+            setDraft(he.decode(safeDraft));
 
             if (newDraftInput !== newDraft) {
                 const position = Math.max(selection.end + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
@@ -298,16 +302,17 @@ function ReportActionItemMessageEdit(
         if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
-
+        
         const trimmedNewDraft = draft.trim();
-
+        
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
             ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        Report.editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+
+        Report.editReportComment(reportID, action, encodeHTML(trimmedNewDraft), Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
     }, [action, deleteDraft, draft, reportID]);
 
@@ -407,7 +412,7 @@ function ReportActionItemMessageEdit(
                             id={messageEditInput}
                             onChangeText={updateDraft} // Debounced saveDraftComment
                             onKeyPress={triggerSaveOrCancel}
-                            value={draft}
+                            value={he.decode(draft)}
                             maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {

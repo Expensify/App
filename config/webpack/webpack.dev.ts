@@ -2,7 +2,7 @@ import path from 'path';
 import portfinder from 'portfinder';
 import {TimeAnalyticsPlugin} from 'time-analytics-webpack-plugin';
 import type {Configuration} from 'webpack';
-import {DefinePlugin} from 'webpack';
+import {DefinePlugin, ProvidePlugin} from 'webpack';
 import type {Configuration as DevServerConfiguration} from 'webpack-dev-server';
 import {merge} from 'webpack-merge';
 import type Environment from './types';
@@ -59,6 +59,12 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     'process.env.PORT': port,
                 }),
+                new ProvidePlugin({
+                    Buffer: ['buffer', 'Buffer'],
+                }),
+                new ProvidePlugin({
+                    process: 'process/browser',
+                }),
             ],
             cache: {
                 type: 'filesystem',
@@ -75,6 +81,24 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                     // Onyx can be modified on the fly, changes to other node_modules would not be reflected live
                     /([\\/]node_modules[\\/](?!react-native-onyx))/,
                 ],
+            },
+            resolve: {
+                fallback: {
+                    path: require.resolve('path-browserify'),
+                    zlib: require.resolve('browserify-zlib'),
+                    http: require.resolve('stream-http'),
+                    https: require.resolve('https-browserify'),
+                    net: require.resolve('node-libs-browser/mock/net'),
+                    tls: require.resolve('node-libs-browser/mock/tls'),
+                    stream: require.resolve('stream-browserify'),
+                    crypto: require.resolve('crypto-browserify'),
+                    buffer: require.resolve('buffer/'),
+                    process: require.resolve('process/browser'),
+                    os: require.resolve('os-browserify/browser'),
+                    vm: require.resolve('vm-browserify'),
+                    fs: false,
+                    child_process: false,
+                },
             },
         });
 
