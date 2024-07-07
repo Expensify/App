@@ -23,9 +23,10 @@ function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () =
         const customLists = policy?.connections?.netsuite?.options?.data?.customLists ?? [];
         const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
-            value: customListRecord.id,
+            value: customListRecord.name,
             isSelected: customListRecord.name === value,
             keyForList: customListRecord.name,
+            id: customListRecord.id
         }));
 
         if (!value && customListData.length > 0) {
@@ -58,8 +59,8 @@ function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () =
             onSelectRow={(selected) => {
                 onInputChange(selected.value);
                 onSelect({
-                    listName: selected.text,
-                    internalID: selected.value,
+                    listName: selected.value,
+                    internalID: selected.id,
                 });
             }}
             headerMessage={headerMessage}
