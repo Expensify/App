@@ -44,7 +44,7 @@ function ConfirmCustomListStep({onNext, onMove}: CustomFieldSubStepWithPolicy) {
                     large
                     style={[styles.w100]}
                     onPress={onNext}
-                    text={translate('common.next')}
+                    text={translate('common.confirm')}
                 />
             </FixedFooter>
         </View>

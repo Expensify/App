@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -22,6 +23,8 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    const [formValues] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
@@ -49,6 +52,7 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
                 shouldSaveDraft={!isEditing}
                 policy={policy}
                 onSelect={onSelectCustomList}
+                value={formValues?.[INPUT_IDS.LIST_NAME] ?? ''}
             />
         </FormProvider>
     );

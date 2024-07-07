@@ -11,7 +11,7 @@ import type {NetSuiteCustomList} from '@src/types/onyx/Policy';
 type NetSuiteCustomListPickerProps = {
     value?: string;
     policy?: Policy;
-    onSelect?: (customList: Partial<NetSuiteCustomList>) => void;
+    onSelect: (customList: Partial<NetSuiteCustomList>) => void;
 };
 
 function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListPickerProps) {
@@ -24,6 +24,7 @@ function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListP
             text: customListRecord.name,
             value: customListRecord.id,
             isSelected: customListRecord.name === value,
+            keyForList: customListRecord.name,
         }));
 
         const searchRegex = new RegExp(Str.escapeForRegExp(debouncedSearchValue.trim()), 'i');
@@ -49,17 +50,14 @@ function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListP
             textInputValue={searchValue}
             textInputLabel={showTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
-            onSelectRow={(selected) =>
-                onSelect
-                    ? onSelect({
-                          listName: selected.text,
-                          internalID: selected.value,
-                      })
-                    : {}
-            }
+            onSelectRow={(selected) => {
+                onSelect({
+                    listName: selected.text,
+                    internalID: selected.value,
+                });
+            }}
             headerMessage={headerMessage}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={undefined}
             isRowMultilineSupported
         />
     );
