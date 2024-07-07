@@ -132,6 +132,7 @@ function WorkspaceExpensifyCardListPage({route}: WorkspaceExpensifyCardListPageP
                         style={hovered && styles.hoveredComponentBG}
                         lastFourPAN={item.lastFourPAN ?? ''}
                         // @ts-expect-error TODO: change cardholder to accountID and get personal details with it
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         cardholder={item.cardholder}
                         limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
                         name={item.nameValuePairs?.cardTitle ?? ''}
