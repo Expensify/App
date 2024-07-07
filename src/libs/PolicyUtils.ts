@@ -430,20 +430,17 @@ function getForwardsToAccount(policy: OnyxEntry<Policy>, employeeEmail: string, 
     if (employee.approvalLimit && positiveReportTotal > employee.approvalLimit) {
         return employee.overLimitForwardsTo ?? '';
     }
-
     return employee.forwardsTo ?? '';
 }
 
-function buildApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
+function getApprovalChain(policy: OnyxEntry<Policy>, employeeAccountID: number, reportTotal: number): string[] {
     const approvalChain: string[] = [];
-
     let nextApproverEmail = getSubmitToEmail(policy, employeeAccountID);
 
     while (!approvalChain.includes(nextApproverEmail)) {
         approvalChain.push(nextApproverEmail);
         nextApproverEmail = getForwardsToAccount(policy, nextApproverEmail, reportTotal);
     }
-
     return approvalChain.filter((approverEmail) => !!approverEmail);
 }
 
@@ -722,7 +719,8 @@ export {
     getIntegrationLastSuccessfulDate,
     getCurrentConnectionName,
     getCustomersOrJobsLabelNetSuite,
-    buildApprovalChain,
+    getApprovalChain,
+    hasAdvancedApprovalEnabled,
 };
 
 export type {MemberEmailsToAccountIDs};
