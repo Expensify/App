@@ -21,6 +21,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+import NetSuiteCustomListPicker from './NetSuiteImportCustomFieldNew/NetSuiteCustomListPicker';
 
 type CustomRecord = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -121,6 +122,22 @@ function NetSuiteImportCustomFieldEdit({
         [customRecord, fieldName, fieldValue, importCustomField, styles.flexGrow1, styles.ph5, translate, updateRecord, validate],
     );
 
+    const renderCustomListSelection = useMemo(
+        () =>
+            customRecord && (
+                <NetSuiteCustomListPicker
+                    onSelect={(selected) => {
+                        updateRecord({
+                            [fieldName]: selected.listName,
+                        });
+                    }}
+                    policy={policy}
+                    value={fieldValue}
+                />
+            ),
+        [customRecord, fieldName, fieldValue, policy, updateRecord],
+    );
+
     const renderSelection = useMemo(() => {
         const options = [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
 
@@ -149,6 +166,11 @@ function NetSuiteImportCustomFieldEdit({
         );
     }, [customRecord, fieldName, fieldValue, translate, updateRecord]);
 
+    const renderMap: Record<string, JSX.Element> = {
+        mapping: renderSelection,
+        listName: renderCustomListSelection,
+    };
+
     return (
         <ConnectionLayout
             displayName={NetSuiteImportCustomFieldEdit.displayName}
@@ -161,7 +183,7 @@ function NetSuiteImportCustomFieldEdit({
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!customRecord}
         >
-            {fieldName === 'mapping' ? renderSelection : renderForm}
+            {renderMap[fieldName] || renderForm}
         </ConnectionLayout>
     );
 }

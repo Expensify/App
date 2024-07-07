@@ -24,7 +24,7 @@ function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () =
         const customListData = customLists.map((customListRecord) => ({
             text: customListRecord.name,
             value: customListRecord.id,
-            isSelected: customListRecord.id === value,
+            isSelected: customListRecord.name === value,
             keyForList: customListRecord.name,
         }));
 
@@ -65,6 +65,7 @@ function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () =
             headerMessage={headerMessage}
             ListItem={RadioListItem}
             isRowMultilineSupported
+            initiallyFocusedOptionKey={value}
         />
     );
 }
