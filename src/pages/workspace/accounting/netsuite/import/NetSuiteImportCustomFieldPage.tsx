@@ -121,7 +121,7 @@ function NetSuiteImportCustomFieldPage({
                 />
             ))}
 
-            <FixedFooter style={[styles.mtAuto]}>
+            <FixedFooter style={[styles.mtAuto, styles.mb3]}>
                 <Button
                     success
                     large
