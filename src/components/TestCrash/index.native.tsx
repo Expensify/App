@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import React from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import TestToolRow from '@components/TestToolRow';
 import useLocalize from '@hooks/useLocalize';
 import testCrash from '@libs/testCrash';
-import {View} from "react-native";
 
 const config = require('../../../firebase.json');
 
@@ -17,10 +17,10 @@ function TestCrash() {
     return (
         <View>
             {isCrashlyticsDebugEnabled ? (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.nativeCrash')}>
+                <TestToolRow title={translate('initialSettingsPage.troubleshoot.testCrash')}>
                     <Button
                         small
-                        text={translate('initialSettingsPage.troubleshoot.nativeCrash')}
+                        text={translate('initialSettingsPage.troubleshoot.testCrash')}
                         onPress={() => {
                             testCrash();
                         }}

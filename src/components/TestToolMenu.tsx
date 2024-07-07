@@ -10,12 +10,12 @@ import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
-import Text from './Text';
-import TestToolRow from './TestToolRow';
-import Switch from './Switch';
-import {withNetwork} from './OnyxProvider';
 import Button from './Button';
-import TestCrash from "./TestCrash";
+import {withNetwork} from './OnyxProvider';
+import Switch from './Switch';
+import TestCrash from './TestCrash';
+import TestToolRow from './TestToolRow';
+import Text from './Text';
 
 type TestToolMenuOnyxProps = {
     /** User object in Onyx */
