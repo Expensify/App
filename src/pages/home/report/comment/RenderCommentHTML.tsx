@@ -1,6 +1,8 @@
 import React from 'react';
 import RenderHTML from '@components/RenderHTML';
-import type {OriginalMessageSource} from '@src/types/onyx/OriginalMessage';
+import type { OriginalMessageSource } from '@src/types/onyx/OriginalMessage';
+import sanitizeHTML from '@src/utils/sanitizeHTML';
+import he from "he";
 
 type RenderCommentHTMLProps = {
     source: OriginalMessageSource;
@@ -8,7 +10,10 @@ type RenderCommentHTMLProps = {
 };
 
 function RenderCommentHTML({html, source}: RenderCommentHTMLProps) {
-    const commentHtml = source === 'email' ? `<email-comment>${html}</email-comment>` : `<comment>${html}</comment>`;
+    const sanitizedHtml = sanitizeHTML(html);
+    const decodedHtml = he.decode(sanitizedHtml);
+
+    const commentHtml = source === 'email' ? `<email-comment>${decodedHtml}</email-comment>` : `<comment>${decodedHtml}</comment>`;
 
     return <RenderHTML html={commentHtml} />;
 }
