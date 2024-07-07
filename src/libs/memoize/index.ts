@@ -58,6 +58,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
         const retrievalTimeStart = performance.now();
         const cached = cache.getSet(key, () => {
             const fnTimeStart = performance.now();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const result = fn(...args);
             statsEntry.trackTime('fnTime', fnTimeStart);
             statsEntry.track('didHit', false);

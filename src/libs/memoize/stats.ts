@@ -10,6 +10,7 @@ type MemoizeStatsEntry = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isMemoizeStatsEntry(entry: any): entry is MemoizeStatsEntry {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return entry.keyLength !== undefined && entry.didHit !== undefined && entry.cacheRetrievalTime !== undefined;
 }
 
