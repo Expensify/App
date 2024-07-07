@@ -37,12 +37,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import Timers from '@libs/Timers';
 import {hideContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {openApp} from '@userActions/App';
 import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
 import * as Welcome from '@userActions/Welcome';
-import {reconnectApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +53,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type {AutoAuthState} from '@src/types/onyx/Session';
 import type Session from '@src/types/onyx/Session';
 import clearCache from './clearCache';
+import updateSessionAuthTokens from './updateSessionAuthTokens';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
@@ -945,13 +946,18 @@ function validateTwoFactorAuth(twoFactorAuthCode: string) {
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData}).then((response) => {
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+        if (!response?.authToken) {
             return;
         }
 
-        if (response.authToken) {
-            reconnectApp();
-        }
+        // Update authToken in Onyx and in our local variables so that API requests will use the new authToken
+        updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+
+        // Note: It is important to manually set the authToken that is in the store here since
+        // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
+        // enough to do the updateSessionAuthTokens() call above.
+        NetworkStore.setAuthToken(response.authToken ?? null);
+        openApp();
     });
 }
 
