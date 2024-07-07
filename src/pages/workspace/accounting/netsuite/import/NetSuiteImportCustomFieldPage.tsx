@@ -39,10 +39,10 @@ type HelpLinkComponentProps = {
 
 function HelpLinkComponent({importCustomField, styles, translate, alignmentStyle}: HelpLinkComponentProps) {
     return (
-        <Text style={[styles.mb3, alignmentStyle]}>
+        <Text style={[styles.mb3, styles.flex1, alignmentStyle]}>
             <TextLink
                 href={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLink`)}
-                style={[styles.link]}
+                style={[styles.link, alignmentStyle]}
             >
                 {translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.helpLinkText`)}
             </TextLink>
@@ -85,7 +85,7 @@ function NetSuiteImportCustomFieldPage({
 
     const listHeaderComponent = useMemo(
         () => (
-            <View style={[styles.ph5]}>
+            <View style={[styles.ph5, styles.flexRow]}>
                 <HelpLinkComponent
                     importCustomField={importCustomField}
                     styles={styles}
