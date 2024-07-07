@@ -15,13 +15,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-function MappingStep({onNext, isEditing, importCustomField}: CustomFieldSubStepWithPolicy) {
+function MappingStep({onNext, importCustomField}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const handleSubmit = useNetSuiteCustomFieldAddFormSubmit({
         fieldIds: [INPUT_IDS.MAPPING],
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const [formValuesDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
@@ -53,7 +53,7 @@ function MappingStep({onNext, isEditing, importCustomField}: CustomFieldSubStepW
             <InputWrapper
                 InputComponent={NetSuiteCustomFieldMappingPicker}
                 inputID={INPUT_IDS.MAPPING}
-                shouldSaveDraft={!isEditing}
+                shouldSaveDraft
                 defaultValue={CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG}
             />
         </FormProvider>

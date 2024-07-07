@@ -15,13 +15,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomList} from '@src/types/onyx/Policy';
 
-function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWithPolicy) {
+function ChooseCustomListStep({onNext, policy}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const handleSubmit = useNetSuiteCustomFieldAddFormSubmit({
-        fieldIds: [INPUT_IDS.LIST_NAME],
+        fieldIds: [INPUT_IDS.LIST_NAME, INPUT_IDS.INTERNAL_ID],
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const [formValues] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
@@ -32,6 +32,14 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
         [],
     );
 
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>) => {
+        const valuesCopy = {...values};
+        if (!valuesCopy?.[INPUT_IDS.INTERNAL_ID]) {
+            valuesCopy[INPUT_IDS.INTERNAL_ID] = policy?.connections?.netsuite?.options?.data?.customLists?.[0].id ?? '';
+        }
+        handleSubmit(valuesCopy);
+    };
+
     const onSelectCustomList = (customList: Partial<NetSuiteCustomList>) => {
         updateAddCustomLisFormRecord(customList);
     };
@@ -40,7 +48,7 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
         <FormProvider
             formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM}
             submitButtonText={translate('common.next')}
-            onSubmit={handleSubmit}
+            onSubmit={onSubmit}
             validate={validate}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
@@ -49,7 +57,6 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
             <InputWrapper
                 InputComponent={NetSuiteCustomListPicker}
                 inputID={INPUT_IDS.LIST_NAME}
-                shouldSaveDraft={!isEditing}
                 policy={policy}
                 onSelect={onSelectCustomList}
                 defaultValue={formValues?.[INPUT_IDS.LIST_NAME] ?? policy?.connections?.netsuite?.options?.data?.customLists?.[0].name}

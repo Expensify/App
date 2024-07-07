@@ -14,13 +14,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-function ChooseSegmentTypeStep({onNext, isEditing}: CustomFieldSubStepWithPolicy) {
+function ChooseSegmentTypeStep({onNext}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const handleSubmit = useNetSuiteCustomFieldAddFormSubmit({
         fieldIds: [INPUT_IDS.CUSTOM_SEGMENT_TYPE],
         onNext,
-        shouldSaveDraft: isEditing,
+        shouldSaveDraft: true,
     });
 
     const [formValues] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
@@ -47,7 +47,7 @@ function ChooseSegmentTypeStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
             <InputWrapper
                 InputComponent={NetSuiteCustomSegmentTypePicker}
                 inputID={INPUT_IDS.CUSTOM_SEGMENT_TYPE}
-                shouldSaveDraft={!isEditing}
+                shouldSaveDraft
                 value={formValues?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT}
             />
         </FormProvider>
