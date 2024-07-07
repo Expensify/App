@@ -1417,6 +1417,8 @@ const CONST = {
         CUSTOM_RECORD: 'customRecord',
     },
 
+    NETSUITE_FORM_STEPS_HEADER_HEIGHT: 40,
+
     NETSUITE_IMPORT: {
         HELP_LINKS: {
             CUSTOM_SEGMENTS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite#custom-segments',
