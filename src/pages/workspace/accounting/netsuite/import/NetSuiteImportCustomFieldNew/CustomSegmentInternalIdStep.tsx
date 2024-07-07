@@ -19,11 +19,11 @@ import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
 const parser = new ExpensiMark();
 
-function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy) {
+function CustomSegmentInternalIdStep({onNext, isEditing}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const handleSubmit = useNetSuiteCustomFieldAddFormSubmit({
-        fieldIds: [INPUT_IDS.SEGMENT_NAME],
+        fieldIds: [INPUT_IDS.INTERNAL_ID],
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -33,7 +33,7 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
-            ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SEGMENT_NAME]),
+            ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.INTERNAL_ID]),
         [],
     );
 
@@ -47,11 +47,11 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
             submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}NameTitle`)}
+                {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.customSegmentInternalIDTitle`)}
             </Text>
             <InputWrapper
                 InputComponent={TextInput}
-                inputID={INPUT_IDS.SEGMENT_NAME}
+                inputID={INPUT_IDS.INTERNAL_ID}
                 shouldSaveDraft={!isEditing}
                 label={translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`)}
                 aria-label={translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`)}
@@ -60,12 +60,12 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
             />
             <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
                 <RenderHTML
-                    html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}NameFooter`))}</comment>`}
+                    html={`<comment>${parser.replace(translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}InternalIDFooter`))}</comment>`}
                 />
             </View>
         </FormProvider>
     );
 }
 
-CustomSegmentNameStep.displayName = 'CustomSegmentNameStep';
-export default CustomSegmentNameStep;
+CustomSegmentInternalIdStep.displayName = 'CustomSegmentInternalIdStep';
+export default CustomSegmentInternalIdStep;

@@ -18,13 +18,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldMapping} from '@src/types/onyx/Policy';
+import CustomSegmentInternalIdStep from './CustomSegmentInternalIdStep';
 import ChooseSegmentTypeStep from './substeps/ChooseSegmentTypeStep';
 import ConfirmCustomListStep from './substeps/ConfirmCustomListStep';
 import CustomSegmentNameStep from './substeps/CustomSegmentNameStep';
+import CustomSegmentScriptIdStep from './substeps/CustomSegmentScriptIdStep';
 import MappingStep from './substeps/MappingStep';
-import TransactionFieldIDStep from './substeps/TransactionFieldIDStep';
 
-const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, TransactionFieldIDStep, MappingStep, ConfirmCustomListStep];
+const formSteps = [ChooseSegmentTypeStep, CustomSegmentNameStep, CustomSegmentInternalIdStep, CustomSegmentScriptIdStep, MappingStep, ConfirmCustomListStep];
 
 function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '-1';

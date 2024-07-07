@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -11,7 +12,6 @@ import NetSuiteCustomSegmentTypePicker from '@pages/workspace/accounting/netsuit
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import { useOnyx } from 'react-native-onyx';
 
 function ChooseSegmentTypeStep({onNext, isEditing}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
