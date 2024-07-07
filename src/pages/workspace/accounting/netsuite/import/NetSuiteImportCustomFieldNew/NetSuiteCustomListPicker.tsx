@@ -12,9 +12,10 @@ type NetSuiteCustomListPickerProps = {
     value?: string;
     policy?: Policy;
     onSelect: (customList: Partial<NetSuiteCustomList>) => void;
+    onInputChange?: (value: string) => void;
 };
 
-function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, onSelect, policy, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -55,6 +56,7 @@ function NetSuiteCustomListPicker({value, onSelect, policy}: NetSuiteCustomListP
             textInputLabel={showTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={(selected) => {
+                onInputChange(selected.value);
                 onSelect({
                     listName: selected.text,
                     internalID: selected.value,

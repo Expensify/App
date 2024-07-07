@@ -52,7 +52,7 @@ function ChooseCustomListStep({onNext, isEditing, policy}: CustomFieldSubStepWit
                 shouldSaveDraft={!isEditing}
                 policy={policy}
                 onSelect={onSelectCustomList}
-                value={formValues?.[INPUT_IDS.LIST_NAME] ?? policy?.connections?.netsuite?.options?.data?.customLists?.[0].id}
+                defaultValue={formValues?.[INPUT_IDS.LIST_NAME] ?? policy?.connections?.netsuite?.options?.data?.customLists?.[0].id}
             />
         </FormProvider>
     );

@@ -23,6 +23,7 @@ function NetSuiteCustomFieldMappingPicker({value, onInputChange}: NetSuiteCustom
             alternateText: translate(`workspace.netsuite.import.importTypes.${option}.description`),
         })) ?? [];
 
+        
     return (
         <SelectionList
             sections={[{data: selectionData}]}
