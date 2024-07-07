@@ -1,11 +1,13 @@
-import {differenceInMinutes, formatDistanceToNow, isValid, parseISO} from 'date-fns';
+import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
+import ConnectToNetSuiteButton from '@components/ConnectToNetSuiteButton';
 import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
+import ConnectToSageIntacctButton from '@components/ConnectToSageIntacctButton';
 import ConnectToXeroButton from '@components/ConnectToXeroButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,7 +30,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {hasSynchronizationError, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getXeroTenants} from '@libs/PolicyUtils';
+import {findCurrentXeroOrganization, getCurrentXeroOrganizationName, getIntegrationLastSuccessfulDate, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
@@ -100,6 +102,36 @@ function accountingIntegrationData(
                 onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return {
+                title: translate('workspace.accounting.netsuite'),
+                icon: Expensicons.NetSuiteSquare,
+                setupConnectionButton: (
+                    <ConnectToNetSuiteButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID)),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return {
+                title: translate('workspace.accounting.intacct'),
+                icon: Expensicons.IntacctSquare,
+                setupConnectionButton: (
+                    <ConnectToSageIntacctButton
+                        policyID={policyID}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        integrationToDisconnect={integrationToDisconnect}
+                    />
+                ),
+                onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onAdvancedPagePress: () => {},
+            };
         default:
             return undefined;
     }
@@ -108,9 +140,9 @@ function accountingIntegrationData(
 function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseXeroIntegration, canUseNetSuiteIntegration} = usePermissions();
+    const {canUseNetSuiteIntegration, canUseSageIntacctIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -125,18 +157,23 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         differenceInMinutes(new Date(), lastSyncProgressDate) < CONST.POLICY.CONNECTIONS.SYNC_STAGE_TIMEOUT_MINUTES;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter(
-        (name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration) && !(name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration),
+        (name) =>
+            !((name === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && !canUseNetSuiteIntegration) || (name === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT && !canUseSageIntacctIntegration)),
     );
+
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '-1';
-    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
-    const formattedDate = useMemo(() => (successfulDate ? new Date(successfulDate) : new Date()), [successfulDate]);
+    const successfulDate = getIntegrationLastSuccessfulDate(connectedIntegration ? policy?.connections?.[connectedIntegration] : undefined);
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+    const policyConnectedToNetSuite = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
 
     const tenants = useMemo(() => getXeroTenants(policy), [policy]);
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy), [policy]);
+
+    const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+    const netSuiteSelectedSubsidiary = policy?.connections?.netsuite?.options?.config?.subsidiary ?? '';
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -156,8 +193,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     );
 
     useEffect(() => {
-        setDateTimeToRelative(formatDistanceToNow(formattedDate, {addSuffix: true}));
-    }, [formattedDate]);
+        if (successfulDate) {
+            setDateTimeToRelative(getDatetimeToRelative(successfulDate));
+            return;
+        }
+        setDateTimeToRelative('');
+    }, [getDatetimeToRelative, successfulDate]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
@@ -191,7 +232,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 errorText: shouldShowSynchronizationError ? translate('workspace.accounting.syncError', connectedIntegration) : undefined,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress) : datetimeToRelative,
+                description: isSyncInProgress
+                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
+                    : translate('workspace.accounting.lastSync', datetimeToRelative),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
@@ -236,6 +279,27 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       },
                   ]
                 : []),
+            ...(policyConnectedToNetSuite && !shouldShowSynchronizationError
+                ? [
+                      {
+                          description: translate('workspace.netsuite.subsidiary'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: netSuiteSelectedSubsidiary,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: netSuiteSubsidiaryList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
+                          brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          onPress: () => {
+                              if (!(netSuiteSubsidiaryList.length > 1)) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                          },
+                      },
+                  ]
+                : []),
             ...(isEmptyObject(policy?.connections) || shouldShowSynchronizationError
                 ? []
                 : [
@@ -277,13 +341,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         styles.popoverMenuIcon,
         styles.fontWeightNormal,
         connectionSyncProgress?.stageInProgress,
+        datetimeToRelative,
         theme.spinner,
         overflowMenu,
         threeDotsMenuPosition,
         policyConnectedToXero,
         currentXeroOrganizationName,
         tenants.length,
-        datetimeToRelative,
+        policyConnectedToNetSuite,
+        netSuiteSelectedSubsidiary,
+        netSuiteSubsidiaryList.length,
         accountingIntegrations,
         currentXeroOrganization?.id,
     ]);
@@ -346,10 +413,13 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                             childrenStyles={styles.pt5}
                         >
                             {connectionsMenuItems.map((menuItem) => (
-                                <OfflineWithFeedback pendingAction={menuItem.pendingAction}>
+                                <OfflineWithFeedback
+                                    pendingAction={menuItem.pendingAction}
+                                    key={menuItem.title}
+                                >
                                     <MenuItem
-                                        key={menuItem.title}
                                         brickRoadIndicator={menuItem.brickRoadIndicator}
+                                        key={menuItem.title}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...menuItem}
                                     />
@@ -381,7 +451,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', connectedIntegration)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

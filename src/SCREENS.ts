@@ -41,6 +41,7 @@ const SCREENS = {
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
+        ADD_PAYMENT_CARD_CHANGE_CURRENCY: 'Settings_Add_Payment_Card_Change_Currency',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
@@ -104,6 +105,8 @@ const SCREENS = {
             SIZE: 'Settings_Subscription_Size',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
+            CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
+            CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
         },
     },
     SAVE_THE_WORLD: {
@@ -142,6 +145,7 @@ const SCREENS = {
         TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
         SETTINGS_CATEGORIES: 'SettingsCategories',
+        RESTRICTED_ACTION: 'RestrictedAction',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -182,6 +186,13 @@ const SCREENS = {
 
     TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
+        MERCHANT: 'Transaction_Duplicate_Merchant',
+        CATEGORY: 'Transaction_Duplicate_Category',
+        TAG: 'Transaction_Duplicate_Tag',
+        DESCRIPTION: 'Transaction_Duplicate_Description',
+        TAX_CODE: 'Transaction_Duplicate_Tax_Code',
+        REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
+        BILLABLE: 'Transaction_Duplicate_Billable',
     },
 
     IOU_SEND: {
@@ -268,6 +279,29 @@ const SCREENS = {
             XERO_EXPORT_PREFERRED_EXPORTER_SELECT: 'Workspace_Accounting_Xero_Export_Preferred_Exporter_Select',
             XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Bill_Payment_Account_Selector',
             XERO_EXPORT_BANK_ACCOUNT_SELECT: 'Policy_Accounting_Xero_Export_Bank_Account_Select',
+            NETSUITE_IMPORT_MAPPING: 'Policy_Accounting_NetSuite_Import_Mapping',
+            NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects',
+            NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: 'Policy_Accounting_NetSuite_Import_CustomersOrProjects_Select',
+            NETSUITE_TOKEN_INPUT: 'Policy_Accounting_NetSuite_Token_Input',
+            NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
+            NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
+            NETSUITE_EXPORT: 'Policy_Accounting_NetSuite_Export',
+            NETSUITE_PREFERRED_EXPORTER_SELECT: 'Policy_Accounting_NetSuite_Preferred_Exporter_Select',
+            NETSUITE_DATE_SELECT: 'Policy_Accounting_NetSuite_Date_Select',
+            NETSUITE_EXPORT_EXPENSES: 'Policy_Accounting_NetSuite_Export_Expenses',
+            NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: 'Policy_Accounting_NetSuite_Export_Expenses_Destination_Select',
+            NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: 'Policy_Accounting_NetSuite_Export_Expenses_Vendor_Select',
+            NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Export_Expenses_Payable_Account_Select',
+            NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: 'Policy_Accounting_NetSuite_Export_Expenses_Journal_Posting_Preference_Select',
+            NETSUITE_RECEIVABLE_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Receivable_Account_Select',
+            NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Preference_Select',
+            NETSUITE_INVOICE_ITEM_SELECT: 'Policy_Accounting_NetSuite_Invoice_Item_Select',
+            NETSUITE_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Tax_Posting_Account_Select',
+            NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: 'Policy_Accounting_NetSuite_Provincial_Tax_Posting_Account_Select',
+            NETSUITE_ADVANCED: 'Policy_Accounting_NetSuite_Advanced',
+            SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
+            ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
+            EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
@@ -276,6 +310,8 @@ const SCREENS = {
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
         RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
         RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
+        EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
+        EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
@@ -288,6 +324,12 @@ const SCREENS = {
         TAGS_EDIT: 'Tags_Edit',
         TAG_EDIT: 'Tag_Edit',
         TAXES: 'Workspace_Taxes',
+        REPORT_FIELDS: 'Workspace_ReportFields',
+        REPORT_FIELDS_CREATE: 'Workspace_ReportFields_Create',
+        REPORT_FIELDS_LIST_VALUES: 'Workspace_ReportFields_ListValues',
+        REPORT_FIELDS_ADD_VALUE: 'Workspace_ReportFields_AddValue',
+        REPORT_FIELDS_VALUE_SETTINGS: 'Workspace_ReportFields_ValueSettings',
+        REPORT_FIELDS_EDIT_VALUE: 'Workspace_ReportFields_EditValue',
         TAX_EDIT: 'Workspace_Tax_Edit',
         TAX_NAME: 'Workspace_Tax_Name',
         TAX_VALUE: 'Workspace_Tax_Value',
@@ -325,6 +367,7 @@ const SCREENS = {
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
         DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: 'Distance_Rate_Tax_Reclaimable_On_Edit',
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
+        UPGRADE: 'Workspace_Upgrade',
     },
 
     EDIT_REQUEST: {
@@ -356,6 +399,10 @@ const SCREENS = {
         ROOT: 'Welcome_Video_Root',
     },
 
+    EXPLANATION_MODAL: {
+        ROOT: 'Explanation_Modal_Root',
+    },
+
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
     INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
     I_AM_A_TEACHER: 'I_Am_A_Teacher',
@@ -383,6 +430,7 @@ const SCREENS = {
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
+    RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

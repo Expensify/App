@@ -1,4 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -26,6 +27,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import PaginationUtils from '@libs/PaginationUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -79,18 +81,22 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID ?? ''}`);
-    const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID ?? ''}`, {
+
+    // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || '-1'}`);
+    const [sortedAllReportActions = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID || '-1'}`, {
         canEvict: false,
         selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
     });
+    const [reportActionPages = []] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${report.reportID || '-1'}`);
 
     const reportActions = useMemo(() => {
         if (!sortedAllReportActions.length) {
             return [];
         }
-        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions);
-    }, [sortedAllReportActions]);
+        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages, (reportAction) => reportAction.reportActionID);
+    }, [sortedAllReportActions, reportActionPages]);
 
     const transactionThreadReportID = useMemo(
         () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
@@ -116,12 +122,15 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const isInvoiceRoom = useMemo(() => ReportUtils.isInvoiceRoom(report), [report]);
     const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+    const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const isExpenseReport = isMoneyRequestReport || isInvoiceReport || isMoneyRequest;
-    const isSingleTransactionView = isMoneyRequest || ReportUtils.isTrackExpenseReport(report);
+    const isSingleTransactionView = isMoneyRequest || isTrackExpenseReport;
+    const isSelfDMTrackExpenseReport = isTrackExpenseReport && ReportUtils.isSelfDM(parentReport);
 
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report), [report]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
@@ -155,8 +164,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [isInvoiceReport, isMoneyRequestReport, isSingleTransactionView]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
-    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
-
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
@@ -187,8 +194,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED &&
         !ReportUtils.isClosedReport(report) &&
         canModifyTask;
-    const canDeleteRequest =
-        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
+    const canDeleteRequest = isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || canDeleteRequest;
 
     useEffect(() => {
@@ -209,6 +215,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const leaveChat = useCallback(() => {
+        Navigation.dismissModal();
         if (isChatRoom) {
             const isWorkspaceMemberLeavingWorkspaceRoom = (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
             Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
@@ -217,7 +224,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         Report.leaveGroupChat(report.reportID);
     }, [isChatRoom, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
 
-    const shouldShowLeaveButton = !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !isPolicyAdmin));
+    const shouldShowLeaveButton =
+        !isThread && (isGroupChat || (isChatRoom && ReportUtils.canLeaveChat(report, policy)) || (isPolicyExpenseChat && !report.isOwnPolicyExpenseChat && !isPolicyAdmin));
 
     const reportName = ReportUtils.isDeprecatedGroupDM(report) || isGroupChat ? ReportUtils.getGroupChatName(undefined, false, report) : ReportUtils.getReportName(report);
 
@@ -441,13 +449,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         ? ReportActionsUtils.getOriginalMessage(requestParentReportAction)?.IOUTransactionID ?? ''
         : '';
 
-    const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
-    const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-
-    const shouldShowHoldAction = caseID !== CASES.MONEY_REPORT && !isSettled && !isApproved && !isDeletedParentAction && !ReportUtils.isArchivedRoom(parentReport);
     const canHoldUnholdReportAction = ReportUtils.canHoldUnholdReportAction(parentReportAction);
+    const shouldShowHoldAction =
+        caseID !== CASES.MONEY_REPORT && (canHoldUnholdReportAction.canHoldRequest || canHoldUnholdReportAction.canUnholdRequest) && !ReportUtils.isArchivedRoom(parentReport);
 
-    const canJoin = !isExpenseReport && ReportUtils.canJoinChat(report, parentReportAction, policy);
+    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
 
     const promotedActions = useMemo(() => {
         const result: PromotedAction[] = [];
@@ -534,6 +540,47 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         </OfflineWithFeedback>
     );
 
+    const titleField = useMemo<OnyxTypes.PolicyReportField | undefined>((): OnyxTypes.PolicyReportField | undefined => {
+        const fields = ReportUtils.getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        return fields.find((reportField) => ReportUtils.isReportFieldOfTypeTitle(reportField));
+    }, [report, policy?.fieldList]);
+    const fieldKey = ReportUtils.getReportFieldKey(titleField?.fieldID ?? '-1');
+    const isFieldDisabled = ReportUtils.isReportFieldDisabled(report, titleField, policy);
+
+    const shouldShowTitleField = caseID !== CASES.MONEY_REQUEST && !isFieldDisabled && ReportUtils.isAdminOwnerApproverOrReportOwner(report, policy);
+
+    const nameSectionFurtherDetailsContent = (
+        <ParentNavigationSubtitle
+            parentNavigationSubtitleData={parentNavigationSubtitleData}
+            parentReportID={report?.parentReportID}
+            parentReportActionID={report?.parentReportActionID}
+            pressableStyles={[styles.mt1, styles.mw100]}
+        />
+    );
+
+    const nameSectionTitleField = titleField && (
+        <OfflineWithFeedback
+            pendingAction={report.pendingFields?.[fieldKey]}
+            errors={report.errorFields?.[fieldKey]}
+            errorRowStyles={styles.ph5}
+            key={`menuItem-${fieldKey}`}
+            onClose={() => Report.clearReportFieldErrors(report.reportID, titleField)}
+        >
+            <View style={[styles.flex1]}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!isFieldDisabled}
+                    interactive={!isFieldDisabled}
+                    title={reportName}
+                    titleStyle={styles.newKansasLarge}
+                    shouldCheckActionAllowedOnPress={false}
+                    description={Str.UCFirst(titleField.name)}
+                    onPress={() => Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, report.policyID ?? '-1', titleField.fieldID ?? '-1'))}
+                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
+                />
+            </View>
+        </OfflineWithFeedback>
+    );
+
     const navigateBackToAfterDelete = useRef<Route>();
 
     const deleteTransaction = useCallback(() => {
@@ -562,8 +609,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={[styles.reportDetailsTitleContainer, styles.pb0]}>
                         {renderedAvatar}
-                        {isExpenseReport && nameSectionExpenseIOU}
+                        {isExpenseReport && !shouldShowTitleField && nameSectionExpenseIOU}
                     </View>
+
+                    {isExpenseReport && shouldShowTitleField && nameSectionTitleField}
 
                     {!isExpenseReport && nameSectionGroupWorkspace}
 
@@ -618,7 +667,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isLastMemberLeavingGroupModalVisible}
                     onConfirm={() => {
                         setIsLastMemberLeavingGroupModalVisible(false);
-                        Report.leaveGroupChat(report.reportID);
+                        leaveChat();
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
                     prompt={translate('groupChat.lastMemberWarning')}
@@ -630,12 +679,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteTransaction}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    onModalHide={() => {
-                        if (!navigateBackToAfterDelete.current) {
-                            return;
-                        }
-                        Navigation.goBack(navigateBackToAfterDelete.current);
-                    }}
+                    onModalHide={() => ReportUtils.navigateBackAfterDeleteTransaction(navigateBackToAfterDelete.current)}
                     prompt={caseID === CASES.DEFAULT ? translate('task.deleteConfirmation') : translate('iou.deleteConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
