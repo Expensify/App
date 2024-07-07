@@ -1456,6 +1456,17 @@ const CONST = {
         JOURNALS_APPROVED: 'JOURNALS_APPROVED',
     },
 
+    NETSUITE_ACCOUNT_TYPE: {
+        ACCOUNTS_PAYABLE: '_accountsPayable',
+        ACCOUNTS_RECEIVABLE: '_accountsReceivable',
+        OTHER_CURRENT_LIABILITY: '_otherCurrentLiability',
+        CREDIT_CARD: '_creditCard',
+        BANK: '_bank',
+        OTHER_CURRENT_ASSET: '_otherCurrentAsset',
+        LONG_TERM_LIABILITY: '_longTermLiability',
+        EXPENSE: '_expense',
+    },
+
     NETSUITE_APPROVAL_ACCOUNT_DEFAULT: 'APPROVAL_ACCOUNT_DEFAULT',
 
     /**
