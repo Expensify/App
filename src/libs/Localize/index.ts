@@ -1,5 +1,4 @@
 import * as RNLocalize from 'react-native-localize';
-import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
@@ -9,7 +8,7 @@ import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Locale, ReportAction} from '@src/types/onyx';
+import type {Locale} from '@src/types/onyx';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -54,22 +53,9 @@ type PluralFormPhrase = {
     few?: string;
     many?: string;
 };
-type TranslationPhraseRecord = Record<string, string | number | boolean | null | OnyxEntry<ReportAction> | undefined>;
-type TranslationPhraseArg = number | string | undefined | TranslationPhraseRecord;
 
-type TranslationPhraseFunction = (...args: TranslationPhraseArg[]) => string;
-type PluralTranslationPhraseFunction = (count: number, record?: TranslationPhraseRecord) => PluralFormPhrase;
-
-// Update this type to handle both regular and plural functions
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends PluralTranslationPhraseFunction
-    ? PluralTranslationPhraseFunction
-    : TranslationFlatObject[TKey] extends TranslationPhraseFunction
-      ? TranslationPhraseFunction
-      : string;
-
-// Update PhraseParameters to handle both types of functions
-type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [number, TranslationPhraseRecord?] : T extends TranslationPhraseFunction ? Parameters<T> : TranslationPhraseArg[];
-
+type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 /**
  * Map to store translated values for each locale.
  * This is used to avoid translating the same phrase multiple times.
@@ -143,39 +129,41 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         return valueFromCache;
     }
 
-    const translatedPhrase = translations?.[language]?.[phraseKey];
-    const pluralRules = new Intl.PluralRules(language, {type: 'ordinal'});
+    const translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            const firstParam = phraseParameters[0];
-            if (typeof firstParam === 'number' && isPluralTranslationPhraseFunction(translatedPhrase)) {
-                // This is a plural phrase as first param is a number (count)
-                const [count, params] = phraseParameters as [number, TranslationPhraseRecord?];
-                const pluralPhrase = translatedPhrase(count, params);
-                const pluralForm = pluralRules.select(count);
-                const selectedPluralPhrase = pluralPhrase[pluralForm];
-                if (typeof selectedPluralPhrase === 'string') {
-                    cacheForLocale?.set(phraseKey, selectedPluralPhrase);
-                    return selectedPluralPhrase;
+            const result = translatedPhrase(...phraseParameters) as string | PluralFormPhrase;
+
+            if (typeof result === 'object' && 'other' in result) {
+                // Handle plural form
+                const count = phraseParameters[0] as number;
+                const pluralForm = new Intl.PluralRules(language, {type: 'ordinal'}).select(count);
+                const pluralFormPhrase = result[pluralForm];
+
+                if (!pluralFormPhrase) {
+                    Log.alert(`Plural form ${pluralForm} is not defined for ${phraseKey}`);
+                    return result.other;
                 }
 
-                // If the selected plural form is not found, use the 'other' form
-                const otherForm = pluralPhrase.other;
-                Log.alert(`Plural form ${pluralForm} not found for ${phraseKey} in ${language}`);
-                cacheForLocale?.set(phraseKey, otherForm);
-                return otherForm;
-            } else if (isTranslationPhraseFunction(translatedPhrase)) {
-                const phrase = translatedPhrase(...phraseParameters);
-                if (typeof phrase === 'string') {
-                    cacheForLocale?.set(phraseKey, phrase);
-                    return phrase;
-                }
+                // Store the translated value in the cache
+                cacheForLocale?.set(phraseKey, pluralFormPhrase);
+                return pluralFormPhrase;
             }
-        } else if (typeof translatedPhrase === 'string') {
-            cacheForLocale?.set(phraseKey, translatedPhrase);
-            return translatedPhrase;
+
+            // Store the translated value in the cache
+            cacheForLocale?.set(phraseKey, result);
+            return result;
         }
+
+        if (typeof translatedPhrase !== 'string') {
+            Log.alert(`Invalid translation for ${phraseKey}`);
+            return null;
+        }
+
+        // Store the translated value in the cache
+        cacheForLocale?.set(phraseKey, translatedPhrase);
+        return translatedPhrase;
     }
 
     if (!fallbackLanguage) {
@@ -195,14 +183,6 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
     // Phrase is not translated, search it in default language (en)
     return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
-}
-
-function isPluralTranslationPhraseFunction(func: Function): func is PluralTranslationPhraseFunction {
-    return func() && func().length > 0 && Object.keys(func()).every((key) => ['zero', 'one', 'other'].includes(key));
-}
-
-function isTranslationPhraseFunction(func: Function): func is TranslationPhraseFunction {
-    return func() && typeof func() === 'string';
 }
 
 /**

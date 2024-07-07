@@ -1,4 +1,3 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {PolicyConnectionSyncStage, Unit} from '@src/types/onyx/Policy';
 import type en from './en';
@@ -274,18 +273,13 @@ type PluralFormPhrase = {
     many?: string;
 };
 
-type TranslationPhraseRecord = Record<string, string | number | boolean | null | OnyxEntry<ReportAction> | undefined>;
-type TranslationPhraseArg = number | string | undefined | TranslationPhraseRecord;
-type TranslationPhraseFunction = (...args: TranslationPhraseArg[]) => string;
-type PluralTranslationPhraseFunction = (count: number, record: TranslationPhraseRecord) => PluralFormPhrase;
-
-type PhraseParameters<T> = T extends PluralTranslationPhraseFunction ? [number, TranslationPhraseRecord] : T extends TranslationPhraseFunction ? Parameters<T> : TranslationPhraseArg[];
-
-type TranslateType<TObject, K extends keyof TObject> = TObject[K] extends PluralTranslationPhraseFunction
-    ? PluralTranslationPhraseFunction
-    : TObject[K] extends TranslationPhraseFunction
-      ? TranslationPhraseFunction
-      : string;
+type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
+    ? TObject[TPath]
+    : TPath extends `${infer TKey}.${infer TRest}`
+      ? TKey extends keyof TObject
+          ? TranslateType<TObject[TKey], TRest>
+          : never
+      : never;
 
 type CharacterLimitParams = {
     length: number;
@@ -382,7 +376,7 @@ type EnglishTranslation = typeof en;
 type TranslationPaths = FlattenObject<EnglishTranslation>;
 
 type TranslationFlatObject = {
-    [TKey in Extract<TranslationPaths, string>]: TranslateType<EnglishTranslation, any>;
+    [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
 type TermsParams = {amount: string};
@@ -487,8 +481,6 @@ export type {
     PayerPaidParams,
     PayerSettledParams,
     PluralFormPhrase,
-    PluralTranslationPhraseFunction,
-    PhraseParameters,
     ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
@@ -521,9 +513,6 @@ export type {
     TranslationBase,
     TranslationFlatObject,
     TranslationPaths,
-    TranslationPhraseArg,
-    TranslationPhraseFunction,
-    TranslationPhraseRecord,
     UntilTimeParams,
     UpdatedTheDistanceParams,
     UpdatedTheRequestParams,
