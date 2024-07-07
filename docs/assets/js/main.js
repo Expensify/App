@@ -49,27 +49,40 @@ function isInRange(num, min, max) {
  * If a page is directly accessed (e.g., via deep link, bookmark, or opened in a new tab),the user will be navigated
  * back to the relevant hub page of that article.
  */
+let newPath;
 function navigateBack() {
-    const referrer = document.referrer;
-    var currentPath = window.location.pathname;
-    var pathSegments = currentPath.split('/');
-    let newPath;
+    const currentPath = window.location.pathname;
+    const pathSegments = currentPath.split('/');
 
-    if (referrer && new URL(referrer).pathname === currentPath && window.history.length > 1) {
-        window.history.back();
-        return;
+    // Check if we're in an article page
+    if (pathSegments.length >= 5 && pathSegments[1] === 'articles') {
+        // Extract the product (new-expensify or expensify-classic) and the hub
+        const product = pathSegments[2];
+        const hub = pathSegments[3];
+        
+        // Construct the path to the hub page
+        newPath = `/${product}/hubs/${hub}/`;
     } else if (pathSegments.length > 4 && (pathSegments[2] === 'new-expensify' || pathSegments[2] === 'expensify-classic')) {
-        newPath = `/${pathSegments[2]}/hubs/${pathSegments[3]}`;
+        // This is the existing logic for other cases
+        newPath = `/${pathSegments[2]}/hubs/${pathSegments[3]}/`;
     } else {
+        // If we're not in an article or a recognizable path, go to the home page
         newPath = '/';
     }
 
-    // Navigate to the new path
-    window.location.href = newPath;
-
-    // Add a little delay to avoid showing the previous content in a fraction of a time
-    setTimeout(toggleHeaderMenu, 250);
+    if (newPath !== currentPath) {
+        window.location.href = newPath;
+        
+        // Add a little delay to avoid showing the previous content in a fraction of a time
+        setTimeout(toggleHeaderMenu, 250);
+    }
 }
+
+// Add an event listener for the popstate event
+window.addEventListener('popstate', (e)=>{
+    e.preventDefault()
+    navigateBack()
+});
 
 function injectFooterCopywrite() {
     const footer = document.getElementById('footer-copywrite-date');
@@ -273,11 +286,13 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
-
+    
     const backButton = document.getElementById('back-button');
-
     if (backButton) {
-        backButton.addEventListener('click', navigateBack);
+        backButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            navigateBack();
+        });
     }
 
     const articleContent = document.getElementById('article-content');
