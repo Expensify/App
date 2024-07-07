@@ -740,7 +740,7 @@ function updateNetSuiteReimbursementAccountID(policyID: string, bankAccountID: s
 }
 
 function updateNetSuiteCollectionAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccountID, oldBankAccountID);
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT, bankAccountID, oldBankAccountID);
 
     const parameters = {
         policyID,
