@@ -31,10 +31,21 @@ function CustomSegmentScriptIdStep({onNext, isEditing}: CustomFieldSubStepWithPo
     const [formValuesDraft] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM_DRAFT);
     const customSegmentRecordType = formValuesDraft?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
 
+    const fieldLabel = translate(
+        `workspace.netsuite.import.importCustomFields.customSegments.fields.${
+            customSegmentRecordType === CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT ? 'scriptID' : 'customRecordScriptID'
+        }`,
+    );
+
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
-            ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SCRIPT_ID]),
-        [],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> = {};
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SCRIPT_ID])) {
+                errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+            }
+            return errors;
+        },
+        [fieldLabel, translate],
     );
 
     return (
@@ -53,8 +64,8 @@ function CustomSegmentScriptIdStep({onNext, isEditing}: CustomFieldSubStepWithPo
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.SCRIPT_ID}
                 shouldSaveDraft={!isEditing}
-                label={translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`)}
-                aria-label={translate(`workspace.netsuite.import.importCustomFields.customSegments.fields.segmentName`)}
+                label={fieldLabel}
+                aria-label={fieldLabel}
                 role={CONST.ROLE.PRESENTATION}
                 spellCheck={false}
             />

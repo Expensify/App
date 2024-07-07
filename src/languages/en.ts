@@ -2402,6 +2402,7 @@ export default {
                 importTaxDescription: 'Import tax groups from NetSuite',
                 importCustomFields: {
                     chooseOptionBelow: 'Choose an option below:',
+                    requiredFieldError: (fieldName: string) => `Please enter the ${fieldName}`,
                     customSegments: {
                         title: 'Custom segments/records',
                         addText: 'Add custom segment/record',
@@ -2420,6 +2421,8 @@ export default {
                         removeTitle: 'Remove custom segment/record',
                         removePrompt: 'Are you sure you want to remove this custom segment/record?',
                         addForm: {
+                            customSegmentName: 'custom segment name',
+                            customRecordName: 'custom record name',
                             segmentTitle: 'Custom segment',
                             customSegmentAddTitle: 'Add custom segment',
                             customRecordAddTitle: 'Add custom record',

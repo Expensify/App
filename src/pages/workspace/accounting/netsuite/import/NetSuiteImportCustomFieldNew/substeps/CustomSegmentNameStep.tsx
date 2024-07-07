@@ -32,9 +32,17 @@ function CustomSegmentNameStep({onNext, isEditing}: CustomFieldSubStepWithPolicy
     const customSegmentRecordType = formValuesDraft?.[INPUT_IDS.CUSTOM_SEGMENT_TYPE] ?? CONST.NETSUITE_CUSTOM_RECORD_TYPES.CUSTOM_SEGMENT;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
-            ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.SEGMENT_NAME]),
-        [],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> = {};
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SEGMENT_NAME])) {
+                errors[INPUT_IDS.SEGMENT_NAME] = translate(
+                    'workspace.netsuite.import.importCustomFields.requiredFieldError',
+                    translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}Name`),
+                );
+            }
+            return errors;
+        },
+        [customSegmentRecordType, translate],
     );
 
     return (

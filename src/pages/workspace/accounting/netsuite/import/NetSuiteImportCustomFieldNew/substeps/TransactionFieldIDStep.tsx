@@ -27,10 +27,17 @@ function TransactionFieldIDStep({onNext, isEditing}: CustomFieldSubStepWithPolic
         shouldSaveDraft: isEditing,
     });
 
+    const fieldLabel = translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`);
+
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> =>
-            ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.TRANSACTION_FIELD_ID]),
-        [],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FIELD_ADD_FORM> = {};
+            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.TRANSACTION_FIELD_ID])) {
+                errors[INPUT_IDS.TRANSACTION_FIELD_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', fieldLabel);
+            }
+            return errors;
+        },
+        [fieldLabel, translate],
     );
 
     return (
@@ -47,8 +54,8 @@ function TransactionFieldIDStep({onNext, isEditing}: CustomFieldSubStepWithPolic
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.TRANSACTION_FIELD_ID}
                 shouldSaveDraft={!isEditing}
-                label={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`)}
-                aria-label={translate(`workspace.netsuite.import.importCustomFields.customLists.fields.transactionFieldID`)}
+                label={fieldLabel}
+                aria-label={fieldLabel}
                 role={CONST.ROLE.PRESENTATION}
                 spellCheck={false}
             />
