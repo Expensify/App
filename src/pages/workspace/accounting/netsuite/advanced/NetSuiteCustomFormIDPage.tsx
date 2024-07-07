@@ -4,12 +4,14 @@ import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -30,6 +32,19 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const exportDestination =
         (isReimbursable ? config?.reimbursableExpensesExportDestination : config?.nonreimbursableExpensesExportDestination) ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
     const customFormIDKey = isReimbursable ? 'reimbursable' : 'nonReimbursable';
+
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> = {};
+
+            if (values[params.expenseType] && !ValidationUtils.isNumeric(values[params.expenseType])) {
+                ErrorUtils.addErrorMessage(errors, params.expenseType, translate('workspace.netsuite.advancedConfig.error.customFormID'));
+            }
+
+            return errors;
+        },
+        [params.expenseType, translate],
+    );
 
     const updateCustomFormID = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>) => {
@@ -59,6 +74,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM}
                     style={styles.flexGrow1}
+                    validate={validate}
                     onSubmit={updateCustomFormID}
                     submitButtonText={translate('common.confirm')}
                     shouldValidateOnBlur

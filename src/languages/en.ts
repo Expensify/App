@@ -2338,6 +2338,9 @@ export default {
                         [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Approved for posting',
                     },
                 },
+                error: {
+                    customFormID: 'Please enter a valid numeric custom form ID.',
+                },
             },
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Add the account in NetSuite and sync the connection again.',
