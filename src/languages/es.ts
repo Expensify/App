@@ -17,7 +17,6 @@ import type {
     ChangePolicyParams,
     ChangeTypeParams,
     CharacterLimitParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -788,20 +787,18 @@ export default {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba lo que no está bloqueado, o aprueba todo el informe.',
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'aprobar',
-                'aprobarlos',
-                transactionCount,
-            )} de todos modos?`,
+        confirmApprovalAllHoldAmount: () => ({
+            zero: `Ningún gasto está bloqueado. ¿Quieres aprobar todo el informe?`,
+            one: `Este gasto está bloqueado. ¿Quieres aprobarlo de todos modos?`,
+            other: `Estos gastos están bloqueados. ¿Quieres aprobarlos de todos modos?`,
+        }),
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está bloqueado, o paga el informe completo.',
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('Este gasto está bloqueado', 'Estos gastos están bloqueados', transactionCount)}. ¿Quieres ${Str.pluralize(
-                'pagar',
-                'pagarlo',
-                transactionCount,
-            )} de todos modos?`,
+        confirmPayAllHoldAmount: () => ({
+            zero: `Ningún gasto está bloqueado. ¿Quieres pagar todo el informe?`,
+            one: `Este gasto está bloqueado. ¿Quieres pagarlo de todos modos?`,
+            other: `Estos gastos están bloqueados. ¿Quieres pagarlos de todos modos?`,
+        }),
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloquear',

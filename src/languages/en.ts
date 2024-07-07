@@ -1,8 +1,8 @@
-import {CONST as COMMON_CONST, Str} from 'expensify-common';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import {startCase} from 'lodash';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {
     ActiveMembersParams,
     AddressLineParams,
@@ -23,7 +23,6 @@ import type {
     ChangeTypeParams,
     CharacterLimitParams,
     CommitmentParams,
-    ConfirmHoldExpenseParams,
     ConfirmThatParams,
     DateParams,
     DateShouldBeAfterParams,
@@ -812,12 +811,18 @@ export default {
         keepAll: 'Keep all',
         confirmApprove: 'Confirm approval amount',
         confirmApprovalAmount: "Approve what's not on hold, or approve the entire report.",
-        confirmApprovalAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to approve anyway?`,
+        confirmApprovalAllHoldAmount: (count: number) => ({
+            zero: `This expense is on hold. Do you want to approve anyway?`,
+            one: `This expense is on hold. Do you want to approve anyway?`,
+            other: `This expense is on hold. Do you want to approve anyway?`,
+        }),
         confirmPay: 'Confirm payment amount',
         confirmPayAmount: "Pay what's not on hold, or pay the entire report.",
-        confirmPayAllHoldAmount: ({transactionCount}: ConfirmHoldExpenseParams) =>
-            `${Str.pluralize('This expense is', 'These expenses are', transactionCount)} on hold. Do you want to pay anyway?`,
+        confirmPayAllHoldAmount: (count: number) => ({
+            zero: `This expense is on hold. Do you want to pay anyway?`,
+            one: `This expense is on hold. Do you want to pay anyway?`,
+            other: `This expense is on hold. Do you want to pay anyway?`,
+        }),
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
         holdEducationalTitle: 'This expense is on',
