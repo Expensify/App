@@ -2,7 +2,7 @@
 import buildArrayCache from './cache/arrayCacheBuilder';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
-import {getEqualityComparator, mergeOptions} from './utils';
+import {getEqualityComparator, mergeOptions, truncateArgs} from './utils';
 
 /**
  * Global memoization class. Use it to orchestrate memoization (e.g. start/stop global monitoring).
@@ -48,7 +48,9 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
 
     const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 
-    const memoized = function memoized(...key: Parameters<Fn>): ReturnType<Fn> {
+    const memoized = function memoized(...args: Parameters<Fn>): ReturnType<Fn> {
+        const key = truncateArgs(args, options.maxArgs) as Parameters<Fn>;
+
         const statsEntry = stats.createEntry();
         statsEntry.track('keyLength', key.length);
         statsEntry.track('didHit', true);
@@ -56,7 +58,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
         const retrievalTimeStart = performance.now();
         const cached = cache.getSet(key, () => {
             const fnTimeStart = performance.now();
-            const result = fn(...key);
+            const result = fn(...args);
             statsEntry.trackTime('fnTime', fnTimeStart);
             statsEntry.track('didHit', false);
 

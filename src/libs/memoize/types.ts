@@ -29,6 +29,7 @@ type Options = {
     maxSize: number;
     equality: 'deep' | 'shallow' | KeyComparator;
     monitor: boolean;
+    maxArgs?: number;
     monitoringName?: string;
 } & InternalOptions;
 
