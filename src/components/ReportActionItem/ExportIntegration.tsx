@@ -25,38 +25,47 @@ function ExportIntegration({action}: ExportIntegrationProps) {
 
     const exportText = markedManually ? translate('report.actions.type.exportedToIntegration.manual', {label}) : translate('report.actions.type.exportedToIntegration.automatic', {label});
 
-    let linkText = '';
-    let linkURL = '';
+    const links: Array<{text: string; url: string}> = [];
+
     if (reimbursableUrls.length === 1) {
-        linkText = translate('report.actions.type.exportedToIntegration.reimburseableLink');
-        linkURL = reimbursableUrls[0];
-    } else if (nonReimbursableUrls.length) {
-        linkText = translate('report.actions.type.exportedToIntegration.nonReimbursableLink');
+        links.push({
+            text: translate('report.actions.type.exportedToIntegration.reimburseableLink'),
+            url: reimbursableUrls[0],
+        });
+    }
+
+    if (nonReimbursableUrls.length) {
+        const text = translate('report.actions.type.exportedToIntegration.nonReimbursableLink');
+        let url = '';
 
         if (nonReimbursableUrls.length === 1) {
-            linkURL = nonReimbursableUrls[0];
+            url = nonReimbursableUrls[0];
         } else {
             switch (label) {
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
-                    linkURL = 'https://go.xero.com/Bank/BankAccounts.aspx';
+                    url = 'https://go.xero.com/Bank/BankAccounts.aspx';
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite:
-                    linkURL = 'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
-                    linkURL += wasExportedAfterBase62 ? base62ReportID : reportID;
+                    url = 'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
+                    url += wasExportedAfterBase62 ? base62ReportID : reportID;
                     break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.financialForce:
-                    linkURL = '';
+                    url = '';
                     break;
                 default:
-                    linkURL = 'https://qbo.intuit.com/app/expenses';
+                    url = 'https://qbo.intuit.com/app/expenses';
             }
         }
+
+        links.push({text, url});
     }
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.breakWord, styles.preWrap]}>
             <Text style={[styles.chatItemMessage, styles.colorMuted]}>{exportText}</Text>
-            {linkText && <TextLink href={linkURL}>{linkText}</TextLink>}
+            {links.map((link) => (
+                <TextLink href={link.url}>{link.text}</TextLink>
+            ))}
         </View>
     );
 }
