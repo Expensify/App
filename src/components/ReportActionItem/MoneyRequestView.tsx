@@ -347,7 +347,7 @@ function MoneyRequestView({
     ];
     const receiptViolations =
         transactionViolations?.filter((violation) => receiptViolationNames.includes(violation.name)).map((violation) => ViolationsUtils.getViolationTranslation(violation, translate)) ?? [];
-    const shouldShowAuditMessage = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+    const shouldShowAuditMessage = !isReceiptBeingScanned && !!canUseViolations && ReportUtils.isPaidGroupPolicy(report);
     const shouldShowReceiptAudit = isReceiptAllowed && (shouldShowReceiptEmptyState || hasReceipt);
 
     const errors = {
@@ -393,8 +393,8 @@ function MoneyRequestView({
                 {shouldShowReceiptAudit && (
                     <ReceiptAudit
                         notes={receiptViolations}
-                        shouldShowAuditSuccess={!!(shouldShowAuditMessage && didRceiptScanSucceed)}
-                        shouldShowAuditFailure={!!(shouldShowAuditMessage && hasReceipt)}
+                        shouldShowAuditSuccess={shouldShowAuditMessage && didRceiptScanSucceed}
+                        shouldShowAuditFailure={shouldShowAuditMessage && hasReceipt}
                     />
                 )}
                 {(hasReceipt || errors) && (
