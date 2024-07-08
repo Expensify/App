@@ -1,11 +1,22 @@
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as ReportConnection from './ReportConnection';
 
 const parser = new ExpensiMark();
 
+const reportIDToNameMap: Record<string, string> = {};
 const accountIDToNameMap: Record<string, string> = {};
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report) => {
+        if (!report) {
+            return;
+        }
+
+        reportIDToNameMap[report.reportID] = report.reportName ?? report.displayName ?? report.reportID;
+    },
+});
 
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -26,11 +37,7 @@ function parseHtmlToMarkdown(
     accountIDToName?: Record<string, string>,
     cacheVideoAttributes?: (videoSource: string, videoAttrs: string) => void,
 ): string {
-    return parser.htmlToMarkdown(html, {
-        reportIDToName: reportIDToName ?? ReportConnection.getAllReportsNameMap(),
-        accountIDToName: accountIDToName ?? accountIDToNameMap,
-        cacheVideoAttributes,
-    });
+    return parser.htmlToMarkdown(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap, cacheVideoAttributes});
 }
 
 function parseHtmlToText(
@@ -39,7 +46,7 @@ function parseHtmlToText(
     accountIDToName?: Record<string, string>,
     cacheVideoAttributes?: (videoSource: string, videoAttrs: string) => void,
 ): string {
-    return parser.htmlToText(html, {reportIDToName: reportIDToName ?? ReportConnection.getAllReportsNameMap(), accountIDToName: accountIDToName ?? accountIDToNameMap, cacheVideoAttributes});
+    return parser.htmlToText(html, {reportIDToName: reportIDToName ?? reportIDToNameMap, accountIDToName: accountIDToName ?? accountIDToNameMap, cacheVideoAttributes});
 }
 
 export {parseHtmlToMarkdown, parseHtmlToText};

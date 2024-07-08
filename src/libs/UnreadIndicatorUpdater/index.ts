@@ -1,14 +1,17 @@
 import debounce from 'lodash/debounce';
 import memoize from 'lodash/memoize';
 import type {OnyxCollection} from 'react-native-onyx';
-import * as ReportConnection from '@libs/ReportConnection';
+import Onyx from 'react-native-onyx';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import updateUnread from './updateUnread';
 
-function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string) {
+let allReports: OnyxCollection<Report> = {};
+
+export default function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, currentReportID: string) {
     return Object.values(reports ?? {}).filter(
         (report) =>
             ReportUtils.isUnread(report) &&
@@ -37,16 +40,23 @@ function getUnreadReportsForUnreadIndicator(reports: OnyxCollection<Report>, cur
 const memoizedGetUnreadReportsForUnreadIndicator = memoize(getUnreadReportsForUnreadIndicator);
 
 const triggerUnreadUpdate = debounce(() => {
-    const currentReportID = navigationRef?.isReady?.() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
+    const currentReportID = navigationRef.isReady() ? Navigation.getTopmostReportId() ?? '-1' : '-1';
 
     // We want to keep notification count consistent with what can be accessed from the LHN list
-    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(ReportConnection.getAllReports(), currentReportID);
+    const unreadReports = memoizedGetUnreadReportsForUnreadIndicator(allReports, currentReportID);
 
     updateUnread(unreadReports.length);
 }, CONST.TIMING.UNREAD_UPDATE_DEBOUNCE_TIME);
 
-navigationRef?.addListener?.('state', () => {
-    triggerUnreadUpdate();
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (reportsFromOnyx) => {
+        allReports = reportsFromOnyx;
+        triggerUnreadUpdate();
+    },
 });
 
-export {triggerUnreadUpdate, getUnreadReportsForUnreadIndicator};
+navigationRef.addListener('state', () => {
+    triggerUnreadUpdate();
+});

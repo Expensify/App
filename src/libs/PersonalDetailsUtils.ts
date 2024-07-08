@@ -32,16 +32,11 @@ Onyx.connect({
     },
 });
 
-const hiddenTranslation = Localize.translateLocal('common.hidden');
-const youTranslation = Localize.translateLocal('common.you').toLowerCase();
-
-const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
-
 function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails> | null, defaultValue = '', shouldFallbackToHidden = true, shouldAddCurrentUserPostfix = false): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     // If the displayName starts with the merged account prefix, remove it.
-    if (regexMergedAccount.test(displayName)) {
+    if (new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX).test(displayName)) {
         // Remove the merged account prefix from the displayName.
         displayName = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
@@ -53,7 +48,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youTranslation})`;
+        displayName = `${displayName} (${Localize.translateLocal('common.you').toLowerCase()})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -63,7 +58,7 @@ function getDisplayNameOrDefault(passedPersonalDetails?: Partial<PersonalDetails
     if (displayName) {
         return displayName;
     }
-    return defaultValue || (shouldFallbackToHidden ? hiddenTranslation : '');
+    return defaultValue || (shouldFallbackToHidden ? Localize.translateLocal('common.hidden') : '');
 }
 
 /**
