@@ -225,6 +225,7 @@ function KYCWall({
     );
 
     useEffect(() => {
+console.log('viewRef: ', viewRef, 'anchorRef: ', anchorRef)
         let dimensionsSubscription: EmitterSubscription | null = null;
 
         PaymentMethods.kycWallRef.current = {continueAction};

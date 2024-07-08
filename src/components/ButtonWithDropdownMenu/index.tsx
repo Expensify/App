@@ -47,6 +47,9 @@ function ButtonWithDropdownMenu<IValueType>({
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
 
     useEffect(() => {
+	    console.log('caretButton: ', caretButton)
+	    console.log('useRef: ', buttonRef)
+	    console.log('options: ', options)
         if (!caretButton.current) {
             return;
         }
