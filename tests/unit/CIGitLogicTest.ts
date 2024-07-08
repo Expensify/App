@@ -272,7 +272,7 @@ function describeTestSuite(testName: string, callback: () => void) {
  */
 
 let startingDir: string;
-describe('CIGitLogic', () => {
+describeTestSuite('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
         startingDir = process.cwd();
