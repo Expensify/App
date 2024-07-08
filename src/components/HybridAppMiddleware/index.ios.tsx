@@ -1,8 +1,11 @@
-import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {NativeModules} from 'react-native';
+import type React from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {NativeEventEmitter, NativeModules} from 'react-native';
+import type {NativeModule} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import {InitialURLContext} from '@components/InitialURLContextProvider';
+import useExitTo from '@hooks/useExitTo';
 import useSplashScreen from '@hooks/useSplashScreen';
-import useTransitionRouteParams from '@hooks/useTransitionRouteParams';
 import BootSplash from '@libs/BootSplash';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,19 +14,11 @@ import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
-import {InitialURLContext} from './InitialURLContextProvider';
 
 type HybridAppMiddlewareProps = {
     authenticated: boolean;
     children: React.ReactNode;
 };
-
-type HybridAppMiddlewareContextType = {
-    showSplashScreenOnNextStart: () => void;
-};
-const HybridAppMiddlewareContext = React.createContext<HybridAppMiddlewareContextType>({
-    showSplashScreenOnNextStart: () => {},
-});
 
 /*
  * HybridAppMiddleware is responsible for handling BootSplash visibility correctly.
@@ -36,35 +31,47 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
     const [finishedTransition, setFinishedTransition] = useState(false);
 
     const initialURL = useContext(InitialURLContext);
-    const routeParams = useTransitionRouteParams();
+    const exitToParam = useExitTo();
     const [exitTo, setExitTo] = useState<Route | HybridAppRoute | undefined>();
 
     const [isAccountLoading] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.isLoading ?? false});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
 
+    // In iOS, the HybridApp defines the `onReturnToOldDot` event.
+    // If we frequently transition from OldDot to NewDot during a single app lifecycle,
+    // we need to artificially display the bootsplash since the app is booted only once.
+    // Therefore, isSplashHidden needs to be updated at the appropriate time.
+    useEffect(() => {
+        if (!NativeModules.HybridAppModule) {
+            return;
+        }
+        const HybridAppEvents = new NativeEventEmitter(NativeModules.HybridAppModule as unknown as NativeModule);
+        const listener = HybridAppEvents.addListener(CONST.EVENTS.ON_RETURN_TO_OLD_DOT, () => {
+            Log.info('[HybridApp] `onReturnToOldDot` event received. Resetting state of HybridAppMiddleware', true);
+            setIsSplashHidden(false);
+            setStartedTransition(false);
+            setFinishedTransition(false);
+            setExitTo(undefined);
+        });
+
+        return () => {
+            listener.remove();
+        };
+    }, [setIsSplashHidden]);
+
     // Save `exitTo` when we reach /transition route.
     // `exitTo` should always exist during OldDot -> NewDot transitions.
     useEffect(() => {
-        if (!NativeModules.HybridAppModule || !routeParams?.exitTo || exitTo) {
+        if (!NativeModules.HybridAppModule || !exitToParam || exitTo) {
             return;
         }
 
-        Log.info('[HybridApp] Saving `exitTo` for later', true, {exitTo: routeParams?.exitTo});
-        setExitTo(routeParams?.exitTo);
+        Log.info('[HybridApp] Saving `exitTo` for later', true, {exitTo: exitToParam});
+        setExitTo(exitToParam);
 
         Log.info(`[HybridApp] Started transition`, true);
         setStartedTransition(true);
-    }, [exitTo, routeParams?.email, routeParams?.exitTo]);
-
-    // This function only affects iOS. If during a single app lifecycle we frequently transition from OldDot to NewDot,
-    // we need to artificially show the bootsplash because the app is only booted once.
-    const showSplashScreenOnNextStart = useCallback(() => {
-        Log.info('[HybridApp] Resetting the state of HybridAppMiddleware to show the BootSplash on the next transition', true);
-        setIsSplashHidden(false);
-        setStartedTransition(false);
-        setFinishedTransition(false);
-        setExitTo(undefined);
-    }, [setIsSplashHidden]);
+    }, [exitTo, exitToParam]);
 
     useEffect(() => {
         if (!startedTransition || finishedTransition) {
@@ -82,21 +89,23 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
         if (exitTo) {
             Navigation.isNavigationReady().then(() => {
                 // We need to remove /transition from route history.
-                // `useTransitionRouteParams` returns undefined for routes other than /transition.
-                if (routeParams) {
+                // `useExitTo` returns undefined for routes other than /transition.
+                if (exitToParam) {
                     Log.info('[HybridApp] Removing /transition route from history', true);
                     Navigation.goBack();
                 }
 
                 Log.info('[HybridApp] Navigating to `exitTo` route', true, {exitTo});
                 Navigation.navigate(Navigation.parseHybridAppUrl(exitTo));
+                setExitTo(undefined);
+
                 setTimeout(() => {
                     Log.info('[HybridApp] Setting `finishedTransition` to true', true);
                     setFinishedTransition(true);
                 }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
             });
         }
-    }, [authenticated, exitTo, finishedTransition, initialURL, isAccountLoading, routeParams, sessionEmail, startedTransition]);
+    }, [authenticated, exitTo, exitToParam, finishedTransition, initialURL, isAccountLoading, sessionEmail, startedTransition]);
 
     useEffect(() => {
         if (!finishedTransition || isSplashHidden) {
@@ -113,18 +122,9 @@ function HybridAppMiddleware({children, authenticated}: HybridAppMiddlewareProps
         });
     }, [authenticated, finishedTransition, isSplashHidden, setIsSplashHidden]);
 
-    const contextValue = useMemo(
-        () => ({
-            showSplashScreenOnNextStart,
-        }),
-        [showSplashScreenOnNextStart],
-    );
-
-    return <HybridAppMiddlewareContext.Provider value={contextValue}>{children}</HybridAppMiddlewareContext.Provider>;
+    return children;
 }
 
 HybridAppMiddleware.displayName = 'HybridAppMiddleware';
 
 export default HybridAppMiddleware;
-export type {HybridAppMiddlewareContextType};
-export {HybridAppMiddlewareContext};

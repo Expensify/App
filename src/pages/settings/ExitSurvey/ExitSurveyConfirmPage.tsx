@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {MushroomTopHat} from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useHybridAppMiddleware from '@hooks/useHybridAppMiddleware';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,7 +35,6 @@ type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & StackScreenPr
 
 function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();
-    const showSplashScreenOnNextStart = useHybridAppMiddleware();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
 
@@ -88,7 +86,6 @@ function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitS
                     onPress={() => {
                         ExitSurvey.switchToOldDot().then(() => {
                             if (NativeModules.HybridAppModule) {
-                                showSplashScreenOnNextStart();
                                 Navigation.resetToHome();
                                 NativeModules.HybridAppModule.closeReactNativeApp();
                                 return;
