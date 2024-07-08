@@ -11,7 +11,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportFields from '@libs/actions/Policy/ReportFields';
+import * as ReportField from '@libs/actions/Policy/ReportField';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateReportFieldListValueName} from '@libs/WorkspaceReportFieldsUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -45,7 +45,7 @@ function ReportFieldEditValuePage({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
             const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
             if (currentValueName !== valueName) {
-                ReportFields.renameReportFieldsListValue(valueIndex, valueName);
+                ReportField.renameReportFieldsListValue(valueIndex, valueName);
             }
             Keyboard.dismiss();
             Navigation.goBack();

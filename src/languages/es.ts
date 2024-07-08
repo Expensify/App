@@ -344,6 +344,7 @@ export default {
         shared: 'Compartidos',
         drafts: 'Borradores',
         finished: 'Finalizados',
+        upgrade: 'Mejora',
         companyID: 'Empresa ID',
         userID: 'Usuario ID',
         disable: 'Deshabilitar',
@@ -697,7 +698,6 @@ export default {
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
-        business: 'Empresa',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} con Expensify` : `Pagar con Expensify`),
         settlePersonal: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pago ${formattedAmount} como individuo` : `Pago individual`),
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `Pagar ${formattedAmount}`,
@@ -817,6 +817,11 @@ export default {
         removed: 'eliminó',
         transactionPending: 'Transacción pendiente.',
         chooseARate: ({unit}: ReimbursementRateParams) => `Selecciona una tasa de reembolso por ${unit} del espacio de trabajo`,
+        unapprove: 'Desaprobar',
+        unapproveReport: 'Anular la aprobación del informe',
+        headsUp: 'Atención!',
+        unapproveWithIntegrationWarning: (accountingIntegration: string) =>
+            `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -2134,14 +2139,11 @@ export default {
                 'QuickBooks Online no permite lugares en facturas de proveedores o cheques. Como tienes activadas los lugares en tu espacio de trabajo, estas opciones de exportación no están disponibles.',
 
             advancedConfig: {
-                advanced: 'Avanzado',
-                autoSync: 'Autosincronización',
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con QuickBooks Online todos los días.',
                 inviteEmployees: 'Invitar empleados',
                 inviteEmployeesDescription: 'Importe los registros de los empleados de Quickbooks Online e invítelos a este espacio de trabajo.',
                 createEntities: 'Crear entidades automáticamente',
                 createEntitiesDescription: 'Expensify creará automáticamente proveedores en QuickBooks Online si aún no existen, y creará automáticamente clientes al exportar facturas.',
-                reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks Online indicadas a continuación.',
                 qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
@@ -2212,11 +2214,8 @@ export default {
             salesInvoice: 'Factura de venta',
             exportInvoicesDescription: 'Las facturas de venta siempre muestran la fecha en la que se envió la factura.',
             advancedConfig: {
-                advanced: 'Avanzado',
-                autoSync: 'Autosincronización',
                 autoSyncDescription: 'Expensify se sincronizará automáticamente con Xero todos los días.',
                 purchaseBillStatusTitle: 'Estado de la factura de compra',
-                reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
                 xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
@@ -2336,6 +2335,50 @@ export default {
                     },
                 },
             },
+            advancedConfig: {
+                autoSyncDescription: 'Expensify se sincronizará automáticamente con NetSuite todos los días.',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de NetSuite indicadas a continuación.',
+                reimbursementsAccount: 'Cuenta de reembolsos',
+                collectionsAccount: 'Cuenta de cobros',
+                approvalAccount: 'Cuenta de aprobación de cuentas por pagar',
+                defaultApprovalAccount: 'Preferencia predeterminada de NetSuite',
+                inviteEmployees: 'Invitar empleados y establecer aprobaciones',
+                inviteEmployeesDescription:
+                    'Importar registros de empleados de NetSuite e invitar a empleados a este espacio de trabajo. Su flujo de trabajo de aprobación será por defecto la aprobación del gerente y se puede configurar más en la página *Miembros*.',
+                autoCreateEntities: 'Crear automáticamente empleados/proveedores',
+                enableCategories: 'Activar categorías recién importadas',
+                customFormID: 'ID de formulario personalizado',
+                customFormIDDescription:
+                    'Por defecto, Expensify creará entradas utilizando el formulario de transacción preferido configurado en NetSuite. Alternativamente, tienes la opción de designar un formulario de transacción específico para ser utilizado.',
+                customFormIDReimbursable: 'Gasto reembolsable',
+                customFormIDNonReimbursable: 'Gasto no reembolsable',
+                exportReportsTo: {
+                    label: 'Nivel de aprobación del informe de gastos',
+                    values: {
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_NONE]: 'Preferencia predeterminada de NetSuite',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_SUPERVISOR_APPROVED]: 'Solo aprobado por el supervisor',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_ACCOUNTING_APPROVED]: 'Solo aprobado por contabilidad',
+                        [CONST.NETSUITE_REPORTS_APPROVAL_LEVEL.REPORTS_APPROVED_BOTH]: 'Aprobado por supervisor y contabilidad',
+                    },
+                },
+                exportVendorBillsTo: {
+                    label: 'Nivel de aprobación de facturas de proveedores',
+                    values: {
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED_NONE]: 'Preferencia predeterminada de NetSuite',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVAL_PENDING]: 'Aprobación pendiente',
+                        [CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL.VENDOR_BILLS_APPROVED]: 'Aprobado para publicación',
+                    },
+                },
+                exportJournalsTo: {
+                    label: 'Nivel de aprobación de asientos contables',
+                    values: {
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE]: 'Preferencia predeterminada de NetSuite',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVAL_PENDING]: 'Aprobación pendiente',
+                        [CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED]: 'Aprobado para publicación',
+                    },
+                },
+            },
             noAccountsFound: 'No se han encontrado cuentas',
             noAccountsFoundDescription: 'Añade la cuenta en NetSuite y sincroniza la conexión de nuevo.',
             noVendorsFound: 'No se han encontrado proveedores',
@@ -2344,20 +2387,86 @@ export default {
             noItemsFoundDescription: 'Añade artículos de factura en NetSuite y sincroniza la conexión de nuevo.',
             noSubsidiariesFound: 'No se ha encontrado subsidiarias',
             noSubsidiariesFoundDescription: 'Añade la subsidiaria en NetSuite y sincroniza de nuevo la conexión.',
+            tokenInput: {
+                title: 'Netsuite configuración',
+                formSteps: {
+                    installBundle: {
+                        title: 'Instala el paquete de Expensify',
+                        description: 'En NetSuite, ir a *Personalización > SuiteBundler > Buscar e Instalar Paquetes* > busca "Expensify" > instala el paquete.',
+                    },
+                    enableTokenAuthentication: {
+                        title: 'Habilitar la autenticación basada en token',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar Funciones > SuiteCloud* > activar *autenticación basada en token*.',
+                    },
+                    enableSoapServices: {
+                        title: 'Habilitar servicios web SOAP',
+                        description: 'En NetSuite, ir a *Configuración > Empresa > Habilitar funciones > SuiteCloud* > habilitar *Servicios Web SOAP*.',
+                    },
+                    createAccessToken: {
+                        title: 'Crear un token de acceso',
+                        description:
+                            'En NetSuite, ir a *Configuración > Usuarios/Roles > Tokens de Acceso* > crear un token de acceso para la aplicación "Expensify" y tambiém para el rol de "Integración Expensify" o "Administrador".\n\n*Importante:* Asegúrese de guardar el ID y el secreto del Token en este paso. Los necesitará para el siguiente paso.',
+                    },
+                    enterCredentials: {
+                        title: 'Ingresa tus credenciales de NetSuite',
+                        formInputs: {
+                            netSuiteAccountID: 'ID de Cuenta NetSuite',
+                            netSuiteTokenID: 'ID de Token',
+                            netSuiteTokenSecret: 'Secreto de Token',
+                        },
+                        netSuiteAccountIDDescription: 'En NetSuite, ir a *Configuración > Integración > Preferencias de Servicios Web SOAP*.',
+                    },
+                },
+            },
             import: {
                 expenseCategories: 'Categorías de gastos',
                 expenseCategoriesDescription: 'Las categorías de gastos de NetSuite se importan a Expensify como categorías.',
+                crossSubsidiaryCustomers: 'Clientes/proyectos entre subsidiaria',
                 importFields: {
-                    departments: 'Departamentos',
-                    classes: 'Clases',
-                    locations: 'Ubicaciones',
-                    customers: 'Clientes',
-                    jobs: 'Proyectos (trabajos)',
+                    departments: {
+                        title: 'Departamentos',
+                        subtitle: 'Elige cómo manejar los *departamentos* de NetSuite en Expensify.',
+                    },
+                    classes: {
+                        title: 'Clases',
+                        subtitle: 'Elige cómo manejar las *clases* en Expensify.',
+                    },
+                    locations: {
+                        title: 'Ubicaciones',
+                        subtitle: 'Elija cómo manejar *ubicaciones* en Expensify.',
+                    },
+                },
+                customersOrJobs: {
+                    title: 'Clientes / proyectos',
+                    subtitle: 'Elija cómo manejar los *clientes* y *proyectos* de NetSuite en Expensify.',
+                    importCustomers: 'Importar clientes',
+                    importJobs: 'Importar proyectos',
+                    customers: 'clientes',
+                    jobs: 'proyectos',
+                    label: (importFields: string[], importType: string) => `${importFields.join(' y ')}, ${importType}`,
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite',
                 importCustomFields: {
-                    customSegments: 'Segmentos/registros personalizado',
+                    customSegments: 'Segmentos/registros personalizados',
                     customLists: 'Listas personalizado',
+                },
+                importTypes: {
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
+                        label: 'Predeterminado del empleado NetSuite',
+                        description: 'No importado a Expensify, aplicado en exportación',
+                        footerContent: (importField: string) =>
+                            `Si usa ${importField} en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
+                        label: 'Etiquetas',
+                        description: 'Nivel de línea de pedido',
+                        footerContent: (importField: string) => `Se podrán seleccionar ${importField} para cada gasto individual en el informe de un empleado.`,
+                    },
+                    [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
+                        label: 'Campos de informe',
+                        description: 'Nivel de informe',
+                        footerContent: (importField: string) => `La selección de ${importField} se aplicará a todos los gastos en el informe de un empleado.`,
+                    },
                 },
             },
         },
@@ -2439,6 +2548,16 @@ export default {
                 disableCardTitle: 'Deshabilitar la Tarjeta Expensify',
                 disableCardPrompt: 'No puedes deshabilitar la Tarjeta Expensify porque ya está en uso. Por favor, contacta con Concierge para conocer los pasos a seguir.',
                 disableCardButton: 'Chatear con Concierge',
+                feed: {
+                    title: 'Consigue la Tarjeta Expensify',
+                    subTitle: 'Optimiza tu negocio con la Tarjeta Expensify',
+                    features: {
+                        cashBack: 'Hasta un 2% de devolución en cada compra en Estadios Unidos',
+                        unlimited: 'Emitir un número ilimitado de tarjetas virtuales',
+                        spend: 'Controles de gastos y límites personalizados',
+                    },
+                    ctaTitle: 'Emitir nueva tarjeta',
+                },
             },
             distanceRates: {
                 title: 'Tasas de distancia',
@@ -2627,6 +2746,21 @@ export default {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            connectionName: (integration: ConnectionName) => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Quickbooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Xero';
+                    case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+                        return 'NetSuite';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+                        return 'Sage Intacct';
+                    default: {
+                        return '';
+                    }
+                }
+            },
             setup: 'Configurar',
             lastSync: (relativeDate: string) => `Recién sincronizado ${relativeDate}`,
             import: 'Importar',
@@ -2665,7 +2799,7 @@ export default {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado como campos de informe',
-                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Predeterminado del empleado NetSuite',
             },
             disconnectPrompt: (currentIntegration?: ConnectionName): string => {
                 const integrationName =
@@ -2787,6 +2921,8 @@ export default {
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en tu cuenta.',
             exportAs: 'Exportar cómo',
             defaultVendor: 'Proveedor predeterminado',
+            autoSync: 'Autosincronización',
+            reimbursedReports: 'Sincronizar informes reembolsados',
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -3010,6 +3146,30 @@ export default {
             errorDescriptionPartOne: 'Hubo un problema al transferir la propiedad de este espacio de trabajo. Inténtalo de nuevo, o',
             errorDescriptionPartTwo: 'contacta con el conserje',
             errorDescriptionPartThree: 'por ayuda.',
+        },
+        upgrade: {
+            reportFields: {
+                title: 'Los campos',
+                description: `Los campos de informe permiten especificar detalles a nivel de cabecera, distintos de las etiquetas que pertenecen a los gastos en partidas individuales. Estos detalles pueden incluir nombres de proyectos específicos, información sobre viajes de negocios, ubicaciones, etc.`,
+                pricing: {
+                    onlyAvailableOnPlan: 'Los campos de informe sólo están disponibles en el plan Control, a partir de ',
+                    amount: '$9 ',
+                    perActiveMember: 'por miembro activo al mes.',
+                },
+            },
+            note: {
+                upgradeWorkspace: 'Mejore su espacio de trabajo para acceder a esta función, o',
+                learnMore: 'más información',
+                aboutOurPlans: 'sobre nuestros planes y precios.',
+            },
+            upgradeToUnlock: 'Desbloquear esta función',
+            completed: {
+                headline: 'Has mejorado tu espacio de trabajo.',
+                successMessage: (policyName: string) => `Ha mejorado correctamente su espacio de trabajo ${policyName} al plan Control.`,
+                viewSubscription: 'Ver su suscripción',
+                moreDetails: 'para obtener más información.',
+                gotIt: 'Entendido, gracias.',
+            },
         },
         restrictedAction: {
             restricted: 'Restringido',
@@ -4013,6 +4173,14 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+        none: 'Ninguno',
+        taxCodeToKeep: 'Elige qué tasa de impuesto quieres conservar',
+        tagToKeep: 'Elige qué etiqueta quieres conservar',
+        isTransactionReimbursable: 'Elige si la transacción es reembolsable',
+        merchantToKeep: 'Elige qué comerciante quieres conservar',
+        descriptionToKeep: 'Elige qué descripción quieres conservar',
+        categoryToKeep: 'Elige qué categoría quieres conservar',
+        isTransactionBillable: 'Elige si la transacción es facturable',
         keepThisOne: 'Mantener éste',
         hold: 'Bloqueado',
     },
