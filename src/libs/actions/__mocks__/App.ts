@@ -5,13 +5,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import createProxyForObject from '@src/utils/createProxyForObject';
 
-const AppImplementation: typeof AppImport = jest.requireActual('@libs/actions/App');
+const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
 const {
     setLocale,
     setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    openProfile,
     redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
@@ -40,7 +39,7 @@ const mockValues: AppMockValues = {
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
-const ApplyUpdatesImplementation: typeof ApplyUpdatesImport = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
+const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 const getMissingOnyxUpdates = jest.fn((_fromID: number, toID: number) => {
     if (mockValuesProxy.missingOnyxUpdatesToBeApplied === undefined) {
         return Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, toID);
@@ -59,7 +58,6 @@ export {
     setLocaleAndNavigate,
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
-    openProfile,
     redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
