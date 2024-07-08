@@ -442,22 +442,6 @@ describe('Unread Indicators', () => {
 
                 // Leave a comment as the current user and verify the indicator is removed
                 Report.addComment(REPORT_ID, 'Current User Comment 1');
-                const newActionID: string = await new Promise((resolve) => {
-                    const connectionID = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                        callback: (reportActions) => {
-                            Onyx.disconnect(connectionID);
-                            const sortedActions = Object.values(reportActions ?? {}).toSorted((a, b) => (a.created < b.created ? -1 : 1));
-                            resolve(sortedActions.pop()?.reportActionID ?? '');
-                        },
-                    });
-                });
-                expect(newActionID).toBeTruthy();
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                    [newActionID]: {
-                        previousReportActionID: '9',
-                    },
-                });
                 return waitForBatchedUpdates();
             })
             .then(() => {
