@@ -26,7 +26,7 @@ function getFetchRequestHeadersAsObject(fetchRequest: RequestInit): Record<strin
         });
     } else if (typeof fetchRequest.headers === 'object') {
         Object.entries(fetchRequest.headers).forEach(([key, value]) => {
-            headers[key] = value;
+            headers[key] = value as string;
         });
     }
     return headers;

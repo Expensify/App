@@ -1,4 +1,5 @@
 import {CENTRAL_PANE_WORKSPACE_SCREENS} from '@libs/Navigation/AppNavigator/Navigators/FullScreenNavigator';
+import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 const SCREENS_WITH_AUTOFOCUS: string[] = [
@@ -8,8 +9,20 @@ const SCREENS_WITH_AUTOFOCUS: string[] = [
     SCREENS.PRIVATE_NOTES.EDIT,
     SCREENS.SETTINGS.PROFILE.STATUS,
     SCREENS.SETTINGS.PROFILE.PRONOUNS,
+    SCREENS.REPORT_SETTINGS.ROOT,
+    SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES,
+    SCREENS.REPORT_PARTICIPANTS.ROOT,
+    SCREENS.ROOM_MEMBERS_ROOT,
     SCREENS.NEW_TASK.DETAILS,
     SCREENS.MONEY_REQUEST.CREATE,
+    SCREENS.SIGN_IN_ROOT,
 ];
 
-export default SCREENS_WITH_AUTOFOCUS;
+function getScreenWithAutofocus(isAuthenticated: boolean) {
+    if (!isAuthenticated) {
+        return [...SCREENS_WITH_AUTOFOCUS, NAVIGATORS.BOTTOM_TAB_NAVIGATOR];
+    }
+    return SCREENS_WITH_AUTOFOCUS;
+}
+
+export default getScreenWithAutofocus;
