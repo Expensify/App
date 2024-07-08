@@ -1,6 +1,7 @@
 import type {NavigationState} from '@react-navigation/native';
 import {DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
+import HybridAppMiddleware from '@components/HybridAppMiddleware';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -152,7 +153,10 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={authenticated} />
+            {/* HybridAppMiddleware needs to have access to navigation ref and SplashScreenHidden context */}
+            <HybridAppMiddleware>
+                <AppNavigator authenticated={authenticated} />
+            </HybridAppMiddleware>
         </NavigationContainer>
     );
 }
