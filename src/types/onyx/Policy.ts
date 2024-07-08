@@ -1062,7 +1062,7 @@ type PolicyReportField = {
     deletable: boolean;
 
     /** Value of the field */
-    value: string | null;
+    value?: string | null;
 
     /** Options to select from if field is of type dropdown */
     values: string[];
