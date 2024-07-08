@@ -12,10 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections/NetSuiteCommands';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import * as FormActions from '@userActions/FormActions';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -111,6 +111,21 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
         [customLists, nextScreen, policyID],
     );
 
+    const renderSubStepContent = useMemo(
+        () => (
+            <SubStep
+                isEditing={isEditing}
+                onNext={handleNextScreen}
+                onMove={moveTo}
+                screenIndex={screenIndex}
+                policyID={policyID}
+                policy={policy}
+                importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
+            />
+        ),
+        [SubStep, handleNextScreen, isEditing, moveTo, policy, policyID, screenIndex],
+    );
+
     return (
         <ConnectionLayout
             displayName={NetSuiteImportAddCustomListPage.displayName}
@@ -123,7 +138,6 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
             shouldIncludeSafeAreaPaddingBottom
-            shouldUseScrollView={false}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
@@ -133,24 +147,20 @@ function NetSuiteImportAddCustomListPage({policy}: WithPolicyConnectionsProps) {
                 />
             </View>
             <View style={[styles.flexGrow1, styles.mt3]}>
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
-                    submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
-                    onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomLists : handleNextScreen}
-                    validate={validate}
-                    style={[styles.flexGrow1]}
-                    submitButtonStyles={[styles.ph5, styles.mb0]}
-                >
-                    <SubStep
-                        isEditing={isEditing}
-                        onNext={handleNextScreen}
-                        onMove={moveTo}
-                        screenIndex={screenIndex}
-                        policyID={policyID}
-                        policy={policy}
-                        importCustomField={CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS}
-                    />
-                </FormProvider>
+                {screenIndex === 0 ? (
+                    renderSubStepContent
+                ) : (
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM}
+                        submitButtonText={screenIndex === formSteps.length - 1 ? translate('common.confirm') : translate('common.next')}
+                        onSubmit={screenIndex === formSteps.length - 1 ? updateNetSuiteCustomLists : handleNextScreen}
+                        validate={validate}
+                        style={[styles.flexGrow1]}
+                        submitButtonStyles={[styles.ph5, styles.mb0]}
+                    >
+                        {renderSubStepContent}
+                    </FormProvider>
+                )}
             </View>
         </ConnectionLayout>
     );

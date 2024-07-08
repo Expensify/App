@@ -5,9 +5,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}: CustomFieldSubStepWithPolicy) {
+function ChooseSegmentTypeStep({onNext, customSegmentType}: CustomFieldSubStepWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -37,7 +40,7 @@ function ChooseSegmentTypeStep({onNext, customSegmentType, setCustomSegmentType}
                 ListItem={RadioListItem}
                 initiallyFocusedOptionKey={customSegmentType}
                 onSelectRow={(selected) => {
-                    setCustomSegmentType?.(selected.value);
+                    FormActions.setDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM, {[INPUT_IDS.CUSTOM_SEGMENT_RECORD_TYPE]: selected.value});
                     onNext();
                 }}
             />
