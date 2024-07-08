@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
+import type {Constructor} from 'type-fest';
 import buildArrayCache from './cache/arrayCacheBuilder';
 import {MemoizeStats} from './stats';
 import type {ClientOptions, MemoizedFn, MemoizeFnPredicate, Stats} from './types';
@@ -49,6 +50,7 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
     const stats = new MemoizeStats(options.monitor || Memoize.isMonitoringEnabled);
 
     const memoized = function memoized(...args: Parameters<Fn>): ReturnType<Fn> {
+        const constructable = !!new.target;
         const key = truncateArgs(args, options.maxArgs) as Parameters<Fn>;
 
         const statsEntry = stats.createEntry();
@@ -58,8 +60,9 @@ function memoize<Fn extends MemoizeFnPredicate>(fn: Fn, opts?: ClientOptions): M
         const retrievalTimeStart = performance.now();
         const cached = cache.getSet(key, () => {
             const fnTimeStart = performance.now();
+            // If the function is constructable, we need to call it with the `new` keyword
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            const result = fn(...args);
+            const result = constructable ? new (fn as unknown as Constructor<ReturnType<Fn>, Parameters<Fn>>)(...args) : fn(...args);
             statsEntry.trackTime('fnTime', fnTimeStart);
             statsEntry.track('didHit', false);
 
